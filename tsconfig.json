@@ -1,0 +1,15 @@
+{
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "compilerOptions": {
+    "target": "es6",
+    "module": "ESNext",
+    "baseUrl": "./",
+    "types": [
+      "svelte"
+    ]
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "baseUrl": "./src"
+}
