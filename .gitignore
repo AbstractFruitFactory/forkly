@@ -1,6 +1,4 @@
 .snowpack
 build
-.yarn/unplugged
-.yarn/releases
-.yarn/install-state.gz
+.yarn
 node_modules
