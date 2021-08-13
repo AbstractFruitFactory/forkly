@@ -1,0 +1,36 @@
+@import "./theme";
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 25px 50px;
+  padding: 0;
+  background-color: $background;
+  font-family: "Nunito", sans-serif;
+  color: $text;
+}
+
+input {
+  border-style: none;
+  outline: 0px;
+  color: $text;
+  font-size: 15px;
+  background: transparent;
+}
+
+input:empty:before {
+  content: attr(placeholder);
+  color: #ccc;
+  opacity: 50%;
+}
+
+input:focus {
+  outline: none;
+}
+
+a {
+  text-decoration: none;
+}
