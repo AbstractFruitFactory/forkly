@@ -1184,7 +1184,7 @@ fsevents@~2.1.2:
     "@snowpack/plugin-typescript": ^1.2.1
     "@tsconfig/svelte": ^1.0.10
     snowpack: ^3.0.1
-    svelte: ^3.31.2
+    svelte: ^3.42.1
     svelte-check: ^1.1.31
     svelte-preprocess: ^4.6.5
     svelte-routing: ^1.5.0
@@ -1525,10 +1525,10 @@ fsevents@~2.1.2:
   languageName: node
   linkType: hard
 
-"svelte@npm:^3.31.2":
-  version: 3.31.2
-  resolution: "svelte@npm:3.31.2"
-  checksum: 7e125d422cc13aba88d36c558e999b68ffdac3a95fcbdaad8cd5c5ee82091ee85fa2b5b51414b0d21359de5727791990acc306e971a458503c254b299ca4af75
+"svelte@npm:^3.42.1":
+  version: 3.42.1
+  resolution: "svelte@npm:3.42.1"
+  checksum: 7be8632cff97e29fd8c15d5eed99c036b169ab06be87fd8d00de9b8cd457146d38efda42377e82d867e0f72ca536009c02be47ddadb1616e8920071a97de9363
   languageName: node
   linkType: hard
 

@@ -3,3 +3,4 @@ build
 .yarn/unplugged
 .yarn/releases
 .yarn/install-state.gz
+node_modules
