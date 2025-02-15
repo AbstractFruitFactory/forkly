@@ -1,0 +1,60 @@
+{
+	"name": "forkly",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"format": "prettier --write .",
+		"lint": "prettier --check .",
+		"db:start": "docker compose up",
+		"db:push": "drizzle-kit push",
+		"db:migrate": "drizzle-kit migrate",
+		"db:studio": "drizzle-kit studio",
+		"storybook": "storybook dev -p 6006",
+		"build-storybook": "storybook build"
+	},
+	"devDependencies": {
+		"@chromatic-com/storybook": "^3.2.4",
+		"@storybook/addon-essentials": "^8.5.6",
+		"@storybook/addon-interactions": "^8.5.6",
+		"@storybook/addon-svelte-csf": "^5.0.0-next.23",
+		"@storybook/blocks": "^8.5.6",
+		"@storybook/svelte": "^8.5.6",
+		"@storybook/sveltekit": "^8.5.6",
+		"@storybook/test": "^8.5.6",
+		"@sveltejs/adapter-auto": "^4.0.0",
+		"@sveltejs/kit": "^2.16.0",
+		"@sveltejs/vite-plugin-svelte": "^5.0.0",
+		"drizzle-kit": "^0.30.2",
+		"prettier": "^3.4.2",
+		"prettier-plugin-svelte": "^3.3.3",
+		"sass-embedded": "^1.85.0",
+		"storybook": "^8.5.6",
+		"svelte": "^5.0.0",
+		"svelte-check": "^4.0.0",
+		"typescript": "^5.0.0",
+		"vite": "^6.0.0"
+	},
+	"dependencies": {
+		"@node-rs/argon2": "^2.0.2",
+		"@oslojs/crypto": "^1.0.1",
+		"@oslojs/encoding": "^1.1.0",
+		"drizzle-orm": "^0.38.4",
+		"postgres": "^3.4.5",
+		"ramda": "^0.30.1",
+		"spoonacular": "^2.0.1",
+		"ts-results": "^3.3.0",
+		"valibot": "1.0.0-rc.0"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild"
+		]
+	}
+}
