@@ -56,7 +56,7 @@
 	}
 
 	.recipe {
-		background: white;
+		background-color: var(--color-neutral-dark);
 		border-radius: 8px;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 		padding: 32px;
@@ -69,12 +69,10 @@
 	h1 {
 		font-size: 36px;
 		margin: 0 0 16px;
-		color: #333;
 	}
 
 	.description {
 		font-size: 18px;
-		color: #666;
 		line-height: 1.6;
 		margin: 0;
 	}
@@ -86,7 +84,6 @@
 	h2 {
 		font-size: 24px;
 		margin: 0 0 16px;
-		color: #444;
 	}
 
 	ul,
@@ -115,16 +112,7 @@
 	}
 
 	.measurement {
-		color: #666;
 		margin-right: 8px;
-	}
-
-	.ingredient-name {
-		color: black;
-	}
-
-	.instructions {
-		color: black;
 	}
 
 	@media (max-width: 640px) {

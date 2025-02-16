@@ -47,7 +47,6 @@
 		top: 50%;
 		transform: translateY(-50%);
 		font-size: 14px;
-		color: var(--color-neutral);
 	}
 
 	.suggestions-list {
@@ -58,7 +57,7 @@
 		margin: 0;
 		padding: 0;
 		list-style: none;
-		background: var(--color-neutral-lighter);
+		background: var(--color-neutral-dark);
 		border: 1px solid var(--color-neutral);
 		border-radius: 4px;
 		box-shadow: var(--shadow-md);
@@ -76,7 +75,6 @@
 			padding: 8px 12px;
 			background: none;
 			border: none;
-			color: var(--color-neutral-dark);
 			cursor: pointer;
 
 			&:hover {
