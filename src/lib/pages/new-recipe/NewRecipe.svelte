@@ -144,7 +144,7 @@
 								}}
 							/>
 						</Input>
-						
+
 						<Input>
 							<select name={`ingredients${i}measurement`}>
 								<option value="">Unit</option>
@@ -221,7 +221,6 @@
 		margin-bottom: 40px;
 		font-weight: 600;
 		text-align: center;
-		color: var(--color-neutral-dark);
 	}
 
 	.form-group {
@@ -232,7 +231,6 @@
 		display: block;
 		margin-bottom: 12px;
 		font-weight: 500;
-		color: var(--color-neutral-dark);
 		font-size: 1.1rem;
 	}
 
@@ -246,7 +244,6 @@
 	.remove-btn {
 		background: none;
 		border: none;
-		color: var(--color-neutral);
 		cursor: pointer;
 		padding: 8px;
 		transition: all 0.2s ease;
@@ -261,7 +258,7 @@
 
 	.remove-btn:hover {
 		color: var(--color-error);
-		background-color: var(--color-error-light);
+		background-color: var(--color-error-dark);
 	}
 
 	.add-btn {
@@ -274,11 +271,10 @@
 		margin-top: 16px;
 		transition: all 0.2s ease;
 		font-weight: 500;
-		color: var(--color-neutral-dark);
+
 	}
 
 	.add-btn:hover {
-		background: var(--color-neutral-lighter);
 		border-color: var(--color-primary);
 		color: var(--color-primary);
 	}

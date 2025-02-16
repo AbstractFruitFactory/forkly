@@ -26,10 +26,9 @@
 		display: block;
 		padding: 24px;
 		border-radius: 8px;
-		background: white;
+		background: var(--color-neutral-dark);
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 		text-decoration: none;
-		color: inherit;
 		transition:
 			transform 0.2s ease,
 			box-shadow 0.2s ease;
@@ -43,19 +42,16 @@
 	.recipe-card h2 {
 		margin: 0 0 12px;
 		font-size: 24px;
-		color: #333;
 	}
 
 	.description {
 		margin: 0 0 16px;
-		color: #666;
 		overflow: hidden;
 	}
 
 	.meta {
 		display: flex;
 		gap: 16px;
-		color: #888;
 		font-size: 14px;
 	}
 </style>

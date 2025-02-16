@@ -16,8 +16,7 @@
 		border-radius: 4px;
 		font-family: var(--font-sans);
 		transition: all 0.2s ease;
-		background-color: var(--color-neutral-lighter);
-		color: var(--color-neutral-dark);
+		background-color: var(--color-neutral-dark);
 		height: 40px;
 		font-size: 16px;
 

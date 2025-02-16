@@ -39,7 +39,7 @@
 
 <style>
 	.header {
-		background: var(--color-neutral-lighter);
+		background: var(--color-neutral-dark);
 		box-shadow: var(--shadow-sm);
 		padding: 16px 0;
 		border-bottom: 1px solid var(--color-neutral);
@@ -71,7 +71,7 @@
 
 	nav a {
 		text-decoration: none;
-		color: var(--color-neutral-dark);
+		color: var(--color-neutral);
 		transition: color 0.2s ease;
 		font-weight: 500;
 	}
@@ -83,7 +83,7 @@
 	.menu-toggle {
 		display: none;
 		transition: opacity 0.2s ease;
-		color: var(--color-neutral-dark);
+		color: var(--color-neutral);
 	}
 
 	.menu-toggle:hover {
@@ -116,7 +116,6 @@
 			top: 100%;
 			left: 0;
 			right: 0;
-			background: var(--color-neutral-light);
 			padding: 16px;
 		}
 
