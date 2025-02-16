@@ -1,5 +1,5 @@
 <script lang="ts">
-	let { recipeId }: { recipeId: number } = $props()
+	let { recipeId }: { recipeId: string } = $props()
 </script>
 
 <div class="success-container">

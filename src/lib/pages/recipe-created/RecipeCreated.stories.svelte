@@ -13,6 +13,11 @@
 	})
 </script>
 
-<Story name="Default" args={{ recipeId: 123 }} />
+<Story name="Default" args={{ recipeId: 'kR6xPm2bN9' }} />
 
-<Story name="Long Recipe ID" args={{ recipeId: 999999999 }} /> 
+<Story 
+	name="Another ID" 
+	args={{ 
+		recipeId: 'Lz7yQn3cP4' 
+	}} 
+/> 

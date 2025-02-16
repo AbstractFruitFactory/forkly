@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ params }) => {
-  const recipeId = parseInt(params.id)
+  const recipeId = params.id
 
   const recipes = await db.select().from(recipe).where(eq(recipe.id, recipeId))
   const foundRecipe = recipes[0]

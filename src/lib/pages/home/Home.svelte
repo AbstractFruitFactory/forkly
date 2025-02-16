@@ -2,7 +2,7 @@
 	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
 	
 	type Recipe = {
-		id: number
+		id: string
 		title: string
 		description: string
 		ingredients: number

@@ -1,6 +1,6 @@
 <script lang="ts">
 	interface Recipe {
-		id: number
+		id: string
 		title: string
 		description?: string
 		ingredients: number

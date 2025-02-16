@@ -5,6 +5,7 @@ import type { Actions } from './$types'
 import { safeParse } from 'valibot'
 import { recipeSchema } from '$lib/form-validation'
 import type { Ingredient, MeasurementUnit } from '$lib/types'
+import { generateId } from '$lib/server/id'
 
 export const actions = {
   default: async ({ request, locals }) => {
@@ -68,6 +69,7 @@ export const actions = {
     }
 
     const newRecipe = await db.insert(recipe).values({
+      id: generateId(),
       ...result.output,
       userId: locals.user?.id ?? null
     }).returning()

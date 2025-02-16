@@ -22,7 +22,7 @@ export type Ingredient = {
 }
 
 export type Recipe = {
-  id: number
+  id: string
   title: string
   description: string
   ingredients: Ingredient[]

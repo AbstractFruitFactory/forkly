@@ -16,7 +16,7 @@ export const session = pgTable('session', {
 })
 
 export const recipe = pgTable('recipe', {
-	id: serial('id').primaryKey(),
+	id: text('id').primaryKey(),
 	userId: text('user_id')
 		.references(() => user.id),
 	title: text('title').notNull(),
