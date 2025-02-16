@@ -2,6 +2,9 @@
 	import type { Ingredient, MeasurementUnit } from '$lib/types'
 	import { measurementUnits } from '$lib/types'
 	import type { ValidationError } from '$lib/form-validation/types'
+	import type { IngredientSearchResult } from '$lib/server/food-api'
+	import Autocomplete from '$lib/components/autocomplete/Autocomplete.svelte'
+	import Input from '$lib/components/input/Input.svelte'
 
 	const measurementUnitDisplayText: Record<MeasurementUnit, string> = {
 		cups: 'cups (c)',
@@ -22,7 +25,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms'
 
-	let { errors }: { errors: ValidationError[] } = $props()
+	let {
+		errors,
+		onSearchIngredients
+	}: {
+		errors: ValidationError[]
+		onSearchIngredients?: (query: string) => Promise<IngredientSearchResult>
+	} = $props()
 
 	let ingredients = $state<
 		(Omit<Ingredient, 'measurement'> & { measurement: Ingredient['measurement'] | undefined })[]
@@ -35,6 +44,10 @@
 	])
 
 	let instructions = $state([''])
+
+	let suggestions = $state<Record<number, IngredientSearchResult>>({})
+	let isLoading = $state<Record<number, boolean>>({})
+	let selectedIngredient = $state<Record<number, IngredientSearchResult[number] | null>>({})
 
 	const addIngredient = () => {
 		ingredients = [
@@ -58,6 +71,31 @@
 	const removeInstruction = (index: number) => {
 		instructions = instructions.filter((_, i) => i !== index)
 	}
+
+	const searchIngredients = async (query: string, index: number) => {
+		if (!onSearchIngredients) return
+
+		if (query.length < 2) {
+			suggestions[index] = []
+			return
+		}
+
+		isLoading[index] = true
+		try {
+			const results = await onSearchIngredients(query)
+			suggestions[index] = results
+		} catch (error) {
+			suggestions[index] = []
+		} finally {
+			isLoading[index] = false
+		}
+	}
+
+	const selectIngredient = (ingredient: IngredientSearchResult[number], index: number) => {
+		ingredients[index].name = ingredient.name
+		selectedIngredient[index] = ingredient
+		suggestions[index] = []
+	}
 </script>
 
 <div class="container">
@@ -74,13 +112,17 @@
 
 		<div class="form-group">
 			<label for="title">Recipe Title</label>
-			<input id="title" type="text" name="title" required placeholder="Enter recipe title" />
+			<Input>
+				<input id="title" name="title" type="text" required placeholder="Enter recipe title" />
+			</Input>
 		</div>
 
 		<div class="form-group">
 			<label for="description">Description</label>
-			<textarea id="description" name="description" placeholder="Describe your recipe" rows="3"
-			></textarea>
+			<Input>
+				<textarea id="description" name="description" placeholder="Describe your recipe" rows="3"
+				></textarea>
+			</Input>
 		</div>
 
 		<div class="form-group">
@@ -88,7 +130,7 @@
 			<div id="ingredients">
 				{#each ingredients as ingredient, i}
 					<div class="ingredient-group">
-						<div class="quantity-measure">
+						<Input>
 							<input
 								type="number"
 								step="0.01"
@@ -96,20 +138,47 @@
 								name={`ingredients${i}quantity`}
 								placeholder="Qty"
 								class="quantity-input"
+								value={ingredient.quantity}
+								oninput={(e) => {
+									ingredients[i].quantity = Number((e.target as HTMLInputElement).value)
+								}}
 							/>
-							<select name={`ingredients${i}measurement`} class="measure-select">
+						</Input>
+						
+						<Input>
+							<select name={`ingredients${i}measurement`}>
 								<option value="">Unit</option>
 								{#each measurementUnits as unit}
 									<option value={unit}>{measurementUnitDisplayText[unit]}</option>
 								{/each}
 							</select>
-						</div>
+						</Input>
+
 						<div class="ingredient-input">
-							<input type="text" name={`ingredients${i}name`} placeholder="Ingredient name" />
-							<button type="button" class="remove-btn" onclick={() => removeIngredient(i)}>
-								✕
-							</button>
+							<Autocomplete
+								isLoading={isLoading[i]}
+								suggestions={suggestions[i] ?? []}
+								onSelect={(suggestion) => selectIngredient(suggestion, i)}
+							>
+								<Input>
+									<input
+										name={`ingredients${i}name`}
+										placeholder="Ingredient name"
+										value={ingredient.name}
+										oninput={(e) => {
+											const value = (e.target as HTMLInputElement).value
+											ingredients[i].name = value
+											selectedIngredient[i] = null
+											searchIngredients(value, i)
+										}}
+									/>
+								</Input>
+							</Autocomplete>
 						</div>
+
+						<button type="button" class="remove-btn" onclick={() => removeIngredient(i)}>
+							✕
+						</button>
 					</div>
 				{/each}
 				<button type="button" class="add-btn" onclick={addIngredient}> Add Ingredient </button>
@@ -121,8 +190,12 @@
 			<div id="instructions">
 				{#each instructions as instruction, i}
 					<div class="input-group">
-						<textarea name={`instructions${i}`} placeholder="Enter instruction step" rows="2"
-						></textarea>
+						<div class="instruction-input">
+							<Input>
+								<textarea name={`instructions${i}`} placeholder="Enter instruction step" rows="2"
+								></textarea>
+							</Input>
+						</div>
 						<button type="button" class="remove-btn" onclick={() => removeInstruction(i)}>
 							✕
 						</button>
@@ -136,7 +209,7 @@
 	</form>
 </div>
 
-<style>
+<style lang="scss">
 	.container {
 		max-width: 800px;
 		margin: 0 auto;
@@ -144,53 +217,30 @@
 	}
 
 	h1 {
-		font-size: 36px;
-		margin-bottom: 32px;
+		font-size: 32px;
+		margin-bottom: 40px;
 		font-weight: 600;
+		text-align: center;
 		color: var(--color-neutral-dark);
 	}
 
 	.form-group {
-		margin-bottom: 24px;
+		margin-bottom: 32px;
 	}
 
 	label {
 		display: block;
-		margin-bottom: 8px;
+		margin-bottom: 12px;
 		font-weight: 500;
 		color: var(--color-neutral-dark);
-	}
-
-	input,
-	textarea,
-	.measure-select {
-		width: 100%;
-		padding: 8px;
-		border: 1px solid var(--color-neutral);
-		border-radius: 4px;
-		font-size: 16px;
-		font-family: var(--font-sans);
-		transition: border-color 0.2s ease;
-		background-color: var(--color-neutral-lighter);
-		color: var(--color-neutral-dark);
-	}
-
-	textarea {
-		resize: none;
-		height: 100px;
-	}
-
-	input:focus,
-	textarea:focus,
-	.measure-select:focus {
-		outline: none;
-		border-color: var(--color-primary);
+		font-size: 1.1rem;
 	}
 
 	.input-group {
 		display: flex;
-		gap: 8px;
-		margin-bottom: 8px;
+		gap: 12px;
+		margin-bottom: 12px;
+		align-items: flex-start;
 	}
 
 	.remove-btn {
@@ -198,22 +248,30 @@
 		border: none;
 		color: var(--color-neutral);
 		cursor: pointer;
-		padding: 0 8px;
-		transition: color 0.2s ease;
+		padding: 8px;
+		transition: all 0.2s ease;
+		border-radius: 50%;
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-top: 4px;
 	}
 
 	.remove-btn:hover {
 		color: var(--color-error);
+		background-color: var(--color-error-light);
 	}
 
 	.add-btn {
 		background: none;
-		border: 1px solid var(--color-neutral);
-		padding: 8px 16px;
-		border-radius: 4px;
+		border: 2px dashed var(--color-neutral);
+		padding: 12px 24px;
+		border-radius: 8px;
 		cursor: pointer;
 		width: 100%;
-		margin-top: 8px;
+		margin-top: 16px;
 		transition: all 0.2s ease;
 		font-weight: 500;
 		color: var(--color-neutral-dark);
@@ -221,64 +279,50 @@
 
 	.add-btn:hover {
 		background: var(--color-neutral-lighter);
-		border-color: var(--color-neutral);
-	}
-
-	.submit-btn {
-		background: var(--color-primary);
-		color: var(--color-neutral-dark);
-		border: none;
-		padding: 16px 32px;
-		border-radius: 4px;
-		cursor: pointer;
-		font-size: 16px;
-		width: 100%;
-		transition: background-color 0.2s ease;
-		font-weight: 600;
-	}
-
-	.submit-btn:hover {
-		background: var(--color-primary-dark);
+		border-color: var(--color-primary);
+		color: var(--color-primary);
 	}
 
 	.ingredient-group {
 		display: flex;
-		flex-direction: column;
-		gap: 8px;
+		gap: 12px;
 		margin-bottom: 16px;
+		align-items: flex-start;
+
+		@media (max-width: 600px) {
+			flex-direction: column;
+			gap: 8px;
+
+			:global(.input-wrapper) {
+				width: 100%;
+			}
+		}
 	}
 
-	.quantity-measure {
-		display: flex;
-		gap: 8px;
-	}
-
-	.quantity-input {
-		width: 80px;
-	}
-
-	.ingredient-input {
-		display: flex;
-		gap: 8px;
+	.instruction-input {
 		flex: 1;
 	}
 
-	@media (min-width: 640px) {
-		.ingredient-group {
-			flex-direction: row;
-			align-items: start;
-		}
+	.quantity-input {
+		width: 100px !important;
+	}
 
-		.quantity-measure {
-			width: 220px;
-			flex-shrink: 0;
+	.ingredient-input {
+		gap: 8px;
+		flex: 1;
+		position: relative;
+		display: flex;
+
+		input {
+			flex: 1;
+			height: 40px;
 		}
 	}
 
 	.error-container {
-		margin-bottom: 1rem;
-		padding: 1rem;
-		border-radius: 4px;
+		margin-bottom: 24px;
+		padding: 16px;
+		border-radius: 8px;
 		background-color: var(--color-error-light);
 		border: 1px solid var(--color-error);
 	}
@@ -286,5 +330,30 @@
 	.error {
 		color: var(--color-error-dark);
 		margin: 0.25rem 0;
+		font-size: 0.9rem;
+	}
+
+	.submit-btn {
+		background: var(--color-primary);
+		color: white;
+		border: none;
+		padding: 16px 32px;
+		border-radius: 8px;
+		cursor: pointer;
+		font-size: 16px;
+		width: 100%;
+		transition: all 0.2s ease;
+		font-weight: 600;
+		margin-top: 16px;
+
+		&:hover {
+			background: var(--color-primary-dark);
+			transform: translateY(-1px);
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		}
+
+		&:active {
+			transform: translateY(0);
+		}
 	}
 </style>
