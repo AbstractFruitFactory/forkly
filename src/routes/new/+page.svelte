@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state'
+	import RecipeSuccess from '$lib/pages/recipe-created/RecipeCreated.svelte'
 	import NewRecipePage from '$lib/pages/new-recipe/NewRecipe.svelte'
 	import type { IngredientSearchResult } from '$lib/server/food-api'
 	import { trpc } from '$lib/trpc/client'
 
-	let { errors } = $props()
+	let { form } = $props()
 
 	let searchTimeout: ReturnType<typeof setTimeout>
 
@@ -26,4 +27,8 @@
 	}
 </script>
 
-<NewRecipePage {errors} onSearchIngredients={handleSearchIngredients} />
+{#if form && form.success}
+	<RecipeSuccess recipeId={form.recipeId} />
+{:else}
+	<NewRecipePage errors={form?.errors} onSearchIngredients={handleSearchIngredients} />
+{/if}

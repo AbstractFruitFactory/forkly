@@ -1,7 +1,6 @@
 <script lang="ts" module>
 	import type { Ingredient, MeasurementUnit } from '$lib/types'
 	import { measurementUnits } from '$lib/types'
-	import type { ValidationError } from '$lib/form-validation/types'
 	import type { IngredientSearchResult } from '$lib/server/food-api'
 	import Autocomplete from '$lib/components/autocomplete/Autocomplete.svelte'
 	import Input from '$lib/components/input/Input.svelte'
@@ -29,7 +28,7 @@
 		errors,
 		onSearchIngredients
 	}: {
-		errors: ValidationError[]
+		errors?: { path: string; message: string }[]
 		onSearchIngredients?: (query: string) => Promise<IngredientSearchResult>
 	} = $props()
 
@@ -271,7 +270,6 @@
 		margin-top: 16px;
 		transition: all 0.2s ease;
 		font-weight: 500;
-
 	}
 
 	.add-btn:hover {

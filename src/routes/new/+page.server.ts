@@ -1,14 +1,10 @@
-import { fail, redirect } from '@sveltejs/kit'
+import { fail } from '@sveltejs/kit'
 import { db } from '$lib/server/db'
 import { recipe } from '$lib/server/db/schema'
-import type { Actions, PageServerLoad } from './$types'
+import type { Actions } from './$types'
 import { safeParse } from 'valibot'
 import { recipeSchema } from '$lib/form-validation'
 import type { Ingredient, MeasurementUnit } from '$lib/types'
-
-export const load: PageServerLoad = async () => {
-  return {}
-}
 
 export const actions = {
   default: async ({ request, locals }) => {
@@ -19,6 +15,8 @@ export const actions = {
     const ingredients: Ingredient[] = []
     const instructions: string[] = []
 
+    console.log(formData)
+
     for (const [key, value] of formData.entries()) {
       if (key.startsWith('ingredients')) {
         const match = key.match(/ingredients(\d+)(quantity|name|measurement)/)
@@ -26,10 +24,20 @@ export const actions = {
           const index = parseInt(match[1])
           const field = match[2] as 'quantity' | 'name' | 'measurement'
 
+          if (!ingredients[index]) {
+            ingredients[index] = {
+              quantity: 0,
+              name: '',
+              measurement: 'pieces'
+            }
+          }
+
           if (field === 'quantity') {
             ingredients[index].quantity = parseFloat(value as string) || 0
+          } else if (field === 'name') {
+            ingredients[index].name = value as string
           } else {
-            ingredients[index][field] = value as MeasurementUnit
+            ingredients[index].measurement = value as MeasurementUnit
           }
         }
       } else if (key.startsWith('instructions')) {
@@ -53,7 +61,7 @@ export const actions = {
       return fail(400, {
         data: recipeData,
         errors: result.issues.map(issue => ({
-          path: issue.path?.map(p => p.key).join('.'),
+          path: issue.path?.map(p => p.key).join('.')!,
           message: issue.message
         }))
       })
@@ -64,8 +72,9 @@ export const actions = {
       userId: locals.user?.id ?? null
     }).returning()
 
-    console.log(newRecipe)
-
-    redirect(302, '/')
+    return {
+      success: true,
+      recipeId: newRecipe[0].id
+    }
   }
 } satisfies Actions 
