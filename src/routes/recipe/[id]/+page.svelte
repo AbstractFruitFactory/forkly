@@ -1,8 +1,7 @@
 <script lang="ts">
 	import Recipe from '$lib/pages/recipe/Recipe.svelte'
-	import type { PageProps } from './$types'
 
-	let { data }: PageProps = $props()
+	let { data } = $props()
 </script>
 
-<Recipe recipe={data.recipe} />
+<Recipe recipe={data.recipe} nutrition={data.nutrition} />

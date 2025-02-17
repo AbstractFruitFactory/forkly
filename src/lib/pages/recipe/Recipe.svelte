@@ -21,7 +21,21 @@
 		}
 	}
 
-	let { recipe }: { recipe: RecipeData } = $props()
+	let {
+		recipe,
+		nutrition
+	}: {
+		recipe: RecipeData
+		nutrition: Promise<{
+			totalNutrition: {
+				calories: number
+				protein: number
+				carbs: number
+				fat: number
+			}
+			ingredientNutrition: NutritionInfo[]
+		}>
+	} = $props()
 </script>
 
 <div class="container">
@@ -46,30 +60,34 @@
 			</ul>
 		</section>
 
-		{#if recipe.totalNutrition}
-			<section class="nutrition">
-				<h2>Nutrition Facts</h2>
+		<section class="nutrition">
+			<h2>Nutrition Facts</h2>
+			{#await nutrition}
+				<div class="nutrition-loading">
+					<p>Calculating nutrition facts...</p>
+				</div>
+			{:then nutritionData}
 				<div class="nutrition-grid">
 					<div class="nutrition-item">
-						<span class="value">{Math.round(recipe.totalNutrition.calories)}</span>
+						<span class="value">{Math.round(nutritionData.totalNutrition.calories)}</span>
 						<span class="label">Calories</span>
 					</div>
 					<div class="nutrition-item">
-						<span class="value">{Math.round(recipe.totalNutrition.protein)}g</span>
+						<span class="value">{Math.round(nutritionData.totalNutrition.protein)}g</span>
 						<span class="label">Protein</span>
 					</div>
 					<div class="nutrition-item">
-						<span class="value">{Math.round(recipe.totalNutrition.carbs)}g</span>
+						<span class="value">{Math.round(nutritionData.totalNutrition.carbs)}g</span>
 						<span class="label">Carbs</span>
 					</div>
 					<div class="nutrition-item">
-						<span class="value">{Math.round(recipe.totalNutrition.fat)}g</span>
+						<span class="value">{Math.round(nutritionData.totalNutrition.fat)}g</span>
 						<span class="label">Fat</span>
 					</div>
 				</div>
 				<p class="nutrition-disclaimer">* Nutrition information is estimated</p>
-			</section>
-		{/if}
+			{/await}
+		</section>
 
 		<section class="instructions">
 			<h2>Instructions</h2>
@@ -200,5 +218,11 @@
 		font-size: 12px;
 		color: var(--color-neutral);
 		margin-top: 16px;
+	}
+
+	.nutrition-loading {
+		text-align: center;
+		padding: 20px;
+		color: var(--color-neutral);
 	}
 </style>
