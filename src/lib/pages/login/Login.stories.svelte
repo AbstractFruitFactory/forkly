@@ -3,11 +3,7 @@
 	import Login from './Login.svelte'
 
 	const { Story } = defineMeta({
-		title: 'Pages/Login',
-		component: Login,
-		parameters: {
-			layout: 'fullscreen'
-		}
+		component: Login
 	})
 </script>
 

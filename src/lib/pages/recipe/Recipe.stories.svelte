@@ -3,7 +3,6 @@
 	import Recipe from './Recipe.svelte'
 
 	const { Story } = defineMeta({
-		title: 'Pages/Recipe',
 		component: Recipe,
 		parameters: {
 			layout: 'fullscreen'

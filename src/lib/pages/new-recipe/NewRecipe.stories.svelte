@@ -1,9 +1,9 @@
-<script lang="ts">
+<script module>
 	import { defineMeta } from '@storybook/addon-svelte-csf'
 	import NewRecipe from './NewRecipe.svelte'
-	import type { Component, ComponentProps } from 'svelte'
 
-	const { Story } = defineMeta<Component<ComponentProps<typeof NewRecipe>>>({
+	const { Story } = defineMeta({
+		title: 'lib/pages/NewRecipe',
 		component: NewRecipe,
 		tags: ['autodocs'],
 		parameters: {

@@ -4,7 +4,7 @@
 	import type { Component, ComponentProps } from 'svelte'
 
 	const { Story } = defineMeta<Component<ComponentProps<typeof RecipeCreated>>>({
-		title: 'Pages/RecipeCreated',
+		title: 'lib/pages/RecipeCreated',
 		component: RecipeCreated,
 		tags: ['autodocs'],
 		parameters: {

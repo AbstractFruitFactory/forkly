@@ -6,21 +6,18 @@
 	import type { IngredientSearchResult } from '$lib/server/food-api'
 
 	const { Story } = defineMeta<Component<ComponentProps<typeof Autocomplete>>>({
-		title: 'Components/Autocomplete',
 		component: Autocomplete,
 		tags: ['autodocs']
 	})
 
 	const mockSuggestions: IngredientSearchResult = [
-		{ name: 'Chicken' },
-		{ name: 'Chicken Breast' },
-		{ name: 'Chicken Thighs' },
-		{ name: 'Chicken Stock' },
-		{ name: 'Chicken Wings' }
+		{ name: 'Chicken', id: 5006 },
+		{ name: 'Chicken Breast', id: 5062 },
+		{ name: 'Chicken Thighs', id: 5091 },
+		{ name: 'Chicken Stock', id: 6172 },
+		{ name: 'Chicken Wings', id: 5100 }
 	]
 
-	const defaultStyle =
-		'width: 100%; padding: 8px; border: 1px solid var(--color-neutral); border-radius: 4px; background-color: var(--color-neutral-lighter); color: var(--color-neutral-dark);'
 </script>
 
 <Story name="Empty">
