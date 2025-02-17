@@ -25,6 +25,7 @@ export const recipe = pgTable('recipe', {
 		name: string
 		quantity: number
 		measurement: MeasurementUnit
+		spoonacularId: number
 	}[]>().notNull(),
 	instructions: jsonb('instructions').$type<string[]>().notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()

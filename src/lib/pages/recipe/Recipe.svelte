@@ -1,8 +1,11 @@
 <script lang="ts">
+	import type { NutritionInfo } from '$lib/server/food-api'
+
 	interface Ingredient {
 		quantity: number
 		measurement: string
 		name: string
+		nutrition?: NutritionInfo
 	}
 
 	interface RecipeData {
@@ -10,6 +13,12 @@
 		description?: string
 		ingredients: Ingredient[]
 		instructions: string[]
+		totalNutrition?: {
+			calories: number
+			protein: number
+			carbs: number
+			fat: number
+		}
 	}
 
 	let { recipe }: { recipe: RecipeData } = $props()
@@ -36,6 +45,31 @@
 				{/each}
 			</ul>
 		</section>
+
+		{#if recipe.totalNutrition}
+			<section class="nutrition">
+				<h2>Nutrition Facts</h2>
+				<div class="nutrition-grid">
+					<div class="nutrition-item">
+						<span class="value">{Math.round(recipe.totalNutrition.calories)}</span>
+						<span class="label">Calories</span>
+					</div>
+					<div class="nutrition-item">
+						<span class="value">{Math.round(recipe.totalNutrition.protein)}g</span>
+						<span class="label">Protein</span>
+					</div>
+					<div class="nutrition-item">
+						<span class="value">{Math.round(recipe.totalNutrition.carbs)}g</span>
+						<span class="label">Carbs</span>
+					</div>
+					<div class="nutrition-item">
+						<span class="value">{Math.round(recipe.totalNutrition.fat)}g</span>
+						<span class="label">Fat</span>
+					</div>
+				</div>
+				<p class="nutrition-disclaimer">* Nutrition information is estimated</p>
+			</section>
+		{/if}
 
 		<section class="instructions">
 			<h2>Instructions</h2>
@@ -127,5 +161,44 @@
 		h2 {
 			font-size: 20px;
 		}
+	}
+
+	.nutrition {
+		background: var(--color-neutral-darker);
+		padding: 24px;
+		border-radius: 8px;
+		margin: 32px 0;
+	}
+
+	.nutrition-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+		gap: 24px;
+		margin-top: 16px;
+	}
+
+	.nutrition-item {
+		text-align: center;
+	}
+
+	.nutrition-item .value {
+		display: block;
+		font-size: 24px;
+		font-weight: 600;
+		color: var(--color-primary);
+	}
+
+	.nutrition-item .label {
+		display: block;
+		font-size: 14px;
+		color: var(--color-neutral);
+		margin-top: 4px;
+	}
+
+	.nutrition-disclaimer {
+		text-align: center;
+		font-size: 12px;
+		color: var(--color-neutral);
+		margin-top: 16px;
 	}
 </style>

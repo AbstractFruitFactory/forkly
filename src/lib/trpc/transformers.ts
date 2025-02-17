@@ -16,7 +16,6 @@ export const resultTransformer = {
       return obj
     },
     deserialize: (obj: unknown) => {
-      console.log('deserialize', obj)
       if (obj && typeof obj === 'object' && 'ok' in obj) {
         return (obj as any).ok
           ? Ok((obj as any).value)

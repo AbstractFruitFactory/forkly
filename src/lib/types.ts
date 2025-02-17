@@ -16,17 +16,8 @@ export const measurementUnits = [
 ] as const
 
 export type Ingredient = {
-  name: string
   quantity: number
+  name: string
   measurement: MeasurementUnit
-}
-
-export type Recipe = {
-  id: string
-  title: string
-  description: string
-  ingredients: Ingredient[]
-  instructions: string[]
-  createdAt: Date
-  userId: string | null
+  [key: string]: unknown
 }

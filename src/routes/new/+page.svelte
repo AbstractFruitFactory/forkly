@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state'
 	import RecipeSuccess from '$lib/pages/recipe-created/RecipeCreated.svelte'
-	import NewRecipePage from '$lib/pages/new-recipe/NewRecipe.svelte'
+	import NewRecipe from '$lib/pages/new-recipe/NewRecipe.svelte'
 	import type { IngredientSearchResult } from '$lib/server/food-api'
 	import { trpc } from '$lib/trpc/client'
 
@@ -27,8 +27,8 @@
 	}
 </script>
 
-{#if form && form.success}
+{#if form?.success}
 	<RecipeSuccess recipeId={form.recipeId} />
 {:else}
-	<NewRecipePage errors={form?.errors} onSearchIngredients={handleSearchIngredients} />
+	<NewRecipe errors={form?.errors} onSearchIngredients={handleSearchIngredients} />
 {/if}

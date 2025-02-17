@@ -6,6 +6,7 @@ import { safeParse } from 'valibot'
 import { recipeSchema } from '$lib/form-validation'
 import type { Ingredient, MeasurementUnit } from '$lib/types'
 import { generateId } from '$lib/server/id'
+import { api } from '$lib/server/food-api'
 
 export const actions = {
   default: async ({ request, locals }) => {
@@ -20,10 +21,10 @@ export const actions = {
 
     for (const [key, value] of formData.entries()) {
       if (key.startsWith('ingredients')) {
-        const match = key.match(/ingredients(\d+)(quantity|name|measurement)/)
+        const match = key.match(/ingredients(\d+)(.+)/)
         if (match) {
           const index = parseInt(match[1])
-          const field = match[2] as 'quantity' | 'name' | 'measurement'
+          const field = match[2]
 
           if (!ingredients[index]) {
             ingredients[index] = {
@@ -37,8 +38,10 @@ export const actions = {
             ingredients[index].quantity = parseFloat(value as string) || 0
           } else if (field === 'name') {
             ingredients[index].name = value as string
-          } else {
+          } else if (field === 'measurement') {
             ingredients[index].measurement = value as MeasurementUnit
+          } else {
+            ingredients[index][field] = value
           }
         }
       } else if (key.startsWith('instructions')) {
@@ -68,9 +71,13 @@ export const actions = {
       })
     }
 
+
+    const mappedIngredients = ingredients.map(api.mapIngredientToDatabaseEntry)
+
     const newRecipe = await db.insert(recipe).values({
       id: generateId(),
       ...result.output,
+      ingredients: mappedIngredients,
       userId: locals.user?.id ?? null
     }).returning()
 

@@ -1,17 +1,18 @@
 <script lang="ts">
-	import type { IngredientSearchResult } from '$lib/server/food-api'
 	import type { Snippet } from 'svelte'
+
+	type T = $$Generic<{ name: string }>
 
 	let {
 		isLoading = false,
-		suggestions = [] as IngredientSearchResult,
+		suggestions = [],
 		children,
 		onSelect
 	}: {
 		isLoading?: boolean
-		suggestions?: IngredientSearchResult
+		suggestions?: T[]
 		children: Snippet
-		onSelect: (suggestion: IngredientSearchResult[number]) => void
+		onSelect: (suggestion: T) => void
 	} = $props()
 </script>
 

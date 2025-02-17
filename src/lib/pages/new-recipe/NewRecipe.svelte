@@ -1,7 +1,6 @@
 <script lang="ts" module>
-	import type { Ingredient, MeasurementUnit } from '$lib/types'
+	import type { MeasurementUnit } from '$lib/types'
 	import { measurementUnits } from '$lib/types'
-	import type { IngredientSearchResult } from '$lib/server/food-api'
 	import Autocomplete from '$lib/components/autocomplete/Autocomplete.svelte'
 	import Input from '$lib/components/input/Input.svelte'
 
@@ -24,51 +23,42 @@
 <script lang="ts">
 	import { enhance } from '$app/forms'
 
+	type Ingredient = $$Generic<{ name: string }>
+
 	let {
 		errors,
 		onSearchIngredients
 	}: {
 		errors?: { path: string; message: string }[]
-		onSearchIngredients?: (query: string) => Promise<IngredientSearchResult>
+		onSearchIngredients?: (query: string) => Promise<Ingredient[]>
 	} = $props()
 
-	let ingredients = $state<
-		(Omit<Ingredient, 'measurement'> & { measurement: Ingredient['measurement'] | undefined })[]
-	>([
-		{
-			name: '',
-			quantity: 0,
-			measurement: undefined
-		}
-	])
+	let ingredientCount = $state(1)
+	let instructionCount = $state(1)
+	let ingredientInputs = $state<Record<number, HTMLInputElement>>({})
 
-	let instructions = $state([''])
-
-	let suggestions = $state<Record<number, IngredientSearchResult>>({})
+	let suggestions = $state<Record<number, Ingredient[]>>({})
 	let isLoading = $state<Record<number, boolean>>({})
-	let selectedIngredient = $state<Record<number, IngredientSearchResult[number] | null>>({})
+	let selectedIngredient = $state<Record<number, Ingredient | null>>({})
 
 	const addIngredient = () => {
-		ingredients = [
-			...ingredients,
-			{
-				name: '',
-				quantity: 0,
-				measurement: undefined
-			}
-		]
+		ingredientCount++
 	}
 
 	const removeIngredient = (index: number) => {
-		ingredients = ingredients.filter((_, i) => i !== index)
+		if (ingredientCount > 1) {
+			ingredientCount--
+		}
 	}
 
 	const addInstruction = () => {
-		instructions = [...instructions, '']
+		instructionCount++
 	}
 
 	const removeInstruction = (index: number) => {
-		instructions = instructions.filter((_, i) => i !== index)
+		if (instructionCount > 1) {
+			instructionCount--
+		}
 	}
 
 	const searchIngredients = async (query: string, index: number) => {
@@ -76,31 +66,41 @@
 
 		if (query.length < 2) {
 			suggestions[index] = []
+			isLoading[index] = false
 			return
 		}
 
 		isLoading[index] = true
-		try {
-			const results = await onSearchIngredients(query)
-			suggestions[index] = results
-		} catch (error) {
-			suggestions[index] = []
-		} finally {
-			isLoading[index] = false
-		}
+		suggestions[index] = await onSearchIngredients(query)
+		isLoading[index] = false
 	}
 
-	const selectIngredient = (ingredient: IngredientSearchResult[number], index: number) => {
-		ingredients[index].name = ingredient.name
-		selectedIngredient[index] = ingredient
+	const handleSelect = (index: number, suggestion: Ingredient) => {
+		selectedIngredient[index] = suggestion
+		if (ingredientInputs[index]) {
+			ingredientInputs[index].value = suggestion.name
+		}
 		suggestions[index] = []
+		isLoading[index] = false
 	}
 </script>
 
 <div class="container">
 	<h1>Create New Recipe</h1>
 
-	<form method="POST" use:enhance>
+	<form
+		method="POST"
+		use:enhance={({ formData }) => {
+			for (let i = 0; i < ingredientCount; i++) {
+				const ingredient = selectedIngredient[i]
+				if (ingredient) {
+					Object.entries(ingredient).forEach(([key, value]) => {
+						formData.set(`ingredients${i}${key}`, value)
+					})
+				}
+			}
+		}}
+	>
 		{#if errors}
 			<div class="error-container">
 				{#each errors as error}
@@ -127,7 +127,7 @@
 		<div class="form-group">
 			<label for="ingredients">Ingredients</label>
 			<div id="ingredients">
-				{#each ingredients as ingredient, i}
+				{#each Array(ingredientCount) as _, i}
 					<div class="ingredient-group">
 						<Input>
 							<input
@@ -137,10 +137,6 @@
 								name={`ingredients${i}quantity`}
 								placeholder="Qty"
 								class="quantity-input"
-								value={ingredient.quantity}
-								oninput={(e) => {
-									ingredients[i].quantity = Number((e.target as HTMLInputElement).value)
-								}}
 							/>
 						</Input>
 
@@ -157,16 +153,15 @@
 							<Autocomplete
 								isLoading={isLoading[i]}
 								suggestions={suggestions[i] ?? []}
-								onSelect={(suggestion) => selectIngredient(suggestion, i)}
+								onSelect={(suggestion) => handleSelect(i, suggestion)}
 							>
 								<Input>
 									<input
 										name={`ingredients${i}name`}
 										placeholder="Ingredient name"
-										value={ingredient.name}
+										bind:this={ingredientInputs[i]}
 										oninput={(e) => {
 											const value = (e.target as HTMLInputElement).value
-											ingredients[i].name = value
 											selectedIngredient[i] = null
 											searchIngredients(value, i)
 										}}
@@ -175,19 +170,24 @@
 							</Autocomplete>
 						</div>
 
-						<button type="button" class="remove-btn" onclick={() => removeIngredient(i)}>
+						<button
+							type="button"
+							class="remove-btn"
+							onclick={() => removeIngredient(i)}
+							disabled={ingredientCount === 1}
+						>
 							✕
 						</button>
 					</div>
 				{/each}
-				<button type="button" class="add-btn" onclick={addIngredient}> Add Ingredient </button>
+				<button type="button" class="add-btn" onclick={addIngredient}>Add Ingredient</button>
 			</div>
 		</div>
 
 		<div class="form-group">
 			<label for="instructions">Instructions</label>
 			<div id="instructions">
-				{#each instructions as instruction, i}
+				{#each Array(instructionCount) as _, i}
 					<div class="input-group">
 						<div class="instruction-input">
 							<Input>
@@ -195,12 +195,17 @@
 								></textarea>
 							</Input>
 						</div>
-						<button type="button" class="remove-btn" onclick={() => removeInstruction(i)}>
+						<button
+							type="button"
+							class="remove-btn"
+							onclick={() => removeInstruction(i)}
+							disabled={instructionCount === 1}
+						>
 							✕
 						</button>
 					</div>
 				{/each}
-				<button type="button" class="add-btn" onclick={addInstruction}> Add Instruction </button>
+				<button type="button" class="add-btn" onclick={addInstruction}>Add Instruction</button>
 			</div>
 		</div>
 

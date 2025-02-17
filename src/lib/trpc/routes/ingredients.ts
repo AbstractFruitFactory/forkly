@@ -4,12 +4,11 @@ import * as v from 'valibot'
 
 export const ingredientsRouter = t.router({
   search: t.procedure
-    .input((value: unknown) => {
-      return v.parse(
-        v.pipe(
-          v.string(),
-          v.minLength(2)
-        ), value)
-    })
+    .input(v.parser(
+      v.pipe(
+        v.string(),
+        v.minLength(2)
+      )),
+    )
     .query(({ input }) => api.findIngredients(input))
-}) 
+})
