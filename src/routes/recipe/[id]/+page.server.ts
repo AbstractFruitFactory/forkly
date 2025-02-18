@@ -27,6 +27,11 @@ export const load: PageServerLoad = async ({ params }) => {
 
     const ingredientNutrition = []
     for (const ingredient of foundRecipe.ingredients) {
+      if (ingredient.custom || !ingredient.spoonacularId) {
+        ingredientNutrition.push(null)
+        continue
+      }
+
       const nutritionResult = await api.getNutritionInfo(
         ingredient.spoonacularId,
         ingredient.quantity,
@@ -42,12 +47,14 @@ export const load: PageServerLoad = async ({ params }) => {
         ingredientNutrition.push(nutrition)
       } else {
         console.error(nutritionResult.error)
+        ingredientNutrition.push(null)
       }
     }
 
     return {
       totalNutrition,
-      ingredientNutrition
+      ingredientNutrition,
+      hasCustomIngredients: foundRecipe.ingredients.some(i => i.custom)
     }
   }
 

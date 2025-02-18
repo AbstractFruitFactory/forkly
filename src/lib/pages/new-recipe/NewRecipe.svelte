@@ -22,24 +22,29 @@
 
 <script lang="ts">
 	import { enhance } from '$app/forms'
+	import { browser } from '$app/environment'
 
-	type Ingredient = $$Generic<{ name: string }>
+	type T = $$Generic<{ name: string; custom: false }>
+	type Ingredient = T | { name: string; custom: true }
 
 	let {
 		errors,
 		onSearchIngredients
 	}: {
 		errors?: { path: string; message: string }[]
-		onSearchIngredients?: (query: string) => Promise<Ingredient[]>
+		onSearchIngredients?: (query: string) => Promise<T[]>
 	} = $props()
 
 	let ingredientCount = $state(1)
 	let instructionCount = $state(1)
-	let ingredientInputs = $state<Record<number, HTMLInputElement>>({})
+	let lookupIngredientInputs = $state<Record<number, HTMLInputElement>>({})
+	let inputValues = $state<Record<number, string>>({})
 
-	let suggestions = $state<Record<number, Ingredient[]>>({})
+	let suggestions = $state<Record<number, T[]>>({})
 	let isLoading = $state<Record<number, boolean>>({})
-	let selectedIngredient = $state<Record<number, Ingredient | null>>({})
+	let showCustomInput = $state<Record<number, boolean>>({})
+
+	let selectedLookupIngredients = $state<Record<number, Ingredient>>({})
 
 	const addIngredient = () => {
 		ingredientCount++
@@ -64,6 +69,8 @@
 	const searchIngredients = async (query: string, index: number) => {
 		if (!onSearchIngredients) return
 
+		inputValues[index] = query
+
 		if (query.length < 2) {
 			suggestions[index] = []
 			isLoading[index] = false
@@ -75,13 +82,30 @@
 		isLoading[index] = false
 	}
 
-	const handleSelect = (index: number, suggestion: Ingredient) => {
-		selectedIngredient[index] = suggestion
-		if (ingredientInputs[index]) {
-			ingredientInputs[index].value = suggestion.name
-		}
+	const handleSelect = (index: number, suggestion: T) => {
+		inputValues[index] = suggestion.name
+		lookupIngredientInputs[index].value = suggestion.name
+		selectedLookupIngredients[index] = suggestion
 		suggestions[index] = []
 		isLoading[index] = false
+	}
+
+	const clearSelection = (index: number) => {
+		delete selectedLookupIngredients[index]
+	}
+
+	const setCustomIngredientInput = (index: number) => {
+		showCustomInput[index] = true
+	}
+
+	const handleBlur = (index: number) => {
+		setTimeout(() => {
+			if (!selectedLookupIngredients[index]) {
+				inputValues[index] = ''
+				lookupIngredientInputs[index].value = ''
+			}
+			suggestions[index] = []
+		}, 200)
 	}
 </script>
 
@@ -91,14 +115,11 @@
 	<form
 		method="POST"
 		use:enhance={({ formData }) => {
-			for (let i = 0; i < ingredientCount; i++) {
-				const ingredient = selectedIngredient[i]
+			Object.entries(selectedLookupIngredients).forEach(([index, ingredient]) => {
 				if (ingredient) {
-					Object.entries(ingredient).forEach(([key, value]) => {
-						formData.set(`ingredients${i}${key}`, value)
-					})
+					formData.append(`ingredient-${index}-lookupdata`, JSON.stringify(ingredient))
 				}
-			}
+			})
 		}}
 	>
 		{#if errors}
@@ -134,14 +155,14 @@
 								type="number"
 								step="0.01"
 								min="0"
-								name={`ingredients${i}quantity`}
+								name={`ingredient-${i}-quantity`}
 								placeholder="Qty"
 								class="quantity-input"
 							/>
 						</Input>
 
 						<Input>
-							<select name={`ingredients${i}measurement`}>
+							<select name={`ingredient-${i}-measurement`}>
 								<option value="">Unit</option>
 								{#each measurementUnits as unit}
 									<option value={unit}>{measurementUnitDisplayText[unit]}</option>
@@ -150,24 +171,73 @@
 						</Input>
 
 						<div class="ingredient-input">
-							<Autocomplete
-								isLoading={isLoading[i]}
-								suggestions={suggestions[i] ?? []}
-								onSelect={(suggestion) => handleSelect(i, suggestion)}
-							>
-								<Input>
-									<input
-										name={`ingredients${i}name`}
-										placeholder="Ingredient name"
-										bind:this={ingredientInputs[i]}
-										oninput={(e) => {
-											const value = (e.target as HTMLInputElement).value
-											selectedIngredient[i] = null
-											searchIngredients(value, i)
-										}}
-									/>
-								</Input>
-							</Autocomplete>
+							{#if showCustomInput[i] || !browser}
+								<div class="custom-ingredient">
+									<Input>
+										<input
+											name={`ingredient-${i}-name&custom`}
+											placeholder="Enter custom ingredient"
+											value={inputValues[i] ?? ''}
+										/>
+									</Input>
+									<button
+										type="button"
+										class="text-button"
+										onclick={() => (showCustomInput[i] = false)}
+									>
+										Search instead
+									</button>
+								</div>
+							{:else}
+								<div class="custom-ingredient">
+									<Autocomplete
+										isLoading={isLoading[i]}
+										suggestions={suggestions[i] ?? []}
+										onSelect={(suggestion) => handleSelect(i, suggestion)}
+									>
+										<Input>
+											<div class="search-input-wrapper">
+												<svg
+													class="search-icon"
+													xmlns="http://www.w3.org/2000/svg"
+													width="16"
+													height="16"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+												>
+													<circle cx="11" cy="11" r="8"></circle>
+													<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+												</svg>
+												<input
+													name={selectedLookupIngredients[i] ? `ingredient-${i}-name&lookup` : ''}
+													placeholder="Search for ingredient"
+													bind:this={lookupIngredientInputs[i]}
+													value={inputValues[i] ?? ''}
+													oninput={(e) => {
+														clearSelection(i);
+														searchIngredients((e.target as HTMLInputElement).value, i)
+													}}
+													onblur={() => handleBlur(i)}
+												/>
+											</div>
+										</Input>
+									</Autocomplete>
+
+									{#if suggestions[i]?.length === 0 && !isLoading[i] && !selectedLookupIngredients[i]}
+										<button
+											type="button"
+											class="text-button"
+											onclick={() => setCustomIngredientInput(i)}
+										>
+											Ingredient not found? Add it manually
+										</button>
+									{/if}
+								</div>
+							{/if}
 						</div>
 
 						<button
@@ -191,7 +261,7 @@
 					<div class="input-group">
 						<div class="instruction-input">
 							<Input>
-								<textarea name={`instructions${i}`} placeholder="Enter instruction step" rows="2"
+								<textarea name={`instructions-${i}`} placeholder="Enter instruction step" rows="2"
 								></textarea>
 							</Input>
 						</div>
@@ -354,5 +424,44 @@
 		&:active {
 			transform: translateY(0);
 		}
+	}
+
+	.custom-ingredient {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		width: 100%;
+	}
+
+	.text-button {
+		background: none;
+		border: none;
+		color: var(--color-primary);
+		font-size: 14px;
+		padding: 4px 8px;
+		cursor: pointer;
+		text-align: left;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+
+	.search-input-wrapper {
+		position: relative;
+		display: flex;
+		align-items: center;
+		width: 100%;
+
+		input {
+			padding-left: 36px;
+		}
+	}
+
+	.search-icon {
+		position: absolute;
+		left: 12px;
+		color: var(--color-neutral);
+		pointer-events: none;
 	}
 </style>

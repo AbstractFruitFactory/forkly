@@ -19,5 +19,6 @@ export type Ingredient = {
   quantity: number
   name: string
   measurement: MeasurementUnit
+  custom: boolean
   [key: string]: unknown
 }

@@ -1,14 +1,24 @@
 <script lang="ts">
 	import type { NutritionInfo } from '$lib/server/food-api'
 
-	interface Ingredient {
+	type BaseIngredient = {
 		quantity: number
 		measurement: string
 		name: string
-		nutrition?: NutritionInfo
 	}
 
-	interface RecipeData {
+	type CustomIngredient = BaseIngredient & {
+		custom: true
+	}
+
+	type LookupIngredient = BaseIngredient & {
+		nutrition: NutritionInfo
+		custom: false
+	}
+
+	type Ingredient = CustomIngredient | LookupIngredient
+
+	type RecipeData = {
 		title: string
 		description?: string
 		ingredients: Ingredient[]
@@ -50,11 +60,16 @@
 		<section class="ingredients">
 			<h2>Ingredients</h2>
 			<ul>
-				{#each recipe.ingredients as { quantity, measurement, name }}
+				{#each recipe.ingredients as ingredient}
 					<li>
-						<span class="quantity">{quantity}</span>
-						<span class="measurement">{measurement}</span>
-						<span class="ingredient-name">{name}</span>
+						<span class="quantity">{ingredient.quantity}</span>
+						<span class="measurement">{ingredient.measurement}</span>
+						<span class="ingredient-name">
+							{ingredient.name}
+							{#if ingredient.custom}
+								<span class="custom-badge">custom</span>
+							{/if}
+						</span>
 					</li>
 				{/each}
 			</ul>
@@ -224,5 +239,15 @@
 		text-align: center;
 		padding: 20px;
 		color: var(--color-neutral);
+	}
+
+	.custom-badge {
+		font-size: 12px;
+		background: var(--color-neutral);
+		color: var(--color-neutral-darker);
+		padding: 2px 6px;
+		border-radius: 4px;
+		margin-left: 8px;
+		vertical-align: middle;
 	}
 </style>

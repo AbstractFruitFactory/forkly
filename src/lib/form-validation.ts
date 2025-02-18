@@ -2,7 +2,7 @@ import * as v from 'valibot'
 import { measurementUnits } from '$lib/types'
 import type { MeasurementUnit } from '$lib/types'
 
-export const ingredientSchema = v.object({
+const baseIngredientSchema = {
     name: v.pipe(
         v.string(),
         v.transform(input => input ?? ''),
@@ -22,7 +22,22 @@ export const ingredientSchema = v.object({
             'Invalid measurement unit'
         )
     )
+}
+
+const lookupIngredientSchema = v.object({
+    ...baseIngredientSchema,
+    id: v.number('Missing ID for ingredient'),
+    custom: v.literal(false)
 })
+
+const customIngredientSchema = v.object({
+    ...baseIngredientSchema,
+    custom: v.literal(true)
+})
+
+export const ingredientSchema = v.union([lookupIngredientSchema, customIngredientSchema], 
+  'Ingredient validation failed'
+)
 
 export const recipeSchema = v.object({
     title: v.pipe(
@@ -45,5 +60,4 @@ export const recipeSchema = v.object({
     ))
 })
 
-// Export type for the validated recipe
 export type Recipe = v.InferOutput<typeof recipeSchema> 

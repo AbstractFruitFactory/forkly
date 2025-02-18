@@ -1,5 +1,5 @@
 import type { MeasurementUnit } from '$lib/types'
-import { pgTable, serial, text, timestamp, jsonb } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, jsonb } from 'drizzle-orm/pg-core'
 
 export const user = pgTable('user', {
 	id: text('id').primaryKey(),
@@ -15,18 +15,30 @@ export const session = pgTable('session', {
 	expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull()
 })
 
+type BaseIngredient = {
+	name: string
+	quantity: number
+	measurement: MeasurementUnit
+}
+
+type LookupIngredient = BaseIngredient & {
+	spoonacularId: number
+	custom: false
+}
+
+type CustomIngredient = BaseIngredient & {
+	custom: true
+}
+
+type Ingredient = LookupIngredient | CustomIngredient
+
 export const recipe = pgTable('recipe', {
 	id: text('id').primaryKey(),
 	userId: text('user_id')
 		.references(() => user.id),
 	title: text('title').notNull(),
 	description: text('description').notNull(),
-	ingredients: jsonb('ingredients').$type<{
-		name: string
-		quantity: number
-		measurement: MeasurementUnit
-		spoonacularId: number
-	}[]>().notNull(),
+	ingredients: jsonb('ingredients').$type<Ingredient[]>().notNull(),
 	instructions: jsonb('instructions').$type<string[]>().notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 })

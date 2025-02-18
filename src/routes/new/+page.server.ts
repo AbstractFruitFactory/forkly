@@ -7,61 +7,84 @@ import { recipeSchema } from '$lib/form-validation'
 import type { Ingredient, MeasurementUnit } from '$lib/types'
 import { generateId } from '$lib/server/id'
 import { api } from '$lib/server/food-api'
+import { groupBy } from 'ramda'
+
+type FormFields = {
+  title: string
+  description: string
+  ingredients: Ingredient[]
+  instructions: string[]
+}
+
+const parseIngredients = (formData: FormData): Ingredient[] => {
+  const ingredientEntries = Array.from(formData.entries())
+    .filter(([key]) => key.split('-')[0] === 'ingredient')
+    .map(([key, value]) => {
+      const [_, index, field] = key.split('-')
+      return { index: parseInt(index), field, value: value.toString() }
+    })
+
+  const byIndex = groupBy(entry => entry.index.toString(), ingredientEntries)
+
+  return Object.values(byIndex).map(entries => {
+    let quantity: number | undefined = undefined
+    let measurement: MeasurementUnit | undefined = undefined
+    let name: string | undefined = undefined
+    let custom: boolean | undefined = undefined
+    let lookupData: any = undefined
+
+    entries!.forEach(({ field, value }) => {
+      if (field === 'quantity') {
+        quantity = parseFloat(value) || 0
+      } else if (field === 'measurement') {
+        measurement = value as MeasurementUnit
+      } else if (field.startsWith('name')) {
+        name = value
+        custom = field.split('&')[1] === 'custom'
+      } else if (field === 'lookupdata') {
+        lookupData = JSON.parse(value)
+        custom = false
+      }
+    })
+
+    return {
+      quantity,
+      measurement,
+      name,
+      custom,
+      ...(lookupData ? lookupData : {})
+    }
+  })
+}
+
+const parseInstructions = (formData: FormData): string[] => {
+  return Array.from(formData.entries())
+    .filter(([key]) => key.split('-')[0] === 'instructions')
+    .map(([key, value]) => ({
+      index: parseInt(key.split('-')[1]),
+      value: value.toString()
+    }))
+    .sort((a, b) => a.index - b.index)
+    .map(({ value }) => value)
+}
+
+const parseFormData = (formData: FormData): FormFields => ({
+  title: formData.get('title')?.toString() ?? '',
+  description: formData.get('description')?.toString() ?? '',
+  ingredients: parseIngredients(formData),
+  instructions: parseInstructions(formData)
+})
 
 export const actions = {
   default: async ({ request, locals }) => {
     const formData = await request.formData()
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
+    const recipeData = parseFormData(formData)
 
-    const ingredients: Ingredient[] = []
-    const instructions: string[] = []
-
-    console.log(formData)
-
-    for (const [key, value] of formData.entries()) {
-      if (key.startsWith('ingredients')) {
-        const match = key.match(/ingredients(\d+)(.+)/)
-        if (match) {
-          const index = parseInt(match[1])
-          const field = match[2]
-
-          if (!ingredients[index]) {
-            ingredients[index] = {
-              quantity: 0,
-              name: '',
-              measurement: 'pieces'
-            }
-          }
-
-          if (field === 'quantity') {
-            ingredients[index].quantity = parseFloat(value as string) || 0
-          } else if (field === 'name') {
-            ingredients[index].name = value as string
-          } else if (field === 'measurement') {
-            ingredients[index].measurement = value as MeasurementUnit
-          } else {
-            ingredients[index][field] = value
-          }
-        }
-      } else if (key.startsWith('instructions')) {
-        const match = key.match(/instructions(\d+)/)
-        if (match) {
-          instructions[parseInt(match[1])] = value as string
-        }
-      }
-    }
-
-    const recipeData = {
-      title,
-      description,
-      ingredients,
-      instructions
-    }
-
+    console.log('Validating recipe data:', JSON.stringify(recipeData, null, 2))
     const result = safeParse(recipeSchema, recipeData)
 
     if (!result.success) {
+      console.log('Validation failed:', result.issues)
       return fail(400, {
         data: recipeData,
         errors: result.issues.map(issue => ({
@@ -71,8 +94,7 @@ export const actions = {
       })
     }
 
-
-    const mappedIngredients = ingredients.map(api.mapIngredientToDatabaseEntry)
+    const mappedIngredients = recipeData.ingredients.map(api.mapIngredientToDatabaseEntry)
 
     const newRecipe = await db.insert(recipe).values({
       id: generateId(),
