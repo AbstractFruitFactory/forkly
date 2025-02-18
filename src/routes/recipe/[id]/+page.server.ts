@@ -11,55 +11,41 @@ export const load: PageServerLoad = async ({ params }) => {
   const recipes = await db.select()
     .from(recipe)
     .where(eq(recipe.id, recipeId))
-  
+
   const foundRecipe = recipes[0]
   if (!foundRecipe) {
     throw error(404, 'Recipe not found')
   }
 
-  const getNutrition = async (foundRecipe: typeof recipe.$inferSelect) => {
-    const totalNutrition = {
-      calories: 0,
-      protein: 0,
-      carbs: 0,
-      fat: 0
-    }
+  const nutritionResult = await api.getRecipeInfo(
+    foundRecipe.ingredients
+      .filter(ing => !ing.custom)
+      .map(ing => ({
+        amount: ing.quantity,
+        unit: ing.measurement,
+        name: ing.name
+      }))
+  )
 
-    const ingredientNutrition = []
-    for (const ingredient of foundRecipe.ingredients) {
-      if (ingredient.custom || !ingredient.spoonacularId) {
-        ingredientNutrition.push(null)
-        continue
-      }
-
-      const nutritionResult = await api.getNutritionInfo(
-        ingredient.spoonacularId,
-        ingredient.quantity,
-        ingredient.measurement
-      )
-
-      if (nutritionResult.isOk()) {
-        const nutrition = nutritionResult.value
-        totalNutrition.calories += nutrition.calories
-        totalNutrition.protein += nutrition.protein
-        totalNutrition.carbs += nutrition.carbs
-        totalNutrition.fat += nutrition.fat
-        ingredientNutrition.push(nutrition)
-      } else {
-        console.error(nutritionResult.error)
-        ingredientNutrition.push(null)
-      }
-    }
-
-    return {
-      totalNutrition,
-      ingredientNutrition,
+  const nutrition = nutritionResult.isOk()
+    ? {
+      totalNutrition: {
+        calories: nutritionResult.value.calories,
+        protein: nutritionResult.value.protein,
+        carbs: nutritionResult.value.carbs,
+        fat: nutritionResult.value.fat
+      },
+      ingredientNutrition: nutritionResult.value.ingredients.map(ing => ing.nutrients),
       hasCustomIngredients: foundRecipe.ingredients.some(i => i.custom)
     }
-  }
+    : {
+      totalNutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+      ingredientNutrition: foundRecipe.ingredients.map(() => null),
+      hasCustomIngredients: foundRecipe.ingredients.some(i => i.custom)
+    }
 
   return {
     recipe: foundRecipe,
-    nutrition: getNutrition(foundRecipe)
+    nutrition
   }
 } 
