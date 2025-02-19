@@ -21,8 +21,18 @@ type BaseIngredient = {
 	measurement: MeasurementUnit
 }
 
-type LookupIngredient = BaseIngredient & {
+type SpoonacularIngredient = BaseIngredient & {
 	spoonacularId: number
+	custom: false
+}
+
+type OpenFoodFactsIngredient = BaseIngredient & {
+	openfoodfactsId: number
+	custom: false
+}
+
+type UsdaIngredient = BaseIngredient & {
+	usdaId: number
 	custom: false
 }
 
@@ -30,6 +40,7 @@ type CustomIngredient = BaseIngredient & {
 	custom: true
 }
 
+type LookupIngredient = SpoonacularIngredient | OpenFoodFactsIngredient | UsdaIngredient
 type Ingredient = LookupIngredient | CustomIngredient
 
 export const recipe = pgTable('recipe', {

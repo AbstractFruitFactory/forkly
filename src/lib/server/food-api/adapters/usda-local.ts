@@ -1,6 +1,6 @@
 import { Ok, Err } from 'ts-results-es'
 import type { FoodAPI } from '..'
-import foodData from '../foods.json'
+import foodData from '../data/usda.json'
 
 type FoodData = {
   FoundationFoods: USDAFood[]
@@ -122,5 +122,6 @@ export const getNutritionInfo: FoodAPI['getNutritionInfo'] = async (ingredientId
 
 export const mapIngredientToDatabaseEntry: FoodAPI['mapIngredientToDatabaseEntry'] = (ingredient) => ({
   ...ingredient,
-  spoonacularId: ingredient.id as number
+  usdaId: ingredient.id as number,
+  custom: false
 }) 

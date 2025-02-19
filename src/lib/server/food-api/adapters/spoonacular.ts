@@ -25,7 +25,7 @@ interface SpoonacularNutritionResult {
 	servingSize: number
 }
 
-function extractNutrients(nutrients: any[]) {
+const extractNutrients = (nutrients: any[]) => {
 	return {
 		calories: nutrients.find((n: any) => n.name === 'Calories')?.amount ?? 0,
 		protein: nutrients.find((n: any) => n.name === 'Protein')?.amount ?? 0,
@@ -90,6 +90,7 @@ export const getNutritionInfo: FoodAPI['getNutritionInfo'] = async (ingredientId
 
 export const mapIngredientToDatabaseEntry: FoodAPI['mapIngredientToDatabaseEntry'] = (ingredient) => ({
 	...ingredient,
+	custom: false,
 	spoonacularId: ingredient.id as number
 })
 
