@@ -43,6 +43,13 @@ type CustomIngredient = BaseIngredient & {
 type LookupIngredient = SpoonacularIngredient | OpenFoodFactsIngredient | UsdaIngredient
 type Ingredient = LookupIngredient | CustomIngredient
 
+type NutritionInfo = {
+	calories: number
+	protein: number
+	carbs: number
+	fat: number
+}
+
 export const recipe = pgTable('recipe', {
 	id: text('id').primaryKey(),
 	userId: text('user_id')
@@ -51,6 +58,11 @@ export const recipe = pgTable('recipe', {
 	description: text('description').notNull(),
 	ingredients: jsonb('ingredients').$type<Ingredient[]>().notNull(),
 	instructions: jsonb('instructions').$type<string[]>().notNull(),
+	nutrition: jsonb('nutrition').$type<{
+		totalNutrition: NutritionInfo
+		ingredientNutrition: (NutritionInfo | null)[]
+		hasCustomIngredients: boolean
+	}>().notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 })
 
