@@ -12,7 +12,7 @@
 	let { recipes }: { recipes: Recipe[] } = $props()
 </script>
 
-<h1>Latest Recipes</h1>
+<h1 style:text-align="center">Explore recipes</h1>
 
 {#if recipes.length === 0}
 	<div class="empty-state">
