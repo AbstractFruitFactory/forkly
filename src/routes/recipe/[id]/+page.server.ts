@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ params }) => {
     throw error(404, 'Recipe not found')
   }
 
-  const nutritionResult = await api.getRecipeInfo(
+  const nutritionResult = await api('getRecipeInfo')(
     foundRecipe.ingredients
       .filter(ing => !ing.custom)
       .map(ing => ({

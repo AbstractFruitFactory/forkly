@@ -6,8 +6,8 @@ import { safeParse } from 'valibot'
 import { recipeSchema } from '$lib/form-validation'
 import type { Ingredient, MeasurementUnit } from '$lib/types'
 import { generateId } from '$lib/server/id'
-import { api } from '$lib/server/food-api'
 import { groupBy } from 'ramda'
+import { api } from '$lib/server/food-api'
 
 type FormFields = {
   title: string
@@ -94,7 +94,11 @@ export const actions = {
       })
     }
 
-    const mappedIngredients = recipeData.ingredients.map(api.mapIngredientToDatabaseEntry)
+    const mappedIngredients = await Promise.all(
+      recipeData.ingredients.map(async (ingredient) => {
+        return await api('mapIngredientToDatabaseEntry')(ingredient)
+      })
+    )
 
     const newRecipe = await db.insert(recipe).values({
       id: generateId(),
