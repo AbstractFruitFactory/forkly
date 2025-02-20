@@ -29,10 +29,12 @@
 
 	let {
 		errors,
-		onSearchIngredients
+		onSearchIngredients,
+		onIngredientSelect
 	}: {
 		errors?: { path: string; message: string }[]
 		onSearchIngredients?: (query: string) => Promise<T[]>
+		onIngredientSelect?: (ingredient: T) => Promise<void>
 	} = $props()
 
 	let ingredientCount = $state(1)
@@ -71,7 +73,7 @@
 
 		inputValues[index] = query
 
-		if (query.length < 2) {
+		if (query.length < 3) {
 			suggestions[index] = []
 			isLoading[index] = false
 			return
@@ -82,12 +84,16 @@
 		isLoading[index] = false
 	}
 
-	const handleSelect = (index: number, suggestion: T) => {
+	const handleSelect = async (index: number, suggestion: T) => {
 		inputValues[index] = suggestion.name
 		lookupIngredientInputs[index].value = suggestion.name
 		selectedLookupIngredients[index] = suggestion
 		suggestions[index] = []
 		isLoading[index] = false
+
+		if (onIngredientSelect) {
+			await onIngredientSelect(suggestion)
+		}
 	}
 
 	const clearSelection = (index: number) => {

@@ -68,11 +68,10 @@ const UNIT_TO_GRAMS: Record<string, number> = {
 
 export const findIngredients: FoodAPI['findIngredients'] = async (query) => {
   const normalizedQuery = query.toLowerCase()
-  const matches = foods
+  return foods
     .filter(food => food.name.toLowerCase().includes(normalizedQuery))
     .slice(0, 5)
-    .map(({ id, name }) => ({ id, name }))
-  return Ok(matches)
+    .map(({ id, name }) => ({ id, name, custom: false as const }))
 }
 
 export const getIngredientInfo: FoodAPI['getIngredientInfo'] = async (id) => {
@@ -86,38 +85,20 @@ export const getIngredientInfo: FoodAPI['getIngredientInfo'] = async (id) => {
 export const getNutritionInfo: FoodAPI['getNutritionInfo'] = async (ingredientId, amount, unit) => {
   const food = foods.find(f => f.id === ingredientId)
   if (!food) {
-    return Err(new Error(`Ingredient with id ${ingredientId} not found`))
+    throw new Error(`Ingredient with id ${ingredientId} not found`)
   }
 
-  // Convert amount to grams for calculation
   const conversionFactor = UNIT_TO_GRAMS[unit.toLowerCase()] ?? 1
   const gramsAmount = amount * conversionFactor
+  const scale = gramsAmount / 100
 
-  const scale = gramsAmount / 100 // USDA data is per 100g
-
-  return Ok({
-    calories: findNutrientValue(food.nutrients, [
-      'Energy',
-      'Energy (Atwater General Factors)',
-      'Energy (Atwater Specific Factors)'
-    ]) * scale,
-    protein: findNutrientValue(food.nutrients, [
-      'Protein',
-      'Total protein',
-      'Protein, total'
-    ]) * scale,
-    carbs: findNutrientValue(food.nutrients, [
-      'Carbohydrate, by difference',
-      'Carbohydrates, total',
-      'Total Carbohydrate'
-    ]) * scale,
-    fat: findNutrientValue(food.nutrients, [
-      'Total lipid (fat)',
-      'Total fat',
-      'Fat, total'
-    ]) * scale,
+  return {
+    calories: findNutrientValue(food.nutrients, ['Energy', 'Energy (Atwater General Factors)']) * scale,
+    protein: findNutrientValue(food.nutrients, ['Protein', 'Total protein']) * scale,
+    carbs: findNutrientValue(food.nutrients, ['Carbohydrate, by difference']) * scale,
+    fat: findNutrientValue(food.nutrients, ['Total lipid (fat)']) * scale,
     servingSize: amount
-  })
+  }
 }
 
 export const mapIngredientToDatabaseEntry: FoodAPI['mapIngredientToDatabaseEntry'] = (ingredient) => ({

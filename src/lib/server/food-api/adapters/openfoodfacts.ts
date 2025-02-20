@@ -1,7 +1,6 @@
-import { Ok, Err } from 'ts-results-es'
-import type { FoodAPI } from '../index'
 import { join } from 'node:path'
 import { promises as fs } from 'node:fs'
+import type { FoodAPI } from '../index'
 
 const DATA_PATH = join(process.cwd(), 'src/lib/server/food-api/data/filtered_ingredients.jsonl')
 
@@ -53,40 +52,35 @@ export const getIngredientInfo: FoodAPI['getIngredientInfo'] = async (id) => {
     const ingredient = ingredients.find(i => i.code === id.toString())
 
     if (!ingredient) {
-      return Err(new Error(`Ingredient with ID ${id} not found`))
+      throw new Error(`Ingredient with ID ${id} not found`)
     }
 
-    return Ok({
+    return {
       code: ingredient.code,
       product_name: ingredient.product_name,
       categories_tags: ingredient.categories_tags.split(',')
-    })
+    }
   } catch (error) {
-    return Err(error as Error)
+    throw error as Error
   }
 }
 
 export const findIngredients: FoodAPI['findIngredients'] = async (query) => {
-  try {
-    const ingredients = await loadIngredients()
-    const searchTerms = query.toLowerCase().split(' ')
+  const ingredients = await loadIngredients()
+  const searchTerms = query.toLowerCase().split(' ')
 
-    const results = ingredients
-      .filter(ingredient =>
-        searchTerms.some(term =>
-          ingredient.product_name.toLowerCase().includes(term)
-        )
+  return ingredients
+    .filter(ingredient =>
+      searchTerms.some(term =>
+        ingredient.product_name.toLowerCase().includes(term)
       )
-      .map(ingredient => ({
-        name: ingredient.product_name,
-        id: parseInt(ingredient.code)
-      }))
-      .slice(0, 25) // Limit results
-
-    return Ok(results)
-  } catch (error) {
-    return Err(error as Error)
-  }
+    )
+    .map(ingredient => ({
+      name: ingredient.product_name,
+      id: parseInt(ingredient.code),
+      custom: false as const
+    }))
+    .slice(0, 25)
 }
 
 export const getNutritionInfo: FoodAPI['getNutritionInfo'] = async (
@@ -95,21 +89,18 @@ export const getNutritionInfo: FoodAPI['getNutritionInfo'] = async (
   unit
 ) => {
   try {
-    const productResult = await getIngredientInfo(id)
-    if (!productResult.isOk()) return productResult
-
-    const product = productResult.unwrap()
+    const product = await getIngredientInfo(id)
     const scale = amount / 100 // OpenFoodFacts data is per 100g
 
-    return Ok({
+    return {
       calories: (product.nutriments?.['energy-kcal_100g'] ?? 0) * scale,
       protein: (product.nutriments?.proteins_100g ?? 0) * scale,
       carbs: (product.nutriments?.carbohydrates_100g ?? 0) * scale,
       fat: (product.nutriments?.fat_100g ?? 0) * scale,
       servingSize: amount
-    })
+    }
   } catch (error) {
-    return Err(error as Error)
+    throw error as Error
   }
 }
 
@@ -141,11 +132,11 @@ export const getRecipeInfo: FoodAPI['getRecipeInfo'] = async (ingredients) => {
       })
     )
 
-    return Ok({
+    return {
       ...totalNutrients,
       ingredients: ingredientsWithNutrition
-    })
+    }
   } catch (error) {
-    return Err(error as Error)
+    throw error as Error
   }
 }

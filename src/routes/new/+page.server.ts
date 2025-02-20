@@ -8,6 +8,7 @@ import type { Ingredient, MeasurementUnit } from '$lib/types'
 import { generateId } from '$lib/server/id'
 import { groupBy } from 'ramda'
 import { api } from '$lib/server/food-api'
+import { Result } from 'ts-results-es'
 
 type FormFields = {
   title: string
@@ -80,11 +81,9 @@ export const actions = {
     const formData = await request.formData()
     const recipeData = parseFormData(formData)
 
-    console.log('Validating recipe data:', JSON.stringify(recipeData, null, 2))
     const result = safeParse(recipeSchema, recipeData)
 
     if (!result.success) {
-      console.log('Validation failed:', result.issues)
       return fail(400, {
         data: recipeData,
         errors: result.issues.map(issue => ({
@@ -94,16 +93,24 @@ export const actions = {
       })
     }
 
-    const mappedIngredients = await Promise.all(
+    const mappedIngredientsResults = await Promise.all(
       recipeData.ingredients.map(async (ingredient) => {
         return await api('mapIngredientToDatabaseEntry')(ingredient)
       })
     )
 
+    const mappedIngredients = Result.all(mappedIngredientsResults)
+
+    if (mappedIngredients.isErr()) {
+      return fail(500, {
+        error: mappedIngredients.error
+      })
+    }
+
     const newRecipe = await db.insert(recipe).values({
       id: generateId(),
       ...result.output,
-      ingredients: mappedIngredients,
+      ingredients: mappedIngredients.value,
       userId: locals.user?.id ?? null
     }).returning()
 

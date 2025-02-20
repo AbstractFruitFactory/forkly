@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { page } from '$app/state'
 	import RecipeSuccess from '$lib/pages/recipe-created/RecipeCreated.svelte'
 	import NewRecipe from '$lib/pages/new-recipe/NewRecipe.svelte'
 	import type { IngredientSearchResult } from '$lib/server/food-api'
 	import { trpc } from '$lib/trpc/client'
+	import { page } from '$app/state'
 
 	let { form } = $props()
 
@@ -25,10 +25,21 @@
 			}, 300)
 		})
 	}
+
+	const handleIngredientSelect = async (ingredient: IngredientSearchResult[0]) => {
+		await trpc(page).ingredients.cacheSelected.mutate({
+			name: ingredient.name,
+			id: ingredient.id
+		})
+	}
 </script>
 
 {#if form?.success}
 	<RecipeSuccess recipeId={form.recipeId} />
 {:else}
-	<NewRecipe errors={form?.errors} onSearchIngredients={handleSearchIngredients} />
+	<NewRecipe
+		errors={form?.errors}
+		onSearchIngredients={handleSearchIngredients}
+		onIngredientSelect={handleIngredientSelect}
+	/>
 {/if}

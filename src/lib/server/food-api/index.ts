@@ -1,4 +1,4 @@
-import { type Result } from 'ts-results-es'
+import { type Result, Ok, Err } from 'ts-results-es'
 import * as spoonacular from './adapters/spoonacular'
 import type { Recipe } from '$lib/server/db/schema'
 import type { Ingredient } from '$lib/types'
@@ -39,10 +39,10 @@ export type RecipeNutritionInfo = {
 
 export type FoodAPI = {
   mapIngredientToDatabaseEntry(ingredient: Ingredient): Recipe['ingredients'][number]
-  findIngredients(query: string): Promise<Result<IngredientSearchResult, Error>>
-  getIngredientInfo(id: number): Promise<Result<any, Error>>
-  getNutritionInfo(id: number, amount: number, unit: string): Promise<Result<NutritionInfo, Error>>
-  getRecipeInfo(ingredients: { amount: number, unit: string, name: string }[]): Promise<Result<RecipeNutritionInfo, Error>>
+  findIngredients(query: string): Promise<IngredientSearchResult>
+  getIngredientInfo(id: number): Promise<any>
+  getNutritionInfo(id: number, amount: number, unit: string): Promise<NutritionInfo>
+  getRecipeInfo(ingredients: { amount: number, unit: string, name: string }[]): Promise<RecipeNutritionInfo>
 }
 
 const _api: FoodAPI = {
@@ -51,6 +51,12 @@ const _api: FoodAPI = {
 
 export const api = <T extends keyof FoodAPI>(
   methodName: T
-) => (...args: Parameters<FoodAPI[T]>): Promise<ReturnType<FoodAPI[T]>> =>
-  (_api[methodName] as any)(...args)
+) => async (...args: Parameters<FoodAPI[T]>): Promise<Result<Awaited<ReturnType<FoodAPI[T]>>, Error>> => {
+  try {
+    const result = await (_api[methodName] as any)(...args)
+    return Ok(result)
+  } catch (error) {
+    return Err(error instanceof Error ? error : new Error(String(error)))
+  }
+}
 

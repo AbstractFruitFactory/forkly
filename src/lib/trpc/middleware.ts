@@ -15,7 +15,7 @@ export const withCache = <T extends keyof FoodAPI>(
 
     const result = await next()
     if ('data' in result) {
-      await cache.set(input, result.data as Awaited<ReturnType<FoodAPI[T]>>)
+      await cache.set(input, (result.data as any).value as Awaited<ReturnType<FoodAPI[T]>>)
     }
     return result
   })
