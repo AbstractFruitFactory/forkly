@@ -27,21 +27,9 @@
 {/if}
 
 <style>
-	h1 {
-		margin-bottom: 32px;
-		font-size: 36px;
-		font-weight: 600;
-	}
-
 	.empty-state {
 		text-align: center;
 		padding: 48px 0;
-		color: #666;
-	}
-
-	.empty-state a {
-		color: #333;
-		text-decoration: underline;
 	}
 
 	.recipe-grid {

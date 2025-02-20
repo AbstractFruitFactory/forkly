@@ -1,11 +1,13 @@
 :root {
   // Primary colors
-  --color-primary: #60b37f;
-  --color-primary-light: #72d496;
-  --color-primary-dark: #447e59;
+  --color-primary: #FF6500;
+  --color-primary-light: #FF6500;
+  --color-primary-dark: #FF6500;
+
+  --color-secondary: #1E3E62;
 
   // Background colors
-  --color-background: #1f1c2b;
+  --color-background: #0B192C;
 
   // Neutral colors
   --color-neutral: #767880;
@@ -43,7 +45,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   color: white;
 }
 

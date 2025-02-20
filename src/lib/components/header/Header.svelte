@@ -55,9 +55,9 @@
 	}
 
 	.logo a {
-		font-family: var(--font-serif);
+		font-family: 'Pacifico', cursive;
 		font-size: 28px;
-		font-weight: 600;
+		font-weight: 400;
 		text-decoration: none;
 	}
 
