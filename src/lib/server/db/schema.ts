@@ -60,7 +60,6 @@ export const recipe = pgTable('recipe', {
 	instructions: jsonb('instructions').$type<string[]>().notNull(),
 	nutrition: jsonb('nutrition').$type<{
 		totalNutrition: NutritionInfo
-		ingredientNutrition: (NutritionInfo | null)[]
 		hasCustomIngredients: boolean
 	}>().notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()

@@ -107,7 +107,6 @@ export const actions = {
       })
     }
 
-    // Calculate nutrition info during recipe creation
     const nutritionResult = await api('getRecipeInfo')(
       mappedIngredients.value
         .filter(ing => !ing.custom)
@@ -126,12 +125,10 @@ export const actions = {
           carbs: nutritionResult.value.carbs,
           fat: nutritionResult.value.fat
         },
-        ingredientNutrition: nutritionResult.value.ingredients.map(ing => ing.nutrients),
         hasCustomIngredients: mappedIngredients.value.some(i => i.custom)
       }
       : {
         totalNutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-        ingredientNutrition: mappedIngredients.value.map(() => null),
         hasCustomIngredients: mappedIngredients.value.some(i => i.custom)
       }
 
@@ -139,7 +136,7 @@ export const actions = {
       id: generateId(),
       ...result.output,
       ingredients: mappedIngredients.value,
-      nutrition, // Store nutrition info in database
+      nutrition,
       userId: locals.user?.id ?? null
     }).returning()
 

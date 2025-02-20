@@ -28,10 +28,7 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-	// First handle tRPC requests
 	const response = await trpcHandle({ event, resolve })
 	if (response) return response
-
-	// Then handle auth for other requests
 	return handleAuth({ event, resolve })
 }

@@ -43,7 +43,6 @@
 				carbs: number
 				fat: number
 			}
-			ingredientNutrition: NutritionInfo[]
 		}>
 	} = $props()
 </script>
