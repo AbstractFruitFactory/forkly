@@ -26,11 +26,11 @@ export const seed = async () => {
         title: 'Classic Spaghetti Carbonara',
         description: 'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
         ingredients: [
-          { name: 'spaghetti', quantity: 400, measurement: 'grams' as MeasurementUnit, custom: false },
-          { name: 'eggs', quantity: 4, measurement: 'pieces' as MeasurementUnit, custom: false },
-          { name: 'pecorino romano', quantity: 100, measurement: 'grams' as MeasurementUnit, custom: false },
-          { name: 'pancetta', quantity: 200, measurement: 'grams' as MeasurementUnit, custom: false },
-          { name: 'black pepper', quantity: 2, measurement: 'teaspoons' as MeasurementUnit, custom: false }
+          { name: 'spaghetti', quantity: 400, measurement: 'grams' as MeasurementUnit, custom: false, spoonacularId: 11420 },
+          { name: 'eggs', quantity: 4, measurement: 'pieces' as MeasurementUnit, custom: false, spoonacularId: 1123 },
+          { name: 'pecorino romano', quantity: 100, measurement: 'grams' as MeasurementUnit, custom: false, spoonacularId: 1038 },
+          { name: 'pancetta', quantity: 200, measurement: 'grams' as MeasurementUnit, custom: false, spoonacularId: 10123 },
+          { name: 'black pepper', quantity: 2, measurement: 'teaspoons' as MeasurementUnit, custom: false, spoonacularId: 1002030 }
         ] satisfies Ingredient[],
         instructions: [
           'Bring a large pot of salted water to boil and cook spaghetti according to package instructions.',
@@ -55,13 +55,13 @@ export const seed = async () => {
         title: 'Classic Chocolate Chip Cookies',
         description: 'Soft and chewy cookies with melty chocolate chips - a timeless favorite!',
         ingredients: [
-          { name: 'all-purpose flour', quantity: 2.25, measurement: 'cups' as MeasurementUnit, custom: false },
-          { name: 'butter', quantity: 1, measurement: 'cups' as MeasurementUnit, custom: false },
-          { name: 'brown sugar', quantity: 0.75, measurement: 'cups' as MeasurementUnit, custom: false },
-          { name: 'granulated sugar', quantity: 0.75, measurement: 'cups' as MeasurementUnit, custom: false },
-          { name: 'eggs', quantity: 2, measurement: 'pieces' as MeasurementUnit, custom: false },
-          { name: 'vanilla extract', quantity: 1, measurement: 'teaspoons' as MeasurementUnit, custom: false },
-          { name: 'chocolate chips', quantity: 2, measurement: 'cups' as MeasurementUnit, custom: false }
+          { name: 'all-purpose flour', quantity: 2.25, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 100100902 },
+          { name: 'butter', quantity: 1, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 100100400 },
+          { name: 'brown sugar', quantity: 0.75, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 100101200 },
+          { name: 'granulated sugar', quantity: 0.75, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 100101200 },
+          { name: 'eggs', quantity: 2, measurement: 'pieces' as MeasurementUnit, custom: false, spoonacularId: 1123 },
+          { name: 'vanilla extract', quantity: 1, measurement: 'teaspoons' as MeasurementUnit, custom: false, spoonacularId: 100100903 },
+          { name: 'chocolate chips', quantity: 2, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 100110300 }
         ] satisfies Ingredient[],
         instructions: [
           'Preheat oven to 375°F (190°C)',
@@ -88,13 +88,13 @@ export const seed = async () => {
         title: 'Fresh Garden Salad',
         description: 'A light and refreshing salad packed with seasonal vegetables and a zesty vinaigrette.',
         ingredients: [
-          { name: 'mixed salad greens', quantity: 6, measurement: 'cups' as MeasurementUnit, custom: false },
-          { name: 'cherry tomatoes', quantity: 1, measurement: 'cups' as MeasurementUnit, custom: false },
-          { name: 'cucumber', quantity: 1, measurement: 'pieces' as MeasurementUnit, custom: false },
-          { name: 'red onion', quantity: 0.5, measurement: 'pieces' as MeasurementUnit, custom: false },
-          { name: 'olive oil', quantity: 3, measurement: 'tablespoons' as MeasurementUnit, custom: false },
-          { name: 'balsamic vinegar', quantity: 2, measurement: 'tablespoons' as MeasurementUnit, custom: false },
-          { name: 'honey', quantity: 1, measurement: 'teaspoons' as MeasurementUnit, custom: false }
+          { name: 'mixed salad greens', quantity: 6, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 100100200 },
+          { name: 'cherry tomatoes', quantity: 1, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 100100200 },
+          { name: 'cucumber', quantity: 1, measurement: 'pieces' as MeasurementUnit, custom: false, spoonacularId: 100100200 },
+          { name: 'red onion', quantity: 0.5, measurement: 'pieces' as MeasurementUnit, custom: false, spoonacularId: 100100200 },
+          { name: 'olive oil', quantity: 3, measurement: 'tablespoons' as MeasurementUnit, custom: false, spoonacularId: 100100902 },
+          { name: 'balsamic vinegar', quantity: 2, measurement: 'tablespoons' as MeasurementUnit, custom: false, spoonacularId: 100100400 },
+          { name: 'honey', quantity: 1, measurement: 'teaspoons' as MeasurementUnit, custom: false, spoonacularId: 100101200 }
         ] satisfies Ingredient[],
         instructions: [
           'Wash and dry all vegetables thoroughly',
@@ -121,12 +121,12 @@ export const seed = async () => {
         title: 'Homemade Pizza',
         description: 'A delicious pizza with a crispy crust and classic toppings.',
         ingredients: [
-          { name: 'pizza dough', quantity: 1, measurement: 'pieces' as MeasurementUnit, custom: false },
-          { name: 'tomato sauce', quantity: 1, measurement: 'cups' as MeasurementUnit, custom: false },
-          { name: 'mozzarella cheese', quantity: 2, measurement: 'cups' as MeasurementUnit, custom: false },
-          { name: 'pepperoni', quantity: 4, measurement: 'ounces' as MeasurementUnit, custom: false },
-          { name: 'olive oil', quantity: 2, measurement: 'tablespoons' as MeasurementUnit, custom: false },
-          { name: 'dried oregano', quantity: 1, measurement: 'teaspoons' as MeasurementUnit, custom: false }
+          { name: 'pizza dough', quantity: 1, measurement: 'pieces' as MeasurementUnit, custom: false, spoonacularId: 100100902 },
+          { name: 'tomato sauce', quantity: 1, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 100100800 },
+          { name: 'mozzarella cheese', quantity: 2, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 10080 },
+          { name: 'pepperoni', quantity: 4, measurement: 'ounces' as MeasurementUnit, custom: false, spoonacularId: 10020 },
+          { name: 'olive oil', quantity: 2, measurement: 'tablespoons' as MeasurementUnit, custom: false, spoonacularId: 100100902 },
+          { name: 'dried oregano', quantity: 1, measurement: 'teaspoons' as MeasurementUnit, custom: false, spoonacularId: 10020 }
         ] satisfies Ingredient[],
         instructions: [
           'Preheat oven to 450°F (230°C)',
@@ -153,14 +153,14 @@ export const seed = async () => {
         title: 'Chicken Stir-Fry',
         description: 'A quick and healthy Asian-inspired stir-fry with colorful vegetables.',
         ingredients: [
-          { name: 'chicken breast', quantity: 1, measurement: 'pounds' as MeasurementUnit, custom: false },
-          { name: 'broccoli florets', quantity: 2, measurement: 'cups' as MeasurementUnit, custom: false },
-          { name: 'carrots', quantity: 2, measurement: 'pieces' as MeasurementUnit, custom: false },
-          { name: 'bell pepper', quantity: 1, measurement: 'pieces' as MeasurementUnit, custom: false },
-          { name: 'soy sauce', quantity: 3, measurement: 'tablespoons' as MeasurementUnit, custom: false },
-          { name: 'ginger', quantity: 1, measurement: 'tablespoons' as MeasurementUnit, custom: false },
-          { name: 'garlic', quantity: 2, measurement: 'cloves' as MeasurementUnit, custom: false },
-          { name: 'vegetable oil', quantity: 2, measurement: 'tablespoons' as MeasurementUnit, custom: false }
+          { name: 'chicken breast', quantity: 1, measurement: 'pounds' as MeasurementUnit, custom: false, spoonacularId: 100100902 },
+          { name: 'broccoli florets', quantity: 2, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 100100200 },
+          { name: 'carrots', quantity: 2, measurement: 'pieces' as MeasurementUnit, custom: false, spoonacularId: 100100200 },
+          { name: 'bell pepper', quantity: 1, measurement: 'pieces' as MeasurementUnit, custom: false, spoonacularId: 100100200 },
+          { name: 'soy sauce', quantity: 3, measurement: 'tablespoons' as MeasurementUnit, custom: false, spoonacularId: 100100903 },
+          { name: 'ginger', quantity: 1, measurement: 'tablespoons' as MeasurementUnit, custom: false, spoonacularId: 100100903 },
+          { name: 'garlic', quantity: 2, measurement: 'cloves' as MeasurementUnit, custom: false, spoonacularId: 100100903 },
+          { name: 'vegetable oil', quantity: 2, measurement: 'tablespoons' as MeasurementUnit, custom: false, spoonacularId: 100100902 }
         ] satisfies Ingredient[],
         instructions: [
           'Cut chicken into bite-sized pieces',
