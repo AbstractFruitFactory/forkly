@@ -11,6 +11,7 @@
 		fullWidth = false,
 		disabled = false,
 		onclick,
+		href,
 		children
 	}: {
 		variant?: Variant
@@ -19,11 +20,14 @@
 		fullWidth?: boolean
 		disabled?: boolean
 		onclick?: (e: MouseEvent) => void
+		href?: string
 		children?: Snippet
 	} = $props()
 </script>
 
-<button
+<svelte:element
+	this={href ? 'a' : 'button'}
+	{href}
 	{type}
 	{disabled}
 	class="button"
@@ -36,9 +40,10 @@
 	class:lg={size === 'lg'}
 	class:full-width={fullWidth}
 	{onclick}
+	role={href ? 'button' : undefined}
 >
 	{@render children?.()}
-</button>
+</svelte:element>
 
 <style lang="scss">
 	.button {
@@ -50,6 +55,7 @@
 		cursor: pointer;
 		transition: all 0.2s ease;
 		border: none;
+		text-decoration: none;
 
 		&:disabled {
 			opacity: 0.6;

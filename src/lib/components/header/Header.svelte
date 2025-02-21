@@ -1,7 +1,7 @@
 <script>
 	import { page } from '$app/stores'
 	import Button from '$lib/components/button/Button.svelte'
-	
+
 	let isMenuOpen = $state(false)
 
 	const toggleMenu = () => {
@@ -11,8 +11,11 @@
 
 <header class="header">
 	<div class="container">
-		<div class="logo">
-			<a href="/">Forkly</a>
+		<div class="left-section">
+			<div class="logo">
+				<a href="/">Forkly</a>
+			</div>
+			<Button href="/new" variant="primary" size="sm">New Recipe</Button>
 		</div>
 
 		<button class="menu-toggle" onclick={toggleMenu}>
@@ -22,8 +25,6 @@
 
 		<nav class:active={isMenuOpen}>
 			<ul>
-				<li><a href="/">Home</a></li>
-				<li><a href="/new">New Recipe</a></li>
 				<li><a href="/about">About</a></li>
 				{#if $page.data.user}
 					<li>
@@ -54,6 +55,12 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+	}
+
+	.left-section {
+		display: flex;
+		align-items: center;
+		gap: 32px;
 	}
 
 	.logo a {
@@ -128,6 +135,10 @@
 		nav ul {
 			flex-direction: column;
 			gap: 16px;
+		}
+
+		.left-section {
+			gap: 8px;
 		}
 	}
 </style>
