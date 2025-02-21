@@ -46,15 +46,18 @@
 		box-shadow: var(--shadow-sm);
 		padding: var(--spacing-md) 0;
 		border-bottom: 1px solid var(--color-neutral);
+		position: relative;
+		z-index: 100;
 	}
 
 	.container {
-		max-width: 1200px;
+		max-width: var(--max-width-container, 1200px);
 		margin: 0 auto;
 		padding: 0 var(--spacing-md);
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		position: relative;
 	}
 
 	.left-section {
@@ -66,6 +69,14 @@
 	.logo a {
 		font-family: 'Pacifico', cursive;
 		font-size: var(--font-size-3xl);
+		text-decoration: none;
+		transition: opacity var(--transition-fast) var(--ease-in-out);
+	}
+
+	nav {
+		transition:
+			transform var(--transition-fast) var(--ease-in-out),
+			opacity var(--transition-fast) var(--ease-in-out);
 	}
 
 	nav ul {
@@ -79,22 +90,35 @@
 	nav a {
 		text-decoration: none;
 		color: var(--color-neutral);
-		transition: color var(--transition-fast) var(--ease-in-out);
+		transition: all var(--transition-fast) var(--ease-in-out);
 		font-weight: 500;
+		padding: var(--spacing-xs) var(--spacing-sm);
+		border-radius: var(--border-radius-sm);
 	}
 
-	nav a:hover {
+	nav a:hover,
+	nav a:focus-visible {
 		color: var(--color-primary);
+		background: var(--color-neutral-dark-hover, rgba(255, 255, 255, 0.1));
+		outline: none;
 	}
 
 	.menu-toggle {
 		display: none;
-		transition: opacity var(--transition-fast) var(--ease-in-out);
+		padding: var(--spacing-sm);
+		background: transparent;
+		border: 1px solid var(--color-neutral);
+		border-radius: var(--border-radius-sm);
 		color: var(--color-neutral);
+		transition: all var(--transition-fast) var(--ease-in-out);
+		cursor: pointer;
 	}
 
-	.menu-toggle:hover {
-		opacity: 0.7;
+	.menu-toggle:hover,
+	.menu-toggle:focus-visible {
+		color: var(--color-primary);
+		border-color: var(--color-primary);
+		outline: none;
 	}
 
 	.sr-only {
@@ -110,29 +134,39 @@
 
 	@media (max-width: 768px) {
 		.menu-toggle {
-			display: block;
-			background: none;
-			border: none;
-			font-size: var(--spacing-lg);
-			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: var(--font-size-lg);
 		}
 
 		nav {
-			display: none;
 			position: absolute;
-			top: 100%;
+			top: calc(100% + 1px);
 			left: 0;
 			right: 0;
+			background: var(--color-neutral-dark);
 			padding: var(--spacing-md);
+			opacity: 0;
+			transform: translateY(-1rem);
+			pointer-events: none;
+			border-bottom: 1px solid var(--color-neutral);
 		}
 
 		nav.active {
-			display: block;
+			opacity: 1;
+			transform: translateY(0);
+			pointer-events: auto;
 		}
 
 		nav ul {
 			flex-direction: column;
 			gap: var(--spacing-md);
+		}
+
+		nav a {
+			display: block;
+			padding: var(--spacing-sm) var(--spacing-md);
 		}
 
 		.left-section {
