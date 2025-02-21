@@ -13,11 +13,11 @@
 		title: 'Classic Spaghetti Carbonara',
 		description: 'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
 		ingredients: [
-			{ quantity: 400, measurement: 'g', name: 'spaghetti' },
-			{ quantity: 4, measurement: 'pieces', name: 'large eggs' },
-			{ quantity: 100, measurement: 'g', name: 'pecorino romano' },
-			{ quantity: 200, measurement: 'g', name: 'pancetta' },
-			{ quantity: 2, measurement: 'tsp', name: 'black pepper' }
+			{ quantity: 400, measurement: 'g', name: 'spaghetti', custom: false },
+			{ quantity: 4, measurement: 'pieces', name: 'large eggs', custom: false },
+			{ quantity: 100, measurement: 'g', name: 'pecorino romano', custom: false },
+			{ quantity: 200, measurement: 'g', name: 'pancetta', custom: false },
+			{ quantity: 2, measurement: 'tsp', name: 'black pepper', custom: false }
 		],
 		instructions: [
 			'Bring a large pot of salted water to boil and cook spaghetti according to package instructions.',

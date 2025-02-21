@@ -12,7 +12,6 @@
 	}
 
 	type LookupIngredient = BaseIngredient & {
-		nutrition: NutritionInfo
 		custom: false
 	}
 
@@ -37,14 +36,14 @@
 		nutrition
 	}: {
 		recipe: RecipeData
-		nutrition: Promise<{
+		nutrition: {
 			totalNutrition: {
 				calories: number
 				protein: number
 				carbs: number
 				fat: number
 			}
-		}>
+		}
 	} = $props()
 </script>
 
@@ -82,31 +81,26 @@
 
 		<section class="nutrition">
 			<h2>Nutrition Facts</h2>
-			{#await nutrition}
-				<div class="nutrition-loading">
-					<p>Calculating nutrition facts...</p>
+
+			<div class="nutrition-grid">
+				<div class="nutrition-item">
+					<span class="value">{Math.round(nutrition.totalNutrition.calories)}</span>
+					<span class="label">Calories</span>
 				</div>
-			{:then nutritionData}
-				<div class="nutrition-grid">
-					<div class="nutrition-item">
-						<span class="value">{Math.round(nutritionData.totalNutrition.calories)}</span>
-						<span class="label">Calories</span>
-					</div>
-					<div class="nutrition-item">
-						<span class="value">{Math.round(nutritionData.totalNutrition.protein)}g</span>
-						<span class="label">Protein</span>
-					</div>
-					<div class="nutrition-item">
-						<span class="value">{Math.round(nutritionData.totalNutrition.carbs)}g</span>
-						<span class="label">Carbs</span>
-					</div>
-					<div class="nutrition-item">
-						<span class="value">{Math.round(nutritionData.totalNutrition.fat)}g</span>
-						<span class="label">Fat</span>
-					</div>
+				<div class="nutrition-item">
+					<span class="value">{Math.round(nutrition.totalNutrition.protein)}g</span>
+					<span class="label">Protein</span>
 				</div>
-				<p class="nutrition-disclaimer">* Nutrition information is estimated</p>
-			{/await}
+				<div class="nutrition-item">
+					<span class="value">{Math.round(nutrition.totalNutrition.carbs)}g</span>
+					<span class="label">Carbs</span>
+				</div>
+				<div class="nutrition-item">
+					<span class="value">{Math.round(nutrition.totalNutrition.fat)}g</span>
+					<span class="label">Fat</span>
+				</div>
+			</div>
+			<p class="nutrition-disclaimer">* Nutrition information is estimated</p>
 		</section>
 
 		<section class="instructions">
