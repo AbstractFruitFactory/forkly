@@ -11,11 +11,11 @@
 	})
 
 	const mockSuggestions: IngredientSearchResult = [
-		{ name: 'Chicken', id: 5006 },
-		{ name: 'Chicken Breast', id: 5062 },
-		{ name: 'Chicken Thighs', id: 5091 },
-		{ name: 'Chicken Stock', id: 6172 },
-		{ name: 'Chicken Wings', id: 5100 }
+		{ name: 'Chicken', id: 5006, custom: false },
+		{ name: 'Chicken Breast', id: 5062, custom: false },
+		{ name: 'Chicken Thighs', id: 5091, custom: false },
+		{ name: 'Chicken Stock', id: 6172, custom: false },
+		{ name: 'Chicken Wings', id: 5100, custom: false }
 	]
 
 </script>
