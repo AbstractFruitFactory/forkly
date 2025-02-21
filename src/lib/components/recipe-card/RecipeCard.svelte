@@ -14,20 +14,26 @@
 	let { recipe }: { recipe: Recipe } = $props()
 </script>
 
-<a href="/recipe/{recipe.id}" class="recipe-card">
+<a href="/recipe/{recipe.id}" class="recipe-card" aria-labelledby="recipe-title-{recipe.id}">
 	{#if recipe.imageUrl}
 		<div class="image-container">
-			<img src={recipe.imageUrl} alt={recipe.title} />
+			<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
 		</div>
 	{/if}
 	<div class="content">
-		<h2>{recipe.title}</h2>
+		<h2 id="recipe-title-{recipe.id}">{recipe.title}</h2>
 		{#if recipe.description}
 			<p class="description">{recipe.description}</p>
 		{/if}
-		<div class="meta">
-			<span><List size={16} />{recipe.ingredients} ingredients</span>
-			<span><Timer size={16} />{recipe.instructions} steps</span>
+		<div class="meta" aria-label="Recipe details">
+			<span>
+				<List size={16} aria-hidden="true" />
+				<span>{recipe.ingredients} ingredients</span>
+			</span>
+			<span>
+				<Timer size={16} aria-hidden="true" />
+				<span>{recipe.instructions} steps</span>
+			</span>
 		</div>
 	</div>
 </a>
@@ -41,40 +47,66 @@
 		box-shadow: var(--shadow-sm);
 		text-decoration: none;
 		overflow: hidden;
-		transition:
-			transform var(--transition-fast) var(--ease-out),
-			box-shadow var(--transition-fast) var(--ease-out),
-			border-color var(--transition-fast) var(--ease-out);
-	}
+		position: relative;
+		isolation: isolate;
+		transition: transform var(--transition-fast) var(--ease-out),
+					box-shadow var(--transition-fast) var(--ease-out),
+					border-color var(--transition-fast) var(--ease-out);
 
-	.recipe-card:hover {
-		transform: translateY(calc(var(--spacing-xs) * -1));
-		box-shadow: var(--shadow-lg);
-		border-color: rgba(255, 255, 255, 0.2);
+		&::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background: var(--color-primary);
+			opacity: 0;
+			z-index: -1;
+			transition: opacity var(--transition-fast) var(--ease-out);
+			will-change: opacity;
+		}
+
+		&:hover {
+			transform: translateY(calc(var(--spacing-xs) * -1));
+			box-shadow: var(--shadow-lg);
+			border-color: rgba(255, 255, 255, 0.2);
+
+			&::after {
+				opacity: 0.03;
+			}
+		}
+
+		&:focus {
+			outline: none;
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--color-primary);
+			outline-offset: 2px;
+		}
 	}
 
 	.image-container {
 		position: relative;
 		width: 100%;
-		height: calc(var(--spacing-2xl) * 4);
+		aspect-ratio: 16 / 9;
 		overflow: hidden;
-	}
+		background: var(--color-neutral-darker, rgba(0, 0, 0, 0.2));
 
-	.image-container::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.2) 100%);
-	}
+		&::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.2) 100%);
+			z-index: 1;
+			pointer-events: none;
+		}
 
-	.image-container img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		transition: transform var(--transition-fast) var(--ease-out);
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: transform var(--transition-fast) var(--ease-out);
+			will-change: transform;
+		}
 	}
 
 	.recipe-card:hover .image-container img {
@@ -85,12 +117,13 @@
 		padding: var(--spacing-lg);
 	}
 
-	.recipe-card h2 {
+	h2 {
 		margin: 0 0 var(--spacing-md);
-		font-size: var(--spacing-lg);
+		font-size: var(--font-size-xl);
 		font-weight: 600;
 		letter-spacing: -0.01em;
 		line-height: 1.3;
+		color: var(--color-neutral-light);
 	}
 
 	.description {
@@ -101,20 +134,43 @@
 		-webkit-box-orient: vertical;
 		color: var(--color-neutral-light);
 		line-height: 1.5;
+		opacity: 0.8;
+		font-size: var(--font-size-sm);
 	}
 
 	.meta {
 		display: flex;
 		gap: var(--spacing-lg);
-		font-size: var(--spacing-sm);
+		font-size: var(--font-size-sm);
 		color: var(--color-neutral-light);
 		padding-top: var(--spacing-sm);
 		border-top: 1px solid rgba(255, 255, 255, 0.1);
+		opacity: 0.7;
+		transition: opacity var(--transition-fast) var(--ease-out);
+
+		span {
+			display: flex;
+			align-items: center;
+			gap: var(--spacing-xs);
+		}
 	}
 
-	.meta span {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
+	.recipe-card:hover .meta {
+		opacity: 1;
+	}
+
+	@media (max-width: 600px) {
+		.content {
+			padding: var(--spacing-md);
+		}
+
+		h2 {
+			font-size: var(--font-size-lg);
+		}
+
+		.meta {
+			font-size: var(--font-size-xs);
+			gap: var(--spacing-md);
+		}
 	}
 </style>
