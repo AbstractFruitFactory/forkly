@@ -13,7 +13,8 @@
 		title: 'Classic Spaghetti Carbonara',
 		description: 'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
 		ingredients: 5,
-		instructions: 4
+		instructions: 4,
+		imageUrl: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?q=80&w=800&auto=format&fit=crop'
 	}
 </script>
 

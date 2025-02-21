@@ -59,6 +59,7 @@
 		"@trpc/server": "^10.45.2",
 		"cloudinary": "^2.5.1",
 		"drizzle-orm": "^0.38.4",
+		"lucide-svelte": "^0.475.0",
 		"postgres": "^3.4.5",
 		"ramda": "^0.30.1",
 		"spoonacular": "^2.0.1",
