@@ -24,6 +24,7 @@
 	import { enhance } from '$app/forms'
 	import { browser } from '$app/environment'
 	import ImageUpload from '$lib/components/image-upload/ImageUpload.svelte'
+	import Button from '$lib/components/button/Button.svelte'
 
 	type T = $$Generic<{ name: string; custom: false }>
 	type Ingredient = T | { name: string; custom: true }
@@ -259,7 +260,7 @@
 						</button>
 					</div>
 				{/each}
-				<button type="button" class="add-btn" onclick={addIngredient}>Add Ingredient</button>
+				<Button variant="dotted" onclick={addIngredient} size="sm">Add Ingredient</Button>
 			</div>
 		</div>
 
@@ -284,7 +285,7 @@
 						</button>
 					</div>
 				{/each}
-				<button type="button" class="add-btn" onclick={addInstruction}>Add Instruction</button>
+				<Button variant="dotted" onclick={addInstruction} size="sm">Add Instruction</Button>
 			</div>
 		</div>
 
@@ -342,23 +343,6 @@
 	.remove-btn:hover {
 		color: var(--color-error);
 		background-color: var(--color-error-dark);
-	}
-
-	.add-btn {
-		background: none;
-		border: 2px dashed var(--color-neutral);
-		padding: 12px 24px;
-		border-radius: 8px;
-		cursor: pointer;
-		width: 100%;
-		margin-top: 16px;
-		transition: all 0.2s ease;
-		font-weight: 500;
-	}
-
-	.add-btn:hover {
-		border-color: var(--color-primary);
-		color: var(--color-primary);
 	}
 
 	.ingredient-group {

@@ -1,5 +1,7 @@
 <script>
 	import { page } from '$app/stores'
+	import Button from '$lib/components/button/Button.svelte'
+	
 	let isMenuOpen = $state(false)
 
 	const toggleMenu = () => {
@@ -26,7 +28,7 @@
 				{#if $page.data.user}
 					<li>
 						<form action="/logout" method="POST">
-							<button type="submit">Logout</button>
+							<Button variant="text" type="submit">Logout</Button>
 						</form>
 					</li>
 				{:else}
@@ -127,19 +129,5 @@
 			flex-direction: column;
 			gap: 16px;
 		}
-	}
-
-	nav button {
-		background: none;
-		border: none;
-		color: var(--color-neutral-dark);
-		font-weight: 500;
-		cursor: pointer;
-		padding: 0;
-		font-size: inherit;
-	}
-
-	nav button:hover {
-		color: var(--color-primary);
 	}
 </style>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms'
+	import Button from '$lib/components/button/Button.svelte'
 
 	let { message }: { message?: string } = $props()
 </script>
@@ -22,16 +23,16 @@
 				<p class="error">{message}</p>
 			{/if}
 
-			<button type="submit">Login</button>
+			<Button type="submit" fullWidth>Login</Button>
 		</form>
 
 		<p class="register-link">
-			Don't have an account? <a href="/register">Register</a>
+			Don't have an account? <Button variant="text" href="/register">Register</Button>
 		</p>
 	</div>
 </div>
 
-<style>
+<style lang="scss">
 	.login-container {
 		display: flex;
 		justify-content: center;
@@ -41,7 +42,7 @@
 	}
 
 	.login-box {
-		background: white;
+		background: var(--color-neutral-dark);
 		padding: 2rem;
 		border-radius: 8px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -52,7 +53,6 @@
 	h1 {
 		margin: 0 0 1.5rem;
 		text-align: center;
-		color: #333;
 	}
 
 	.form-group {
@@ -62,7 +62,6 @@
 	label {
 		display: block;
 		margin-bottom: 0.5rem;
-		color: #555;
 	}
 
 	input {
@@ -76,22 +75,6 @@
 	input:focus {
 		outline: none;
 		border-color: #3498db;
-	}
-
-	button {
-		width: 100%;
-		padding: 0.75rem;
-		background: #3498db;
-		color: white;
-		border: none;
-		border-radius: 4px;
-		font-size: 1rem;
-		cursor: pointer;
-		transition: background 0.2s ease;
-	}
-
-	button:hover {
-		background: #2980b9;
 	}
 
 	.error {
