@@ -48,7 +48,7 @@ export const seed = async () => {
           'Plate mashed potatoes, arrange asparagus, and top with grilled salmon.',
           'Garnish with lemon wedges and microgreens. Serve immediately.'
         ],
-        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/salmon_asparagus_as8mhg.webp',
+        imageUrl: 'https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&q=80',
         userId: null,
         nutrition: {
           totalNutrition: {
@@ -71,7 +71,7 @@ export const seed = async () => {
           { name: 'pancetta', quantity: 200, measurement: 'grams' as MeasurementUnit, custom: false, spoonacularId: 10123 },
           { name: 'black pepper', quantity: 2, measurement: 'teaspoons' as MeasurementUnit, custom: false, spoonacularId: 1002030 }
         ] satisfies Ingredient[],
-        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/carbonara_yrm2qc.webp',
+        imageUrl: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&q=80',
         instructions: [
           'Bring a large pot of salted water to boil and cook spaghetti according to package instructions.',
           'While pasta cooks, cut pancetta into small cubes and fry until crispy.',
@@ -112,7 +112,7 @@ export const seed = async () => {
           'Drop by rounded tablespoons onto ungreased baking sheets',
           'Bake for 9 to 11 minutes or until golden brown'
         ],
-        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/chocolate_chip_cookies_wgxgrw.webp',
+        imageUrl: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&q=80',
         userId: null,
         nutrition: {
           totalNutrition: {
@@ -146,7 +146,7 @@ export const seed = async () => {
           'Drizzle with dressing just before serving',
           'Toss gently and serve immediately'
         ],
-        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/garden_salad_lbled2.webp',
+        imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80',
         userId: null,
         nutrition: {
           totalNutrition: {
@@ -179,7 +179,7 @@ export const seed = async () => {
           'Sprinkle with dried oregano',
           'Bake for 15-20 minutes until crust is golden and cheese is bubbly'
         ],
-        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/pizza_jgwqrd.webp',
+        imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80',
         userId: null,
         nutrition: {
           totalNutrition: {
@@ -215,7 +215,7 @@ export const seed = async () => {
           'Stir-fry until vegetables are crisp-tender',
           'Serve hot over rice'
         ],
-        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/chicken_stir_fry_n8kxld.webp',
+        imageUrl: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&q=80',
         userId: null,
         nutrition: {
           totalNutrition: {
