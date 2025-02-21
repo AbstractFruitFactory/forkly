@@ -44,14 +44,14 @@
 	.header {
 		background: var(--color-neutral-dark);
 		box-shadow: var(--shadow-sm);
-		padding: 16px 0;
+		padding: var(--spacing-md) 0;
 		border-bottom: 1px solid var(--color-neutral);
 	}
 
 	.container {
 		max-width: 1200px;
 		margin: 0 auto;
-		padding: 0 16px;
+		padding: 0 var(--spacing-md);
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -60,19 +60,17 @@
 	.left-section {
 		display: flex;
 		align-items: center;
-		gap: 32px;
+		gap: var(--spacing-xl);
 	}
 
 	.logo a {
 		font-family: 'Pacifico', cursive;
-		font-size: 28px;
-		font-weight: 400;
-		text-decoration: none;
+		font-size: var(--font-size-3xl);
 	}
 
 	nav ul {
 		display: flex;
-		gap: 32px;
+		gap: var(--spacing-lg);
 		list-style: none;
 		margin: 0;
 		padding: 0;
@@ -81,7 +79,7 @@
 	nav a {
 		text-decoration: none;
 		color: var(--color-neutral);
-		transition: color 0.2s ease;
+		transition: color var(--transition-fast) var(--ease-in-out);
 		font-weight: 500;
 	}
 
@@ -91,7 +89,7 @@
 
 	.menu-toggle {
 		display: none;
-		transition: opacity 0.2s ease;
+		transition: opacity var(--transition-fast) var(--ease-in-out);
 		color: var(--color-neutral);
 	}
 
@@ -115,7 +113,7 @@
 			display: block;
 			background: none;
 			border: none;
-			font-size: 24px;
+			font-size: var(--spacing-lg);
 			cursor: pointer;
 		}
 
@@ -125,7 +123,7 @@
 			top: 100%;
 			left: 0;
 			right: 0;
-			padding: 16px;
+			padding: var(--spacing-md);
 		}
 
 		nav.active {
@@ -134,11 +132,11 @@
 
 		nav ul {
 			flex-direction: column;
-			gap: 16px;
+			gap: var(--spacing-md);
 		}
 
 		.left-section {
-			gap: 8px;
+			gap: var(--spacing-sm);
 		}
 	}
 </style>

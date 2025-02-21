@@ -47,30 +47,30 @@
 	.about-container {
 		max-width: 1000px;
 		margin: 0 auto;
-		padding: 2rem 1rem;
+		padding: var(--spacing-lg) var(--spacing-md);
 	}
 
 	.hero {
 		text-align: center;
-		margin-bottom: 4rem;
+		margin-bottom: var(--spacing-2xl);
 
 		h1 {
-			font-size: 3rem;
-			margin-bottom: 1rem;
+			font-size: calc(var(--spacing-xl) * 1.5);
+			margin-bottom: var(--spacing-md);
 		}
 
 		.tagline {
-			font-size: 1.25rem;
+			font-size: var(--spacing-lg);
 			color: var(--color-neutral);
 		}
 	}
 
 	section {
-		margin-bottom: 4rem;
+		margin-bottom: var(--spacing-2xl);
 
 		h2 {
-			font-size: 2rem;
-			margin-bottom: 2rem;
+			font-size: var(--spacing-xl);
+			margin-bottom: var(--spacing-lg);
 			text-align: center;
 		}
 	}
@@ -78,29 +78,29 @@
 	.feature-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-		gap: 2rem;
+		gap: var(--spacing-lg);
 	}
 
 	.feature {
 		background: var(--color-neutral-dark);
-		padding: 2rem;
-		border-radius: 8px;
+		padding: var(--spacing-lg);
+		border-radius: var(--border-radius-lg);
 		text-align: center;
-		transition: transform 0.2s ease;
+		transition: transform var(--transition-fast) var(--ease-in-out);
 
 		&:hover {
-			transform: translateY(-4px);
+			transform: translateY(calc(var(--spacing-xs) * -1));
 		}
 
 		.icon {
-			font-size: 2.5rem;
-			margin-bottom: 1rem;
+			font-size: calc(var(--spacing-xl) * 1.25);
+			margin-bottom: var(--spacing-md);
 			display: block;
 		}
 
 		h3 {
-			font-size: 1.25rem;
-			margin-bottom: 1rem;
+			font-size: var(--spacing-lg);
+			margin-bottom: var(--spacing-md);
 		}
 
 		p {
@@ -111,15 +111,15 @@
 
 	.mission {
 		background: var(--color-neutral-dark);
-		padding: 3rem;
-		border-radius: 8px;
+		padding: var(--spacing-xl);
+		border-radius: var(--border-radius-lg);
 		text-align: center;
 
 		p {
 			max-width: 800px;
 			margin: 0 auto;
 			line-height: 1.6;
-			font-size: 1.1rem;
+			font-size: var(--spacing-md);
 			color: var(--color-neutral);
 		}
 	}
@@ -127,7 +127,7 @@
 	@media (max-width: 768px) {
 		.hero {
 			h1 {
-				font-size: 2.5rem;
+				font-size: calc(var(--spacing-xl) * 1.25);
 			}
 		}
 
@@ -136,7 +136,7 @@
 		}
 
 		.mission {
-			padding: 2rem;
+			padding: var(--spacing-lg);
 		}
 	}
 </style> 

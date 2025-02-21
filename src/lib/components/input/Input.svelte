@@ -11,19 +11,19 @@
 <style lang="scss">
 	@mixin input-base {
 		width: 100%;
-		padding: 8px 12px;
-		border: 1px solid var(--color-neutral);
-		border-radius: 4px;
+		padding: var(--spacing-md) var(--spacing-lg);
+		border: var(--border-width-thin) solid var(--color-neutral);
+		border-radius: var(--border-radius-md);
 		font-family: var(--font-sans);
-		transition: all 0.2s ease;
+		transition: all var(--transition-fast) var(--ease-in-out);
 		background-color: var(--color-neutral-dark);
-		height: 40px;
-		font-size: 16px;
+		height: 2.7rem;
+		font-size: var(--font-size-sm);
 
 		&:focus {
 			outline: none;
 			border-color: var(--color-primary);
-			box-shadow: 0 0 0 2px var(--color-primary-light);
+			box-shadow: 0 0 0 var(--border-width-thin) var(--color-primary-light);
 		}
 	}
 
@@ -37,14 +37,14 @@
 		appearance: none;
 		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
 		background-repeat: no-repeat;
-		background-position: right 12px center;
-		padding-right: 36px;
+		background-position: right var(--spacing-md) center;
+		padding-right: var(--spacing-xl);
 	}
 
 	.input-wrapper :global(textarea) {
 		@include input-base;
 		resize: none;
-		height: 100px;
-		padding: 12px;
+		height: 10rem;
+		padding: var(--spacing-md);
 	}
 </style>

@@ -29,13 +29,13 @@
 <style>
 	.empty-state {
 		text-align: center;
-		padding: 48px 0;
+		padding: var(--spacing-2xl) 0;
 	}
 
 	.recipe-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-		gap: 24px;
+		gap: var(--spacing-lg);
 	}
 
 	@media (max-width: 640px) {

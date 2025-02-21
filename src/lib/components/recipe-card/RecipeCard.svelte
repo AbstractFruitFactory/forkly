@@ -32,24 +32,24 @@
 <style>
 	.recipe-card {
 		display: block;
-		border-radius: 8px;
+		border-radius: var(--border-radius-lg);
 		background: var(--color-neutral-dark);
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		box-shadow: var(--shadow-sm);
 		text-decoration: none;
 		overflow: hidden;
-		transition:
-			transform 0.2s ease,
-			box-shadow 0.2s ease;
+		transition: 
+			transform var(--transition-fast) var(--ease-out),
+			box-shadow var(--transition-fast) var(--ease-out);
 	}
 
 	.recipe-card:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		transform: translateY(calc(var(--spacing-xs) * -1));
+		box-shadow: var(--shadow-md);
 	}
 
 	.image-container {
 		width: 100%;
-		height: 200px;
+		height: calc(var(--spacing-2xl) * 4);
 		overflow: hidden;
 	}
 
@@ -60,16 +60,16 @@
 	}
 
 	.content {
-		padding: 24px;
+		padding: var(--spacing-lg);
 	}
 
 	.recipe-card h2 {
-		margin: 0 0 12px;
-		font-size: 24px;
+		margin: 0 0 var(--spacing-md);
+		font-size: var(--spacing-lg);
 	}
 
 	.description {
-		margin: 0 0 16px;
+		margin: 0 0 var(--spacing-md);
 		overflow: hidden;
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
@@ -78,7 +78,7 @@
 
 	.meta {
 		display: flex;
-		gap: 16px;
-		font-size: 14px;
+		gap: var(--spacing-md);
+		font-size: var(--spacing-sm);
 	}
 </style>

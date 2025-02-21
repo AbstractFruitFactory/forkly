@@ -20,14 +20,14 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		min-height: calc(100vh - 80px);
-		padding: 2rem;
+		min-height: calc(100vh - var(--spacing-2xl));
+		padding: var(--spacing-lg);
 	}
 
 	.success-content {
 		background: var(--color-neutral-dark);
-		padding: 3rem;
-		border-radius: 12px;
+		padding: var(--spacing-xl);
+		border-radius: var(--border-radius-lg);
 		text-align: center;
 		box-shadow: var(--shadow-md);
 		max-width: 500px;
@@ -35,37 +35,37 @@
 	}
 
 	.success-icon {
-		font-size: 48px;
+		font-size: var(--spacing-2xl);
 		color: var(--color-success);
-		margin-bottom: 1rem;
+		margin-bottom: var(--spacing-md);
 	}
 
 	h1 {
-		margin: 0 0 1rem;
-		font-size: 2rem;
+		margin: 0 0 var(--spacing-md);
+		font-size: var(--spacing-xl);
 	}
 
 	p {
-		margin: 0 0 2rem;
+		margin: 0 0 var(--spacing-lg);
 		color: var(--color-neutral);
-		font-size: 1.1rem;
+		font-size: var(--spacing-md);
 	}
 
 	.button-group {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: var(--spacing-md);
 		max-width: 300px;
 		margin: 0 auto;
 	}
 
 	.button {
 		display: block;
-		padding: 0.75rem 1.5rem;
-		border-radius: 6px;
+		padding: var(--spacing-sm) var(--spacing-md);
+		border-radius: var(--border-radius-md);
 		text-decoration: none;
 		font-weight: 500;
-		transition: all 0.2s ease;
+		transition: all var(--transition-fast) var(--ease-in-out);
 
 		&.primary {
 			background: var(--color-primary);
@@ -73,13 +73,13 @@
 
 			&:hover {
 				background: var(--color-primary-dark);
-				transform: translateY(-1px);
+				transform: translateY(calc(var(--spacing-xs) * -1));
 			}
 		}
 
 		&.secondary {
 			background: transparent;
-			border: 1px solid var(--color-neutral);
+			border: var(--border-width-thin) solid var(--color-neutral);
 			color: var(--color-neutral);
 
 			&:hover {
@@ -91,7 +91,7 @@
 
 	@media (max-width: 640px) {
 		.success-content {
-			padding: 2rem;
+			padding: var(--spacing-lg);
 		}
 	}
 </style>

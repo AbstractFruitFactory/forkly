@@ -37,60 +37,60 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		min-height: calc(100vh - 80px);
-		padding: 2rem;
+		min-height: calc(100vh - var(--spacing-2xl));
+		padding: var(--spacing-lg);
 	}
 
 	.login-box {
 		background: var(--color-neutral-dark);
-		padding: 2rem;
-		border-radius: 8px;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		padding: var(--spacing-lg);
+		border-radius: var(--border-radius-lg);
+		box-shadow: var(--shadow-md);
 		width: 100%;
 		max-width: 400px;
 	}
 
 	h1 {
-		margin: 0 0 1.5rem;
+		margin: 0 0 var(--spacing-xl);
 		text-align: center;
 	}
 
 	.form-group {
-		margin-bottom: 1rem;
+		margin-bottom: var(--spacing-md);
 	}
 
 	label {
 		display: block;
-		margin-bottom: 0.5rem;
+		margin-bottom: var(--spacing-xs);
 	}
 
 	input {
 		width: 100%;
-		padding: 0.75rem;
-		border: 1px solid #ddd;
-		border-radius: 4px;
-		font-size: 1rem;
+		padding: var(--spacing-sm);
+		border: var(--border-width-thin) solid var(--color-neutral);
+		border-radius: var(--border-radius-md);
+		font-size: var(--spacing-md);
 	}
 
 	input:focus {
 		outline: none;
-		border-color: #3498db;
+		border-color: var(--color-primary);
 	}
 
 	.error {
-		color: #e74c3c;
-		margin: 0.5rem 0;
+		color: var(--color-error);
+		margin: var(--spacing-xs) 0;
 		text-align: center;
 	}
 
 	.register-link {
-		margin-top: 1rem;
+		margin-top: var(--spacing-md);
 		text-align: center;
-		color: #666;
+		color: var(--color-neutral);
 	}
 
 	.register-link a {
-		color: #3498db;
+		color: var(--color-primary);
 		text-decoration: none;
 	}
 

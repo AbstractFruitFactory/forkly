@@ -50,10 +50,10 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		border-radius: 4px;
+		border-radius: var(--border-radius-md);
 		font-weight: 500;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--transition-fast) var(--ease-in-out);
 		border: none;
 		text-decoration: none;
 
@@ -68,18 +68,17 @@
 
 		// Sizes
 		&.sm {
-			padding: 0.5rem 1rem;
-			font-size: 0.875rem;
+			padding: var(--spacing-sm) var(--spacing-md);
+			font-size: var(--font-size-sm);
 		}
 
 		&.md {
-			padding: 0.75rem 1.5rem;
-			font-size: 1rem;
+			padding: var(--spacing-md) var(--spacing-lg);
 		}
 
 		&.lg {
-			padding: 1rem 2rem;
-			font-size: 1.125rem;
+			padding: var(--spacing-lg) var(--spacing-xl);
+			font-size: var(--font-size-lg);
 		}
 
 		// Variants
@@ -92,13 +91,13 @@
 			}
 
 			&:active:not(:disabled) {
-				transform: translateY(1px);
+				transform: translateY(var(--spacing-xs));
 			}
 		}
 
 		&.secondary {
 			background: transparent;
-			border: 1px solid var(--color-neutral);
+			border: var(--border-width-thin) solid var(--color-neutral);
 			color: var(--color-neutral);
 
 			&:hover:not(:disabled) {
@@ -119,10 +118,9 @@
 
 		&.dotted {
 			background: none;
-			border: 2px dashed var(--color-neutral);
-			padding: 12px 24px;
-			margin-top: 16px;
-			font-weight: 500;
+			border: var(--border-width-normal) dashed var(--color-neutral);
+			padding: var(--spacing-md) var(--spacing-lg);
+			margin-top: var(--spacing-md);
 			width: 100%;
 
 			&:hover:not(:disabled) {

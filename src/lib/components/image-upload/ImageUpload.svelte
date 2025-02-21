@@ -82,18 +82,18 @@
 
 <style lang="scss">
 	.image-upload {
-		margin-bottom: 1rem;
+		margin-bottom: var(--spacing-md);
 	}
 
 	.preview-area {
 		position: relative;
 		width: 100%;
-		height: 200px;
-		border: 2px dashed var(--color-neutral);
-		border-radius: 8px;
+		height: calc(var(--spacing-2xl) * 4);
+		border: var(--border-width-normal) dashed var(--color-neutral);
+		border-radius: var(--border-radius-lg);
 		overflow: hidden;
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: all var(--transition-fast) var(--ease-in-out);
 		background: var(--color-neutral-dark);
 
 		&:hover {
@@ -125,18 +125,23 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 1rem;
+		gap: var(--spacing-md);
 
 		svg {
-			width: 48px;
-			height: 48px;
+			width: var(--spacing-2xl);
+			height: var(--spacing-2xl);
+		}
+
+		span {
+			color: var(--color-neutral);
+			font-size: var(--font-size-sm);
 		}
 	}
 
 	.error {
 		color: var(--color-error);
-		font-size: 0.875rem;
-		margin-top: 0.5rem;
+		font-size: var(--spacing-md);
+		margin-top: var(--spacing-xs);
 	}
 
 	.hidden {

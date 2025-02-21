@@ -16,31 +16,31 @@
 		justify-content: center;
 		height: 100vh;
 		text-align: center;
-		padding: 1rem;
+		padding: var(--spacing-md);
 	}
 
 	h1 {
-		font-size: 2rem;
-		margin-bottom: 1rem;
-		color: #e74c3c;
+		font-size: var(--spacing-xl);
+		margin-bottom: var(--spacing-md);
+		color: var(--color-error);
 	}
 
 	p {
-		margin-bottom: 1.5rem;
-		color: #666;
+		margin-bottom: var(--spacing-lg);
+		color: var(--color-neutral);
 	}
 
 	a {
-		color: #3498db;
+		color: var(--color-primary);
 		text-decoration: none;
-		padding: 0.5rem 1rem;
-		border: 1px solid #3498db;
-		border-radius: 4px;
-		transition: all 0.2s ease;
+		padding: var(--spacing-xs) var(--spacing-md);
+		border: var(--border-width-thin) solid var(--color-primary);
+		border-radius: var(--border-radius-md);
+		transition: all var(--transition-fast) var(--ease-in-out);
 	}
 
 	a:hover {
-		background-color: #3498db;
+		background-color: var(--color-primary);
 		color: white;
 	}
 </style>

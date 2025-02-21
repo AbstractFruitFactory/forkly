@@ -205,36 +205,34 @@
 										suggestions={suggestions[i] ?? []}
 										onSelect={(suggestion) => handleSelect(i, suggestion)}
 									>
-										<Input>
-											<div class="search-input-wrapper">
-												<svg
-													class="search-icon"
-													xmlns="http://www.w3.org/2000/svg"
-													width="16"
-													height="16"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													stroke-width="2"
-													stroke-linecap="round"
-													stroke-linejoin="round"
-												>
-													<circle cx="11" cy="11" r="8"></circle>
-													<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-												</svg>
-												<input
-													name={selectedLookupIngredients[i] ? `ingredient-${i}-name&lookup` : ''}
-													placeholder="Search for ingredient"
-													bind:this={lookupIngredientInputs[i]}
-													value={inputValues[i] ?? ''}
-													oninput={(e) => {
-														clearSelection(i)
-														searchIngredients((e.target as HTMLInputElement).value, i)
-													}}
-													onblur={() => handleBlur(i)}
-												/>
-											</div>
-										</Input>
+										<div class="search-input-wrapper">
+											<svg
+												class="search-icon"
+												xmlns="http://www.w3.org/2000/svg"
+												width="16"
+												height="16"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											>
+												<circle cx="11" cy="11" r="8"></circle>
+												<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+											</svg>
+											<input
+												name={selectedLookupIngredients[i] ? `ingredient-${i}-name&lookup` : ''}
+												placeholder="Search for ingredient"
+												bind:this={lookupIngredientInputs[i]}
+												value={inputValues[i] ?? ''}
+												oninput={(e) => {
+													clearSelection(i)
+													searchIngredients((e.target as HTMLInputElement).value, i)
+												}}
+												onblur={() => handleBlur(i)}
+											/>
+										</div>
 									</Autocomplete>
 
 									{#if suggestions[i]?.length === 0 && !isLoading[i] && !selectedLookupIngredients[i]}
@@ -288,8 +286,9 @@
 				<Button variant="dotted" onclick={addInstruction} size="sm">Add Instruction</Button>
 			</div>
 		</div>
-
-		<button type="submit" class="submit-btn">Create Recipe</button>
+		<div style:margin-top="2rem">
+			<Button fullWidth type="submit" variant="primary">Create Recipe</Button>
+		</div>
 	</form>
 </div>
 
@@ -297,31 +296,31 @@
 	.container {
 		max-width: 800px;
 		margin: 0 auto;
-		padding: 32px 16px;
+		padding: var(--spacing-lg) var(--spacing-md);
 	}
 
 	h1 {
-		font-size: 32px;
-		margin-bottom: 40px;
+		font-size: var(--spacing-xl);
+		margin-bottom: var(--spacing-xl);
 		font-weight: 600;
 		text-align: center;
 	}
 
 	.form-group {
-		margin-bottom: 32px;
+		margin-bottom: var(--spacing-lg);
 	}
 
 	label {
 		display: block;
-		margin-bottom: 12px;
+		margin-bottom: var(--spacing-md);
 		font-weight: 500;
-		font-size: 1.1rem;
+		font-size: var(--spacing-lg);
 	}
 
 	.input-group {
 		display: flex;
-		gap: 12px;
-		margin-bottom: 12px;
+		gap: var(--spacing-md);
+		margin-bottom: var(--spacing-md);
 		align-items: flex-start;
 	}
 
@@ -329,15 +328,15 @@
 		background: none;
 		border: none;
 		cursor: pointer;
-		padding: 8px;
-		transition: all 0.2s ease;
+		padding: var(--spacing-sm);
+		transition: all var(--transition-fast) var(--ease-in-out);
 		border-radius: 50%;
-		width: 32px;
-		height: 32px;
+		width: var(--spacing-lg);
+		height: var(--spacing-lg);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin-top: 4px;
+		margin-top: var(--spacing-xs);
 	}
 
 	.remove-btn:hover {
@@ -347,13 +346,13 @@
 
 	.ingredient-group {
 		display: flex;
-		gap: 12px;
-		margin-bottom: 16px;
+		gap: var(--spacing-md);
+		margin-bottom: var(--spacing-md);
 		align-items: flex-start;
 
 		@media (max-width: 600px) {
 			flex-direction: column;
-			gap: 8px;
+			gap: var(--spacing-sm);
 
 			:global(.input-wrapper) {
 				width: 100%;
@@ -370,59 +369,29 @@
 	}
 
 	.ingredient-input {
-		gap: 8px;
+		gap: var(--spacing-sm);
 		flex: 1;
 		position: relative;
 		display: flex;
-
-		input {
-			flex: 1;
-			height: 40px;
-		}
 	}
 
 	.error-container {
-		margin-bottom: 24px;
-		padding: 16px;
-		border-radius: 8px;
+		margin-bottom: var(--spacing-lg);
+		padding: var(--spacing-md);
+		border-radius: var(--border-radius-lg);
 		background-color: var(--color-error-light);
-		border: 1px solid var(--color-error);
+		border: var(--border-width-thin) solid var(--color-error);
 	}
 
 	.error {
 		color: var(--color-error-dark);
-		margin: 0.25rem 0;
-		font-size: 0.9rem;
-	}
-
-	.submit-btn {
-		background: var(--color-secondary);
-		color: white;
-		border: none;
-		padding: 16px 32px;
-		border-radius: 8px;
-		cursor: pointer;
-		font-size: 16px;
-		width: 100%;
-		transition: all 0.2s ease;
-		font-weight: 600;
-		margin-top: 16px;
-
-		&:hover {
-			filter: brightness(0.9);
-			transform: translateY(-1px);
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		}
-
-		&:active {
-			transform: translateY(0);
-		}
+		margin: var(--spacing-xs) 0;
 	}
 
 	.custom-ingredient {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: var(--spacing-sm);
 		width: 100%;
 	}
 
@@ -430,8 +399,8 @@
 		background: none;
 		border: none;
 		color: var(--color-primary);
-		font-size: 14px;
-		padding: 4px 8px;
+		font-size: var(--font-size-sm);
+		padding: var(--spacing-xs) var(--spacing-sm);
 		cursor: pointer;
 		text-align: left;
 
@@ -447,13 +416,13 @@
 		width: 100%;
 
 		input {
-			padding-left: 36px;
+			padding-left: calc(var(--spacing-xl) + var(--spacing-xs));
 		}
 	}
 
 	.search-icon {
 		position: absolute;
-		left: 12px;
+		left: var(--spacing-md);
 		color: var(--color-neutral);
 		pointer-events: none;
 	}

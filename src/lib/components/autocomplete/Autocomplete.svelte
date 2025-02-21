@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
+	import Input from '../input/Input.svelte'
 
 	type T = $$Generic<{ name: string }>
 
@@ -17,7 +18,9 @@
 </script>
 
 <div class="autocomplete-wrapper">
-	{@render children()}
+	<Input>
+		{@render children()}
+	</Input>
 
 	{#if isLoading}
 		<div class="loading-indicator">Loading...</div>
@@ -44,10 +47,10 @@
 
 	.loading-indicator {
 		position: absolute;
-		right: 8px;
+		right: var(--spacing-sm);
 		top: 50%;
 		transform: translateY(-50%);
-		font-size: 14px;
+		font-size: var(--spacing-md);
 	}
 
 	.suggestions-list {
@@ -59,11 +62,11 @@
 		padding: 0;
 		list-style: none;
 		background: var(--color-neutral-dark);
-		border: 1px solid var(--color-neutral);
-		border-radius: 4px;
+		border: var(--border-width-thin) solid var(--color-neutral);
+		border-radius: var(--border-radius-md);
 		box-shadow: var(--shadow-md);
 		z-index: 10;
-		max-height: 200px;
+		max-height: calc(var(--spacing-2xl) * 4);
 		overflow-y: auto;
 
 		li {
@@ -73,10 +76,11 @@
 		button {
 			width: 100%;
 			text-align: left;
-			padding: 8px 12px;
+			padding: var(--spacing-sm) var(--spacing-md);
 			background: none;
 			border: none;
 			cursor: pointer;
+			font-size: var(--spacing-md);
 
 			&:hover {
 				background: var(--color-primary);

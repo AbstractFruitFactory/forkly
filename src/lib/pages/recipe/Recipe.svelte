@@ -124,39 +124,29 @@
 	.container {
 		max-width: 800px;
 		margin: 0 auto;
-		padding: 32px 16px;
+		padding: var(--spacing-2xl) var(--spacing-md);
 	}
 
 	.recipe {
 		background-color: var(--color-neutral-dark);
-		border-radius: 8px;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		padding: 32px;
+		border-radius: var(--border-radius-lg);
+		box-shadow: var(--shadow-sm);
+		padding: var(--spacing-2xl);
 		overflow: hidden;
 	}
 
 	header {
-		margin-bottom: 32px;
-	}
-
-	h1 {
-		font-size: 36px;
-		margin: 0 0 16px;
+		margin-bottom: var(--spacing-2xl);
 	}
 
 	.description {
-		font-size: 18px;
+		font-size: var(--font-size-lg);
 		line-height: 1.6;
 		margin: 0;
 	}
 
 	section {
-		margin-bottom: 32px;
-	}
-
-	h2 {
-		font-size: 24px;
-		margin: 0 0 16px;
+		margin-bottom: var(--spacing-2xl);
 	}
 
 	ul,
@@ -166,7 +156,7 @@
 	}
 
 	li {
-		margin-bottom: 8px;
+		margin-bottom: var(--spacing-sm);
 		line-height: 1.6;
 	}
 
@@ -175,45 +165,45 @@
 	}
 
 	ol li {
-		margin-left: 24px;
-		padding-left: 8px;
+		margin-left: var(--spacing-xl);
+		padding-left: var(--spacing-sm);
 	}
 
 	.quantity {
-		font-weight: 600;
-		margin-right: 4px;
+		font-weight: var(--font-weight-semibold);
+		margin-right: var(--spacing-xs);
 	}
 
 	.measurement {
-		margin-right: 8px;
+		margin-right: var(--spacing-sm);
 	}
 
 	@media (max-width: 640px) {
 		.recipe {
-			padding: 24px;
+			padding: var(--spacing-xl);
 		}
 
 		h1 {
-			font-size: 28px;
+			font-size: var(--font-size-2xl);
 		}
 
 		h2 {
-			font-size: 20px;
+			font-size: var(--font-size-xl);
 		}
 	}
 
 	.nutrition {
 		background: var(--color-neutral-darker);
-		padding: 24px;
-		border-radius: 8px;
-		margin: 32px 0;
+		padding: var(--spacing-xl);
+		border-radius: var(--border-radius-lg);
+		margin: var(--spacing-2xl) 0;
 	}
 
 	.nutrition-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-		gap: 24px;
-		margin-top: 16px;
+		gap: var(--spacing-xl);
+		margin-top: var(--spacing-md);
 	}
 
 	.nutrition-item {
@@ -222,46 +212,46 @@
 
 	.nutrition-item .value {
 		display: block;
-		font-size: 24px;
-		font-weight: 600;
+		font-size: var(--font-size-2xl);
+		font-weight: var(--font-weight-semibold);
 		color: var(--color-primary);
 	}
 
 	.nutrition-item .label {
 		display: block;
-		font-size: 14px;
+		font-size: var(--font-size-sm);
 		color: var(--color-neutral);
-		margin-top: 4px;
+		margin-top: var(--spacing-xs);
 	}
 
 	.nutrition-disclaimer {
 		text-align: center;
-		font-size: 12px;
+		font-size: var(--font-size-xs);
 		color: var(--color-neutral);
-		margin-top: 16px;
+		margin-top: var(--spacing-md);
 	}
 
 	.nutrition-loading {
 		text-align: center;
-		padding: 20px;
+		padding: var(--spacing-lg);
 		color: var(--color-neutral);
 	}
 
 	.custom-badge {
-		font-size: 12px;
+		font-size: var(--font-size-xs);
 		background: var(--color-neutral);
 		color: var(--color-neutral-darker);
-		padding: 2px 6px;
-		border-radius: 4px;
-		margin-left: 8px;
+		padding: var(--spacing-xs) var(--spacing-sm);
+		border-radius: var(--border-radius-md);
+		margin-left: var(--spacing-sm);
 		vertical-align: middle;
 	}
 
 	.recipe-image {
-		margin: -32px -32px 32px;
+		margin: calc(var(--spacing-2xl) * -1) calc(var(--spacing-2xl) * -1) var(--spacing-2xl);
 		height: 400px;
 		overflow: hidden;
-		border-radius: 8px 8px 0 0;
+		border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
 	}
 
 	.recipe-image img {
