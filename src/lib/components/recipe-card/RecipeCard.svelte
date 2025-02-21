@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { List, Timer } from 'lucide-svelte'
+	import Timer from 'lucide-svelte/icons/timer'
+	import List from 'lucide-svelte/icons/list'
 
 	interface Recipe {
 		id: string
