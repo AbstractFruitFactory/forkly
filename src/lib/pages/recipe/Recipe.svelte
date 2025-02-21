@@ -23,6 +23,7 @@
 		description?: string
 		ingredients: Ingredient[]
 		instructions: string[]
+		imageUrl?: string | null
 		totalNutrition?: {
 			calories: number
 			protein: number
@@ -50,6 +51,11 @@
 <div class="container">
 	<article class="recipe">
 		<header>
+			{#if recipe.imageUrl}
+				<div class="recipe-image">
+					<img src={recipe.imageUrl} alt={recipe.title} />
+				</div>
+			{/if}
 			<h1>{recipe.title}</h1>
 			{#if recipe.description}
 				<p class="description">{recipe.description}</p>
@@ -126,6 +132,7 @@
 		border-radius: 8px;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 		padding: 32px;
+		overflow: hidden;
 	}
 
 	header {
@@ -248,5 +255,18 @@
 		border-radius: 4px;
 		margin-left: 8px;
 		vertical-align: middle;
+	}
+
+	.recipe-image {
+		margin: -32px -32px 32px;
+		height: 400px;
+		overflow: hidden;
+		border-radius: 8px 8px 0 0;
+	}
+
+	.recipe-image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
 	}
 </style>

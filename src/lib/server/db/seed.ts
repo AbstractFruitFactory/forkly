@@ -23,6 +23,45 @@ export const seed = async () => {
     const sampleRecipes = [
       {
         id: generateId(),
+        title: 'Grilled Salmon with Asparagus',
+        description: 'Perfectly grilled salmon fillet served with fresh asparagus and creamy mashed potatoes, garnished with lemon and microgreens.',
+        ingredients: [
+          { name: 'salmon fillet', quantity: 6, measurement: 'ounces' as MeasurementUnit, custom: false, spoonacularId: 15076 },
+          { name: 'asparagus', quantity: 8, measurement: 'pieces' as MeasurementUnit, custom: false, spoonacularId: 11011 },
+          { name: 'potatoes', quantity: 2, measurement: 'pieces' as MeasurementUnit, custom: false, spoonacularId: 11352 },
+          { name: 'butter', quantity: 2, measurement: 'tablespoons' as MeasurementUnit, custom: false, spoonacularId: 1001 },
+          { name: 'milk', quantity: 0.25, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 1077 },
+          { name: 'lemon', quantity: 1, measurement: 'pieces' as MeasurementUnit, custom: false, spoonacularId: 9150 },
+          { name: 'black pepper', quantity: 1, measurement: 'teaspoons' as MeasurementUnit, custom: false, spoonacularId: 1002030 },
+          { name: 'salt', quantity: 1, measurement: 'teaspoons' as MeasurementUnit, custom: false, spoonacularId: 2047 },
+          { name: 'olive oil', quantity: 2, measurement: 'tablespoons' as MeasurementUnit, custom: false, spoonacularId: 4053 },
+          { name: 'microgreens', quantity: 0.5, measurement: 'cups' as MeasurementUnit, custom: false, spoonacularId: 11001 }
+        ] satisfies Ingredient[],
+        instructions: [
+          'Peel and quarter potatoes. Boil until tender, about 15-20 minutes.',
+          'While potatoes cook, season salmon with salt, pepper, and olive oil.',
+          'Trim asparagus ends and toss with olive oil, salt, and pepper.',
+          'Preheat grill or grill pan to medium-high heat.',
+          'Grill salmon for 4-5 minutes per side until desired doneness.',
+          'Grill asparagus for 3-4 minutes, turning occasionally.',
+          'Mash potatoes with butter, milk, salt, and pepper until creamy.',
+          'Plate mashed potatoes, arrange asparagus, and top with grilled salmon.',
+          'Garnish with lemon wedges and microgreens. Serve immediately.'
+        ],
+        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/salmon_asparagus_as8mhg.webp',
+        userId: null,
+        nutrition: {
+          totalNutrition: {
+            calories: 580,
+            protein: 42,
+            carbs: 35,
+            fat: 32
+          },
+          hasCustomIngredients: false
+        }
+      },
+      {
+        id: generateId(),
         title: 'Classic Spaghetti Carbonara',
         description: 'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
         ingredients: [
@@ -32,6 +71,7 @@ export const seed = async () => {
           { name: 'pancetta', quantity: 200, measurement: 'grams' as MeasurementUnit, custom: false, spoonacularId: 10123 },
           { name: 'black pepper', quantity: 2, measurement: 'teaspoons' as MeasurementUnit, custom: false, spoonacularId: 1002030 }
         ] satisfies Ingredient[],
+        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/carbonara_yrm2qc.webp',
         instructions: [
           'Bring a large pot of salted water to boil and cook spaghetti according to package instructions.',
           'While pasta cooks, cut pancetta into small cubes and fry until crispy.',
@@ -41,11 +81,11 @@ export const seed = async () => {
         ],
         userId: null,
         nutrition: {
-          totalNutrition: { 
-            calories: 1200, 
-            protein: 45, 
-            carbs: 120, 
-            fat: 55 
+          totalNutrition: {
+            calories: 1200,
+            protein: 45,
+            carbs: 120,
+            fat: 55
           },
           hasCustomIngredients: false
         }
@@ -72,13 +112,14 @@ export const seed = async () => {
           'Drop by rounded tablespoons onto ungreased baking sheets',
           'Bake for 9 to 11 minutes or until golden brown'
         ],
+        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/chocolate_chip_cookies_wgxgrw.webp',
         userId: null,
         nutrition: {
-          totalNutrition: { 
-            calories: 2400, 
-            protein: 24, 
-            carbs: 300, 
-            fat: 120 
+          totalNutrition: {
+            calories: 2400,
+            protein: 24,
+            carbs: 300,
+            fat: 120
           },
           hasCustomIngredients: false
         }
@@ -105,13 +146,14 @@ export const seed = async () => {
           'Drizzle with dressing just before serving',
           'Toss gently and serve immediately'
         ],
+        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/garden_salad_lbled2.webp',
         userId: null,
         nutrition: {
-          totalNutrition: { 
-            calories: 320, 
-            protein: 4, 
-            carbs: 18, 
-            fat: 28 
+          totalNutrition: {
+            calories: 320,
+            protein: 4,
+            carbs: 18,
+            fat: 28
           },
           hasCustomIngredients: false
         }
@@ -137,13 +179,14 @@ export const seed = async () => {
           'Sprinkle with dried oregano',
           'Bake for 15-20 minutes until crust is golden and cheese is bubbly'
         ],
+        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/pizza_jgwqrd.webp',
         userId: null,
         nutrition: {
-          totalNutrition: { 
-            calories: 2000, 
-            protein: 80, 
-            carbs: 220, 
-            fat: 90 
+          totalNutrition: {
+            calories: 2000,
+            protein: 80,
+            carbs: 220,
+            fat: 90
           },
           hasCustomIngredients: false
         }
@@ -172,13 +215,14 @@ export const seed = async () => {
           'Stir-fry until vegetables are crisp-tender',
           'Serve hot over rice'
         ],
+        imageUrl: 'https://res.cloudinary.com/dyxeuaa8z/image/upload/v1740098156/chicken_stir_fry_n8kxld.webp',
         userId: null,
         nutrition: {
-          totalNutrition: { 
-            calories: 850, 
-            protein: 75, 
-            carbs: 40, 
-            fat: 45 
+          totalNutrition: {
+            calories: 850,
+            protein: 75,
+            carbs: 40,
+            fat: 45
           },
           hasCustomIngredients: false
         }

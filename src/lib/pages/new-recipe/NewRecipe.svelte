@@ -23,6 +23,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms'
 	import { browser } from '$app/environment'
+	import ImageUpload from '$lib/components/image-upload/ImageUpload.svelte'
 
 	type T = $$Generic<{ name: string; custom: false }>
 	type Ingredient = T | { name: string; custom: true }
@@ -117,6 +118,8 @@
 
 <div class="container">
 	<h1>Create New Recipe</h1>
+
+	<ImageUpload />
 
 	<form
 		method="POST"
@@ -224,7 +227,7 @@
 													bind:this={lookupIngredientInputs[i]}
 													value={inputValues[i] ?? ''}
 													oninput={(e) => {
-														clearSelection(i);
+														clearSelection(i)
 														searchIngredients((e.target as HTMLInputElement).value, i)
 													}}
 													onblur={() => handleBlur(i)}

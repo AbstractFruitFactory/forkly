@@ -9,6 +9,7 @@ import { generateId } from '$lib/server/id'
 import { groupBy } from 'ramda'
 import { api } from '$lib/server/food-api'
 import { Result } from 'ts-results-es'
+import { uploadImage } from '$lib/server/cloudinary'
 
 type FormFields = {
   title: string
@@ -80,6 +81,7 @@ export const actions = {
   default: async ({ request, locals }) => {
     const formData = await request.formData()
     const recipeData = parseFormData(formData)
+    const imageFile = formData.get('image') as File | null
 
     const result = safeParse(recipeSchema, recipeData)
 
@@ -132,12 +134,25 @@ export const actions = {
         hasCustomIngredients: mappedIngredients.value.some(i => i.custom)
       }
 
+    let imageUrl: string | null = null
+    if (imageFile) {
+      try {
+        const arrayBuffer = await imageFile.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+        imageUrl = await uploadImage(buffer)
+      } catch (err) {
+        console.error('Failed to upload image:', err)
+        // Continue without image if upload fails
+      }
+    }
+
     const newRecipe = await db.insert(recipe).values({
       id: generateId(),
       ...result.output,
       ingredients: mappedIngredients.value,
       nutrition,
-      userId: locals.user?.id ?? null
+      userId: locals.user?.id ?? null,
+      imageUrl
     }).returning()
 
     return {

@@ -62,7 +62,8 @@ export const recipe = pgTable('recipe', {
 		totalNutrition: NutritionInfo
 		hasCustomIngredients: boolean
 	}>().notNull(),
-	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+	imageUrl: text('image_url'),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
 export type Session = typeof session.$inferSelect

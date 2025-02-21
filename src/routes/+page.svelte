@@ -8,6 +8,7 @@
 	recipes={data.recipes.map((recipe) => ({
 		...recipe,
 		ingredients: recipe.ingredients.length,
-		instructions: recipe.instructions.length
+		instructions: recipe.instructions.length,
+		imageUrl: recipe.imageUrl
 	}))}
 />
