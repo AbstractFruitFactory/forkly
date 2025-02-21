@@ -2,8 +2,8 @@
 	import RecipeSuccess from '$lib/pages/recipe-created/RecipeCreated.svelte'
 	import NewRecipe from '$lib/pages/new-recipe/NewRecipe.svelte'
 	import type { IngredientSearchResult } from '$lib/server/food-api'
-	import { trpc } from '$lib/trpc/client'
 	import { page } from '$app/state'
+	import { trpc } from '$lib/trpc/client'
 
 	let { form } = $props()
 

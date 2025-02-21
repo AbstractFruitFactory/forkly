@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 }
 
 export const actions = {
-	login: async (event) => {
+	default: async (event) => {
 		const formData = await event.request.formData()
 		const username = formData.get('username')
 		const password = formData.get('password')
@@ -19,17 +19,12 @@ export const actions = {
 			return fail(400, { message: 'Missing username or password' })
 		}
 
-		try {
-			const { session, user } = await auth.validateCredentials(username.toString(), password.toString())
-			if (!session) {
-				return fail(401, { message: 'Invalid username or password' })
-			}
-
-			auth.setSessionTokenCookie(event, session.token, session.expiresAt)
-			return { success: true }
-		} catch (e) {
-			console.error('Login error:', e)
-			return fail(500, { message: 'An error occurred during login' })
+		const { session, user } = await auth.validateCredentials(username.toString(), password.toString())
+		if (!session) {
+			return fail(401, { message: 'Invalid username or password' })
 		}
+
+		auth.setSessionTokenCookie(event, session.token, session.expiresAt)
+		throw redirect(302, '/')
 	}
 } satisfies Actions

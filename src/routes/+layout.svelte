@@ -2,8 +2,10 @@
 	import Header from '$lib/components/header/Header.svelte'
 	import Layout from '$lib/components/layout/Layout.svelte'
 	import '$lib/global.scss'
+	import type { Snippet } from 'svelte'
+	import type { LayoutData } from './$types'
 
-	let { children } = $props()
+	let { children, data }: { children: Snippet; data: LayoutData } = $props()
 </script>
 
 <svelte:head>
@@ -17,9 +19,9 @@
 
 <Layout>
 	{#snippet header()}
-		<Header />
+		<Header loggedIn={!!data.user} />
 	{/snippet}
-	
+
 	{#snippet content()}
 		{@render children()}
 	{/snippet}

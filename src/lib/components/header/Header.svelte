@@ -1,6 +1,7 @@
 <script>
-	import { page } from '$app/stores'
 	import Button from '$lib/components/button/Button.svelte'
+
+	let { loggedIn = false } = $props()
 
 	let isMenuOpen = $state(false)
 
@@ -25,7 +26,7 @@
 	<nav class:active={isMenuOpen}>
 		<ul>
 			<li><a href="/about">About</a></li>
-			{#if $page.data.user}
+			{#if loggedIn}
 				<li>
 					<form action="/logout" method="POST">
 						<Button variant="text" type="submit">Logout</Button>

@@ -3,6 +3,7 @@ import { createContext } from '$lib/trpc/context'
 import { appRouter } from '$lib/trpc/router'
 import { createTRPCHandle } from 'trpc-sveltekit'
 import * as auth from '$lib/server/auth'
+import { sequence } from '@sveltejs/kit/hooks'
 
 const trpcHandle = createTRPCHandle({ router: appRouter, createContext })
 
@@ -15,6 +16,7 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 	}
 
 	const { session, user } = await auth.validateSessionToken(sessionToken)
+
 	if (session) {
 		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt)
 	} else {
@@ -27,8 +29,4 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 	return resolve(event)
 }
 
-export const handle: Handle = async ({ event, resolve }) => {
-	const response = await trpcHandle({ event, resolve })
-	if (response) return response
-	return handleAuth({ event, resolve })
-}
+export const handle = sequence(handleAuth, trpcHandle)

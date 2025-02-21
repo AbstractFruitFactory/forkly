@@ -1,12 +1,12 @@
 <script module>
 	import { defineMeta } from '@storybook/addon-svelte-csf'
-	import Login from './Login.svelte'
+	import AuthForm from './AuthForm.svelte'
 
 	const { Story } = defineMeta({
-		component: Login
+		component: AuthForm
 	})
 </script>
 
 <Story name="Default" />
 
-<Story name="With Error" args={{ message: 'Invalid username or password' }} />
+<Story name="With Error" args={{ error: 'Invalid username or password' }} />
