@@ -10,54 +10,41 @@
 </script>
 
 <header class="header">
-	<div class="container">
-		<div class="left-section">
-			<div class="logo">
-				<a href="/">Forkly</a>
-			</div>
-			<Button href="/new" variant="primary" size="sm">New Recipe</Button>
+	<div class="left-section">
+		<div class="logo">
+			<a href="/">Forkly</a>
 		</div>
-
-		<button class="menu-toggle" onclick={toggleMenu}>
-			<span class="sr-only">Toggle menu</span>
-			<span class="icon">{isMenuOpen ? '✕' : '☰'}</span>
-		</button>
-
-		<nav class:active={isMenuOpen}>
-			<ul>
-				<li><a href="/about">About</a></li>
-				{#if $page.data.user}
-					<li>
-						<form action="/logout" method="POST">
-							<Button variant="text" type="submit">Logout</Button>
-						</form>
-					</li>
-				{:else}
-					<li><a href="/login">Login</a></li>
-				{/if}
-			</ul>
-		</nav>
+		<Button href="/new" variant="primary" size="sm">New Recipe</Button>
 	</div>
+
+	<button class="menu-toggle" onclick={toggleMenu}>
+		<span class="sr-only">Toggle menu</span>
+		<span class="icon">{isMenuOpen ? '✕' : '☰'}</span>
+	</button>
+
+	<nav class:active={isMenuOpen}>
+		<ul>
+			<li><a href="/about">About</a></li>
+			{#if $page.data.user}
+				<li>
+					<form action="/logout" method="POST">
+						<Button variant="text" type="submit">Logout</Button>
+					</form>
+				</li>
+			{:else}
+				<li><a href="/login">Login</a></li>
+			{/if}
+		</ul>
+	</nav>
 </header>
 
 <style>
 	.header {
-		background: var(--color-neutral-dark);
-		box-shadow: var(--shadow-sm);
-		padding: var(--spacing-md) 0;
-		border-bottom: 1px solid var(--color-neutral);
-		position: relative;
-		z-index: 100;
-	}
-
-	.container {
-		max-width: var(--max-width-container, 1200px);
-		margin: 0 auto;
-		padding: 0 var(--spacing-md);
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 		position: relative;
+		padding: var(--spacing-md) 0;
 	}
 
 	.left-section {
@@ -157,6 +144,7 @@
 			opacity: 1;
 			transform: translateY(0);
 			pointer-events: auto;
+			z-index: var(--z-drawer);
 		}
 
 		nav ul {

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Header from '$lib/components/header/Header.svelte'
+	import Layout from '$lib/components/layout/Layout.svelte'
 	import '$lib/global.scss'
 
 	let { children } = $props()
@@ -14,16 +15,12 @@
 	/>
 </svelte:head>
 
-<Header />
-
-<main>
-	{@render children()}
-</main>
-
-<style>
-	main {
-		padding: 2rem;
-		max-width: 1200px;
-		margin: 0 auto;
-	}
-</style>
+<Layout>
+	{#snippet header()}
+		<Header />
+	{/snippet}
+	
+	{#snippet content()}
+		{@render children()}
+	{/snippet}
+</Layout>
