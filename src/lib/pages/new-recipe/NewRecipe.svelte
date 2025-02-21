@@ -412,7 +412,7 @@
 	}
 
 	.submit-btn {
-		background: var(--color-primary);
+		background: var(--color-secondary);
 		color: white;
 		border: none;
 		padding: 16px 32px;
@@ -425,7 +425,7 @@
 		margin-top: 16px;
 
 		&:hover {
-			background: var(--color-primary-dark);
+			filter: brightness(0.9);
 			transform: translateY(-1px);
 			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 		}
