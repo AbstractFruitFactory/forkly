@@ -31,7 +31,7 @@ export const validateSessionToken = async (token: string) => {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)))
 	const [result] = await db
 		.select({
-			user: { id: table.user.id, username: table.user.username, bio: table.user.bio },
+			user: { id: table.user.id, username: table.user.username, bio: table.user.bio, avatarUrl: table.user.avatarUrl },
 			session: table.session
 		})
 		.from(table.session)
@@ -101,6 +101,6 @@ export const validateCredentials = async (username: string, password: string) =>
 
 	return {
 		session: { ...session, token },
-		user: { id: user.id, username: user.username, bio: user.bio }
+		user: { id: user.id, username: user.username, bio: user.bio, avatarUrl: user.avatarUrl }
 	}
 }

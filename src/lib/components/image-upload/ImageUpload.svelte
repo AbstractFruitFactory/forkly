@@ -2,7 +2,6 @@
 	import { onDestroy } from 'svelte'
 
 	let { error = '', id = crypto.randomUUID() } = $props()
-	let uploading = $state(false)
 	let preview = $state('')
 	let inputElement: HTMLInputElement
 	let dragOver = $state(false)
@@ -89,7 +88,6 @@
 		ondragover={handleDragOver}
 		ondragleave={handleDragLeave}
 		ondrop={handleDrop}
-		aria-label={preview ? "Change recipe image" : "Add recipe image"}
 	>
 		{#if preview}
 			<img

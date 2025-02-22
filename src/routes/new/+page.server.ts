@@ -120,12 +120,12 @@ export const actions = {
     const mappedIngredients = mappedIngredientsResult.value
 
     const nonCustomIngredients = mappedIngredients
-        .filter(ing => !ing.custom)
-        .map(ing => ({
-          amount: ing.quantity,
-          unit: ing.measurement,
-          name: ing.name
-        }))
+      .filter(ing => !ing.custom)
+      .map(ing => ({
+        amount: ing.quantity,
+        unit: ing.measurement,
+        name: ing.name
+      }))
 
     let nutrition = {
       totalNutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 },
@@ -137,36 +137,22 @@ export const actions = {
 
       if (nutritionResult.isOk()) {
         nutrition = {
-        totalNutrition: {
-          calories: nutritionResult.value.calories,
-          protein: nutritionResult.value.protein,
-          carbs: nutritionResult.value.carbs,
-          fat: nutritionResult.value.fat
-        },
+          totalNutrition: {
+            calories: nutritionResult.value.calories,
+            protein: nutritionResult.value.protein,
+            carbs: nutritionResult.value.carbs,
+            fat: nutritionResult.value.fat
+          },
           hasCustomIngredients: mappedIngredients.some(i => i.custom)
         }
       }
-      }
+    }
 
     let imageUrl: string | null = null
     if (imageFile) {
-      try {
-        console.log('Starting image upload process...')
-        console.log('Image file type:', imageFile.type)
-        console.log('Image file size:', imageFile.size)
-        
-        const arrayBuffer = await imageFile.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        console.log('Successfully converted image to buffer')
-        
-        imageUrl = await uploadImage(buffer)
-        console.log('Successfully uploaded image to Cloudinary:', imageUrl)
-      } catch (err) {
-        console.error('Failed to upload image. Error details:', err)
-        // Continue without image if upload fails
-      }
-    } else {
-      console.log('No image file provided in form data')
+      const arrayBuffer = await imageFile.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+      imageUrl = await uploadImage(buffer)
     }
 
     const newRecipe = await db.insert(recipe).values({

@@ -3,29 +3,28 @@
 	import Button from '$lib/components/button/Button.svelte'
 	import ProfileRecipeCard from '$lib/components/profile/ProfileRecipeCard.svelte'
 	import { fade, slide } from 'svelte/transition'
-	import { enhance } from '$app/forms'
-	import { applyAction } from '$app/forms'
+	import ImageUpload from '$lib/components/image-upload/ImageUpload.svelte'
 
 	let {
 		user,
 		recipes = [],
-		recipeHref
+		recipeHref,
 	}: {
-		user: Omit<User, 'passwordHash'> | null
+		user: Omit<User, 'passwordHash'>
 		recipes: Recipe[]
 		recipeHref?: string
 	} = $props()
 
 	let userStats = $derived({
 		recipesCreated: recipes.length,
-		totalLikes: recipes.reduce((acc: number, recipe: Recipe) => acc + (recipe.likes || 0), 0),
-		followers: 0, // TODO: Implement followers
-		following: 0 // TODO: Implement following
+		totalLikes: recipes.reduce((acc: number, recipe: Recipe) => acc + (recipe.likes || 0), 0)
 	})
 
 	let isEditMode = $state(false)
 	let editedUsername = $state('')
 	let editedBio = $state('')
+	let avatarPreview = $state<string | null>(null)
+	let error = $state('')
 
 	function toggleEditMode() {
 		if (!isEditMode) {
@@ -33,104 +32,94 @@
 			editedBio = user?.bio || ''
 		}
 		isEditMode = !isEditMode
+		avatarPreview = null
+		error = ''
 	}
 </script>
 
 <div class="profile-container" in:fade>
-	{#if user}
-		<div class="profile-grid">
-			<div class="profile-main" in:slide={{ delay: 200, duration: 300 }}>
-				<div class="profile-header">
-					<div class="avatar" style="background: var(--color-{user.username.charCodeAt(0) % 5})">
-						{user.username[0].toUpperCase()}
-					</div>
-					{#if isEditMode}
-						<div class="edit-form">
-							<form
-								method="POST"
-								use:enhance={() => {
-									return async ({ result }) => {
-										if (result.type === 'success') {
-											isEditMode = false
-										}
-										await applyAction(result)
-									}
-								}}
-							>
-								<input
-									type="text"
-									name="username"
-									bind:value={editedUsername}
-									placeholder="Username"
-									class="edit-input"
-									required
-								/>
-								<textarea
-									name="bio"
-									bind:value={editedBio}
-									placeholder="Tell us about yourself..."
-									class="edit-input bio-input"
-								></textarea>
-								<div class="edit-actions">
-									<Button type="submit" variant="primary">Save</Button>
-									<Button type="button" variant="secondary" onclick={toggleEditMode}>Cancel</Button>
-								</div>
-							</form>
+	<div class="profile-grid">
+		<div class="profile-main" in:slide={{ delay: 200, duration: 300 }}>
+			<div class="profile-header">
+				{#if !isEditMode}
+					<div class="avatar-container">
+						<div
+							class="avatar"
+							style="background: {user.avatarUrl
+								? `url(${user.avatarUrl}) center/cover`
+								: `var(--color-${user.username.charCodeAt(0) % 5})`}"
+						>
+							{#if !user.avatarUrl}
+								{user.username[0].toUpperCase()}
+							{/if}
 						</div>
-					{:else}
-						<div class="profile-info">
-							<h1>{user.username}</h1>
-							<p class="bio">{user.bio || 'No bio yet'}</p>
-							<Button variant="secondary" size="sm" onclick={toggleEditMode}>Edit Profile</Button>
-						</div>
-					{/if}
-				</div>
+					</div>
+				{/if}
 
-				<div class="stats-grid">
-					<div class="stat-card">
-						<span class="stat-value">{userStats.recipesCreated}</span>
-						<span class="stat-label">Recipes</span>
-					</div>
-					<div class="stat-card">
-						<span class="stat-value">{userStats.totalLikes}</span>
-						<span class="stat-label">Total Likes</span>
-					</div>
-					<div class="stat-card">
-						<span class="stat-value">{userStats.followers}</span>
-						<span class="stat-label">Followers</span>
-					</div>
-					<div class="stat-card">
-						<span class="stat-value">{userStats.following}</span>
-						<span class="stat-label">Following</span>
-					</div>
-				</div>
-			</div>
-
-			<div class="recipes-section" in:slide={{ delay: 400, duration: 300 }}>
-				<h2>My Recipes</h2>
-				{#if recipes.length > 0}
-					<div class="recipes-grid">
-						{#each recipes as recipe}
-							<ProfileRecipeCard {recipe} {recipeHref} />
-						{/each}
+				{#if isEditMode}
+					<div class="edit-form">
+						<form class="form-content" method="POST" enctype="multipart/form-data">
+							<ImageUpload {error} />
+							<input
+								type="text"
+								name="username"
+								bind:value={editedUsername}
+								placeholder="Username"
+								class="edit-input"
+								required
+							/>
+							<textarea
+								name="bio"
+								bind:value={editedBio}
+								placeholder="Tell us about yourself..."
+								class="edit-input bio-input"
+							></textarea>
+							{#if error}
+								<p class="error">{error}</p>
+							{/if}
+							<div class="edit-actions">
+								<Button type="submit" variant="primary">Save</Button>
+								<Button type="button" variant="secondary" onclick={toggleEditMode}>Cancel</Button>
+							</div>
+						</form>
 					</div>
 				{:else}
-					<div class="empty-state">
-						<p>You haven't created any recipes yet.</p>
-						<Button href="/new" variant="primary">Create Your First Recipe</Button>
+					<div class="profile-info">
+						<h1>{user.username}</h1>
+						<p class="bio">{user.bio || 'No bio yet'}</p>
+						<Button variant="secondary" size="sm" onclick={toggleEditMode}>Edit Profile</Button>
 					</div>
 				{/if}
 			</div>
-		</div>
-	{:else}
-		<div class="not-logged-in" in:fade>
-			<h2>Please log in to view your profile</h2>
-			<div class="action-buttons">
-				<Button href="/login">Login</Button>
-				<Button href="/signup" variant="secondary">Sign Up</Button>
+
+			<div class="stats-grid">
+				<div class="stat-card">
+					<span class="stat-value">{userStats.recipesCreated}</span>
+					<span class="stat-label">Recipes</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-value">{userStats.totalLikes}</span>
+					<span class="stat-label">Total Likes</span>
+				</div>
 			</div>
 		</div>
-	{/if}
+
+		<div class="recipes-section" in:slide={{ delay: 400, duration: 300 }}>
+			<h2>My Recipes</h2>
+			{#if recipes.length > 0}
+				<div class="recipes-grid">
+					{#each recipes as recipe}
+						<ProfileRecipeCard {recipe} {recipeHref} />
+					{/each}
+				</div>
+			{:else}
+				<div class="empty-state">
+					<p>You haven't created any recipes yet.</p>
+					<Button href="/new" variant="primary">Create Your First Recipe</Button>
+				</div>
+			{/if}
+		</div>
+	</div>
 </div>
 
 <style lang="scss">
@@ -176,21 +165,65 @@
 		}
 	}
 
+	.avatar-container {
+		position: relative;
+		width: 130px;
+		height: 130px;
+		border-radius: 50%;
+		cursor: default;
+
+		&.is-edit-mode {
+			cursor: pointer;
+
+			&:hover .avatar {
+				filter: brightness(0.8);
+			}
+		}
+	}
+
 	.avatar {
-		width: 120px;
-		height: 120px;
+		width: 100%;
+		height: 100%;
 		border-radius: 50%;
 		color: white;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 3rem;
+		font-size: 3.5rem;
 		font-weight: 600;
-		transition: transform 0.3s ease;
+		transition: all 0.3s ease;
+		background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+		border: 3px solid var(--color-background);
+	}
 
-		&:hover {
-			transform: scale(1.05);
+	.avatar-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		border-radius: 50%;
+		background: rgba(0, 0, 0, 0.7);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		color: white;
+		gap: 0.5rem;
+
+		:global(svg) {
+			stroke-width: 1.5;
 		}
+
+		.upload-text {
+			font-size: var(--font-size-sm);
+			font-weight: 500;
+		}
+	}
+
+	.hidden {
+		display: none;
 	}
 
 	.bio {
@@ -215,11 +248,6 @@
 		transition: all var(--transition-fast) var(--ease-in-out);
 		border: var(--border-width-thin) solid var(--color-neutral);
 		box-shadow: var(--shadow-sm);
-
-		&:hover {
-			transform: translateY(-2px);
-			box-shadow: var(--shadow-md);
-		}
 
 		.stat-value {
 			display: block;
@@ -311,5 +339,22 @@
 			gap: 1rem;
 			justify-content: center;
 		}
+	}
+
+	.error {
+		color: var(--color-error);
+		font-size: var(--font-size-sm);
+		margin: var(--spacing-sm) 0;
+		padding: var(--spacing-xs) var(--spacing-sm);
+		background: var(--color-error-light);
+		border-radius: var(--border-radius-sm);
+		border: 1px solid var(--color-error);
+	}
+
+	.form-content {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
 	}
 </style>

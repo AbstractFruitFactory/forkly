@@ -7,13 +7,39 @@ cloudinary.config({
   api_secret: CLOUDINARY_API_SECRET
 })
 
-export const uploadImage = async (imageBuffer: Buffer): Promise<string> => {
+type UploadOptions = {
+  folder?: 'recipe-images' | 'avatars'
+  transformation?: {
+    width?: number
+    height?: number
+    crop?: string
+    gravity?: string
+  }
+}
+
+export const uploadImage = async (
+  imageBuffer: Buffer,
+  options: UploadOptions = { folder: 'recipe-images' }
+): Promise<string> => {
+  const defaultOptions = {
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    max_file_size: 5000000 // 5MB
+  }
+
+  if (options.folder === 'avatars') {
+    options.transformation = {
+      width: 400,
+      height: 400,
+      crop: 'fill',
+      gravity: 'face'
+    }
+  }
+
   return new Promise((resolve, reject) => {
     cloudinary.uploader.upload_stream(
       {
-        folder: 'recipe-images',
-        allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-        max_file_size: 5000000 // 5MB
+        ...defaultOptions,
+        ...options
       },
       (error, result) => {
         if (error) reject(error)
@@ -21,4 +47,12 @@ export const uploadImage = async (imageBuffer: Buffer): Promise<string> => {
       }
     ).end(imageBuffer)
   })
-} 
+}
+
+export const deleteImage = async (url: string): Promise<void> => {
+  const matches = url.match(/\/v\d+\/(.+?)\.[^.]+$/)
+  if (!matches) return
+
+  const publicId = matches[1]
+  await cloudinary.uploader.destroy(publicId)
+}
