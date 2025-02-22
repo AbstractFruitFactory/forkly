@@ -1,7 +1,21 @@
-<script>
+<script lang="ts">
 	import Button from '$lib/components/button/Button.svelte'
 
-	let { loggedIn = false } = $props()
+	let {
+		loggedIn = false,
+		newRecipeHref,
+		logoutHref,
+		aboutHref,
+		profileHref,
+		loginHref
+	}: {
+		loggedIn: boolean
+		newRecipeHref?: string
+		logoutHref?: string
+		aboutHref?: string
+		profileHref?: string
+		loginHref?: string
+	} = $props()
 
 	let isMenuOpen = $state(false)
 
@@ -15,7 +29,7 @@
 		<div class="logo">
 			<a href="/">Forkly</a>
 		</div>
-		<Button href="/new" variant="primary" size="sm">New Recipe</Button>
+		<Button href={newRecipeHref} variant="primary" size="sm">New Recipe</Button>
 	</div>
 
 	<button class="menu-toggle" onclick={toggleMenu}>
@@ -25,15 +39,14 @@
 
 	<nav class:active={isMenuOpen}>
 		<ul>
-			<li><a href="/about">About</a></li>
+			<li><a href={aboutHref}>About</a></li>
 			{#if loggedIn}
+				<li><a href={profileHref}>Profile</a></li>
 				<li>
-					<form action="/logout" method="POST">
-						<Button variant="text" type="submit">Logout</Button>
-					</form>
+					<Button variant="text" href={logoutHref}>Logout</Button>
 				</li>
 			{:else}
-				<li><a href="/login">Login</a></li>
+				<li><a href={loginHref}>Login</a></li>
 			{/if}
 		</ul>
 	</nav>

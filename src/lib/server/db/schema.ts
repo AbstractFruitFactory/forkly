@@ -1,10 +1,11 @@
 import type { MeasurementUnit } from '$lib/types'
-import { pgTable, text, timestamp, jsonb } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, jsonb, integer } from 'drizzle-orm/pg-core'
 
 export const user = pgTable('user', {
 	id: text('id').primaryKey(),
 	username: text('username').notNull().unique(),
-	passwordHash: text('password_hash').notNull()
+	passwordHash: text('password_hash').notNull(),
+	bio: text('bio')
 })
 
 export const session = pgTable('session', {
@@ -63,6 +64,7 @@ export const recipe = pgTable('recipe', {
 		hasCustomIngredients: boolean
 	}>().notNull(),
 	imageUrl: text('image_url'),
+	likes: integer('likes').default(0).notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 

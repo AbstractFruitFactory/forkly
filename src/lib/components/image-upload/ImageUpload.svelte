@@ -34,12 +34,10 @@
 		// Create preview
 		preview = URL.createObjectURL(file)
 
-		// Store file in form data
-		const form = inputElement.closest('form')
-		if (form) {
-			const formData = new FormData(form)
-			formData.set('image', file)
-		}
+		// Set the file directly on the input element
+		const dataTransfer = new DataTransfer()
+		dataTransfer.items.add(file)
+		inputElement.files = dataTransfer.files
 
 		// Clear error if successful
 		error = ''

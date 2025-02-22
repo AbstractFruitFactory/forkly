@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm'
 import * as auth from '$lib/server/auth'
 import * as v from 'valibot'
 import { Ok, Err } from 'ts-results-es'
-import { validate } from '$lib/server/form-validation'
+import { validate } from '$lib/trpc/form-validation'
 
 const signupSchema = v.object({
   username: v.pipe(
@@ -33,9 +33,7 @@ export const authRouter = t.router({
   signup: t.procedure
     .input(validate(signupSchema))
     .mutation(async ({ input, ctx }) => {
-      if (input.isErr()) {
-        return input
-      }
+      if (input.isErr()) return input
 
       // Check if username already exists
       const existingUser = await db

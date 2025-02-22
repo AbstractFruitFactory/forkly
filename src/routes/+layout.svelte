@@ -19,7 +19,14 @@
 
 <Layout>
 	{#snippet header()}
-		<Header loggedIn={!!data.user} />
+		<Header
+			loggedIn={!!data.user}
+			newRecipeHref="/new"
+			logoutHref="/logout"
+			aboutHref="/about"
+			profileHref="/profile"
+			loginHref="/login"
+		/>
 	{/snippet}
 
 	{#snippet content()}

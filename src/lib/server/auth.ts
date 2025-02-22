@@ -31,8 +31,7 @@ export const validateSessionToken = async (token: string) => {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)))
 	const [result] = await db
 		.select({
-			// Adjust user table here to tweak returned data
-			user: { id: table.user.id, username: table.user.username },
+			user: { id: table.user.id, username: table.user.username, bio: table.user.bio },
 			session: table.session
 		})
 		.from(table.session)
@@ -42,6 +41,7 @@ export const validateSessionToken = async (token: string) => {
 	if (!result) {
 		return { session: null, user: null }
 	}
+
 	const { session, user } = result
 
 	const sessionExpired = Date.now() >= session.expiresAt.getTime()
@@ -101,6 +101,6 @@ export const validateCredentials = async (username: string, password: string) =>
 
 	return {
 		session: { ...session, token },
-		user: { id: user.id, username: user.username }
+		user: { id: user.id, username: user.username, bio: user.bio }
 	}
 }

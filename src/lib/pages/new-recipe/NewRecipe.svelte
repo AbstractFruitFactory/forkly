@@ -120,10 +120,9 @@
 <div class="container">
 	<h1>Create New Recipe</h1>
 
-	<ImageUpload />
-
 	<form
 		method="POST"
+		enctype="multipart/form-data"
 		use:enhance={({ formData }) => {
 			Object.entries(selectedLookupIngredients).forEach(([index, ingredient]) => {
 				if (ingredient) {
@@ -132,6 +131,8 @@
 			})
 		}}
 	>
+		<ImageUpload />
+
 		{#if errors}
 			<div class="error-container">
 				{#each errors as error}

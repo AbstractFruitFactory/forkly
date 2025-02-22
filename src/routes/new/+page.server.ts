@@ -8,7 +8,7 @@ import type { Ingredient, MeasurementUnit } from '$lib/types'
 import { generateId } from '$lib/server/id'
 import { groupBy } from 'ramda'
 import { api } from '$lib/server/food-api'
-import { Result } from 'ts-results-es'
+import { Result, Ok } from 'ts-results-es'
 import { uploadImage } from '$lib/server/cloudinary'
 
 type FormFields = {
@@ -97,59 +97,82 @@ export const actions = {
 
     const mappedIngredientsResults = await Promise.all(
       recipeData.ingredients.map(async (ingredient) => {
+        if (ingredient.custom) {
+          return Ok({
+            name: ingredient.name,
+            quantity: ingredient.quantity,
+            measurement: ingredient.measurement,
+            custom: true as const
+          })
+        }
         return await api('mapIngredientToDatabaseEntry')(ingredient)
       })
     )
 
-    const mappedIngredients = Result.all(mappedIngredientsResults)
+    const mappedIngredientsResult = Result.all(mappedIngredientsResults)
 
-    if (mappedIngredients.isErr()) {
+    if (mappedIngredientsResult.isErr()) {
       return fail(500, {
-        error: mappedIngredients.error
+        error: mappedIngredientsResult.error
       })
     }
 
-    const nutritionResult = await api('getRecipeInfo')(
-      mappedIngredients.value
+    const mappedIngredients = mappedIngredientsResult.value
+
+    const nonCustomIngredients = mappedIngredients
         .filter(ing => !ing.custom)
         .map(ing => ({
           amount: ing.quantity,
           unit: ing.measurement,
           name: ing.name
         }))
-    )
 
-    const nutrition = nutritionResult.isOk()
-      ? {
+    let nutrition = {
+      totalNutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+      hasCustomIngredients: mappedIngredients.some(i => i.custom)
+    }
+
+    if (nonCustomIngredients.length > 0) {
+      const nutritionResult = await api('getRecipeInfo')(nonCustomIngredients)
+
+      if (nutritionResult.isOk()) {
+        nutrition = {
         totalNutrition: {
           calories: nutritionResult.value.calories,
           protein: nutritionResult.value.protein,
           carbs: nutritionResult.value.carbs,
           fat: nutritionResult.value.fat
         },
-        hasCustomIngredients: mappedIngredients.value.some(i => i.custom)
+          hasCustomIngredients: mappedIngredients.some(i => i.custom)
+        }
       }
-      : {
-        totalNutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-        hasCustomIngredients: mappedIngredients.value.some(i => i.custom)
       }
 
     let imageUrl: string | null = null
     if (imageFile) {
       try {
+        console.log('Starting image upload process...')
+        console.log('Image file type:', imageFile.type)
+        console.log('Image file size:', imageFile.size)
+        
         const arrayBuffer = await imageFile.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
+        console.log('Successfully converted image to buffer')
+        
         imageUrl = await uploadImage(buffer)
+        console.log('Successfully uploaded image to Cloudinary:', imageUrl)
       } catch (err) {
-        console.error('Failed to upload image:', err)
+        console.error('Failed to upload image. Error details:', err)
         // Continue without image if upload fails
       }
+    } else {
+      console.log('No image file provided in form data')
     }
 
     const newRecipe = await db.insert(recipe).values({
       id: generateId(),
       ...result.output,
-      ingredients: mappedIngredients.value,
+      ingredients: mappedIngredients,
       nutrition,
       userId: locals.user?.id ?? null,
       imageUrl
