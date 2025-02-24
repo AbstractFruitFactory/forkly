@@ -3,6 +3,7 @@
 	import AuthForm from './AuthForm.svelte'
 
 	const { Story } = defineMeta({
+		title: 'lib/components/Auth Form',
 		component: AuthForm
 	})
 </script>

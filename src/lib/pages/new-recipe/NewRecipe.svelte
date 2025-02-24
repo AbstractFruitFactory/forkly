@@ -1,8 +1,8 @@
 <script lang="ts" module>
 	import type { MeasurementUnit } from '$lib/types'
 	import { measurementUnits } from '$lib/types'
-	import Autocomplete from '$lib/components/autocomplete/Autocomplete.svelte'
 	import Input from '$lib/components/input/Input.svelte'
+	import Search from '$lib/components/search/Search.svelte'
 
 	const measurementUnitDisplayText: Record<MeasurementUnit, string> = {
 		cups: 'cups (c)',
@@ -41,13 +41,10 @@
 
 	let ingredientCount = $state(1)
 	let instructionCount = $state(1)
-	let lookupIngredientInputs = $state<Record<number, HTMLInputElement>>({})
 	let inputValues = $state<Record<number, string>>({})
-
 	let suggestions = $state<Record<number, T[]>>({})
 	let isLoading = $state<Record<number, boolean>>({})
 	let showCustomInput = $state<Record<number, boolean>>({})
-
 	let selectedLookupIngredients = $state<Record<number, Ingredient>>({})
 
 	const addIngredient = () => {
@@ -88,32 +85,15 @@
 
 	const handleSelect = async (index: number, suggestion: T) => {
 		inputValues[index] = suggestion.name
-		lookupIngredientInputs[index].value = suggestion.name
 		selectedLookupIngredients[index] = suggestion
-		suggestions[index] = []
-		isLoading[index] = false
 
 		if (onIngredientSelect) {
 			await onIngredientSelect(suggestion)
 		}
 	}
 
-	const clearSelection = (index: number) => {
-		delete selectedLookupIngredients[index]
-	}
-
 	const setCustomIngredientInput = (index: number) => {
 		showCustomInput[index] = true
-	}
-
-	const handleBlur = (index: number) => {
-		setTimeout(() => {
-			if (!selectedLookupIngredients[index]) {
-				inputValues[index] = ''
-				lookupIngredientInputs[index].value = ''
-			}
-			suggestions[index] = []
-		}, 200)
 	}
 </script>
 
@@ -161,25 +141,29 @@
 			<div id="ingredients">
 				{#each Array(ingredientCount) as _, i}
 					<div class="ingredient-group">
-						<Input>
-							<input
-								type="number"
-								step="0.01"
-								min="0"
-								name={`ingredient-${i}-quantity`}
-								placeholder="Qty"
-								class="quantity-input"
-							/>
-						</Input>
+						<div class="quantity-wrapper">
+							<Input>
+								<input
+									type="number"
+									step="0.01"
+									min="0"
+									name={`ingredient-${i}-quantity`}
+									placeholder="Qty"
+									class="quantity-input"
+								/>
+							</Input>
+						</div>
 
-						<Input>
-							<select name={`ingredient-${i}-measurement`}>
-								<option value="">Unit</option>
-								{#each measurementUnits as unit}
-									<option value={unit}>{measurementUnitDisplayText[unit]}</option>
-								{/each}
-							</select>
-						</Input>
+						<div class="unit-wrapper">
+							<Input>
+								<select name={`ingredient-${i}-measurement`}>
+									<option value="">Unit</option>
+									{#each measurementUnits as unit}
+										<option value={unit}>{measurementUnitDisplayText[unit]}</option>
+									{/each}
+								</select>
+							</Input>
+						</div>
 
 						<div class="ingredient-input">
 							{#if showCustomInput[i] || !browser}
@@ -201,42 +185,15 @@
 								</div>
 							{:else}
 								<div class="custom-ingredient">
-									<Autocomplete
+									<Search
+										placeholder="Search for ingredient"
 										isLoading={isLoading[i]}
 										suggestions={suggestions[i] ?? []}
+										onSearch={(query) => searchIngredients(query, i)}
 										onSelect={(suggestion) => handleSelect(i, suggestion)}
-									>
-										<div class="search-input-wrapper">
-											<svg
-												class="search-icon"
-												xmlns="http://www.w3.org/2000/svg"
-												width="16"
-												height="16"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="2"
-												stroke-linecap="round"
-												stroke-linejoin="round"
-											>
-												<circle cx="11" cy="11" r="8"></circle>
-												<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-											</svg>
-											<input
-												name={selectedLookupIngredients[i] ? `ingredient-${i}-name&lookup` : ''}
-												placeholder="Search for ingredient"
-												bind:this={lookupIngredientInputs[i]}
-												value={inputValues[i] ?? ''}
-												oninput={(e) => {
-													clearSelection(i)
-													searchIngredients((e.target as HTMLInputElement).value, i)
-												}}
-												onblur={() => handleBlur(i)}
-											/>
-										</div>
-									</Autocomplete>
+									/>
 
-									{#if suggestions[i]?.length === 0 && !isLoading[i] && !selectedLookupIngredients[i]}
+									{#if suggestions[i]?.length === 0 && !isLoading[i] && !selectedLookupIngredients[i] && inputValues[i]?.length >= 3}
 										<button
 											type="button"
 											class="text-button"
@@ -351,11 +308,34 @@
 		margin-bottom: var(--spacing-md);
 		align-items: flex-start;
 
+		.quantity-wrapper {
+			flex: 0 0 100px;
+		}
+
+		.unit-wrapper {
+			flex: 0 0 150px;
+		}
+
+		.ingredient-input {
+			flex: 1;
+			min-width: 0;
+
+			.custom-ingredient {
+				width: 100%;
+				height: 100%;
+
+				:global(.search),
+				:global(.input-wrapper) {
+					width: 100%;
+				}
+			}
+		}
+
 		@media (max-width: 600px) {
 			flex-direction: column;
 			gap: var(--spacing-sm);
 
-			:global(.input-wrapper) {
+			> div {
 				width: 100%;
 			}
 		}
@@ -370,10 +350,15 @@
 	}
 
 	.ingredient-input {
-		gap: var(--spacing-sm);
-		flex: 1;
 		position: relative;
+		width: 100%;
+	}
+
+	.custom-ingredient {
 		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		width: 100%;
 	}
 
 	.error-container {
@@ -389,13 +374,6 @@
 		margin: var(--spacing-xs) 0;
 	}
 
-	.custom-ingredient {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-sm);
-		width: 100%;
-	}
-
 	.text-button {
 		background: none;
 		border: none;
@@ -408,23 +386,5 @@
 		&:hover {
 			text-decoration: underline;
 		}
-	}
-
-	.search-input-wrapper {
-		position: relative;
-		display: flex;
-		align-items: center;
-		width: 100%;
-
-		input {
-			padding-left: calc(var(--spacing-xl) + var(--spacing-xs));
-		}
-	}
-
-	.search-icon {
-		position: absolute;
-		left: var(--spacing-md);
-		color: var(--color-neutral);
-		pointer-events: none;
 	}
 </style>
