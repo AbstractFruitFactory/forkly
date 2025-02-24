@@ -1,32 +1,14 @@
-import type { Handle } from '@sveltejs/kit'
-import { createContext } from '$lib/trpc/context'
-import { appRouter } from '$lib/trpc/router'
-import { createTRPCHandle } from 'trpc-sveltekit'
-import * as auth from '$lib/server/auth'
 import { sequence } from '@sveltejs/kit/hooks'
-
-const trpcHandle = createTRPCHandle({ router: appRouter, createContext })
+import type { Handle } from '@sveltejs/kit'
+import { validateSessionToken } from '$lib/server/auth'
 
 const handleAuth: Handle = async ({ event, resolve }) => {
-	const sessionToken = event.cookies.get(auth.sessionCookieName)
-	if (!sessionToken) {
-		event.locals.user = null
-		event.locals.session = null
-		return resolve(event)
+	const sessionToken = event.cookies.get('auth-session')
+	if (sessionToken) {
+		const { user } = await validateSessionToken(sessionToken)
+		event.locals.user = user
 	}
-
-	const { session, user } = await auth.validateSessionToken(sessionToken)
-
-	if (session) {
-		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt)
-	} else {
-		auth.deleteSessionTokenCookie(event)
-	}
-
-	event.locals.user = user
-	event.locals.session = session
-
 	return resolve(event)
 }
 
-export const handle = sequence(handleAuth, trpcHandle)
+export const handle = sequence(handleAuth)

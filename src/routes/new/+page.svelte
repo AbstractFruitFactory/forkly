@@ -1,9 +1,7 @@
 <script lang="ts">
-	import RecipeSuccess from '$lib/pages/recipe-created/RecipeCreated.svelte'
 	import NewRecipe from '$lib/pages/new-recipe/NewRecipe.svelte'
 	import type { IngredientSearchResult } from '$lib/server/food-api'
-	import { page } from '$app/state'
-	import { trpc } from '$lib/trpc/client'
+	import RecipeSuccess from '$lib/pages/recipe-created/RecipeCreated.svelte'
 
 	let { form } = $props()
 
@@ -14,22 +12,15 @@
 
 		return new Promise((resolve) => {
 			searchTimeout = setTimeout(async () => {
-				const result = await trpc(page).ingredients.search.query(query)
-
-				if (result.isOk()) {
-					resolve(result.value)
-				} else {
-					console.error('Failed to fetch ingredients:', result.error)
+				const response = await fetch(`/api/ingredients/search/${query}`)
+				if (!response.ok) {
+					console.error('Failed to fetch ingredients:', await response.text())
 					resolve([])
+					return
 				}
+				const results = await response.json()
+				resolve(results)
 			}, 300)
-		})
-	}
-
-	const handleIngredientSelect = async (ingredient: IngredientSearchResult[0]) => {
-		await trpc(page).ingredients.cacheSelected.mutate({
-			name: ingredient.name,
-			id: ingredient.id
 		})
 	}
 </script>
@@ -37,9 +28,5 @@
 {#if form?.success}
 	<RecipeSuccess recipeId={form.recipeId} />
 {:else}
-	<NewRecipe
-		errors={form?.errors}
-		onSearchIngredients={handleSearchIngredients}
-		onIngredientSelect={handleIngredientSelect}
-	/>
+	<NewRecipe errors={form?.errors} onSearchIngredients={handleSearchIngredients} />
 {/if}

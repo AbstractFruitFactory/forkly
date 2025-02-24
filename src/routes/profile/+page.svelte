@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Profile from '$lib/pages/profile/Profile.svelte'
 
-	let { data } = $props()
+	let { data, form } = $props()
 </script>
 
-<Profile user={data.user} recipes={data.recipes} recipeHref="/recipe" />
+<Profile user={form?.user ?? data.user} recipes={data.recipes} recipeHref="/recipe" />

@@ -1,6 +1,12 @@
-import { fail, redirect } from '@sveltejs/kit'
+import { fail, json, redirect } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
-import { trpc } from '$lib/trpc/client'
+import * as v from 'valibot'
+import { encodeBase32LowerCase } from '@oslojs/encoding'
+import { db } from '$lib/server/db'
+import * as table from '$lib/server/db/schema'
+import { eq } from 'drizzle-orm'
+import { hash } from '@node-rs/argon2'
+import * as auth from '$lib/server/auth'
 
 export const load: PageServerLoad = async ({ locals }) => {
     if (locals.user) {
@@ -9,26 +15,71 @@ export const load: PageServerLoad = async ({ locals }) => {
     return {}
 }
 
+const signupSchema = v.object({
+    username: v.pipe(
+        v.string(),
+        v.minLength(3, 'Username must be at least 3 characters'),
+        v.maxLength(31, 'Username must be at most 31 characters'),
+        v.regex(/^[a-z0-9_-]+$/, 'Username can only contain lowercase letters, numbers, underscores, and hyphens')
+    ),
+    password: v.pipe(
+        v.string(),
+        v.minLength(6, 'Password must be at least 6 characters'),
+        v.maxLength(255, 'Password must be at most 255 characters')
+    )
+})
+
+const generateUserId = () => {
+    const bytes = crypto.getRandomValues(new Uint8Array(15))
+    const id = encodeBase32LowerCase(bytes)
+    return id
+}
+
 export const actions = {
-    default: async (event) => {
-        const formData = await event.request.formData()
-        const username = formData.get('username')?.toString()
-        const password = formData.get('password')?.toString()
+    default: async ({ request, cookies }) => {
+        const formData = await request.formData()
+        const username = formData.get('username')
+        const password = formData.get('password')
 
-        if (!username || !password) {
-            return fail(400, { message: 'Missing username or password' })
-        }
+        const input = v.safeParse(signupSchema, { username, password })
 
-        const result = await trpc(event).auth.signup.mutate({
-            // @ts-ignore
-            username,
-            password
+        if (!input.success) return fail(400, { error: input.issues[0].message })
+
+        const existingUser = await db
+            .select()
+            .from(table.user)
+            .where(eq(table.user.username, input.output.username))
+            .then(results => results[0])
+
+        if (existingUser) return fail(400, { error: 'Username already taken' })
+
+        const userId = generateUserId()
+        const passwordHash = await hash(input.output.password, {
+            memoryCost: 19456,
+            timeCost: 2,
+            outputLen: 32,
+            parallelism: 1
         })
 
-        if (result.isOk()) {
-            throw redirect(302, '/')
-        } else {
-            return fail(400, { message: result.error.message })
-        }
+        await db.insert(table.user).values({
+            id: userId,
+            username: input.output.username,
+            passwordHash
+        })
+
+        const sessionToken = auth.generateSessionToken()
+        const session = await auth.createSession(sessionToken, userId)
+
+        cookies.set(auth.sessionCookieName, sessionToken, {
+            expires: session.expiresAt,
+            path: '/'
+        })
+
+        return json({
+            user: {
+                id: userId,
+                username: input.output.username
+            }
+        })
     }
 } satisfies Actions 

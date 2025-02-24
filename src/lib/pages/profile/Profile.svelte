@@ -4,11 +4,12 @@
 	import ProfileRecipeCard from '$lib/components/profile/ProfileRecipeCard.svelte'
 	import { fade, slide } from 'svelte/transition'
 	import ImageUpload from '$lib/components/image-upload/ImageUpload.svelte'
+	import { enhance } from '$app/forms'
 
 	let {
 		user,
 		recipes = [],
-		recipeHref,
+		recipeHref
 	}: {
 		user: Omit<User, 'passwordHash'>
 		recipes: Recipe[]

@@ -1,15 +1,72 @@
 import { fail } from '@sveltejs/kit'
-import { db } from '$lib/server/db'
-import { recipe } from '$lib/server/db/schema'
 import type { Actions } from './$types'
-import { safeParse } from 'valibot'
-import { recipeSchema } from '$lib/form-validation'
-import type { Ingredient, MeasurementUnit } from '$lib/types'
+import { measurementUnits, type Ingredient, type MeasurementUnit } from '$lib/types'
+import groupBy from 'ramda/src/groupBy'
 import { generateId } from '$lib/server/id'
-import { groupBy } from 'ramda'
 import { api } from '$lib/server/food-api'
-import { Result, Ok } from 'ts-results-es'
+import { Ok, Result } from 'ts-results-es'
+import * as v from 'valibot'
 import { uploadImage } from '$lib/server/cloudinary'
+import { recipe } from '$lib/server/db/schema'
+import { db } from '$lib/server/db'
+
+const baseIngredientSchema = {
+  name: v.pipe(
+    v.string(),
+    v.transform(input => input ?? ''),
+    v.minLength(1, 'Ingredient name is required'),
+    v.maxLength(100, 'Ingredient name must be less than 100 characters')
+  ),
+  quantity: v.pipe(
+    v.number('Please enter a valid number'),
+    v.minValue(0, 'Quantity must be a positive number')
+  ),
+  measurement: v.pipe(
+    v.string(),
+    v.transform(input => input ?? ''),
+    v.minLength(1, 'Measurement is required'),
+    v.custom<MeasurementUnit>(
+      (value) => measurementUnits.includes(value as MeasurementUnit),
+      'Invalid measurement unit'
+    )
+  )
+}
+
+const lookupIngredientSchema = v.object({
+  ...baseIngredientSchema,
+  id: v.number('Missing ID for ingredient'),
+  custom: v.literal(false)
+})
+
+const customIngredientSchema = v.object({
+  ...baseIngredientSchema,
+  custom: v.literal(true)
+})
+
+const ingredientSchema = v.union([lookupIngredientSchema, customIngredientSchema],
+  'Ingredient validation failed'
+)
+
+const recipeSchema = v.object({
+  title: v.pipe(
+    v.string(),
+    v.transform(input => input ?? ''),
+    v.minLength(1, 'Title is required'),
+    v.maxLength(100, 'Title must be less than 100 characters')
+  ),
+  description: v.pipe(
+    v.string(),
+    v.transform(input => input ?? ''),
+    v.maxLength(500, 'Description must be less than 500 characters')
+  ),
+  ingredients: v.array(ingredientSchema),
+  instructions: v.array(v.pipe(
+    v.string(),
+    v.transform(input => input ?? ''),
+    v.minLength(1, 'Instruction step cannot be empty'),
+    v.maxLength(1000, 'Instruction step must be less than 1000 characters')
+  ))
+})
 
 type FormFields = {
   title: string
@@ -83,7 +140,7 @@ export const actions = {
     const recipeData = parseFormData(formData)
     const imageFile = formData.get('image') as File | null
 
-    const result = safeParse(recipeSchema, recipeData)
+    const result = v.safeParse(recipeSchema, recipeData)
 
     if (!result.success) {
       return fail(400, {

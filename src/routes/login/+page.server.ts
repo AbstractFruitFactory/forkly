@@ -15,14 +15,10 @@ export const actions = {
 		const username = formData.get('username')
 		const password = formData.get('password')
 
-		if (!username || !password) {
-			return fail(400, { message: 'Missing username or password' })
-		}
+		if (!username || !password) return fail(400, { message: 'Missing username or password' })
 
-		const { session, user } = await auth.validateCredentials(username.toString(), password.toString())
-		if (!session) {
-			return fail(401, { message: 'Invalid username or password' })
-		}
+		const { session } = await auth.validateCredentials(username.toString(), password.toString())
+		if (!session) return fail(401, { message: 'Invalid username or password' })
 
 		auth.setSessionTokenCookie(event, session.token, session.expiresAt)
 		throw redirect(302, '/')

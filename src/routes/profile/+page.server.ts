@@ -1,58 +1,92 @@
-import { redirect, fail } from '@sveltejs/kit'
-import type { PageServerLoad, Actions } from './$types'
-import { trpc } from '$lib/trpc/client'
-import { uploadImage } from '$lib/server/cloudinary'
+import { error, fail } from '@sveltejs/kit'
+import type { Actions, PageServerLoad } from './$types'
+import { json } from '@sveltejs/kit'
+import { db } from '$lib/server/db'
+import { user } from '$lib/server/db/schema'
+import { eq } from 'drizzle-orm'
+import * as v from 'valibot'
+import { deleteImage } from '$lib/server/cloudinary'
 
-export const load: PageServerLoad = async (event) => {
-  if (!event.locals.user) {
-    throw redirect(302, '/login')
-  }
-  const recipes = await trpc(event).recipes.getUserRecipes.query()
+const updateProfileSchema = v.object({
+  username: v.pipe(
+    v.string(),
+    v.minLength(3, 'Username must be at least 3 characters'),
+    v.maxLength(31, 'Username must be at most 31 characters'),
+    v.regex(/^[a-z0-9_-]+$/, 'Username can only contain lowercase letters, numbers, underscores, and hyphens')
+  ),
+  bio: v.optional(v.string()),
+  avatarUrl: v.nullish(v.string())
+})
 
-  return {
-    user: event.locals.user,
-    recipes
-  }
+export const load: PageServerLoad = async ({ locals, fetch }) => {
+  if (!locals.user) error(401, 'Unauthorized')
+
+  const response = await fetch('/api/recipes/user')
+  if (!response.ok) error(500, 'Failed to load recipes')
+
+  const recipes = await response.json()
+  return { recipes, user: locals.user }
 }
 
-export const actions: Actions = {
-  default: async (event) => {
-    if (!event.locals.user) {
-      throw redirect(302, '/login')
-    }
+export const actions = {
+  default: async ({ request, locals }) => {
+    if (!locals.user) error(401, 'Unauthorized')
 
-    const formData = await event.request.formData()
-    const username = formData.get('username')?.toString()
-    const bio = formData.get('bio')?.toString()
-    const avatar = formData.get('image') as File | undefined
+    const formData = await request.formData()
+    const username = formData.get('username')
+    const bio = formData.get('bio')
+    const avatarUrl = formData.get('avatarUrl')
 
-    // Basic form validation
-    if (!username) {
-      return fail(400, { error: 'Username is required' })
-    }
+    if (!username) return fail(400, {
+      error: 'Username is required'
+    })
 
-    if (username.length < 3) {
-      return fail(400, { error: 'Username must be at least 3 characters long' })
-    }
-
-    let avatarUrl: string | null = null
-    if (avatar?.size && avatar.size > 0) {
-      const arrayBuffer = await avatar.arrayBuffer()
-      const buffer = Buffer.from(arrayBuffer)
-      avatarUrl = await uploadImage(buffer)
-    }
-
-    const updateData = {
+    const { success, issues, output } = v.safeParse(updateProfileSchema, {
       username,
       bio,
-      ...(avatarUrl ? { avatarUrl } : {})
-    }
-    const result = await trpc(event).profile.update.mutate(updateData)
+      avatarUrl
+    })
 
-    if (!result.isOk()) {
-      return fail(400, { error: result.error.message })
+    if (!success) return fail(400, {
+      error: issues[0].message
+    })
+
+    if (output.username !== locals.user.username) {
+      const existingUser = await db
+        .select()
+        .from(user)
+        .where(eq(user.username, output.username))
+        .then(results => results[0])
+
+      if (existingUser) fail(400, { error: 'Username is already taken' })
     }
 
-    return { success: true }
+    if (output.avatarUrl) {
+      const currentUser = await db
+        .select()
+        .from(user)
+        .where(eq(user.id, locals.user.id))
+        .then(results => results[0])
+
+      if (currentUser?.avatarUrl && currentUser.avatarUrl !== output.avatarUrl) {
+        await deleteImage(currentUser.avatarUrl)
+      }
+    }
+
+    const updateData: Partial<typeof user.$inferSelect> = {
+      username: output.username,
+      bio: output.bio,
+      ...(output.avatarUrl ? { avatarUrl: output.avatarUrl } : {})
+    }
+
+    const updatedUser = await db
+      .update(user)
+      .set(updateData)
+      .where(eq(user.id, locals.user.id))
+      .returning()
+
+    return {
+      user: updatedUser[0]
+    }
   }
-} 
+} satisfies Actions 

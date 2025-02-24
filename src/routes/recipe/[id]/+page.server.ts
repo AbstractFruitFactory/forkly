@@ -12,9 +12,8 @@ export const load: PageServerLoad = async ({ params }) => {
     .where(eq(recipe.id, recipeId))
 
   const foundRecipe = recipes[0]
-  if (!foundRecipe) {
-    throw error(404, 'Recipe not found')
-  }
+  
+  if (!foundRecipe) throw error(404, 'Recipe not found')
 
   return {
     recipe: foundRecipe,

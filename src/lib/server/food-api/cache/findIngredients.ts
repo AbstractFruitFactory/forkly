@@ -1,36 +1,34 @@
 import type { Cache } from '.'
 import type { FoodAPI } from '..'
 import { redis } from '$lib/server/redis'
+import { Err, Ok } from 'ts-results-es'
 
 const CACHE_PREFIX = 'ingredient-search:'
 const CACHE_TTL = 60 * 60 * 24 // 24 hours in seconds
 
-export const findIngredientsCache: Cache<FoodAPI['findIngredients']> = {
-  set: async ([query], response) => {
+export const findIngredientsCache: Cache<FoodAPI['findIngredients']> = ([query]) => ({
+  set: async (response) => {
     const key = CACHE_PREFIX + query
     await redis.set(key, JSON.stringify(response), {
       EX: CACHE_TTL
     })
+
+    return Ok(undefined)
   },
 
-  get: async ([query]) => {
+  get: async () => {
     const key = CACHE_PREFIX + query
     const cached = await redis.get(key)
-    if (!cached) {
-      throw new Error('Cache miss')
-    }
-    return JSON.parse(cached)
+
+    if (!cached) return Err(new Error('Cache miss'))
+
+    return Ok(JSON.parse(cached))
   },
 
-  has: async ([query]) => {
+  has: async () => {
     const key = CACHE_PREFIX + query
-    return await redis.exists(key) === 1
-  },
+    const exists = await redis.exists(key)
 
-  clear: async () => {
-    const keys = await redis.keys(CACHE_PREFIX + '*')
-    if (keys.length > 0) {
-      await redis.del(keys)
-    }
-  }
-}
+    return Ok(exists === 1)
+  },
+})

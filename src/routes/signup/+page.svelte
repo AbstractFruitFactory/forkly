@@ -5,4 +5,4 @@
 
 </script>
 
-<AuthForm mode="signup" error={form?.message} alternateHref="/login" />
+<AuthForm mode="signup" error={form?.error} alternateHref="/login" />

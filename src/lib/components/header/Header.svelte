@@ -4,17 +4,17 @@
 	let {
 		loggedIn = false,
 		newRecipeHref,
-		logoutHref,
 		aboutHref,
 		profileHref,
-		loginHref
+		loginHref,
+		onLogout
 	}: {
 		loggedIn: boolean
 		newRecipeHref?: string
-		logoutHref?: string
 		aboutHref?: string
 		profileHref?: string
 		loginHref?: string
+		onLogout?: () => void
 	} = $props()
 
 	let isMenuOpen = $state(false)
@@ -43,7 +43,7 @@
 			{#if loggedIn}
 				<li><a href={profileHref}>Profile</a></li>
 				<li>
-					<Button variant="text" href={logoutHref}>Logout</Button>
+					<Button variant="text" onclick={onLogout}>Logout</Button>
 				</li>
 			{:else}
 				<li><a href={loginHref}>Login</a></li>

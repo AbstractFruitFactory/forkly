@@ -4,8 +4,17 @@
 	import '$lib/global.scss'
 	import type { Snippet } from 'svelte'
 	import type { LayoutData } from './$types'
+	import { goto, invalidateAll } from '$app/navigation'
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props()
+
+	async function handleLogout() {
+		const response = await fetch('/api/logout', { method: 'POST' })
+		if (response.ok) {
+			await invalidateAll()
+			goto('/')
+		}
+	}
 </script>
 
 <svelte:head>
@@ -22,10 +31,10 @@
 		<Header
 			loggedIn={!!data.user}
 			newRecipeHref="/new"
-			logoutHref="/logout"
 			aboutHref="/about"
 			profileHref="/profile"
 			loginHref="/login"
+			onLogout={handleLogout}
 		/>
 	{/snippet}
 
