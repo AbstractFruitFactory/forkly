@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/components/button/Button.svelte'
+	import Search from '$lib/components/search/Search.svelte'
 
 	let {
 		loggedIn = false,
@@ -7,7 +8,11 @@
 		aboutHref,
 		profileHref,
 		loginHref,
-		onLogout
+		onLogout,
+		onSearch,
+		onSelectRecipe,
+		searchSuggestions = [],
+		isSearchLoading = false
 	}: {
 		loggedIn: boolean
 		newRecipeHref?: string
@@ -15,6 +20,10 @@
 		profileHref?: string
 		loginHref?: string
 		onLogout?: () => void
+		onSearch?: (query: string) => void
+		onSelectRecipe?: (recipe: { name: string }) => void
+		searchSuggestions?: Array<{ name: string }>
+		isSearchLoading?: boolean
 	} = $props()
 
 	let isMenuOpen = $state(false)
@@ -29,7 +38,16 @@
 		<div class="logo">
 			<a href="/">Forkly</a>
 		</div>
-		<Button href={newRecipeHref} variant="primary" size="sm">New Recipe</Button>
+		<div class="search-container">
+			<Search
+				placeholder="Search recipes..."
+				isLoading={isSearchLoading}
+				suggestions={searchSuggestions}
+				{onSearch}
+				onSelect={onSelectRecipe}
+			/>
+			<Button href={newRecipeHref} variant="primary" size="sm">New Recipe</Button>
+		</div>
 	</div>
 
 	<button class="menu-toggle" onclick={toggleMenu}>
@@ -133,6 +151,12 @@
 		border: 0;
 	}
 
+	.search-container {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
 	@media (max-width: 768px) {
 		.menu-toggle {
 			display: flex;
@@ -173,6 +197,10 @@
 
 		.left-section {
 			gap: var(--spacing-sm);
+		}
+
+		.search-container {
+			display: none;
 		}
 	}
 </style>
