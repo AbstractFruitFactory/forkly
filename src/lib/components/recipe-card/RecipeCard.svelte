@@ -1,6 +1,9 @@
 <script lang="ts">
 	import Timer from 'lucide-svelte/icons/timer'
 	import List from 'lucide-svelte/icons/list'
+	import Utensils from 'lucide-svelte/icons/utensils'
+	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
+	import { page } from '$app/stores'
 
 	interface Recipe {
 		id: string
@@ -9,17 +12,45 @@
 		ingredients: number
 		instructions: number
 		imageUrl?: string | null
+		user?: {
+			username: string
+			avatarUrl?: string | null
+		}
+		likes: number
 	}
 
-	let { recipe }: { recipe: Recipe } = $props()
+	let {
+		recipe
+	}: {
+		recipe: Recipe
+	} = $props()
 </script>
 
 <a href="/recipe/{recipe.id}" class="recipe-card" aria-labelledby="recipe-title-{recipe.id}">
-	{#if recipe.imageUrl}
-		<div class="image-container">
-			<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+	<div class="header">
+		<div class="image-container" class:no-image={!recipe.imageUrl}>
+			{#if recipe.imageUrl}
+				<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+			{:else}
+				<div class="placeholder">
+					<Utensils size={32} strokeWidth={1.5} />
+				</div>
+			{/if}
 		</div>
-	{/if}
+		{#if recipe.user}
+			<div
+				class="avatar"
+				style="background: {recipe.user.avatarUrl
+					? `url(${recipe.user.avatarUrl}) center/cover`
+					: `var(--color-${recipe.user.username.charCodeAt(0) % 5})`}"
+			>
+				{#if !recipe.user.avatarUrl}
+					{recipe.user.username[0].toUpperCase()}
+				{/if}
+			</div>
+		{/if}
+		<LikeButton count={recipe.likes} />
+	</div>
 	<div class="content">
 		<h2 id="recipe-title-{recipe.id}">{recipe.title}</h2>
 		{#if recipe.description}
@@ -38,7 +69,7 @@
 	</div>
 </a>
 
-<style>
+<style lang="scss">
 	.recipe-card {
 		display: block;
 		border-radius: var(--border-radius-lg);
@@ -49,9 +80,10 @@
 		overflow: hidden;
 		position: relative;
 		isolation: isolate;
-		transition: transform var(--transition-fast) var(--ease-out),
-					box-shadow var(--transition-fast) var(--ease-out),
-					border-color var(--transition-fast) var(--ease-out);
+		transition:
+			transform var(--transition-fast) var(--ease-out),
+			box-shadow var(--transition-fast) var(--ease-out),
+			border-color var(--transition-fast) var(--ease-out);
 
 		&::after {
 			content: '';
@@ -84,6 +116,17 @@
 		}
 	}
 
+	.header {
+		position: relative;
+		
+		:global(.like-button) {
+			position: absolute;
+			top: var(--spacing-md);
+			right: var(--spacing-md);
+			z-index: 2;
+		}
+	}
+
 	.image-container {
 		position: relative;
 		width: 100%;
@@ -100,6 +143,14 @@
 			pointer-events: none;
 		}
 
+		&.no-image {
+			background: linear-gradient(135deg, var(--color-neutral-dark), var(--color-neutral));
+
+			&::after {
+				background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+			}
+		}
+
 		img {
 			width: 100%;
 			height: 100%;
@@ -107,6 +158,38 @@
 			transition: transform var(--transition-fast) var(--ease-out);
 			will-change: transform;
 		}
+	}
+
+	.placeholder {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: rgba(255, 255, 255, 0.5);
+
+		:global(svg) {
+			filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+		}
+	}
+
+	.avatar {
+		position: absolute;
+		bottom: -16px;
+		right: var(--spacing-md);
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		color: white;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--font-size-sm);
+		font-weight: 600;
+		background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+		box-shadow: var(--shadow-md);
+		border: 2px solid var(--color-background);
+		z-index: 2;
 	}
 
 	.recipe-card:hover .image-container img {

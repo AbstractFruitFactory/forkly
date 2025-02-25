@@ -1,5 +1,5 @@
 import type { MeasurementUnit } from '$lib/types'
-import { pgTable, text, timestamp, jsonb, integer } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, jsonb, integer, primaryKey } from 'drizzle-orm/pg-core'
 
 export const user = pgTable('user', {
 	id: text('id').primaryKey(),
@@ -15,6 +15,20 @@ export const session = pgTable('session', {
 		.notNull()
 		.references(() => user.id),
 	expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull()
+})
+
+export const recipeLike = pgTable('recipe_like', {
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id),
+	recipeId: text('recipe_id')
+		.notNull()
+		.references(() => recipe.id),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => {
+	return {
+		pk: primaryKey({ columns: [table.userId, table.recipeId] })
+	}
 })
 
 type BaseIngredient = {
@@ -65,7 +79,6 @@ export const recipe = pgTable('recipe', {
 		hasCustomIngredients: boolean
 	}>().notNull(),
 	imageUrl: text('image_url'),
-	likes: integer('likes').default(0).notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 

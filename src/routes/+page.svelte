@@ -9,6 +9,12 @@
 		...recipe,
 		ingredients: recipe.ingredients.length,
 		instructions: recipe.instructions.length,
-		imageUrl: recipe.imageUrl
+		imageUrl: recipe.imageUrl,
+		user: recipe.user?.username
+			? {
+					username: recipe.user.username,
+					avatarUrl: recipe.user.avatarUrl
+				}
+			: undefined
 	}))}
 />

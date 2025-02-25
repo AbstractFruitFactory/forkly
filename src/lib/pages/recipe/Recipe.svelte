@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { NutritionInfo } from '$lib/server/food-api'
+	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 
 	type BaseIngredient = {
 		quantity: number
@@ -29,11 +30,14 @@
 			carbs: number
 			fat: number
 		}
+		likes: number
+		isLiked?: boolean
 	}
 
 	let {
 		recipe,
-		nutrition
+		nutrition,
+		onLike
 	}: {
 		recipe: RecipeData
 		nutrition: {
@@ -44,6 +48,7 @@
 				fat: number
 			}
 		}
+		onLike?: () => void
 	} = $props()
 </script>
 
@@ -55,7 +60,10 @@
 					<img src={recipe.imageUrl} alt={recipe.title} />
 				</div>
 			{/if}
-			<h1>{recipe.title}</h1>
+			<div class="recipe-header">
+				<h1>{recipe.title}</h1>
+				<LikeButton count={recipe.likes} isLiked={recipe.isLiked} interactive={!!onLike} {onLike} />
+			</div>
 			{#if recipe.description}
 				<p class="description">{recipe.description}</p>
 			{/if}
@@ -242,7 +250,7 @@
 	}
 
 	.recipe-image {
-		margin: calc(var(--spacing-2xl) * -1) calc(var(--spacing-2xl) * -1) var(--spacing-2xl);
+		margin: calc(var(--spacing-2xl) * -1) calc(var(--spacing-2xl) * -1) var(--spacing-xl);
 		height: 400px;
 		overflow: hidden;
 		border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
@@ -252,5 +260,18 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+	}
+
+	.recipe-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--spacing-md);
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.recipe-header h1 {
+		margin: 0;
+		flex: 1;
 	}
 </style>

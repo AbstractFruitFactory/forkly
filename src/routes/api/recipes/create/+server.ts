@@ -6,7 +6,7 @@ import * as v from 'valibot'
 import { generateId } from '$lib/server/id'
 import type { MeasurementUnit } from '$lib/types'
 import { measurementUnits } from '$lib/types'
-import { validate } from '$lib/valibot-wrapper'
+import { validate } from '$lib/utils/validate'
 
 const baseIngredientSchema = v.object({
   name: v.string(),
@@ -86,7 +86,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     instructions: input.instructions,
     nutrition: input.nutrition,
     imageUrl: input.imageUrl,
-    likes: 0,
     createdAt: new Date()
   }).returning()
 

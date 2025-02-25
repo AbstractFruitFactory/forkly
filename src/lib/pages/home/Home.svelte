@@ -7,6 +7,12 @@
 		description: string
 		ingredients: number
 		instructions: number
+		imageUrl?: string | null
+		user?: {
+			username: string
+			avatarUrl?: string | null
+		}
+		likes: number
 	}
 
 	let { recipes }: { recipes: Recipe[] } = $props()
