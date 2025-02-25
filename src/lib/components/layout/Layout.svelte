@@ -23,15 +23,16 @@
 
 <style lang="scss">
 	.layout {
-		min-height: 100vh;
 		height: 100vh;
 		display: flex;
 		flex-direction: column;
-		overflow: hidden;
+		overflow-y: auto;
 	}
 
 	.header {
-		position: relative;
+		position: sticky;
+		top: 0;
+		z-index: var(--z-sticky);
 	}
 
 	.header-background {
@@ -49,13 +50,9 @@
 		max-width: 1200px;
 		margin: 0 auto;
 		padding: 0 1rem;
-		position: relative;
 	}
 
 	.main {
-		flex: 1;
-		overflow-y: auto;
-
 		.container {
 			padding-top: 2rem;
 			padding-bottom: 2rem;
