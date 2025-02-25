@@ -2,9 +2,7 @@
 	import type { User, Recipe } from '$lib/server/db/schema'
 	import Button from '$lib/components/button/Button.svelte'
 	import ProfileRecipeCard from '$lib/components/profile/ProfileRecipeCard.svelte'
-	import { fade, slide } from 'svelte/transition'
 	import ImageUpload from '$lib/components/image-upload/ImageUpload.svelte'
-	import { enhance } from '$app/forms'
 
 	let {
 		user,
@@ -38,9 +36,9 @@
 	}
 </script>
 
-<div class="profile-container" in:fade>
+<div class="profile-container">
 	<div class="profile-grid">
-		<div class="profile-main" in:slide={{ delay: 200, duration: 300 }}>
+		<div class="profile-main">
 			<div class="profile-header">
 				{#if !isEditMode}
 					<div class="avatar-container">
@@ -105,7 +103,7 @@
 			</div>
 		</div>
 
-		<div class="recipes-section" in:slide={{ delay: 400, duration: 300 }}>
+		<div class="recipes-section">
 			<h2>My Recipes</h2>
 			{#if recipes.length > 0}
 				<div class="recipes-grid">
