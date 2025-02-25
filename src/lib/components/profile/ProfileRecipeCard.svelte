@@ -1,6 +1,10 @@
 <script lang="ts">
-	import type { Recipe } from '$lib/server/db/schema'
-	import Button from '$lib/components/button/Button.svelte'
+	import type { Recipe as DBRecipe } from '$lib/server/db/schema'
+	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
+
+	type Recipe = DBRecipe & {
+		likes: number
+	}
 
 	let { recipe, recipeHref }: { recipe: Recipe; recipeHref?: string } = $props()
 </script>
@@ -9,7 +13,7 @@
 	<div class="content">
 		<h3>{recipe.title}</h3>
 		<div class="recipe-meta">
-			<span>❤️ {recipe.likes || 0}</span>
+			<LikeButton count={recipe.likes || 0} />
 			<span>📅 {new Date(recipe.createdAt).toLocaleDateString()}</span>
 		</div>
 	</div>
@@ -51,8 +55,8 @@
 
 	.recipe-meta {
 		display: flex;
+		align-items: center;
 		gap: var(--spacing-md);
-		font-size: var(--font-size-sm);
 		color: var(--color-neutral-light);
 		margin-bottom: var(--spacing-md);
 	}
