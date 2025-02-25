@@ -61,6 +61,9 @@
 		text-decoration: none;
 		position: relative;
 		overflow: hidden;
+		text-wrap: nowrap;
+		white-space: nowrap;
+		min-width: fit-content;
 
 		&::after {
 			content: '';
@@ -74,7 +77,7 @@
 		&:disabled {
 			opacity: 0.6;
 			cursor: not-allowed;
-			
+
 			&::after {
 				display: none;
 			}
