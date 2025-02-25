@@ -11,14 +11,14 @@
 <style lang="scss">
 	@mixin input-base {
 		width: 100%;
-		padding: var(--spacing-md) var(--spacing-lg);
+		height: 37px;
+		padding: 0 var(--spacing-lg);
 		border: var(--border-width-thin) solid var(--color-neutral);
 		border-radius: var(--border-radius-md);
 		font-family: var(--font-sans);
 		font-size: var(--font-size-sm);
 		color: var(--color-neutral-light);
 		background-color: var(--color-neutral-dark);
-		height: 2.7rem;
 		transition: all var(--transition-fast) var(--ease-in-out);
 
 		&::placeholder {
