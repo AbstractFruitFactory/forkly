@@ -233,3 +233,39 @@ a {
   color: white;
   font-size: var(--font-size-md);
 }
+
+/* Custom Scrollbar Styles */
+* {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-neutral) transparent;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-neutral);
+  border-radius: 4px;
+  
+  &:hover {
+    background-color: var(--color-neutral-dark);
+  }
+}
+
+/* Hide scrollbar in Firefox when not hovering */
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    &:not(:hover) {
+      scrollbar-width: none;
+    }
+  }
+}
