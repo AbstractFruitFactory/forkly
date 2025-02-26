@@ -1,6 +1,8 @@
-<script module>
+<script lang="ts" module>
 	import { defineMeta } from '@storybook/addon-svelte-csf'
 	import Recipe from './Recipe.svelte'
+	import type { MeasurementUnit } from '$lib/types'
+	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 
 	const { Story } = defineMeta({
 		component: Recipe,
@@ -10,14 +12,15 @@
 	})
 
 	const mockRecipe = {
+		id: 'recipe-123',
 		title: 'Classic Spaghetti Carbonara',
 		description: 'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
 		ingredients: [
-			{ quantity: 400, measurement: 'g', name: 'spaghetti', custom: false },
-			{ quantity: 4, measurement: 'pieces', name: 'large eggs', custom: false },
-			{ quantity: 100, measurement: 'g', name: 'pecorino romano', custom: false },
-			{ quantity: 200, measurement: 'g', name: 'pancetta', custom: false },
-			{ quantity: 2, measurement: 'tsp', name: 'black pepper', custom: false }
+			{ quantity: 400, measurement: 'grams' as MeasurementUnit, name: 'spaghetti', custom: false },
+			{ quantity: 4, measurement: 'pieces' as MeasurementUnit, name: 'large eggs', custom: false },
+			{ quantity: 100, measurement: 'grams' as MeasurementUnit, name: 'pecorino romano', custom: false },
+			{ quantity: 200, measurement: 'grams' as MeasurementUnit, name: 'pancetta', custom: false },
+			{ quantity: 2, measurement: 'teaspoons' as MeasurementUnit, name: 'black pepper', custom: false }
 		],
 		instructions: [
 			'Bring a large pot of salted water to boil and cook spaghetti according to package instructions.',
@@ -25,11 +28,31 @@
 			'In a bowl, whisk together eggs, grated pecorino romano, and black pepper.',
 			'Drain pasta, reserving some pasta water. While pasta is still very hot, quickly stir in the egg mixture and pancetta.',
 			'Add pasta water as needed to create a creamy sauce. Serve immediately with extra cheese and black pepper.'
-		]
+		],
+		likes: 42,
+		isLiked: false
 	}
+
+	const mockNutrition = {
+		totalNutrition: {
+			calories: 850,
+			protein: 35,
+			carbs: 80,
+			fat: 40
+		},
+		hasCustomIngredients: false
+	}
+
+	const mockUnitSystem: UnitSystem = 'metric'
+	const mockOnUnitChange = (system: UnitSystem) => console.log('Unit changed to', system)
 </script>
 
-<Story name="Default" args={{ recipe: mockRecipe }} />
+<Story name="Default" args={{ 
+	recipe: mockRecipe, 
+	nutrition: mockNutrition,
+	unitSystem: mockUnitSystem,
+	onUnitChange: mockOnUnitChange
+}} />
 
 <Story 
 	name="Without Description" 
@@ -37,6 +60,9 @@
 		recipe: {
 			...mockRecipe,
 			description: undefined
-		}
+		},
+		nutrition: mockNutrition,
+		unitSystem: mockUnitSystem,
+		onUnitChange: mockOnUnitChange
 	}} 
 /> 

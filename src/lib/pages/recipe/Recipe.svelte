@@ -2,6 +2,7 @@
 	import type { NutritionInfo } from '$lib/server/food-api'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
+	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import {
 		convertMeasurement,
@@ -10,6 +11,7 @@
 		UNITS
 	} from '$lib/utils/unitConversion'
 	import type { MeasurementUnit } from '$lib/types'
+	import { page } from '$app/state'
 
 	type BaseIngredient = {
 		quantity: number
@@ -105,7 +107,15 @@
 			{/if}
 			<div class="recipe-header">
 				<h1>{recipe.title}</h1>
-				<LikeButton count={recipe.likes} isLiked={recipe.isLiked} interactive={!!onLike} {onLike} />
+				<div class="recipe-actions">
+					<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
+					<LikeButton
+						count={recipe.likes}
+						isLiked={recipe.isLiked}
+						interactive={!!onLike}
+						{onLike}
+					/>
+				</div>
 			</div>
 			{#if recipe.description}
 				<p class="description">{recipe.description}</p>
@@ -116,10 +126,7 @@
 			<div class="ingredients-header">
 				<h2>Ingredients</h2>
 				<div class="unit-toggle-container">
-					<UnitToggle 
-						state={unitSystem} 
-						onSelect={onUnitChange} 
-					/>
+					<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 				</div>
 			</div>
 			<ul>
@@ -249,11 +256,6 @@
 		padding-left: var(--spacing-sm);
 	}
 
-	.quantity {
-		font-weight: var(--font-weight-semibold);
-		margin-right: var(--spacing-xs);
-	}
-
 	.measurement {
 		margin-right: var(--spacing-sm);
 	}
@@ -321,12 +323,6 @@
 		margin-top: var(--spacing-md);
 	}
 
-	.nutrition-loading {
-		text-align: center;
-		padding: var(--spacing-lg);
-		color: var(--color-neutral);
-	}
-
 	.custom-badge {
 		font-size: var(--font-size-xs);
 		background: var(--color-neutral);
@@ -361,5 +357,11 @@
 	.recipe-header h1 {
 		margin: 0;
 		flex: 1;
+	}
+
+	.recipe-actions {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
 	}
 </style>
