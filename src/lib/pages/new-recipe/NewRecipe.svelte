@@ -3,20 +3,38 @@
 	import { measurementUnits } from '$lib/types'
 	import Input from '$lib/components/input/Input.svelte'
 	import Search from '$lib/components/search/Search.svelte'
+	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
+	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+	import { UNITS, UNIT_DISPLAY_TEXT } from '$lib/utils/unitConversion'
 
+	// Create a mapping for display text that works with our MeasurementUnit type
 	const measurementUnitDisplayText: Record<MeasurementUnit, string> = {
-		cups: 'cups (c)',
-		tablespoons: 'tablespoons (tbsp)',
-		teaspoons: 'teaspoons (tsp)',
-		ounces: 'ounces (oz)',
-		pounds: 'pounds (lb)',
-		grams: 'grams (g)',
-		milliliters: 'milliliters (ml)',
-		pieces: 'pieces (pc)',
-		'to taste': 'to taste',
-		pinch: 'pinch',
-		kilograms: 'kilograms (kg)',
-		liters: 'liters (L)'
+		// Weight
+		grams: UNIT_DISPLAY_TEXT.grams,
+		kilograms: UNIT_DISPLAY_TEXT.kilograms,
+		ounces: UNIT_DISPLAY_TEXT.ounces,
+		pounds: UNIT_DISPLAY_TEXT.pounds,
+
+		// Volume
+		milliliters: UNIT_DISPLAY_TEXT.milliliters,
+		liters: UNIT_DISPLAY_TEXT.liters,
+		cups: UNIT_DISPLAY_TEXT.cups,
+		fluid_ounces: UNIT_DISPLAY_TEXT.fluid_ounces,
+		tablespoons: UNIT_DISPLAY_TEXT.tablespoons,
+		teaspoons: UNIT_DISPLAY_TEXT.teaspoons,
+		gallons: UNIT_DISPLAY_TEXT.gallons,
+
+		// Length
+		millimeters: UNIT_DISPLAY_TEXT.millimeters,
+		centimeters: UNIT_DISPLAY_TEXT.centimeters,
+		meters: UNIT_DISPLAY_TEXT.meters,
+		inches: UNIT_DISPLAY_TEXT.inches,
+		feet: UNIT_DISPLAY_TEXT.feet,
+
+		// Other
+		pieces: UNIT_DISPLAY_TEXT.pieces,
+		'to taste': UNIT_DISPLAY_TEXT['to taste'],
+		pinch: UNIT_DISPLAY_TEXT.pinch
 	}
 </script>
 
@@ -32,11 +50,15 @@
 	let {
 		errors,
 		onSearchIngredients,
-		onIngredientSelect
+		onIngredientSelect,
+		unitSystem,
+		onUnitChange
 	}: {
 		errors?: { path: string; message: string }[]
 		onSearchIngredients?: (query: string) => Promise<T[]>
 		onIngredientSelect?: (ingredient: T) => Promise<void>
+		unitSystem: UnitSystem
+		onUnitChange: (system: UnitSystem) => void
 	} = $props()
 
 	let ingredientCount = $state(1)
@@ -137,7 +159,15 @@
 		</div>
 
 		<div class="form-group">
-			<label for="ingredients">Ingredients</label>
+			<div class="ingredients-header">
+				<label for="ingredients">Ingredients</label>
+				<div class="unit-toggle-container">
+					<UnitToggle
+						state={unitSystem}
+						onSelect={onUnitChange}
+					/>
+				</div>
+			</div>
 			<div id="ingredients">
 				{#each Array(ingredientCount) as _, i}
 					<div class="ingredient-group">
@@ -158,8 +188,67 @@
 							<Input>
 								<select name={`ingredient-${i}-measurement`}>
 									<option value="">Unit</option>
-									{#each measurementUnits as unit}
-										<option value={unit}>{measurementUnitDisplayText[unit]}</option>
+
+									{#if unitSystem === 'metric'}
+										{#each UNITS.weight.metric as unit}
+											{#if measurementUnits.includes(unit as any)}
+												<option value={unit}
+													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
+												>
+											{/if}
+										{/each}
+									{:else}
+										{#each UNITS.weight.imperial as unit}
+											{#if measurementUnits.includes(unit as any)}
+												<option value={unit}
+													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
+												>
+											{/if}
+										{/each}
+									{/if}
+
+									{#if unitSystem === 'metric'}
+										{#each UNITS.volume.metric as unit}
+											{#if measurementUnits.includes(unit as any)}
+												<option value={unit}
+													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
+												>
+											{/if}
+										{/each}
+									{:else}
+										{#each UNITS.volume.imperial as unit}
+											{#if measurementUnits.includes(unit as any)}
+												<option value={unit}
+													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
+												>
+											{/if}
+										{/each}
+									{/if}
+
+									{#if unitSystem === 'metric'}
+										{#each UNITS.length.metric as unit}
+											{#if measurementUnits.includes(unit as any)}
+												<option value={unit}
+													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
+												>
+											{/if}
+										{/each}
+									{:else}
+										{#each UNITS.length.imperial as unit}
+											{#if measurementUnits.includes(unit as any)}
+												<option value={unit}
+													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
+												>
+											{/if}
+										{/each}
+									{/if}
+
+									{#each UNITS.other as unit}
+										{#if measurementUnits.includes(unit as any)}
+											<option value={unit}
+												>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
+											>
+										{/if}
 									{/each}
 								</select>
 							</Input>
@@ -268,6 +357,17 @@
 		margin-bottom: var(--spacing-lg);
 	}
 
+	.ingredients-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-md);
+	}
+
+	.unit-toggle-container {
+		margin-left: var(--spacing-md);
+	}
+
 	label {
 		display: block;
 		margin-bottom: var(--spacing-md);
@@ -361,30 +461,44 @@
 		width: 100%;
 	}
 
-	.error-container {
-		margin-bottom: var(--spacing-lg);
-		padding: var(--spacing-md);
-		border-radius: var(--border-radius-lg);
-		background-color: var(--color-error-light);
-		border: var(--border-width-thin) solid var(--color-error);
-	}
-
-	.error {
-		color: var(--color-error-dark);
-		margin: var(--spacing-xs) 0;
-	}
-
 	.text-button {
 		background: none;
 		border: none;
 		color: var(--color-primary);
-		font-size: var(--font-size-sm);
-		padding: var(--spacing-xs) var(--spacing-sm);
 		cursor: pointer;
+		font-size: var(--font-size-sm);
+		padding: 0;
 		text-align: left;
+		text-decoration: underline;
+		margin-top: var(--spacing-xs);
 
 		&:hover {
-			text-decoration: underline;
+			color: var(--color-primary-dark);
+		}
+	}
+
+	.error-container {
+		background-color: var(--color-error-dark);
+		border-radius: var(--border-radius);
+		padding: var(--spacing-md);
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.error {
+		color: var(--color-error);
+		font-size: var(--font-size-sm);
+		margin: var(--spacing-xs) 0;
+	}
+
+	@media (max-width: 640px) {
+		.ingredients-header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.unit-toggle-container {
+			margin-left: 0;
+			margin-top: var(--spacing-sm);
 		}
 	}
 </style>

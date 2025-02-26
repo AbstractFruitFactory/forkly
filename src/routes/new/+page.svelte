@@ -2,6 +2,10 @@
 	import NewRecipe from '$lib/pages/new-recipe/NewRecipe.svelte'
 	import type { IngredientSearchResult } from '$lib/server/food-api'
 	import RecipeSuccess from '$lib/pages/recipe-created/RecipeCreated.svelte'
+	import {
+		unitPreferenceStore,
+		type UnitSystem
+	} from '$lib/state/unitPreference.svelte'
 
 	let { form } = $props()
 
@@ -23,10 +27,26 @@
 			}, 300)
 		})
 	}
+
+	const handleUnitChange = (system: UnitSystem) => {
+		if (system === 'metric') {
+			unitPreferenceStore.setMetric()
+		} else {
+			unitPreferenceStore.setImperial()
+		}
+	}
+
+	// Get the current unit system as a derived value
+	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
 {#if form?.success}
 	<RecipeSuccess recipeId={form.recipeId} />
 {:else}
-	<NewRecipe errors={form?.errors} onSearchIngredients={handleSearchIngredients} />
+	<NewRecipe
+		errors={form?.errors}
+		onSearchIngredients={handleSearchIngredients}
+		{unitSystem}
+		onUnitChange={handleUnitChange}
+	/>
 {/if}

@@ -1,10 +1,19 @@
 <script lang="ts">
 	import type { NutritionInfo } from '$lib/server/food-api'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
+	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
+	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+	import {
+		convertMeasurement,
+		formatMeasurement,
+		UNIT_DISPLAY_TEXT,
+		UNITS
+	} from '$lib/utils/unitConversion'
+	import type { MeasurementUnit } from '$lib/types'
 
 	type BaseIngredient = {
 		quantity: number
-		measurement: string
+		measurement: MeasurementUnit
 		name: string
 	}
 
@@ -19,6 +28,7 @@
 	type Ingredient = CustomIngredient | LookupIngredient
 
 	type RecipeData = {
+		id: string
 		title: string
 		description?: string
 		ingredients: Ingredient[]
@@ -37,19 +47,52 @@
 	let {
 		recipe,
 		nutrition,
-		onLike
+		onLike,
+		unitSystem,
+		onUnitChange
 	}: {
 		recipe: RecipeData
 		nutrition: {
-			totalNutrition: {
-				calories: number
-				protein: number
-				carbs: number
-				fat: number
-			}
+			totalNutrition: Omit<NutritionInfo, 'servingSize'>
+			hasCustomIngredients: boolean
 		}
 		onLike?: () => void
+		unitSystem: UnitSystem
+		onUnitChange: (system: UnitSystem) => void
 	} = $props()
+
+	const getFormattedIngredient = (ingredient: Ingredient) => {
+		if (
+			UNITS.other.includes(ingredient.measurement as string) ||
+			ingredient.measurement === 'teaspoons' ||
+			ingredient.measurement === 'tablespoons'
+		) {
+			const displayUnit = UNIT_DISPLAY_TEXT[ingredient.measurement] || ingredient.measurement
+			return {
+				...ingredient,
+				displayQuantity: ingredient.quantity,
+				displayUnit: ingredient.measurement,
+				displayUnitText: displayUnit,
+				formattedMeasurement: formatMeasurement(ingredient.quantity, ingredient.measurement)
+			}
+		}
+
+		const { quantity, unit } = convertMeasurement(
+			ingredient.quantity,
+			ingredient.measurement,
+			unitSystem
+		)
+
+		const displayUnit = UNIT_DISPLAY_TEXT[unit] || unit
+
+		return {
+			...ingredient,
+			displayQuantity: quantity,
+			displayUnit: unit,
+			displayUnitText: displayUnit,
+			formattedMeasurement: formatMeasurement(quantity, unit)
+		}
+	}
 </script>
 
 <div class="container">
@@ -70,12 +113,24 @@
 		</header>
 
 		<section class="ingredients">
-			<h2>Ingredients</h2>
+			<div class="ingredients-header">
+				<h2>Ingredients</h2>
+				<div class="unit-toggle-container">
+					<UnitToggle 
+						state={unitSystem} 
+						onSelect={onUnitChange} 
+					/>
+				</div>
+			</div>
 			<ul>
 				{#each recipe.ingredients as ingredient}
+					{@const formattedIngredient = getFormattedIngredient(ingredient)}
 					<li>
-						<span class="quantity">{ingredient.quantity}</span>
-						<span class="measurement">{ingredient.measurement}</span>
+						{#if ingredient.measurement === 'to taste' || ingredient.measurement === 'pinch'}
+							<span class="measurement">{ingredient.measurement}</span>
+						{:else}
+							<span class="measurement">{formattedIngredient.formattedMeasurement}</span>
+						{/if}
 						<span class="ingredient-name">
 							{ingredient.name}
 							{#if ingredient.custom}
@@ -151,6 +206,29 @@
 		margin-bottom: var(--spacing-2xl);
 	}
 
+	.ingredients-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-md);
+	}
+
+	.unit-toggle-container {
+		margin-left: var(--spacing-md);
+	}
+
+	h1 {
+		font-size: var(--font-size-3xl);
+		margin-bottom: var(--spacing-md);
+		font-weight: 600;
+	}
+
+	h2 {
+		font-size: var(--font-size-xl);
+		margin-bottom: var(--spacing-md);
+		font-weight: 600;
+	}
+
 	ul,
 	ol {
 		margin: 0;
@@ -191,6 +269,16 @@
 
 		h2 {
 			font-size: var(--font-size-xl);
+		}
+
+		.ingredients-header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.unit-toggle-container {
+			margin-left: 0;
+			margin-top: var(--spacing-sm);
 		}
 	}
 

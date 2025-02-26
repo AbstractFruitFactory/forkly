@@ -48,7 +48,7 @@
 	}
 </script>
 
-<svelte:document on:click={handleClickOutside} on:keydown={handleKeydown} />
+<svelte:document onclick={handleClickOutside} onkeydown={handleKeydown} />
 
 <div class="search-wrapper" bind:this={searchWrapper}>
 	<Autocomplete

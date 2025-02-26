@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Recipe from '$lib/pages/recipe/Recipe.svelte'
-
+	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
 	let { data } = $props()
 
 	const handleLike = async () => {
@@ -16,6 +16,17 @@
 
 	let isLiked = $state(data.recipe.isLiked)
 	let likes = $state(data.recipe.likes)
+
+	const handleUnitChange = (system: UnitSystem) => {
+		if (system === 'metric') {
+			unitPreferenceStore.setMetric()
+		} else {
+			unitPreferenceStore.setImperial()
+		}
+	}
+
+	// Get the current unit system as a derived value
+	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
 <Recipe
@@ -26,4 +37,6 @@
 	}}
 	nutrition={data.nutrition}
 	onLike={handleLike}
+	{unitSystem}
+	onUnitChange={handleUnitChange}
 />
