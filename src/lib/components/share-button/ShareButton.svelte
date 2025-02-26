@@ -87,8 +87,6 @@
 
 	<Popup isOpen={isPopupOpen} onClose={togglePopup} title="Share" width="350px">
 		<div class="share-popup-content">
-			<p class="share-description">Share this content with your friends and colleagues!</p>
-
 			{#if url || title}
 				<div class="share-item-preview">
 					<h4 class="share-item-title">{title || document.title}</h4>
@@ -219,7 +217,9 @@
 <style lang="scss">
 	.share-wrapper {
 		position: relative;
-		display: inline-block;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.share-button-content {
