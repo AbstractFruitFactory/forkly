@@ -98,6 +98,31 @@ export const convertMeasurement = (
     return { quantity, unit: fromUnit }
   }
 
+  // Special handling for common recipe measurements
+  if (fromUnit === 'milliliters' && toSystem === 'imperial') {
+    // For common cooking measurements, use more intuitive conversions
+    if (quantity <= 5) {
+      return { quantity: 1, unit: 'teaspoons' as MeasurementUnit }
+    } else if (quantity <= 15) {
+      return { quantity: 1, unit: 'tablespoons' as MeasurementUnit }
+    } else if (quantity >= 230 && quantity <= 240) {
+      return { quantity: 1, unit: 'cups' as MeasurementUnit }
+    } else if (quantity >= 470 && quantity <= 480) {
+      return { quantity: 2, unit: 'cups' as MeasurementUnit }
+    }
+  }
+
+  if (fromUnit === 'grams' && toSystem === 'imperial') {
+    // Common cooking measurements for weight
+    if (quantity >= 450 && quantity <= 500) {
+      return { quantity: 1, unit: 'pounds' as MeasurementUnit }
+    } else if (quantity >= 225 && quantity <= 250) {
+      return { quantity: 0.5, unit: 'pounds' as MeasurementUnit }
+    } else if (quantity >= 110 && quantity <= 115) {
+      return { quantity: 4, unit: 'ounces' as MeasurementUnit }
+    }
+  }
+
   const equivalent = UNIT_EQUIVALENTS[fromUnit as keyof typeof UNIT_EQUIVALENTS]
   if (!equivalent) {
     return { quantity, unit: fromUnit }
@@ -180,19 +205,30 @@ export const formatMeasurement = (quantity: number, unit: MeasurementUnit): stri
 
   if (Number.isInteger(adjustedQuantity)) {
     formattedQuantity = adjustedQuantity.toString()
-  } else if (adjustedQuantity < 0.01) {
-    if (adjustedQuantity < 0.001) {
-      return `trace ${displayUnit}`
-    }
-    formattedQuantity = adjustedQuantity.toFixed(3)
-  } else if (adjustedQuantity < 0.1) {
-    formattedQuantity = adjustedQuantity.toFixed(2)
-  } else if (adjustedQuantity < 1) {
-    formattedQuantity = adjustedQuantity.toFixed(1)
-  } else if (adjustedQuantity < 10) {
-    formattedQuantity = adjustedQuantity.toFixed(1).replace(/\.0$/, '')
   } else {
-    formattedQuantity = Math.round(adjustedQuantity).toString()
+    // More aggressive rounding for common measurements
+    if (adjustedQuantity < 0.01) {
+      if (adjustedQuantity < 0.001) {
+        return `trace ${displayUnit}`
+      }
+      // Very small amounts
+      formattedQuantity = adjustedQuantity.toFixed(3)
+    } else if (adjustedQuantity < 0.1) {
+      // Round to nearest 0.05 for small amounts
+      formattedQuantity = (Math.round(adjustedQuantity * 20) / 20).toFixed(2).replace(/\.00$/, '')
+    } else if (adjustedQuantity < 1) {
+      // Round to nearest 0.1 for amounts less than 1
+      formattedQuantity = (Math.round(adjustedQuantity * 10) / 10).toFixed(1).replace(/\.0$/, '')
+    } else if (adjustedQuantity < 10) {
+      // Round to nearest 0.5 for amounts between 1 and 10
+      formattedQuantity = (Math.round(adjustedQuantity * 2) / 2).toFixed(1).replace(/\.0$/, '')
+    } else if (adjustedQuantity < 100) {
+      // Round to nearest whole number for amounts between 10 and 100
+      formattedQuantity = Math.round(adjustedQuantity).toString()
+    } else {
+      // Round to nearest 5 for large amounts
+      formattedQuantity = (Math.round(adjustedQuantity / 5) * 5).toString()
+    }
   }
 
   return `${formattedQuantity} ${displayUnit}`
