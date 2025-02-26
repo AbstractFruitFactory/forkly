@@ -5,6 +5,7 @@
 
 	const { Story } = defineMeta({
 		component: UnitToggle,
+		title: 'lib/components/Unit Toggle',
 		tags: ['autodocs'],
 		argTypes: {}
 	})
