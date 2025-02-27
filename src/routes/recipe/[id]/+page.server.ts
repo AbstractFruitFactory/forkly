@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit'
 import { db } from '$lib/server/db'
-import { recipe, recipeLike } from '$lib/server/db/schema'
+import { recipe, recipeLike, ingredient, recipeIngredient, recipeNutrition } from '$lib/server/db/schema'
 import { and, eq } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 
@@ -14,6 +14,29 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   const foundRecipe = recipes[0]
 
   if (!foundRecipe) throw error(404, 'Recipe not found')
+
+  // Get recipe ingredients
+  const recipeIngredients = await db
+    .select({
+      ingredient: ingredient,
+      quantity: recipeIngredient.quantity,
+      measurement: recipeIngredient.measurement
+    })
+    .from(recipeIngredient)
+    .innerJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
+    .where(eq(recipeIngredient.recipeId, recipeId))
+
+  const nutritionData = await db
+    .select()
+    .from(recipeNutrition)
+    .where(eq(recipeNutrition.recipeId, recipeId))
+
+  const nutrition = nutritionData[0] || {
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0
+  }
 
   // Get like status if user is logged in
   let isLiked = false
@@ -36,9 +59,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   return {
     recipe: {
       ...foundRecipe,
+      ingredients: recipeIngredients.map(ri => ({
+        name: ri.ingredient.name,
+        quantity: ri.quantity,
+        measurement: ri.measurement,
+        custom: ri.ingredient.custom,
+        spoonacularId: ri.ingredient.spoonacularId
+      })),
       isLiked,
       likes: likes.length
     },
-    nutrition: foundRecipe.nutrition
+    nutrition
   }
 }

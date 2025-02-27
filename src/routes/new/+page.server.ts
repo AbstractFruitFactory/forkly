@@ -7,8 +7,9 @@ import { api } from '$lib/server/food-api'
 import { Ok, Result } from 'ts-results-es'
 import * as v from 'valibot'
 import { uploadImage } from '$lib/server/cloudinary'
-import { recipe } from '$lib/server/db/schema'
+import { recipe, ingredient, recipeIngredient, recipeNutrition } from '$lib/server/db/schema'
 import { db } from '$lib/server/db'
+import { eq } from 'drizzle-orm'
 
 const baseIngredientSchema = {
   name: v.pipe(
@@ -138,16 +139,19 @@ const parseInstructions = (formData: FormData): string[] => {
 }
 
 function parseFormData(formData: FormData): FormFields {
-  // Parse diets
   const diets = formData.getAll('diets').map(value => value.toString()) as DietType[]
 
   return {
-  title: formData.get('title')?.toString() ?? '',
-  description: formData.get('description')?.toString() ?? '',
-  ingredients: parseIngredients(formData),
+    title: formData.get('title')?.toString() ?? '',
+    description: formData.get('description')?.toString() ?? '',
+    ingredients: parseIngredients(formData),
     instructions: parseInstructions(formData),
     diets
   }
+}
+
+type ExtendedIngredient = Ingredient & {
+  spoonacularId?: number
 }
 
 export const actions = {
@@ -157,28 +161,27 @@ export const actions = {
     const imageFile = formData.get('image') as File | null
 
     const result = v.safeParse(recipeSchema, recipeData)
-
     if (!result.success) {
       return fail(400, {
-        data: recipeData,
+        success: false,
         errors: result.issues.map(issue => ({
-          path: issue.path?.map(p => p.key).join('.')!,
+          path: issue.path?.map(p => p.key).join('.') || '',
           message: issue.message
         }))
       })
     }
 
     const mappedIngredientsResults = await Promise.all(
-      recipeData.ingredients.map(async (ingredient) => {
-        if (ingredient.custom) {
+      recipeData.ingredients.map(async (ing) => {
+        if (ing.custom) {
           return Ok({
-            name: ingredient.name,
-            quantity: ingredient.quantity,
-            measurement: ingredient.measurement,
+            name: ing.name,
+            quantity: ing.quantity,
+            measurement: ing.measurement,
             custom: true as const
           })
         }
-        return await api('mapIngredientToDatabaseEntry')(ingredient)
+        return await api('mapIngredientToDatabaseEntry')(ing)
       })
     )
 
@@ -190,7 +193,7 @@ export const actions = {
       })
     }
 
-    const mappedIngredients = mappedIngredientsResult.value
+    const mappedIngredients = mappedIngredientsResult.value as ExtendedIngredient[]
 
     const nonCustomIngredients = mappedIngredients
       .filter(ing => !ing.custom)
@@ -201,8 +204,10 @@ export const actions = {
       }))
 
     let nutrition = {
-      totalNutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-      hasCustomIngredients: mappedIngredients.some(i => i.custom)
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0
     }
 
     if (nonCustomIngredients.length > 0) {
@@ -210,13 +215,10 @@ export const actions = {
 
       if (nutritionResult.isOk()) {
         nutrition = {
-          totalNutrition: {
-            calories: nutritionResult.value.calories,
-            protein: nutritionResult.value.protein,
-            carbs: nutritionResult.value.carbs,
-            fat: nutritionResult.value.fat
-          },
-          hasCustomIngredients: mappedIngredients.some(i => i.custom)
+          calories: nutritionResult.value.calories,
+          protein: nutritionResult.value.protein,
+          carbs: nutritionResult.value.carbs,
+          fat: nutritionResult.value.fat
         }
       }
     }
@@ -228,19 +230,66 @@ export const actions = {
       imageUrl = await uploadImage(buffer)
     }
 
-    const newRecipe = await db.insert(recipe).values({
-      id: generateId(),
-      ...result.output,
-      ingredients: mappedIngredients,
-      nutrition,
+    const recipeId = generateId()
+
+    await db.insert(recipe).values({
+      id: recipeId,
+      title: result.output.title,
+      description: result.output.description,
+      instructions: result.output.instructions,
       diets: recipeData.diets,
       userId: locals.user?.id ?? null,
       imageUrl
-    }).returning()
+    })
+
+    await db.insert(recipeNutrition).values({
+      recipeId,
+      ...nutrition
+    })
+
+    for (const ing of mappedIngredients) {
+      let ingredientId: string
+
+      if (!ing.custom && 'spoonacularId' in ing && ing.spoonacularId) {
+        const existingIngredients = await db
+          .select()
+          .from(ingredient)
+          .where(eq(ingredient.spoonacularId, ing.spoonacularId))
+
+        if (existingIngredients.length > 0) {
+          ingredientId = existingIngredients[0].id
+        } else {
+
+          const newIngredient = await db.insert(ingredient).values({
+            id: generateId(),
+            name: ing.name,
+            spoonacularId: ing.spoonacularId
+          }).returning()
+
+          ingredientId = newIngredient[0].id
+        }
+      } else {
+
+        const newIngredient = await db.insert(ingredient).values({
+          id: generateId(),
+          name: ing.name,
+          spoonacularId: null
+        }).returning()
+
+        ingredientId = newIngredient[0].id
+      }
+
+      await db.insert(recipeIngredient).values({
+        recipeId,
+        ingredientId,
+        quantity: ing.quantity,
+        measurement: ing.measurement
+      })
+    }
 
     return {
       success: true,
-      recipeId: newRecipe[0].id
+      recipeId
     }
   }
 } satisfies Actions 

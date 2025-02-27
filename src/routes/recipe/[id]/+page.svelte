@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Recipe from '$lib/pages/recipe/Recipe.svelte'
 	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
+
 	let { data } = $props()
 
 	const handleLike = async () => {
@@ -35,7 +36,15 @@
 		likes,
 		isLiked
 	}}
-	nutrition={data.nutrition}
+	nutrition={{
+		totalNutrition: {
+			calories: data.nutrition.calories,
+			protein: data.nutrition.protein,
+			carbs: data.nutrition.carbs,
+			fat: data.nutrition.fat
+		},
+		hasCustomIngredients: false
+	}}
 	onLike={handleLike}
 	{unitSystem}
 	onUnitChange={handleUnitChange}

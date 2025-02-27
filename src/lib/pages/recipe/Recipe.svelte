@@ -10,44 +10,10 @@
 		UNIT_DISPLAY_TEXT,
 		UNITS
 	} from '$lib/utils/unitConversion'
-	import type { MeasurementUnit, DietType } from '$lib/types'
+	import type { RecipeData, Ingredient } from '$lib/types'
 	import { dietColors } from '$lib/types'
 	import { page } from '$app/state'
 	import Pill from '$lib/components/pill/Pill.svelte'
-
-	type BaseIngredient = {
-		quantity: number
-		measurement: MeasurementUnit
-		name: string
-	}
-
-	type CustomIngredient = BaseIngredient & {
-		custom: true
-	}
-
-	type LookupIngredient = BaseIngredient & {
-		custom: false
-	}
-
-	type Ingredient = CustomIngredient | LookupIngredient
-
-	type RecipeData = {
-		id: string
-		title: string
-		description?: string
-		ingredients: Ingredient[]
-		instructions: string[]
-		imageUrl?: string | null
-		diets?: DietType[]
-		totalNutrition?: {
-			calories: number
-			protein: number
-			carbs: number
-			fat: number
-		}
-		likes: number
-		isLiked?: boolean
-	}
 
 	let {
 		recipe,
@@ -127,7 +93,6 @@
 			<div class="recipe-tags">
 				{#if recipe.diets && recipe.diets.length > 0}
 					<div class="tag-group">
-						<h3>Diet Information:</h3>
 						<div class="tags">
 							{#each recipe.diets as diet}
 								<Pill text={diet} color={dietColors[diet]} />

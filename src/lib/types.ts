@@ -8,7 +8,7 @@ export const measurementUnits = [
   // Imperial
   'ounces',
   'pounds',
-  
+
   // Volume measurements
   // Metric
   'milliliters',
@@ -17,7 +17,7 @@ export const measurementUnits = [
   'cups',
   'fluid_ounces',
   'gallons',
-  
+
   // Length measurements
   // Metric
   'millimeters',
@@ -26,7 +26,7 @@ export const measurementUnits = [
   // Imperial
   'inches',
   'feet',
-  
+
   // Common units (no conversion needed)
   'teaspoons',
   'tablespoons',
@@ -34,14 +34,6 @@ export const measurementUnits = [
   'to taste',
   'pinch'
 ] as const
-
-export type Ingredient = {
-  quantity: number
-  name: string
-  measurement: MeasurementUnit
-  custom: boolean
-  [key: string]: unknown
-}
 
 export const dietTypes = [
   // Allergen-related diets
@@ -64,4 +56,38 @@ export const dietColors: Record<DietType, string> = {
   'vegan': '#81C784', // Light green
   'vegetarian': '#4DB6AC', // Light teal
   'pescatarian': '#7986CB' // Light indigo
+}
+
+type BaseIngredient = {
+  quantity: number
+  measurement: MeasurementUnit
+  name: string
+}
+
+type CustomIngredient = BaseIngredient & {
+  custom: true
+}
+
+type LookupIngredient = BaseIngredient & {
+  custom: false
+}
+
+export type Ingredient = CustomIngredient | LookupIngredient
+
+export type RecipeData = {
+  id: string
+  title: string
+  description?: string
+  ingredients: Ingredient[]
+  instructions: string[]
+  imageUrl?: string | null
+  diets?: DietType[]
+  totalNutrition?: {
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
+  }
+  likes: number
+  isLiked?: boolean
 }
