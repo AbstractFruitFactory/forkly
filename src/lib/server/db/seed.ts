@@ -58,7 +58,8 @@ export const seed = async () => {
             fat: 32
           },
           hasCustomIngredients: false
-        }
+        },
+        diets: ['pescatarian']
       },
       {
         id: generateId(),
@@ -88,7 +89,8 @@ export const seed = async () => {
             fat: 55
           },
           hasCustomIngredients: false
-        }
+        },
+        diets: []
       },
       {
         id: generateId(),
@@ -116,13 +118,14 @@ export const seed = async () => {
         userId: null,
         nutrition: {
           totalNutrition: {
-            calories: 2400,
-            protein: 24,
-            carbs: 300,
-            fat: 120
+            calories: 180,
+            protein: 2,
+            carbs: 24,
+            fat: 9
           },
           hasCustomIngredients: false
-        }
+        },
+        diets: ['vegetarian']
       },
       {
         id: generateId(),
@@ -156,7 +159,8 @@ export const seed = async () => {
             fat: 28
           },
           hasCustomIngredients: false
-        }
+        },
+        diets: []
       },
       {
         id: generateId(),
@@ -189,7 +193,8 @@ export const seed = async () => {
             fat: 90
           },
           hasCustomIngredients: false
-        }
+        },
+        diets: []
       },
       {
         id: generateId(),
@@ -225,7 +230,8 @@ export const seed = async () => {
             fat: 45
           },
           hasCustomIngredients: false
-        }
+        },
+        diets: []
       }
     ]
 

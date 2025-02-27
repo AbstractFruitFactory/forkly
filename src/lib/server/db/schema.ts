@@ -78,6 +78,7 @@ export const recipe = pgTable('recipe', {
 		totalNutrition: NutritionInfo
 		hasCustomIngredients: boolean
 	}>().notNull(),
+	diets: jsonb('diets').$type<string[]>().default([]).notNull(),
 	imageUrl: text('image_url'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })

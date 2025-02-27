@@ -3,7 +3,9 @@
 	import List from 'lucide-svelte/icons/list'
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
-	import { page } from '$app/stores'
+	import Pill from '$lib/components/pill/Pill.svelte'
+	import { dietColors } from '$lib/types'
+	import type { DietType } from '$lib/types'
 
 	interface Recipe {
 		id: string
@@ -12,6 +14,7 @@
 		ingredients: number
 		instructions: number
 		imageUrl?: string | null
+		diets?: DietType[]
 		user?: {
 			username: string
 			avatarUrl?: string | null
@@ -66,6 +69,14 @@
 				<span>{recipe.instructions} steps</span>
 			</span>
 		</div>
+		
+		{#if recipe.diets && recipe.diets.length > 0}
+			<div class="tags">
+				{#each recipe.diets as diet}
+					<Pill text={diet} color={dietColors[diet]} />
+				{/each}
+			</div>
+		{/if}
 	</div>
 </a>
 
@@ -255,5 +266,12 @@
 			font-size: var(--font-size-xs);
 			gap: var(--spacing-md);
 		}
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs);
+		margin-top: var(--spacing-md);
 	}
 </style>

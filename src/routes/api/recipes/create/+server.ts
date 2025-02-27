@@ -4,8 +4,8 @@ import { db } from '$lib/server/db'
 import { recipe } from '$lib/server/db/schema'
 import * as v from 'valibot'
 import { generateId } from '$lib/server/id'
-import type { MeasurementUnit } from '$lib/types'
-import { measurementUnits } from '$lib/types'
+import type { MeasurementUnit, DietType } from '$lib/types'
+import { measurementUnits, dietTypes } from '$lib/types'
 import { validate } from '$lib/utils/validate'
 
 const baseIngredientSchema = v.object({
@@ -64,10 +64,17 @@ const createRecipeSchema = v.object({
     }),
     hasCustomIngredients: v.boolean()
   }),
+  diets: v.array(
+    v.pipe(
+      v.string(),
+      v.custom<DietType>(
+        (value) => dietTypes.includes(value as DietType),
+        'Invalid diet type'
+      )
+    )
+  ),
   imageUrl: v.optional(v.string())
 })
-
-
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   const data = await request.json()
@@ -85,10 +92,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     ingredients: input.data.ingredients,
     instructions: input.instructions,
     nutrition: input.nutrition,
+    diets: input.data.diets || [],
     imageUrl: input.imageUrl,
     createdAt: new Date()
   }).returning()
 
   return json(newRecipe[0])
-
 } 

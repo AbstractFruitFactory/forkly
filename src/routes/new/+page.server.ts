@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit'
 import type { Actions } from './$types'
-import { measurementUnits, type Ingredient, type MeasurementUnit } from '$lib/types'
+import { measurementUnits, dietTypes, type Ingredient, type MeasurementUnit, type DietType } from '$lib/types'
 import groupBy from 'ramda/src/groupBy'
 import { generateId } from '$lib/server/id'
 import { api } from '$lib/server/food-api'
@@ -65,7 +65,16 @@ const recipeSchema = v.object({
     v.transform(input => input ?? ''),
     v.minLength(1, 'Instruction step cannot be empty'),
     v.maxLength(1000, 'Instruction step must be less than 1000 characters')
-  ))
+  )),
+  diets: v.array(
+    v.pipe(
+      v.string(),
+      v.custom<DietType>(
+        (value) => dietTypes.includes(value as DietType),
+        'Invalid diet type'
+      )
+    )
+  )
 })
 
 type FormFields = {
@@ -73,6 +82,7 @@ type FormFields = {
   description: string
   ingredients: Ingredient[]
   instructions: string[]
+  diets: DietType[]
 }
 
 const parseIngredients = (formData: FormData): Ingredient[] => {
@@ -127,12 +137,18 @@ const parseInstructions = (formData: FormData): string[] => {
     .map(({ value }) => value)
 }
 
-const parseFormData = (formData: FormData): FormFields => ({
+function parseFormData(formData: FormData): FormFields {
+  // Parse diets
+  const diets = formData.getAll('diets').map(value => value.toString()) as DietType[]
+
+  return {
   title: formData.get('title')?.toString() ?? '',
   description: formData.get('description')?.toString() ?? '',
   ingredients: parseIngredients(formData),
-  instructions: parseInstructions(formData)
-})
+    instructions: parseInstructions(formData),
+    diets
+  }
+}
 
 export const actions = {
   default: async ({ request, locals }) => {
@@ -206,7 +222,7 @@ export const actions = {
     }
 
     let imageUrl: string | null = null
-    if (imageFile) {
+    if (imageFile && imageFile.size > 0) {
       const arrayBuffer = await imageFile.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
       imageUrl = await uploadImage(buffer)
@@ -217,6 +233,7 @@ export const actions = {
       ...result.output,
       ingredients: mappedIngredients,
       nutrition,
+      diets: recipeData.diets,
       userId: locals.user?.id ?? null,
       imageUrl
     }).returning()

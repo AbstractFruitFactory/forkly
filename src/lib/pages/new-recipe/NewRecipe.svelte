@@ -6,6 +6,7 @@
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import { UNITS, UNIT_DISPLAY_TEXT } from '$lib/utils/unitConversion'
+	import PillSelector from '$lib/components/pill-selector/PillSelector.svelte'
 
 	// Create a mapping for display text that works with our MeasurementUnit type
 	const measurementUnitDisplayText: Record<MeasurementUnit, string> = {
@@ -43,6 +44,7 @@
 	import { browser } from '$app/environment'
 	import ImageUpload from '$lib/components/image-upload/ImageUpload.svelte'
 	import Button from '$lib/components/button/Button.svelte'
+	import { dietTypes, dietColors } from '$lib/types'
 
 	type T = $$Generic<{ name: string; custom: false }>
 	type Ingredient = T | { name: string; custom: true }
@@ -68,6 +70,7 @@
 	let isLoading = $state<Record<number, boolean>>({})
 	let showCustomInput = $state<Record<number, boolean>>({})
 	let selectedLookupIngredients = $state<Record<number, Ingredient>>({})
+	let selectedDiets = $state<string[]>([])
 
 	const addIngredient = () => {
 		ingredientCount++
@@ -159,13 +162,20 @@
 		</div>
 
 		<div class="form-group">
+			<label for="diets">Diets</label>
+			<PillSelector
+				items={dietTypes}
+				bind:selectedItems={selectedDiets}
+				name="diets"
+				colorMap={dietColors}
+			/>
+		</div>
+
+		<div class="form-group">
 			<div class="ingredients-header">
 				<label for="ingredients">Ingredients</label>
 				<div class="unit-toggle-container">
-					<UnitToggle
-						state={unitSystem}
-						onSelect={onUnitChange}
-					/>
+					<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 				</div>
 			</div>
 			<div id="ingredients">
@@ -500,5 +510,31 @@
 			margin-left: 0;
 			margin-top: var(--spacing-sm);
 		}
+	}
+
+	.checkbox-group {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-md);
+		margin-bottom: var(--spacing-md);
+	}
+
+	.checkbox-item {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		background-color: var(--color-neutral-darker);
+		padding: var(--spacing-sm) var(--spacing-md);
+		border-radius: var(--border-radius-md);
+	}
+
+	.checkbox-item input[type='checkbox'] {
+		accent-color: var(--color-primary);
+	}
+
+	.checkbox-item label {
+		margin-bottom: 0;
+		font-size: var(--font-size-md);
+		font-weight: normal;
 	}
 </style>

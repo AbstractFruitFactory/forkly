@@ -12,6 +12,7 @@ export const load: PageServerLoad = async () => {
 			ingredients: recipe.ingredients,
 			instructions: recipe.instructions,
 			imageUrl: recipe.imageUrl,
+			diets: recipe.diets,
 			likes: sql<number>`count(${recipeLike.userId})::int`,
 			user: {
 				username: user.username,

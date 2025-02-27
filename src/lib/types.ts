@@ -42,3 +42,26 @@ export type Ingredient = {
   custom: boolean
   [key: string]: unknown
 }
+
+export const dietTypes = [
+  // Allergen-related diets
+  'gluten-free',
+  'dairy-free',
+  'nut-free',
+  // Lifestyle diets
+  'vegan',
+  'vegetarian',
+  'pescatarian'
+] as const
+
+export type DietType = typeof dietTypes[number]
+
+// Color mapping for diet types
+export const dietColors: Record<DietType, string> = {
+  'gluten-free': '#E57373', // Light red
+  'dairy-free': '#64B5F6', // Light blue
+  'nut-free': '#FFB74D', // Light orange
+  'vegan': '#81C784', // Light green
+  'vegetarian': '#4DB6AC', // Light teal
+  'pescatarian': '#7986CB' // Light indigo
+}

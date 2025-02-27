@@ -10,8 +10,10 @@
 		UNIT_DISPLAY_TEXT,
 		UNITS
 	} from '$lib/utils/unitConversion'
-	import type { MeasurementUnit } from '$lib/types'
+	import type { MeasurementUnit, DietType } from '$lib/types'
+	import { dietColors } from '$lib/types'
 	import { page } from '$app/state'
+	import Pill from '$lib/components/pill/Pill.svelte'
 
 	type BaseIngredient = {
 		quantity: number
@@ -36,6 +38,7 @@
 		ingredients: Ingredient[]
 		instructions: string[]
 		imageUrl?: string | null
+		diets?: DietType[]
 		totalNutrition?: {
 			calories: number
 			protein: number
@@ -120,6 +123,19 @@
 			{#if recipe.description}
 				<p class="description">{recipe.description}</p>
 			{/if}
+
+			<div class="recipe-tags">
+				{#if recipe.diets && recipe.diets.length > 0}
+					<div class="tag-group">
+						<h3>Diet Information:</h3>
+						<div class="tags">
+							{#each recipe.diets as diet}
+								<Pill text={diet} color={dietColors[diet]} />
+							{/each}
+						</div>
+					</div>
+				{/if}
+			</div>
 		</header>
 
 		<section class="ingredients">
@@ -362,6 +378,30 @@
 	.recipe-actions {
 		display: flex;
 		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
+	.recipe-tags {
+		margin-top: var(--spacing-lg);
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-lg);
+	}
+
+	.tag-group {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+	}
+
+	.tag-group h3 {
+		font-size: var(--font-size-md);
+		margin: 0;
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
 		gap: var(--spacing-sm);
 	}
 </style>
