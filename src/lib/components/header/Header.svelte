@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/button/Button.svelte'
 	import Search from '$lib/components/search/Search.svelte'
+	import { onMount } from 'svelte'
 
 	let {
 		loggedIn = false,
@@ -9,10 +10,7 @@
 		profileHref,
 		loginHref,
 		onLogout,
-		onSearch,
-		onSelectRecipe,
-		searchSuggestions = [],
-		isSearchLoading = false
+		onOpenSearch
 	}: {
 		loggedIn: boolean
 		newRecipeHref?: string
@@ -20,17 +18,36 @@
 		profileHref?: string
 		loginHref?: string
 		onLogout?: () => void
-		onSearch?: (query: string) => void
-		onSelectRecipe?: (recipe: { name: string }) => void
-		searchSuggestions?: Array<{ name: string }>
-		isSearchLoading?: boolean
+		onOpenSearch?: () => void
 	} = $props()
 
 	let isMenuOpen = $state(false)
+	let isMac = $state(false)
 
 	const toggleMenu = () => {
 		isMenuOpen = !isMenuOpen
 	}
+
+	const handleSearchClick = () => {
+		onOpenSearch?.()
+	}
+
+	const handleKeyDown = (e: KeyboardEvent) => {
+		if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+			e.preventDefault()
+			onOpenSearch?.()
+		}
+	}
+
+	onMount(() => {
+		isMac = navigator.userAgent.toLowerCase().includes('mac')
+
+		document.addEventListener('keydown', handleKeyDown)
+
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown)
+		}
+	})
 </script>
 
 <header class="header">
@@ -39,13 +56,18 @@
 			<a href="/">Forkly</a>
 		</div>
 		<div class="search-container">
-			<Search
-				placeholder="Search recipes..."
-				isLoading={isSearchLoading}
-				suggestions={searchSuggestions}
-				{onSearch}
-				onSelect={onSelectRecipe}
-			/>
+			<button
+				class="search-trigger"
+				onclick={handleSearchClick}
+				onkeydown={(e) => e.key === 'Enter' && handleSearchClick()}
+				type="button"
+			>
+				<Search placeholder="Search recipes..." isLoading={false} suggestions={[]} />
+
+				<div class="search-shortcut">
+					<kbd>{isMac ? '⌘' : 'Ctrl'}+K</kbd>
+				</div>
+			</button>
 			<Button href={newRecipeHref} variant="primary" size="sm">New Recipe</Button>
 		</div>
 	</div>
@@ -155,6 +177,42 @@
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-sm);
+	}
+
+	.search-trigger {
+		cursor: pointer;
+		width: 100%;
+		transition: all var(--transition-fast) var(--ease-in-out);
+		position: relative;
+		background: none;
+		border: none;
+		padding: 0;
+		display: block;
+	}
+
+	.search-trigger:hover {
+		opacity: 0.8;
+	}
+
+	.search-shortcut {
+		position: absolute;
+		right: var(--spacing-sm);
+		top: 50%;
+		transform: translateY(-50%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+		pointer-events: none;
+	}
+
+	.search-shortcut kbd {
+		background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
+		border-radius: var(--border-radius-sm);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		font-size: var(--font-size-xs);
+		color: var(--color-neutral);
+		font-family: monospace;
 	}
 
 	@media (max-width: 768px) {

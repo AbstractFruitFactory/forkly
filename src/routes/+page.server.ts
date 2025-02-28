@@ -1,9 +1,20 @@
 import { db } from '$lib/server/db'
 import { recipe, user, recipeLike, recipeIngredient, ingredient, recipeNutrition } from '$lib/server/db/schema'
-import { desc, eq, sql } from 'drizzle-orm'
+import { desc, eq, sql, ilike, or } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ url }) => {
+	const searchQuery = url.searchParams.get('search') || ''
+
+	let conditions = undefined
+
+	if (searchQuery) {
+		const searchTerms = searchQuery.trim().split(/\s+/).map((term) => `%${term}%`)
+
+		const searchConditions = searchTerms.map((term) => ilike(recipe.title, term))
+		conditions = or(...searchConditions)
+	}
+
 	const recipes = await db
 		.select({
 			id: recipe.id,
@@ -41,6 +52,7 @@ export const load: PageServerLoad = async () => {
 		.leftJoin(recipeNutrition, eq(recipe.id, recipeNutrition.recipeId))
 		.leftJoin(recipeIngredient, eq(recipe.id, recipeIngredient.recipeId))
 		.leftJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
+		.where(conditions)
 		.groupBy(
 			recipe.id,
 			user.username,
@@ -52,5 +64,8 @@ export const load: PageServerLoad = async () => {
 		)
 		.orderBy(desc(recipe.createdAt))
 
-	return { recipes }
+	return {
+		recipes,
+		searchQuery
+	}
 }

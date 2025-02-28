@@ -9,13 +9,15 @@
 		isLoading = false,
 		suggestions = [],
 		onSearch,
-		onSelect
+		onSelect,
+		inputElement = $bindable()
 	}: {
 		placeholder?: string
 		isLoading?: boolean
 		suggestions?: T[]
 		onSearch?: (query: string) => void
 		onSelect?: (suggestion: T) => void
+		inputElement?: HTMLInputElement
 	} = $props()
 
 	let searchValue = $state('')
@@ -25,7 +27,8 @@
 	const handleInput = (e: Event) => {
 		const value = (e.target as HTMLInputElement).value
 		searchValue = value
-		showSuggestions = true
+
+		showSuggestions = suggestions.length > 0
 		onSearch?.(value)
 	}
 
@@ -53,7 +56,7 @@
 <div class="search-wrapper" bind:this={searchWrapper}>
 	<Autocomplete
 		{isLoading}
-		suggestions={showSuggestions ? suggestions : []}
+		suggestions={showSuggestions && suggestions.length > 0 ? suggestions : []}
 		onSelect={handleSelect}
 	>
 		<div class="search-input-container">
@@ -79,6 +82,7 @@
 					value={searchValue}
 					oninput={handleInput}
 					aria-label="Search"
+					bind:this={inputElement}
 				/>
 			</Input>
 		</div>

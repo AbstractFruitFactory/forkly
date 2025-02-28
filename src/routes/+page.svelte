@@ -4,6 +4,14 @@
 	let { data } = $props()
 </script>
 
+<svelte:head>
+	{#if data.searchQuery}
+		<title>Search results for "{data.searchQuery}" - Forkly</title>
+	{:else}
+		<title>Forkly - Discover and Share Recipes</title>
+	{/if}
+</svelte:head>
+
 <Home
 	recipes={data.recipes.map((recipe) => ({
 		...recipe,
@@ -17,4 +25,5 @@
 				}
 			: undefined
 	}))}
+	searchQuery={data.searchQuery}
 />
