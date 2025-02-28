@@ -151,8 +151,6 @@
 		</section>
 
 		<section class="nutrition">
-			<h2>Nutrition Facts</h2>
-
 			<div class="nutrition-grid">
 				<div class="nutrition-item">
 					<span class="value">{Math.round(nutrition.totalNutrition.calories)}</span>
@@ -225,18 +223,6 @@
 		margin-left: var(--spacing-md);
 	}
 
-	h1 {
-		font-size: var(--font-size-3xl);
-		margin-bottom: var(--spacing-md);
-		font-weight: 600;
-	}
-
-	h2 {
-		font-size: var(--font-size-xl);
-		margin-bottom: var(--spacing-md);
-		font-weight: 600;
-	}
-
 	ul,
 	ol {
 		margin: 0;
@@ -264,14 +250,6 @@
 	@media (max-width: 640px) {
 		.recipe {
 			padding: var(--spacing-xl);
-		}
-
-		h1 {
-			font-size: var(--font-size-2xl);
-		}
-
-		h2 {
-			font-size: var(--font-size-xl);
 		}
 
 		.ingredients-header {
@@ -377,11 +355,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-xs);
-	}
-
-	.tag-group h3 {
-		font-size: var(--font-size-md);
-		margin: 0;
 	}
 
 	.tags {
