@@ -4,6 +4,7 @@
 
 	const { Story } = defineMeta({
 		component: PillSelector,
+		title: 'lib/components/Pill Selector',
 		tags: ['autodocs'],
 		argTypes: {
 			items: {},
