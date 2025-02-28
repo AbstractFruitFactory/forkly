@@ -120,6 +120,8 @@
 	const setCustomIngredientInput = (index: number) => {
 		showCustomInput[index] = true
 	}
+
+	let submitting = $state(false)
 </script>
 
 <div class="container">
@@ -129,11 +131,17 @@
 		method="POST"
 		enctype="multipart/form-data"
 		use:enhance={({ formData }) => {
+			submitting = true
 			Object.entries(selectedLookupIngredients).forEach(([index, ingredient]) => {
 				if (ingredient) {
 					formData.append(`ingredient-${index}-lookupdata`, JSON.stringify(ingredient))
 				}
 			})
+
+			return async ({ update }) => {
+				submitting = false
+				update()
+			}
 		}}
 	>
 		<ImageUpload />
@@ -344,7 +352,7 @@
 			</div>
 		</div>
 		<div style:margin-top="2rem">
-			<Button fullWidth type="submit" variant="primary">Create Recipe</Button>
+			<Button loading={submitting} fullWidth type="submit" variant="primary">Create Recipe</Button>
 		</div>
 	</form>
 </div>
