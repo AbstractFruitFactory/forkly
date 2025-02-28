@@ -1,5 +1,5 @@
 // Base spacing unit
-$base-unit: 0.25rem;  // 4px
+$base-unit: 0.25rem; // 4px
 
 :root {
   // Primary colors
@@ -24,8 +24,8 @@ $base-unit: 0.25rem;  // 4px
 
   // Error colors
   --color-error-dark: #2c1212;
-  --color-error: #f87171;
-  --color-error-light: #fca5a5;
+  --color-error: #fa2222;
+  --color-error-light: #d84c4c;
 
   // Font families
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -38,25 +38,25 @@ $base-unit: 0.25rem;  // 4px
   --border-width-thick: 3px;
   --border-width-heavy: 4px;
 
-  --border-radius-sm: 0.125rem;    // 2px
-  --border-radius-md: 0.25rem;     // 4px
-  --border-radius-lg: 0.5rem;      // 8px
-  --border-radius-xl: 0.75rem;     // 12px
-  --border-radius-2xl: 1rem;       // 16px
-  --border-radius-3xl: 1.5rem;     // 24px
+  --border-radius-sm: 0.125rem; // 2px
+  --border-radius-md: 0.25rem; // 4px
+  --border-radius-lg: 0.5rem; // 8px
+  --border-radius-xl: 0.75rem; // 12px
+  --border-radius-2xl: 1rem; // 16px
+  --border-radius-3xl: 1.5rem; // 24px
   --border-radius-full: 9999px;
 
   // Spacing - Fibonacci sequence with base 4px (0.25rem)
-  --spacing-xs: #{$base-unit};      // 4px   (1 * 4px)
-  --spacing-sm: #{$base-unit * 2};   // 8px   (2 * 4px)
-  --spacing-md: #{$base-unit * 3};    // 12px  (3 * 4px)
-  --spacing-lg: #{$base-unit * 5};    // 20px  (5 * 4px)
-  --spacing-xl: #{$base-unit * 8};    // 32px  (8 * 4px)
-  --spacing-2xl: #{$base-unit * 13};  // 52px  (13 * 4px)
-  --spacing-3xl: #{$base-unit * 21};  // 84px  (21 * 4px)
-  --spacing-4xl: #{$base-unit * 34};  // 136px (34 * 4px)
-  --spacing-5xl: #{$base-unit * 55};  // 220px (55 * 4px)
-  --spacing-6xl: #{$base-unit * 89};  // 356px (89 * 4px)
+  --spacing-xs: #{$base-unit}; // 4px   (1 * 4px)
+  --spacing-sm: #{$base-unit * 2}; // 8px   (2 * 4px)
+  --spacing-md: #{$base-unit * 3}; // 12px  (3 * 4px)
+  --spacing-lg: #{$base-unit * 5}; // 20px  (5 * 4px)
+  --spacing-xl: #{$base-unit * 8}; // 32px  (8 * 4px)
+  --spacing-2xl: #{$base-unit * 13}; // 52px  (13 * 4px)
+  --spacing-3xl: #{$base-unit * 21}; // 84px  (21 * 4px)
+  --spacing-4xl: #{$base-unit * 34}; // 136px (34 * 4px)
+  --spacing-5xl: #{$base-unit * 55}; // 220px (55 * 4px)
+  --spacing-6xl: #{$base-unit * 89}; // 356px (89 * 4px)
   --spacing-7xl: #{$base-unit * 144}; // 576px (144 * 4px)
 
   // Shadows
@@ -86,13 +86,13 @@ $base-unit: 0.25rem;  // 4px
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
 
   // Font sizes
-  --font-size-xs: 0.75rem;    // 12px
-  --font-size-sm: 0.875rem;   // 14px
-  --font-size-md: 1rem;       // 16px
-  --font-size-lg: 1.125rem;   // 18px
-  --font-size-xl: 1.25rem;    // 20px
-  --font-size-2xl: 1.5rem;    // 24px
-  --font-size-3xl: 1.875rem;  // 30px
+  --font-size-xs: 0.75rem; // 12px
+  --font-size-sm: 0.875rem; // 14px
+  --font-size-md: 1rem; // 16px
+  --font-size-lg: 1.125rem; // 18px
+  --font-size-xl: 1.25rem; // 20px
+  --font-size-2xl: 1.5rem; // 24px
+  --font-size-3xl: 1.875rem; // 30px
 
   // Font weights
   --font-weight-light: 300;
@@ -164,7 +164,7 @@ a {
   color: var(--color-primary);
   text-decoration: none;
   transition: color var(--transition-fast) var(--ease-in-out);
-  
+
   &:hover {
     color: var(--color-primary-light);
   }
@@ -254,7 +254,7 @@ a {
 *::-webkit-scrollbar-thumb {
   background-color: var(--color-neutral);
   border-radius: 4px;
-  
+
   &:hover {
     background-color: var(--color-neutral-dark);
   }
@@ -264,6 +264,7 @@ a {
 @supports (scrollbar-width: thin) {
   * {
     scrollbar-width: thin;
+
     &:not(:hover) {
       scrollbar-width: none;
     }

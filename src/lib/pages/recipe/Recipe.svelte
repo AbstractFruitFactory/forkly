@@ -14,13 +14,15 @@
 	import { dietColors } from '$lib/types'
 	import { page } from '$app/state'
 	import Pill from '$lib/components/pill/Pill.svelte'
+	import Popover from '$lib/components/popover/Popover.svelte'
 
 	let {
 		recipe,
 		nutrition,
 		onLike,
 		unitSystem,
-		onUnitChange
+		onUnitChange,
+		isLoggedIn
 	}: {
 		recipe: RecipeData
 		nutrition: {
@@ -30,6 +32,7 @@
 		onLike?: () => void
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
+		isLoggedIn: boolean
 	} = $props()
 
 	const getFormattedIngredient = (ingredient: Ingredient) => {
@@ -78,12 +81,29 @@
 				<h1>{recipe.title}</h1>
 				<div class="recipe-actions">
 					<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
-					<LikeButton
-						count={recipe.likes}
-						isLiked={recipe.isLiked}
-						interactive={!!onLike}
-						{onLike}
-					/>
+
+					{#snippet likeButton()}
+						<LikeButton
+							count={recipe.likes}
+							isLiked={recipe.isLiked}
+							interactive={!!onLike}
+							onLike={isLoggedIn ? onLike : undefined}
+						/>
+					{/snippet}
+
+					{#if isLoggedIn}
+						{@render likeButton()}
+					{:else}
+						<Popover type="warning">
+							{#snippet trigger()}
+								{@render likeButton()}
+							{/snippet}
+
+							{#snippet content()}
+								Login to like recipes!
+							{/snippet}
+						</Popover>
+					{/if}
 				</div>
 			</div>
 			{#if recipe.description}

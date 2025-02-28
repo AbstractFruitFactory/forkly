@@ -11,16 +11,27 @@
 		}
 	})
 
-	const mockRecipe = {
+	const mockRecipe = $state({
 		id: 'recipe-123',
 		title: 'Classic Spaghetti Carbonara',
-		description: 'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
+		description:
+			'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
 		ingredients: [
 			{ quantity: 400, measurement: 'grams' as MeasurementUnit, name: 'spaghetti', custom: false },
 			{ quantity: 4, measurement: 'pieces' as MeasurementUnit, name: 'large eggs', custom: false },
-			{ quantity: 100, measurement: 'grams' as MeasurementUnit, name: 'pecorino romano', custom: false },
+			{
+				quantity: 100,
+				measurement: 'grams' as MeasurementUnit,
+				name: 'pecorino romano',
+				custom: false
+			},
 			{ quantity: 200, measurement: 'grams' as MeasurementUnit, name: 'pancetta', custom: false },
-			{ quantity: 2, measurement: 'teaspoons' as MeasurementUnit, name: 'black pepper', custom: false }
+			{
+				quantity: 2,
+				measurement: 'teaspoons' as MeasurementUnit,
+				name: 'black pepper',
+				custom: false
+			}
 		],
 		instructions: [
 			'Bring a large pot of salted water to boil and cook spaghetti according to package instructions.',
@@ -31,7 +42,7 @@
 		],
 		likes: 42,
 		isLiked: false
-	}
+	})
 
 	const mockNutrition = {
 		totalNutrition: {
@@ -43,26 +54,50 @@
 		hasCustomIngredients: false
 	}
 
+	const mockOnLike = () => {
+		mockRecipe.likes = mockRecipe.likes + (mockRecipe.isLiked ? -1 : 1)
+		mockRecipe.isLiked = !mockRecipe.isLiked
+	}
+
 	const mockUnitSystem: UnitSystem = 'metric'
 	const mockOnUnitChange = (system: UnitSystem) => console.log('Unit changed to', system)
 </script>
 
-<Story name="Default" args={{ 
-	recipe: mockRecipe, 
-	nutrition: mockNutrition,
-	unitSystem: mockUnitSystem,
-	onUnitChange: mockOnUnitChange
-}} />
+<Story
+	name="Default"
+	args={{
+		recipe: mockRecipe,
+		nutrition: mockNutrition,
+		unitSystem: mockUnitSystem,
+		onUnitChange: mockOnUnitChange,
+		isLoggedIn: true,
+		onLike: mockOnLike
+	}}
+/>
 
-<Story 
-	name="Without Description" 
-	args={{ 
+<Story
+	name="Without Description"
+	args={{
 		recipe: {
 			...mockRecipe,
 			description: undefined
 		},
 		nutrition: mockNutrition,
 		unitSystem: mockUnitSystem,
-		onUnitChange: mockOnUnitChange
-	}} 
-/> 
+		onUnitChange: mockOnUnitChange,
+		isLoggedIn: true,
+		onLike: mockOnLike
+	}}
+/>
+
+<Story
+	name="Without Login"
+	args={{
+		recipe: mockRecipe,
+		nutrition: mockNutrition,
+		unitSystem: mockUnitSystem,
+		onUnitChange: mockOnUnitChange,
+		onLike: mockOnLike,
+		isLoggedIn: false
+	}}
+/>

@@ -15,7 +15,7 @@
 	<div style="padding: 8rem; display: flex; justify-content: center;">
 		<Popover>
 			{#snippet content()}
-				<div style="padding: 0.5rem;">This is a default popover</div>
+				This is a default popover
 			{/snippet}
 
 			{#snippet trigger()}
@@ -45,4 +45,16 @@
 			</Popover>
 		{/each}
 	</div>
+</Story>
+
+<Story name="Warning">
+	<Popover type="warning">
+		{#snippet content()}
+			This is a warning popover
+		{/snippet}
+
+		{#snippet trigger()}
+			<Button>Click me</Button>
+		{/snippet}
+	</Popover>
 </Story>

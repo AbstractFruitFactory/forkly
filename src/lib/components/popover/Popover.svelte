@@ -16,6 +16,7 @@
 		showArrow = true,
 		offset: offsetDistance = 8,
 		autoCloseDelay = 3000,
+		type = 'default',
 		trigger,
 		content
 	}: {
@@ -23,6 +24,7 @@
 		showArrow?: boolean
 		offset?: number
 		autoCloseDelay?: number
+		type?: 'default' | 'warning'
 		trigger: Snippet
 		content: Snippet
 	} = $props()
@@ -119,7 +121,13 @@
 </div>
 
 {#if isOpen}
-	<div class="popover" bind:this={floating} transition:fade={{ duration: 100 }} role="tooltip">
+	<div
+		class="popover"
+		class:warning={type === 'warning'}
+		bind:this={floating}
+		transition:fade={{ duration: 100 }}
+		role="tooltip"
+	>
 		{#if showArrow}
 			<div class="arrow" bind:this={arrowElement}></div>
 		{/if}
@@ -139,7 +147,7 @@
 		box-shadow: var(--shadow-md);
 		z-index: var(--z-popover);
 		max-width: calc(100vw - 10px);
-		width: max-content;
+		padding: 0 var(--spacing-sm);
 	}
 
 	.arrow {
@@ -150,5 +158,15 @@
 		transform: rotate(45deg);
 		border: var(--border-width-thin) solid var(--color-border);
 		z-index: -1;
+	}
+
+	.warning {
+		background: var(--color-error-light);
+		border-color: var(--color-error-dark);
+
+		.arrow {
+			background: var(--color-error);
+			border-color: var(--color-error-dark);
+		}
 	}
 </style>
