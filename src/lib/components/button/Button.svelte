@@ -103,16 +103,16 @@
 		}
 
 		// Sizes
-		&.sm {
+		&.sm > .content {
 			padding: var(--spacing-sm) var(--spacing-md);
 			font-size: var(--font-size-sm);
 		}
 
-		&.md {
+		&.md > .content {
 			padding: var(--spacing-md) var(--spacing-lg);
 		}
 
-		&.lg {
+		&.lg > .content {
 			padding: var(--spacing-lg) var(--spacing-xl);
 			font-size: var(--font-size-lg);
 		}
@@ -167,10 +167,6 @@
 		}
 	}
 
-	.content {
-		visibility: visible;
-	}
-
 	.button.loading .content {
 		visibility: hidden;
 	}
@@ -197,10 +193,6 @@
 	.button.dotted .loader {
 		border: 0.2em solid rgba(0, 0, 0, 0.1);
 		border-top: 0.2em solid var(--color-primary);
-	}
-
-	.button {
-		position: relative;
 	}
 
 	.button.loading {
