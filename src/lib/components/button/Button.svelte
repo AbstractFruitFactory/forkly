@@ -12,7 +12,8 @@
 		disabled = false,
 		onclick,
 		href,
-		children
+		children,
+		loading = false
 	}: {
 		variant?: Variant
 		size?: Size
@@ -22,6 +23,7 @@
 		onclick?: (e: MouseEvent) => void
 		href?: string
 		children?: Snippet
+		loading?: boolean
 	} = $props()
 </script>
 
@@ -39,10 +41,14 @@
 	class:md={size === 'md'}
 	class:lg={size === 'lg'}
 	class:full-width={fullWidth}
+	class:loading
 	{onclick}
 	role={href ? 'button' : undefined}
 >
-	{@render children?.()}
+	<span class="content" aria-hidden={loading}>{@render children?.()}</span>
+	{#if loading}
+		<span class="loader"></span>
+	{/if}
 </svelte:element>
 
 <style lang="scss">
@@ -154,6 +160,59 @@
 				color: var(--color-primary);
 				border-color: var(--color-primary);
 			}
+		}
+
+		&.loading {
+			cursor: wait;
+		}
+	}
+
+	.content {
+		visibility: visible;
+	}
+
+	.button.loading .content {
+		visibility: hidden;
+	}
+
+	.loader {
+		position: absolute;
+		transform: translate(-50%, -50%);
+		border: 0.2em solid rgba(255, 255, 255, 0.3);
+		border-top: 0.2em solid #fff;
+		border-radius: 50%;
+		width: 1.2em;
+		height: 1.2em;
+		animation: spin 1s linear infinite;
+		z-index: 10;
+	}
+
+	.button.primary .loader {
+		border: 0.2em solid rgba(255, 255, 255, 0.3);
+		border-top: 0.2em solid #fff;
+	}
+
+	.button.secondary .loader,
+	.button.text .loader,
+	.button.dotted .loader {
+		border: 0.2em solid rgba(0, 0, 0, 0.1);
+		border-top: 0.2em solid var(--color-primary);
+	}
+
+	.button {
+		position: relative;
+	}
+
+	.button.loading {
+		cursor: wait;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
 		}
 	}
 </style>

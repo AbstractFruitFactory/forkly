@@ -4,28 +4,14 @@
 
 	const { Story } = defineMeta({
 		component: Button,
-		tags: ['autodocs'],
-		argTypes: {
-			variant: {
-				control: 'select',
-				options: ['primary', 'secondary', 'text']
-			},
-			size: {
-				control: 'select',
-				options: ['sm', 'md', 'lg']
-			},
-			fullWidth: {
-				control: 'boolean'
-			},
-			disabled: {
-				control: 'boolean'
-			}
-		}
+		tags: ['autodocs']
 	})
 </script>
 
 <Story name="Primary">
-	<Button>Click me</Button>
+	{#snippet children(args)}
+		<Button {...args}>Click me</Button>
+	{/snippet}
 </Story>
 
 <Story name="Secondary">
@@ -50,4 +36,8 @@
 
 <Story name="Disabled">
 	<Button disabled>Click me</Button>
-</Story> 
+</Story>
+
+<Story name="Loading">
+	<Button loading>Loading...</Button>
+</Story>
