@@ -94,6 +94,8 @@
 				onSearch?.(query)
 			}, 300)
 		}
+		
+		return []
 	}
 
 	const handleSelectRecipe = (recipe: { name: string }) => {
@@ -124,7 +126,6 @@
 			<Search
 				placeholder="Search for recipes..."
 				isLoading={isSearchLoading}
-				suggestions={[]}
 				onSearch={handleSearch}
 				onSelect={handleSelectRecipe}
 				bind:inputElement={searchInput}

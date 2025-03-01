@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { User, Recipe as DBRecipe } from '$lib/server/db/schema'
 	import Button from '$lib/components/button/Button.svelte'
-	import ProfileRecipeCard from '$lib/components/profile/ProfileRecipeCard.svelte'
+	import ProfileRecipeCard from '$lib/components/profile-recipe-card/ProfileRecipeCard.svelte'
 	import ImageUpload from '$lib/components/image-upload/ImageUpload.svelte'
 
 	type Recipe = DBRecipe & {

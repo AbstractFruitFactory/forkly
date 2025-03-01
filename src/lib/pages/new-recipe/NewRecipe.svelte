@@ -93,19 +93,21 @@
 	}
 
 	const searchIngredients = async (query: string, index: number) => {
-		if (!onSearchIngredients) return
+		if (!onSearchIngredients) return []
 
 		inputValues[index] = query
 
 		if (query.length < 3) {
-			suggestions[index] = []
 			isLoading[index] = false
-			return
+			return []
 		}
 
 		isLoading[index] = true
-		suggestions[index] = await onSearchIngredients(query)
+		const results = await onSearchIngredients(query)
+		suggestions[index] = results
 		isLoading[index] = false
+
+		return results
 	}
 
 	const handleSelect = async (index: number, suggestion: T) => {
@@ -295,7 +297,6 @@
 									<Search
 										placeholder="Search for ingredient"
 										isLoading={isLoading[i]}
-										suggestions={suggestions[i] ?? []}
 										onSearch={(query) => searchIngredients(query, i)}
 										onSelect={(suggestion) => handleSelect(i, suggestion)}
 									/>

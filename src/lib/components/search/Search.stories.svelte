@@ -21,9 +21,8 @@
 	<div style="width: 300px; padding: 20px;">
 		<Search
 			placeholder="Search recipes..."
-			suggestions={[]}
 			isLoading={false}
-			onSearch={(query) => console.log('Searching:', query)}
+			onSearch={(query) => []}
 			onSelect={(suggestion) => console.log('Selected:', suggestion)}
 		/>
 	</div>
@@ -33,9 +32,8 @@
 	<div style="width: 300px; padding: 20px;">
 		<Search
 			placeholder="Search recipes..."
-			suggestions={[]}
 			isLoading={true}
-			onSearch={(query) => console.log('Searching:', query)}
+			onSearch={(query) => []}
 			onSelect={(suggestion) => console.log('Selected:', suggestion)}
 		/>
 	</div>
@@ -45,9 +43,8 @@
 	<div style="width: 300px; padding: 20px;">
 		<Search
 			placeholder="Search recipes..."
-			suggestions={mockSuggestions}
 			isLoading={false}
-			onSearch={(query) => console.log('Searching:', query)}
+			onSearch={(query) => mockSuggestions}
 			onSelect={(suggestion) => console.log('Selected:', suggestion)}
 		/>
 	</div>
@@ -65,9 +62,13 @@
 	<div style="width: 300px; padding: 20px;">
 		<Search
 			placeholder="Type to search recipes..."
-			suggestions={mockSuggestions}
 			isLoading={false}
-			onSearch={(query) => console.log('Searching:', query)}
+			onSearch={(query) => {
+				console.log('Searching:', query)
+				return query ? mockSuggestions.filter(item => 
+					item.name.toLowerCase().includes(query.toLowerCase())
+				) : []
+			}}
 			onSelect={(suggestion) => console.log('Selected:', suggestion)}
 		/>
 	</div>

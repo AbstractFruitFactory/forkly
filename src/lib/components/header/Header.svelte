@@ -62,7 +62,7 @@
 				onkeydown={(e) => e.key === 'Enter' && handleSearchClick()}
 				type="button"
 			>
-				<Search placeholder="Search recipes..." isLoading={false} suggestions={[]} />
+				<Search placeholder="Search recipes..." isLoading={false} onSearch={() => []} />
 
 				<div class="search-shortcut">
 					<kbd>{isMac ? '⌘' : 'Ctrl'}+K</kbd>
