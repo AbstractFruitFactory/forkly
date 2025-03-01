@@ -5,7 +5,7 @@
 
 	let {
 		isOpen = false,
-		title = '',
+		title,
 		showCloseButton = true,
 		closeOnClickOutside = true,
 		width = '400px',
@@ -52,9 +52,11 @@
 		>
 			{#if title || showCloseButton}
 				<div class="popup-header">
-					{#if title}
-						<h3 class="popup-title">{title}</h3>
-					{/if}
+					<div>
+						{#if title}
+							<h3 class="popup-title">{title}</h3>
+						{/if}
+					</div>
 					{#if showCloseButton}
 						<button class="popup-close" onclick={handleClose} aria-label="Close popup">
 							<svg
@@ -113,7 +115,7 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: var(--spacing-lg);
-		border-bottom: var(--border-width-thin) solid var(--color-border);
+		padding-bottom: 0;
 	}
 
 	.popup-title {

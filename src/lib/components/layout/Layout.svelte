@@ -27,6 +27,8 @@
 		display: flex;
 		flex-direction: column;
 		overflow-y: auto;
+		scrollbar-width: thin;
+		scrollbar-gutter: stable;
 	}
 
 	.header {

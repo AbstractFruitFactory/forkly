@@ -1,6 +1,6 @@
 import { db } from '.'
-import { recipe } from './schema'
-import { eq, ilike, or, and, desc, sql } from 'drizzle-orm'
+import { recipe, recipeLike } from './schema'
+import { eq, ilike, or, desc, sql } from 'drizzle-orm'
 
 /**
  * Search for recipes by title
@@ -25,10 +25,13 @@ export async function searchRecipesByTitle(query: string, limit: number = 5) {
         id: recipe.id,
         title: recipe.title,
         imageUrl: recipe.imageUrl,
-        diets: recipe.diets
+        diets: recipe.diets,
+        likes: sql<number>`count(${recipeLike.userId})::int`
       })
       .from(recipe)
+      .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
       .where(or(...searchConditions))
+      .groupBy(recipe.id)
       .orderBy(desc(recipe.createdAt))
       .limit(limit)
 

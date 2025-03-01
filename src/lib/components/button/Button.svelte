@@ -69,8 +69,8 @@
 		overflow: hidden;
 		text-wrap: nowrap;
 		white-space: nowrap;
+		width: fit-content;
 		min-width: fit-content;
-
 		&::after {
 			content: '';
 			position: absolute;

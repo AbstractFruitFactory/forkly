@@ -263,3 +263,13 @@ a {
     }
   }
 }
+
+/* Hide search input clear button (X) */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  display: none;
+}
+
+input[type="search"]::-ms-clear {
+  display: none;
+}

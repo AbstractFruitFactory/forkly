@@ -2,15 +2,16 @@
 	import Clock from 'lucide-svelte/icons/clock'
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import Pill from '$lib/components/pill/Pill.svelte'
+	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import { dietColors } from '$lib/types'
 	import type { DietType } from '$lib/types'
 
-	interface Recipe {
+	type Recipe = {
 		id: string
 		title: string
 		imageUrl?: string
-		cookTime?: number
 		diets?: DietType[]
+		likes?: number
 	}
 
 	let {
@@ -22,27 +23,33 @@
 	} = $props()
 </script>
 
-<div class="search-recipe-card" on:click={onClick} on:keydown={(e) => e.key === 'Enter' && onClick?.()}>
-	<div class="image-container" class:no-image={!recipe.imageUrl}>
+<div
+	class="search-recipe-card"
+	class:has-image={!!recipe.imageUrl}
+	onclick={onClick}
+	onkeydown={(e) => e.key === 'Enter' && onClick?.()}
+	role="button"
+	tabindex="0"
+>
+	<div class="card-background">
 		{#if recipe.imageUrl}
 			<img src={recipe.imageUrl} alt={recipe.title} loading="lazy" decoding="async" />
 		{:else}
 			<div class="placeholder">
-				<Utensils size={20} strokeWidth={1.5} />
+				<Utensils size={24} strokeWidth={1.5} />
 			</div>
 		{/if}
 	</div>
-	
+
+	<div class="overlay"></div>
+
 	<div class="content">
 		<h3 class="title">{recipe.title}</h3>
-		
+
 		<div class="details">
-			{#if recipe.cookTime}
-				<span class="cook-time">
-					<Clock size={14} aria-hidden="true" />
-					<span>{recipe.cookTime} min</span>
-				</span>
-			{/if}
+			<div class="like-container">
+				<LikeButton count={recipe.likes ?? 0} interactive={false} />
+			</div>
 			
 			{#if recipe.diets && recipe.diets.length > 0}
 				<div class="diet-tags">
@@ -62,103 +69,156 @@
 
 <style lang="scss">
 	.search-recipe-card {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm);
-		border-radius: var(--border-radius-md);
+		position: relative;
+		border-radius: var(--border-radius-lg);
 		cursor: pointer;
-		transition: background-color var(--transition-fast) var(--ease-in-out);
-		
-		&:hover {
-			background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
+		transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+		width: 100%;
+		height: 200px;
+		flex-shrink: 0;
+		box-shadow: var(--shadow-md);
+		overflow: hidden;
+		border: none;
+
+		&.has-image {
+			border-color: transparent;
 		}
-		
+
+		&::after {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 2px;
+			background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+			opacity: 0;
+			transition: opacity 0.3s ease;
+			z-index: var(--z-elevated);
+		}
+
+		&:hover {
+			box-shadow: var(--shadow-lg);
+
+			&::after {
+				opacity: 1;
+			}
+
+			.card-background img {
+				transform: scale(1.1);
+			}
+		}
+
 		&:focus-visible {
-			outline: 2px solid var(--color-primary);
-			outline-offset: 2px;
+			outline: none;
+			box-shadow:
+				0 0 0 2px var(--color-primary),
+				0 8px 16px rgba(0, 0, 0, 0.2);
 		}
 	}
-	
-	.image-container {
-		width: 50px;
-		height: 50px;
-		border-radius: var(--border-radius-sm);
-		overflow: hidden;
-		background-color: var(--color-neutral-dark);
+
+	.card-background {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		flex-shrink: 0;
-		
+		background: linear-gradient(145deg, var(--color-neutral-dark), var(--color-neutral));
+
 		img {
 			width: 100%;
 			height: 100%;
 			object-fit: cover;
-		}
-		
-		&.no-image {
-			background: linear-gradient(135deg, var(--color-neutral-dark), var(--color-neutral));
+			transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 		}
 	}
-	
+
+	.overlay {
+		position: absolute;
+		inset: 0;
+		z-index: var(--z-elevated);
+		background: linear-gradient(
+			to top,
+			rgba(0, 0, 0, 0.9) 0%,
+			rgba(0, 0, 0, 0.7) 50%,
+			rgba(0, 0, 0, 0.4) 100%
+		);
+		opacity: 0.8;
+	}
+
 	.placeholder {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: rgba(255, 255, 255, 0.5);
+		color: rgba(255, 255, 255, 0.3);
 		height: 100%;
 		width: 100%;
 	}
-	
+
 	.content {
-		flex: 1;
-		min-width: 0; /* Prevent text from overflowing */
+		position: relative;
+		z-index: 3;
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-xs);
+		justify-content: flex-end;
+		height: 100%;
+		padding: var(--spacing-lg);
+		box-sizing: border-box;
 	}
-	
+
 	.title {
 		margin: 0;
-		font-size: var(--font-size-sm);
-		font-weight: 500;
-		white-space: nowrap;
+		font-size: var(--font-size-xl);
+		font-weight: 600;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		color: var(--color-neutral-light);
+		color: white;
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+		letter-spacing: 0.01em;
+		margin-bottom: var(--spacing-md);
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		white-space: normal;
+		line-height: 1.3;
 	}
-	
+
 	.details {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		font-size: var(--font-size-xs);
-		color: var(--color-neutral);
+		color: var(--color-neutral-light);
 	}
-	
-	.cook-time {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-	}
-	
+
 	.diet-tags {
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-xs);
 	}
-	
+
 	.small-pill {
-		transform: scale(0.8);
+		transform: scale(0.85);
 		transform-origin: left center;
+		filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 	}
-	
+
 	.more-diets {
 		font-size: var(--font-size-xs);
-		color: var(--color-neutral);
-		background: rgba(255, 255, 255, 0.1);
+		color: white;
+		background: rgba(255, 255, 255, 0.2);
 		padding: 0 var(--spacing-xs);
 		border-radius: var(--border-radius-xs);
+		backdrop-filter: blur(4px);
 	}
-</style> 
+
+	.like-container {
+		filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+		
+		:global(.like-button) {
+			background: rgba(0, 0, 0, 0.3);
+			backdrop-filter: blur(4px);
+		}
+	}
+</style>

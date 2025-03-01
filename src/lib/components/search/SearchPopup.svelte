@@ -28,6 +28,7 @@
 			imageUrl?: string
 			cookTime?: number
 			diets?: DietType[]
+			likes?: number
 		}>
 		isResultsLoading?: boolean
 	} = $props()
@@ -80,6 +81,8 @@
 	})
 
 	const handleSearch = (query: string) => {
+		searchResults = []
+		isResultsLoading = true
 		searchQuery = query
 
 		if (searchTimeout) {
@@ -115,7 +118,7 @@
 	}
 </script>
 
-<Popup {isOpen} onClose={handleClose} title="Search Recipes" width="600px">
+<Popup {isOpen} onClose={handleClose} width="800px">
 	<div class="search-popup-content">
 		<div class="search-container">
 			<Search
@@ -131,18 +134,6 @@
 		<div class="results-container">
 			{#if searchQuery.trim().length > 0}
 				<div class="search-results">
-					<div class="results-header">
-						<h4>Top Results</h4>
-						<Button
-							variant="text"
-							size="sm"
-							onclick={handleShowAllResults}
-							disabled={searchQuery.trim().length === 0}
-						>
-							Show all results
-						</Button>
-					</div>
-
 					<div class="results-content">
 						{#if isResultsLoading && shouldShowLoading}
 							<div class="loading-state">
@@ -151,27 +142,52 @@
 							</div>
 						{:else if !isResultsLoading && searchResults.length === 0}
 							<div class="empty-state">
-								<p>No recipes found matching "{searchQuery}"</p>
+								<p>No recipes found matching "<span class="highlight">{searchQuery}</span>"</p>
 							</div>
 						{:else}
-							<ul class="results-list">
-								{#each searchResults as recipe}
-									<li class="result-item">
-										<SearchRecipeCard
-											{recipe}
-											onClick={() => onSelectRecipe?.({ name: recipe.title })}
-										/>
-									</li>
-								{/each}
-							</ul>
+							<div class="results-wrapper">
+								<div class="results-list">
+									{#each searchResults as recipe}
+										<div class="result-item">
+											<SearchRecipeCard
+												{recipe}
+												onClick={() => onSelectRecipe?.({ name: recipe.title })}
+											/>
+										</div>
+									{/each}
+								</div>
+							</div>
 						{/if}
 					</div>
 				</div>
 			{:else}
-				<div class="search-info">
-					<p>Search for recipes by name, ingredients, or tags.</p>
+				<div class="content-container">
+					<div class="search-info">
+						<div class="search-icon">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="32"
+								height="32"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
+								<circle cx="11" cy="11" r="8"></circle>
+								<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+							</svg>
+						</div>
+						<p>Search for recipes by name, ingredients, or tags</p>
+					</div>
 				</div>
 			{/if}
+		</div>
+		<div style:margin="auto">
+			<Button onclick={handleShowAllResults} disabled={searchQuery.trim().length === 0}>
+				Show all results
+			</Button>
 		</div>
 	</div>
 </Popup>
@@ -180,7 +196,7 @@
 	.search-popup-content {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-lg);
+		gap: var(--spacing-md);
 	}
 
 	.search-container {
@@ -188,20 +204,46 @@
 	}
 
 	.results-container {
-		height: 300px; /* Fixed height instead of min-height */
+		height: 400px;
 		display: flex;
 		flex-direction: column;
+		background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+		border-radius: var(--border-radius-lg);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+	.content-container,
+	.results-content {
+		flex: 1;
+		overflow: hidden;
+		position: relative;
+	}
+
+	.content-container {
+		height: 100%;
 	}
 
 	.search-info {
 		font-size: var(--font-size-sm);
 		color: var(--color-neutral);
-		padding: var(--spacing-lg) 0;
+		padding: var(--spacing-xl) 0;
 		text-align: center;
 		display: flex;
+		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 		height: 100%;
+
+		.search-icon {
+			margin-bottom: var(--spacing-md);
+			opacity: 0.5;
+		}
+
+		p {
+			margin: 0;
+			max-width: 80%;
+			line-height: 1.5;
+		}
 	}
 
 	.search-results {
@@ -215,19 +257,23 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: var(--spacing-md);
+		padding: 0 var(--spacing-xs);
 
 		h4 {
 			margin: 0;
 			font-size: var(--font-size-md);
 			font-weight: 600;
+			letter-spacing: 0.01em;
 		}
 	}
 
-	.results-content {
-		flex: 1;
-		overflow: hidden;
+	.results-wrapper {
 		position: relative;
-		height: calc(100% - 40px); /* Subtract header height */
+		height: 100%;
+		overflow-y: scroll;
+		overflow-x: hidden;
+		scrollbar-width: thin;
+		scrollbar-gutter: stable;
 	}
 
 	.loading-state {
@@ -241,13 +287,16 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
+		background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+		border-radius: var(--border-radius-lg);
+		border: 1px solid rgba(255, 255, 255, 0.05);
 
 		.spinner {
-			border: 3px solid rgba(255, 255, 255, 0.1);
-			border-top: 3px solid var(--color-primary);
+			border: 2px solid rgba(255, 255, 255, 0.1);
+			border-top: 2px solid var(--color-primary);
 			border-radius: 50%;
-			width: 30px;
-			height: 30px;
+			width: 24px;
+			height: 24px;
 			animation: spin 1s linear infinite;
 			margin-bottom: var(--spacing-md);
 		}
@@ -270,72 +319,33 @@
 		right: 0;
 		bottom: 0;
 		text-align: center;
+		background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+		border-radius: var(--border-radius-lg);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+
+		.highlight {
+			color: var(--color-primary);
+			font-weight: 500;
+		}
 	}
 
 	.results-list {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xs);
-		overflow-y: auto;
-		height: 100%;
-
-		&::-webkit-scrollbar {
-			width: var(--spacing-xs);
-		}
-
-		&::-webkit-scrollbar-track {
-			background: transparent;
-		}
-
-		&::-webkit-scrollbar-thumb {
-			background: var(--color-neutral);
-			border-radius: var(--border-radius-sm);
-		}
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--spacing-xl);
+		padding: var(--spacing-lg);
+		width: 100%;
+		box-sizing: border-box;
+		min-width: 0;
 	}
 
 	.result-item {
-		list-style: none;
-		padding: 0;
-		margin: 0;
+		width: 100%;
+		min-width: 0;
 	}
 
-	.result-image {
-		width: 50px;
-		height: 50px;
-		border-radius: var(--border-radius-sm);
-		overflow: hidden;
-		background-color: var(--color-neutral-dark);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-
-		img {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-		}
-
-		&.placeholder {
-			color: var(--color-neutral);
-		}
-	}
-
-	.result-info {
-		flex: 1;
-		min-width: 0; /* Prevent text from overflowing */
-	}
-
-	.result-title {
-		margin: 0;
-		font-size: var(--font-size-sm);
-		font-weight: 500;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+	.scroll-indicator {
+		display: none;
 	}
 
 	@keyframes spin {
