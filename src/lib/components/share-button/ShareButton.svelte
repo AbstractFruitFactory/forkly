@@ -63,7 +63,7 @@
 </script>
 
 <div class="share-wrapper">
-	<Button variant="text" size="lg" onclick={togglePopup}>
+	<button onclick={togglePopup}>
 		<div class="share-button-content">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -83,7 +83,7 @@
 				<line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
 			</svg>
 		</div>
-	</Button>
+	</button>
 
 	<Popup isOpen={isPopupOpen} onClose={togglePopup} title="Share" width="350px">
 		<div class="share-popup-content">
@@ -220,6 +220,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		width: 1rem;
+		height: 1rem;
 	}
 
 	.share-button-content {

@@ -75,7 +75,13 @@
 			{#if recipe.imageUrl}
 				<div class="recipe-image">
 					<img src={recipe.imageUrl} alt={recipe.title} />
-					<div class="recipe-actions-overlay">
+				</div>
+			{/if}
+
+			<div class="recipe-intro">
+				<div class="recipe-title-row">
+					<h1>{recipe.title}</h1>
+					<div class="recipe-actions">
 						<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
 
 						{#snippet likeButton()}
@@ -102,11 +108,7 @@
 						{/if}
 					</div>
 				</div>
-			{/if}
-			
-			<div class="recipe-intro">
-				<h1>{recipe.title}</h1>
-				
+
 				{#if recipe.description}
 					<p class="description">{recipe.description}</p>
 				{/if}
@@ -120,7 +122,7 @@
 						</div>
 					{/if}
 				</div>
-				
+
 				<div class="nutrition-facts">
 					<h2>Nutrition Facts</h2>
 					<div class="nutrition-grid">
@@ -237,13 +239,19 @@
 		object-fit: cover;
 	}
 
-	.recipe-actions-overlay {
-		position: absolute;
-		top: var(--spacing-md);
-		right: var(--spacing-md);
+	.recipe-title-row {
 		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: var(--spacing-md);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.recipe-actions {
+		display: flex;
+		align-items: center;
 		gap: var(--spacing-sm);
-		z-index: 2;
+		flex-shrink: 0;
 	}
 
 	.recipe-intro {
@@ -252,10 +260,11 @@
 	}
 
 	h1 {
-		margin: 0 0 var(--spacing-sm) 0;
+		margin: 0;
 		font-size: var(--font-size-2xl);
 		color: var(--color-neutral-lightest);
 		line-height: 1.2;
+		flex: 1;
 	}
 
 	h2 {
@@ -357,16 +366,11 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: var(--spacing-md);
-		border-bottom: 2px solid var(--color-primary);
 		padding-bottom: var(--spacing-xs);
 	}
 
 	.section-header h2 {
 		margin: 0;
-	}
-
-	.section-header h2::after {
-		display: none;
 	}
 
 	.unit-toggle-container {
@@ -454,17 +458,17 @@
 		.recipe-header-section {
 			grid-template-columns: 1fr;
 		}
-		
+
 		.recipe-image {
 			min-height: 250px;
 			margin-bottom: var(--spacing-md);
 		}
-		
+
 		.recipe-content {
 			grid-template-columns: 1fr;
 			gap: var(--spacing-xl);
 		}
-		
+
 		.nutrition-grid {
 			grid-template-columns: repeat(2, 1fr);
 			gap: var(--spacing-lg);
@@ -506,6 +510,15 @@
 
 		.instruction-number {
 			margin-bottom: var(--spacing-sm);
+		}
+
+		.recipe-title-row {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.recipe-actions {
+			margin-top: var(--spacing-sm);
 		}
 	}
 </style>
