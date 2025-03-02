@@ -1,21 +1,44 @@
 import { db } from '$lib/server/db'
 import { recipe, user, recipeLike, recipeIngredient, ingredient, recipeNutrition } from '$lib/server/db/schema'
-import { desc, eq, sql, ilike, or } from 'drizzle-orm'
+import { desc, eq, sql, ilike, or, and, inArray } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
+import type { DietType } from '$lib/types'
 
 export const load: PageServerLoad = async ({ url }) => {
 	const searchQuery = url.searchParams.get('search') || ''
+	
+	// Parse diets from query params (comma-separated list)
+	const dietsParam = url.searchParams.get('diets') || ''
+	const diets = dietsParam ? dietsParam.split(',') as DietType[] : []
+	
+	// Parse ingredients from query params (comma-separated list)
+	const ingredientsParam = url.searchParams.get('ingredients') || ''
+	const ingredients = ingredientsParam ? ingredientsParam.split(',') : []
 
-	let conditions = undefined
+	// Build where condition
+	let whereCondition = undefined
+	const conditions = []
 
+	// Add title search if provided
 	if (searchQuery) {
 		const searchTerms = searchQuery.trim().split(/\s+/).map((term) => `%${term}%`)
-
 		const searchConditions = searchTerms.map((term) => ilike(recipe.title, term))
-		conditions = or(...searchConditions)
+		conditions.push(or(...searchConditions))
+	}
+	
+	// Add diet filter if provided
+	if (diets.length > 0) {
+		// This uses a JSON contains operator to check if the diets array contains any of the specified diets
+		conditions.push(sql`${recipe.diets} ?| array[${diets.join(',')}]`)
 	}
 
-	const recipes = await db
+	// Combine conditions if any exist
+	if (conditions.length > 0) {
+		whereCondition = conditions.length === 1 ? conditions[0] : and(...conditions)
+	}
+
+	// Execute the query
+	let recipes = await db
 		.select({
 			id: recipe.id,
 			title: recipe.title,
@@ -52,7 +75,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		.leftJoin(recipeNutrition, eq(recipe.id, recipeNutrition.recipeId))
 		.leftJoin(recipeIngredient, eq(recipe.id, recipeIngredient.recipeId))
 		.leftJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
-		.where(conditions)
+		.where(whereCondition)
 		.groupBy(
 			recipe.id,
 			user.username,
@@ -63,9 +86,27 @@ export const load: PageServerLoad = async ({ url }) => {
 			recipeNutrition.fat
 		)
 		.orderBy(desc(recipe.createdAt))
+	
+	// Filter by ingredients if specified
+	if (ingredients.length > 0) {
+		// Post-process to filter by ingredients
+		// This is a simplified approach - in a real app, you'd want to do this in the SQL query
+		recipes = recipes.filter(r => {
+			const recipeIngredients = r.ingredients || []
+			return ingredients.every(searchIngredient => 
+				recipeIngredients.some(ri => 
+					ri.name.toLowerCase().includes(searchIngredient.toLowerCase())
+				)
+			)
+		})
+	}
 
 	return {
 		recipes,
-		searchQuery
+		searchQuery,
+		filters: {
+			diets,
+			ingredients
+		}
 	}
 }

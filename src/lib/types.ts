@@ -36,11 +36,9 @@ export const measurementUnits = [
 ] as const
 
 export const dietTypes = [
-  // Allergen-related diets
   'gluten-free',
   'dairy-free',
   'nut-free',
-  // Lifestyle diets
   'vegan',
   'vegetarian',
   'pescatarian'
@@ -48,14 +46,13 @@ export const dietTypes = [
 
 export type DietType = typeof dietTypes[number]
 
-// Color mapping for diet types
 export const dietColors: Record<DietType, string> = {
-  'gluten-free': '#E57373', // Light red
-  'dairy-free': '#64B5F6', // Light blue
-  'nut-free': '#FFB74D', // Light orange
-  'vegan': '#81C784', // Light green
-  'vegetarian': '#4DB6AC', // Light teal
-  'pescatarian': '#7986CB' // Light indigo
+  'gluten-free': '#E57373',
+  'dairy-free': '#64B5F6',
+  'nut-free': '#FFB74D',
+  'vegan': '#81C784',
+  'vegetarian': '#4DB6AC',
+  'pescatarian': '#7986CB'
 }
 
 type BaseIngredient = {

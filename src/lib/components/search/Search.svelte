@@ -9,13 +9,15 @@
 		isLoading = false,
 		onSearch,
 		onSelect,
-		inputElement = $bindable()
+		inputElement = $bindable(),
+		clearInput = false
 	}: {
 		placeholder?: string
 		isLoading?: boolean
 		onSearch?: (query: string) => Promise<T[]> | T[]
 		onSelect?: (suggestion: T) => void
 		inputElement?: HTMLInputElement
+		clearInput?: boolean
 	} = $props()
 
 	let searchValue = $state('')
@@ -38,7 +40,12 @@
 	}
 
 	const handleSelect = (suggestion: T) => {
-		searchValue = suggestion.name
+		if (clearInput) {
+			searchValue = ''
+		} else {
+			searchValue = suggestion.name
+		}
+
 		showSuggestions = false
 		onSelect?.(suggestion)
 	}

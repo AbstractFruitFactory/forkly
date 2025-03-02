@@ -1,63 +1,77 @@
 import { db } from '.'
-import { recipe, recipeLike } from './schema'
-import { eq, ilike, or, desc, sql } from 'drizzle-orm'
+import { recipe, recipeLike, recipeIngredient, ingredient } from './schema'
+import { eq, ilike, or, desc, sql, inArray, and, count } from 'drizzle-orm'
+import type { DietType } from '$lib/types'
 
-/**
- * Search for recipes by title
- * @param query The search query
- * @param limit The maximum number of results to return
- * @returns An array of recipes matching the search query
- */
-export async function searchRecipesByTitle(query: string, limit: number = 5) {
-  if (!query.trim()) {
+export async function searchRecipes(
+  query: string,
+  diets: DietType[] = [],
+  ingredients: string[] = [],
+  limit: number = 5
+) {
+  if (query.trim() === '' && diets.length === 0 && ingredients.length === 0) {
     return []
   }
 
-  // Create search terms by splitting the query and adding wildcards
   const searchTerms = query.trim().split(/\s+/).map(term => `%${term}%`)
+  const titleConditions = query.trim()
+    ? searchTerms.map(term => ilike(recipe.title, term))
+    : []
 
-  // Build the search condition
-  const searchConditions = searchTerms.map(term => ilike(recipe.title, term))
+  const whereConditions = [
+    ...(diets.length > 0 ? [sql`${recipe.diets} ?| array[${diets.join(',')}]`] : []),
+    ...(titleConditions.length > 0 ? [or(...titleConditions)] : [])
+  ]
 
-  try {
-    const results = await db
+  const baseQuery = db
+    .select({
+      id: recipe.id,
+      title: recipe.title,
+      imageUrl: recipe.imageUrl,
+      diets: recipe.diets,
+      likes: sql<number>`count(${recipeLike.userId})::int`
+    })
+    .from(recipe)
+    .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
+    .groupBy(recipe.id)
+    .orderBy(desc(recipe.createdAt))
+    .limit(limit)
+
+  if (ingredients.length > 0) {
+    const recipesWithAllIngredients = db
       .select({
-        id: recipe.id,
-        title: recipe.title,
-        imageUrl: recipe.imageUrl,
-        diets: recipe.diets,
-        likes: sql<number>`count(${recipeLike.userId})::int`
+        recipeId: recipeIngredient.recipeId,
+        ingredientCount: count()
       })
-      .from(recipe)
-      .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
-      .where(or(...searchConditions))
-      .groupBy(recipe.id)
-      .orderBy(desc(recipe.createdAt))
-      .limit(limit)
+      .from(recipeIngredient)
+      .innerJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
+      .where(inArray(ingredient.name, ingredients))
+      .groupBy(recipeIngredient.recipeId)
+      .having(eq(count(), ingredients.length))
+      .as('recipes_with_all_ingredients')
 
-    return results
-  } catch (error) {
-    console.error('Error searching recipes:', error)
-    return []
+    return baseQuery
+      .innerJoin(
+        recipesWithAllIngredients,
+        eq(recipe.id, recipesWithAllIngredients.recipeId)
+      )
+      .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
+  } else {
+    return baseQuery
+      .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
   }
 }
 
-/**
- * Get a recipe by ID
- * @param id The recipe ID
- * @returns The recipe or null if not found
- */
-export async function getRecipeById(id: string) {
-  try {
-    const results = await db
-      .select()
-      .from(recipe)
-      .where(eq(recipe.id, id))
-      .limit(1)
+export async function searchRecipesByTitle(query: string, limit: number = 5) {
+  return searchRecipes(query, [], [], limit)
+}
 
-    return results[0] || null
-  } catch (error) {
-    console.error('Error getting recipe by ID:', error)
-    return null
-  }
+export async function getRecipeById(id: string) {
+  const results = await db
+    .select()
+    .from(recipe)
+    .where(eq(recipe.id, id))
+    .limit(1)
+
+  return results[0] || null
 } 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte'
+	import { onMount, type Snippet } from 'svelte'
 	import Input from '../input/Input.svelte'
 
 	type T = $$Generic<{ name: string }>
@@ -8,13 +8,17 @@
 		isLoading = false,
 		suggestions = [],
 		children,
-		onSelect
+		onSelect,
 	}: {
 		isLoading?: boolean
 		suggestions?: T[]
 		children: Snippet
 		onSelect: (suggestion: T) => void
 	} = $props()
+
+	const handleSelect = (suggestion: T) => {
+		onSelect(suggestion)
+	}
 </script>
 
 <div class="autocomplete-wrapper">
@@ -34,11 +38,7 @@
 				fill="none"
 			>
 				<circle cx="12" cy="12" r="10" stroke-width="2" stroke-opacity="0.3" />
-				<path
-					d="M12 2a10 10 0 0 1 10 10"
-					stroke-width="2"
-					stroke-linecap="round"
-				>
+				<path d="M12 2a10 10 0 0 1 10 10" stroke-width="2" stroke-linecap="round">
 					<animateTransform
 						attributeName="transform"
 						type="rotate"
@@ -57,11 +57,7 @@
 		<ul class="suggestions-list" role="listbox">
 			{#each suggestions as suggestion, i}
 				<li role="option">
-					<button
-						type="button"
-						onclick={() => onSelect(suggestion)}
-						class="suggestion-button"
-					>
+					<button type="button" onclick={() => handleSelect(suggestion)} class="suggestion-button">
 						{suggestion.name}
 					</button>
 				</li>

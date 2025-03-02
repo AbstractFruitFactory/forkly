@@ -7,6 +7,8 @@
 	import type { LayoutData } from './$types'
 	import { goto, invalidateAll } from '$app/navigation'
 	import type { DietType } from '$lib/types'
+	import { safeFetch } from '$lib/utils/fetch'
+	import type { IngredientLookupResult } from './api/ingredients/lookup/[query]/+server'
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props()
 
@@ -34,8 +36,14 @@
 		}
 	}
 
-	async function handleSearch(query: string) {
-		if (!query.trim()) {
+	async function handleSearch(
+		query: string,
+		filters?: { diets: DietType[]; ingredients: string[] }
+	) {
+		if (
+			!query.trim() &&
+			(!filters || (filters.diets.length === 0 && filters.ingredients.length === 0))
+		) {
 			searchSuggestions = []
 			searchResults = []
 			return
@@ -44,7 +52,19 @@
 		isSearchLoading = true
 		isResultsLoading = true
 
-		const response = await fetch(`/api/recipes/search?q=${encodeURIComponent(query)}`)
+		let url = `/api/recipes/search?q=${encodeURIComponent(query)}`
+
+		// Add filters to the URL if they exist
+		if (filters) {
+			if (filters.diets.length > 0) {
+				url += `&diets=${filters.diets.join(',')}`
+			}
+			if (filters.ingredients.length > 0) {
+				url += `&ingredients=${filters.ingredients.join(',')}`
+			}
+		}
+
+		const response = await fetch(url)
 		if (response.ok) {
 			const data = await response.json()
 			searchResults = data.results.map((recipe: any) => ({
@@ -52,7 +72,8 @@
 				title: recipe.title,
 				imageUrl: recipe.imageUrl,
 				cookTime: recipe.cookTime,
-				diets: recipe.diets
+				diets: recipe.diets,
+				likes: recipe.likes
 			}))
 
 			searchSuggestions = data.results.map((recipe: any) => ({
@@ -72,8 +93,34 @@
 		}
 	}
 
-	function handleShowAllResults(query: string) {
-		goto(`/?search=${encodeURIComponent(query)}`)
+	function handleShowAllResults(
+		query: string,
+		filters?: { diets: DietType[]; ingredients: string[] }
+	) {
+		let url = `/?search=${encodeURIComponent(query)}`
+
+		if (filters) {
+			if (filters.diets.length > 0) {
+				url += `&diets=${filters.diets.join(',')}`
+			}
+			if (filters.ingredients.length > 0) {
+				url += `&ingredients=${filters.ingredients.join(',')}`
+			}
+		}
+
+		goto(url)
+	}
+
+	const searchIngredients = async (query: string) => {
+		if (!query.trim()) return []
+
+		const result = await safeFetch<IngredientLookupResult>()(`/api/ingredients/lookup/${query}`)
+
+		if (result.isOk()) {
+			return result.value
+		}
+
+		return []
 	}
 </script>
 
@@ -107,10 +154,11 @@
 <SearchPopup
 	isOpen={isSearchPopupOpen}
 	onClose={closeSearchPopup}
-	onSearch={handleSearch}
-	onSelectRecipe={handleSelectRecipe}
-	onShowAllResults={handleShowAllResults}
 	{isSearchLoading}
 	{searchResults}
 	{isResultsLoading}
+	onSearch={handleSearch}
+	onSelectRecipe={handleSelectRecipe}
+	onShowAllResults={handleShowAllResults}
+	onIngredientSearch={searchIngredients}
 />

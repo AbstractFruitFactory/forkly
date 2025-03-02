@@ -26,4 +26,5 @@
 			: undefined
 	}))}
 	searchQuery={data.searchQuery}
+	filters={data.filters}
 />

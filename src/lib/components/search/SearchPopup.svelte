@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte'
+	import { onMount, type ComponentProps } from 'svelte'
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import Search from '$lib/components/search/Search.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import SearchRecipeCard from '$lib/components/search/SearchRecipeCard.svelte'
-	import type { DietType } from '$lib/types'
+	import FilterSelect from '$lib/components/filter/FilterSelect.svelte'
+	import Pill from '$lib/components/pill/Pill.svelte'
+	import { dietTypes, type DietType } from '$lib/types'
 
 	let {
 		isOpen = false,
@@ -12,15 +14,20 @@
 		onSearch,
 		onSelectRecipe,
 		onShowAllResults,
+		onIngredientSearch,
 		isSearchLoading = false,
 		searchResults = [],
 		isResultsLoading = false
 	}: {
 		isOpen: boolean
 		onClose: () => void
-		onSearch?: (query: string) => void
+		onSearch?: (query: string, filters?: { diets: DietType[]; ingredients: string[] }) => void
 		onSelectRecipe?: (recipe: { name: string }) => void
-		onShowAllResults?: (query: string) => void
+		onShowAllResults?: (
+			query: string,
+			filters?: { diets: DietType[]; ingredients: string[] }
+		) => void
+		onIngredientSearch?: ComponentProps<typeof Search>['onSearch']
 		isSearchLoading?: boolean
 		searchResults?: Array<{
 			id: string
@@ -34,10 +41,31 @@
 	} = $props()
 
 	let searchInput: HTMLInputElement
+	let ingredientSearchInput: HTMLInputElement
 	let searchQuery = $state('')
+	let ingredientQuery = $state('')
 	let searchTimeout: ReturnType<typeof setTimeout> | null = null
 	let showLoadingTimeout: ReturnType<typeof setTimeout> | null = null
 	let shouldShowLoading = $state(false)
+
+	let selectedDiets = $state(
+		dietTypes.reduce(
+			(acc, diet) => {
+				acc[diet] = false
+				return acc
+			},
+			{} as Record<DietType, boolean>
+		)
+	)
+
+	let selectedIngredients = $state<string[]>([])
+	let showFilters = $state(false)
+
+	const selectedDietsArray = $derived(
+		Object.entries(selectedDiets)
+			.filter(([_, value]) => value)
+			.map(([key]) => key)
+	) as DietType[]
 
 	onMount(() => {
 		if (isOpen) {
@@ -52,14 +80,6 @@
 			setTimeout(() => {
 				searchInput.focus()
 			}, 100)
-		}
-
-		if (!isOpen) {
-			searchQuery = ''
-			shouldShowLoading = false
-			if (showLoadingTimeout) {
-				clearTimeout(showLoadingTimeout)
-			}
 		}
 	})
 
@@ -89,12 +109,16 @@
 			clearTimeout(searchTimeout)
 		}
 
-		if (query.trim().length > 0) {
+		if (
+			query.trim().length > 0 ||
+			selectedDietsArray.length > 0 ||
+			selectedIngredients.length > 0
+		) {
 			searchTimeout = setTimeout(() => {
-				onSearch?.(query)
+				onSearch?.(query, { diets: selectedDietsArray, ingredients: selectedIngredients })
 			}, 300)
 		}
-		
+
 		return []
 	}
 
@@ -104,19 +128,54 @@
 	}
 
 	const handleShowAllResults = () => {
-		if (searchQuery.trim().length > 0) {
-			onShowAllResults?.(searchQuery)
+		if (
+			searchQuery.trim().length > 0 ||
+			selectedDietsArray.length > 0 ||
+			selectedIngredients.length > 0
+		) {
+			onShowAllResults?.(searchQuery, {
+				diets: selectedDietsArray,
+				ingredients: selectedIngredients
+			})
 			onClose()
 		}
 	}
 
 	const handleClose = () => {
-		searchQuery = ''
-		shouldShowLoading = false
-		if (showLoadingTimeout) {
-			clearTimeout(showLoadingTimeout)
-		}
 		onClose()
+	}
+
+	const toggleIngredient = (ingredient: string) => {
+		if (selectedIngredients.includes(ingredient)) {
+			selectedIngredients = selectedIngredients.filter((i) => i !== ingredient)
+		} else {
+			selectedIngredients = [...selectedIngredients, ingredient]
+		}
+		handleSearch(searchQuery)
+	}
+
+	const handleAddIngredient = (ingredient: { name: string }) => {
+		if (!selectedIngredients.includes(ingredient.name)) {
+			selectedIngredients = [...selectedIngredients, ingredient.name]
+			ingredientQuery = ''
+			handleSearch(searchQuery)
+		}
+	}
+
+	const toggleFilters = () => {
+		showFilters = !showFilters
+	}
+
+	const clearFilters = () => {
+		selectedDiets = dietTypes.reduce(
+			(acc, diet) => {
+				acc[diet] = false
+				return acc
+			},
+			{} as Record<DietType, boolean>
+		)
+		selectedIngredients = []
+		handleSearch(searchQuery)
 	}
 </script>
 
@@ -130,10 +189,61 @@
 				onSelect={handleSelectRecipe}
 				bind:inputElement={searchInput}
 			/>
+			<div class="filter-toggle">
+				<Button variant="text" size="sm" onclick={toggleFilters}>
+					{showFilters ? 'Hide filters' : 'Show filters'}
+				</Button>
+				{#if selectedDietsArray.length > 0 || selectedIngredients.length > 0}
+					<Button variant="text" size="sm" onclick={clearFilters}>Clear filters</Button>
+				{/if}
+			</div>
 		</div>
 
+		{#if showFilters}
+			<div class="filters-container">
+				<div class="filter-section">
+					<h4>Diet</h4>
+					<div class="filter-options">
+						{#each dietTypes as diet}
+							<FilterSelect
+								value={diet}
+								selected={selectedDiets[diet]}
+								onChange={(value, checked) => {
+									selectedDiets[value as DietType] = checked
+									handleSearch(searchQuery)
+								}}
+							/>
+						{/each}
+					</div>
+				</div>
+				<div class="filter-section">
+					<h4>Ingredients</h4>
+					<div class="ingredient-search-container">
+						<Search
+							placeholder="Search for ingredients..."
+							onSearch={onIngredientSearch}
+							onSelect={handleAddIngredient}
+							clearInput
+							bind:inputElement={ingredientSearchInput}
+						/>
+					</div>
+					{#if selectedIngredients.length > 0}
+						<div class="selected-ingredients">
+							{#each selectedIngredients as ingredient}
+								<Pill
+									text={ingredient}
+									onRemove={() => toggleIngredient(ingredient)}
+									color="var(--color-primary)"
+								/>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			</div>
+		{/if}
+
 		<div class="results-container">
-			{#if searchQuery.trim().length > 0}
+			{#if searchQuery.trim().length > 0 || selectedDietsArray.length > 0 || selectedIngredients.length > 0}
 				<div class="search-results">
 					<div class="results-content">
 						{#if isResultsLoading && shouldShowLoading}
@@ -143,7 +253,7 @@
 							</div>
 						{:else if !isResultsLoading && searchResults.length === 0}
 							<div class="empty-state">
-								<p>No recipes found matching "<span class="highlight">{searchQuery}</span>"</p>
+								<p>No recipes found matching your criteria</p>
 							</div>
 						{:else}
 							<div class="results-wrapper">
@@ -186,7 +296,12 @@
 			{/if}
 		</div>
 		<div style:margin="auto">
-			<Button onclick={handleShowAllResults} disabled={searchQuery.trim().length === 0}>
+			<Button
+				onclick={handleShowAllResults}
+				disabled={searchQuery.trim().length === 0 &&
+					selectedDietsArray.length === 0 &&
+					selectedIngredients.length === 0}
+			>
 				Show all results
 			</Button>
 		</div>
@@ -202,6 +317,38 @@
 
 	.search-container {
 		width: 100%;
+		display: flex;
+	}
+
+	.filter-toggle {
+		display: flex;
+		justify-content: flex-end;
+		gap: var(--spacing-xs);
+		margin-top: var(--spacing-xs);
+	}
+
+	.filters-container {
+		background: rgba(255, 255, 255, 0.03);
+		border-radius: var(--border-radius-md);
+		padding: var(--spacing-md);
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+	}
+
+	.filter-section {
+		h4 {
+			margin: 0 0 var(--spacing-sm) 0;
+			font-size: var(--font-size-sm);
+			font-weight: 500;
+			color: var(--color-neutral);
+		}
+	}
+
+	.filter-options {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs);
 	}
 
 	.results-container {
@@ -356,5 +503,17 @@
 		100% {
 			transform: rotate(360deg);
 		}
+	}
+
+	.ingredient-search-container {
+		margin-bottom: var(--spacing-sm);
+		width: 100%;
+	}
+
+	.selected-ingredients {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs);
+		margin-bottom: var(--spacing-sm);
 	}
 </style>
