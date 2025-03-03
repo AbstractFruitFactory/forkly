@@ -82,7 +82,7 @@
 
 			<div class="recipe-intro">
 				<div class="recipe-title-row">
-					<h1>{recipe.title}</h1>
+					<h2>{recipe.title}</h2>
 					<div class="recipe-actions">
 						<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
 
@@ -126,7 +126,7 @@
 				</div>
 
 				<div class="nutrition-facts">
-					<h2>Nutrition Facts</h2>
+					<h3>Nutrition Facts</h3>
 					<div class="nutrition-grid">
 						<div class="nutrition-item">
 							<div class="nutrition-circle">
@@ -161,7 +161,7 @@
 		<div class="recipe-content">
 			<div class="recipe-sidebar">
 				<div class="section-header">
-					<h2>Ingredients</h2>
+					<h3>Ingredients</h3>
 					<div class="unit-toggle-container">
 						<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 					</div>
@@ -190,7 +190,7 @@
 
 			<div class="recipe-main">
 				<div class="section-header">
-					<h2>Instructions</h2>
+					<h3>Instructions</h3>
 				</div>
 				<ol class="instructions-list">
 					{#each recipe.instructions as instruction, i}
@@ -221,7 +221,12 @@
 													{/snippet}
 
 													{#snippet content()}
-														<span class="conversion">{getConversionText(part.value as number, part.unit as TemperatureUnit)}</span>
+														<span class="conversion"
+															>{getConversionText(
+																part.value as number,
+																part.unit as TemperatureUnit
+															)}</span
+														>
 													{/snippet}
 												</Popover>
 											</span>
@@ -239,7 +244,8 @@
 	</article>
 </div>
 
-<style>
+<style lang="scss">
+	// Layout and Container Styles
 	.container {
 		max-width: 1000px;
 		margin: 0 auto;
@@ -252,13 +258,23 @@
 		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 		padding: var(--spacing-xl);
 		overflow: hidden;
+
+		@media (max-width: 640px) {
+			padding: var(--spacing-lg);
+			border-radius: var(--border-radius-md);
+		}
 	}
 
+	// Header Section
 	.recipe-header-section {
 		display: grid;
 		grid-template-columns: minmax(250px, 40%) 1fr;
 		gap: var(--spacing-xl);
 		margin-bottom: var(--spacing-xl);
+
+		@media (max-width: 900px) {
+			grid-template-columns: 1fr;
+		}
 	}
 
 	.recipe-image {
@@ -267,12 +283,56 @@
 		min-height: 300px;
 		overflow: hidden;
 		border-radius: var(--border-radius-md);
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		@media (max-width: 900px) {
+			min-height: 250px;
+			margin-bottom: var(--spacing-md);
+		}
 	}
 
-	.recipe-image img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
+	.recipe-intro {
+		display: flex;
+		flex-direction: column;
+
+		h2 {
+			margin-bottom: 0;
+			color: var(--color-neutral-lightest);
+			flex: 1;
+
+			@media (max-width: 640px) {
+				font-size: var(--font-size-xl);
+			}
+		}
+
+		h3 {
+			margin-bottom: 0;
+			color: var(--color-primary);
+			position: relative;
+			width: fit-content;
+
+			&::after {
+				content: '';
+				position: absolute;
+				bottom: -5px;
+				left: 0;
+				width: 100%;
+				height: 2px;
+				background-color: var(--color-primary);
+			}
+		}
+
+		.description {
+			font-size: var(--font-size-md);
+			line-height: 1.6;
+			margin: 0 0 var(--spacing-md) 0;
+			color: var(--color-neutral-light);
+		}
 	}
 
 	.recipe-title-row {
@@ -281,6 +341,11 @@
 		align-items: flex-start;
 		gap: var(--spacing-md);
 		margin-bottom: var(--spacing-sm);
+
+		@media (max-width: 640px) {
+			flex-direction: column;
+			align-items: flex-start;
+		}
 	}
 
 	.recipe-actions {
@@ -288,56 +353,24 @@
 		align-items: center;
 		gap: var(--spacing-sm);
 		flex-shrink: 0;
+
+		@media (max-width: 640px) {
+			margin-top: var(--spacing-sm);
+		}
 	}
 
-	.recipe-intro {
-		display: flex;
-		flex-direction: column;
-	}
-
-	h1 {
-		margin: 0;
-		font-size: var(--font-size-2xl);
-		color: var(--color-neutral-lightest);
-		line-height: 1.2;
-		flex: 1;
-	}
-
-	h2 {
-		font-size: var(--font-size-lg);
-		color: var(--color-primary);
-		margin: 0 0 var(--spacing-md) 0;
-		position: relative;
-		display: inline-block;
-	}
-
-	h2::after {
-		content: '';
-		position: absolute;
-		bottom: -5px;
-		left: 0;
-		width: 100%;
-		height: 2px;
-		background-color: var(--color-primary);
-	}
-
-	.description {
-		font-size: var(--font-size-md);
-		line-height: 1.6;
-		margin: 0 0 var(--spacing-md) 0;
-		color: var(--color-neutral-light);
-	}
-
+	// Tags Section
 	.recipe-tags {
 		margin-bottom: var(--spacing-md);
+
+		.tags {
+			display: flex;
+			flex-wrap: wrap;
+			gap: var(--spacing-xs);
+		}
 	}
 
-	.tags {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-xs);
-	}
-
+	// Nutrition Section
 	.nutrition-facts {
 		margin-top: var(--spacing-md);
 	}
@@ -346,7 +379,12 @@
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
 		gap: var(--spacing-md);
-		margin-top: var(--spacing-sm);
+		margin-top: var(--spacing-lg);
+
+		@media (max-width: 640px) {
+			grid-template-columns: repeat(2, 1fr);
+			gap: var(--spacing-lg);
+		}
 	}
 
 	.nutrition-item {
@@ -354,6 +392,24 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+
+		.value {
+			font-size: var(--font-size-lg);
+			font-weight: var(--font-weight-bold);
+			color: var(--color-primary);
+
+			@media (max-width: 640px) {
+				font-size: var(--font-size-md);
+			}
+		}
+
+		.label {
+			display: block;
+			font-size: var(--font-size-xs);
+			color: var(--color-neutral-light);
+			margin-top: var(--spacing-xs);
+			letter-spacing: 0.5px;
+		}
 	}
 
 	.nutrition-circle {
@@ -366,20 +422,11 @@
 		background: var(--color-neutral-dark);
 		margin-bottom: var(--spacing-xs);
 		border: 2px solid var(--color-primary);
-	}
 
-	.nutrition-item .value {
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-bold);
-		color: var(--color-primary);
-	}
-
-	.nutrition-item .label {
-		display: block;
-		font-size: var(--font-size-xs);
-		color: var(--color-neutral-light);
-		margin-top: var(--spacing-xs);
-		letter-spacing: 0.5px;
+		@media (max-width: 640px) {
+			width: 60px;
+			height: 60px;
+		}
 	}
 
 	.nutrition-disclaimer {
@@ -390,13 +437,26 @@
 		font-style: italic;
 	}
 
+	// Main Content Section
 	.recipe-content {
 		display: grid;
 		grid-template-columns: 250px 1fr;
 		gap: var(--spacing-xl);
 		margin-top: var(--spacing-xl);
+
+		@media (max-width: 900px) {
+			grid-template-columns: 1fr;
+			gap: var(--spacing-xl);
+		}
 	}
 
+	.recipe-sidebar {
+		@media (max-width: 900px) {
+			max-width: 500px;
+		}
+	}
+
+	// Section Headers
 	.section-header {
 		display: flex;
 		justify-content: space-between;
@@ -404,33 +464,60 @@
 		margin-bottom: var(--spacing-lg);
 		padding-bottom: var(--spacing-xs);
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-	}
 
-	.section-header h2 {
-		margin: 0;
+		h3 {
+			margin-bottom: 0;
+			color: var(--color-primary);
+			position: relative;
+			width: fit-content;
+
+			&::after {
+				content: '';
+				position: absolute;
+				bottom: -5px;
+				left: 0;
+				width: 100%;
+				height: 2px;
+				background-color: var(--color-primary);
+			}
+		}
+
+		@media (max-width: 640px) {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: var(--spacing-sm);
+		}
 	}
 
 	.unit-toggle-container {
 		margin-left: var(--spacing-md);
+
+		@media (max-width: 640px) {
+			margin-left: 0;
+		}
 	}
 
-	.ingredients-list,
-	.instructions-list {
+	// Ingredients List
+	.ingredients-list {
 		margin: 0;
 		padding: 0;
-	}
 
-	.ingredients-list li {
-		list-style: none;
-		padding: var(--spacing-sm) 0;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-		display: flex;
-		justify-content: space-between;
-		font-size: var(--font-size-sm);
-	}
+		li {
+			list-style: none;
+			padding: var(--spacing-sm) 0;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+			display: flex;
+			justify-content: space-between;
+			font-size: var(--font-size-sm);
 
-	.ingredients-list li:last-child {
-		border-bottom: none;
+			&:last-child {
+				border-bottom: none;
+			}
+
+			@media (max-width: 900px) {
+				font-size: var(--font-size-md);
+			}
+		}
 	}
 
 	.measurement {
@@ -438,29 +525,40 @@
 		font-weight: var(--font-weight-semibold);
 		color: var(--color-primary);
 		min-width: 50px;
+
+		@media (max-width: 900px) {
+			min-width: 60px;
+		}
 	}
 
 	.ingredient-name {
 		color: var(--color-neutral-lightest);
 	}
 
+	// Instructions List
 	.instructions-list {
 		padding-left: 0;
 		max-width: 800px;
-	}
+		margin: 0;
 
-	.instructions-list li {
-		display: flex;
-		margin-bottom: var(--spacing-xl);
-		padding-bottom: var(--spacing-xl);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-		position: relative;
-	}
+		li {
+			display: flex;
+			margin-bottom: var(--spacing-xl);
+			padding-bottom: var(--spacing-xl);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+			position: relative;
 
-	.instructions-list li:last-child {
-		border-bottom: none;
-		margin-bottom: 0;
-		padding-bottom: 0;
+			&:last-child {
+				border-bottom: none;
+				margin-bottom: 0;
+				padding-bottom: 0;
+			}
+
+			@media (max-width: 640px) {
+				margin-bottom: var(--spacing-lg);
+				padding-bottom: var(--spacing-lg);
+			}
+		}
 	}
 
 	.instruction-number {
@@ -493,8 +591,13 @@
 		:global(span) {
 			display: inline;
 		}
+
+		@media (max-width: 640px) {
+			font-size: var(--font-size-base);
+		}
 	}
 
+	// Media Styles
 	.instruction-media {
 		width: 100%;
 		max-width: 450px;
@@ -503,18 +606,23 @@
 		box-shadow: var(--shadow-md);
 		will-change: transform;
 		content-visibility: auto;
+
+		img,
+		video {
+			width: 100%;
+			display: block;
+			border-radius: var(--border-radius-md);
+			aspect-ratio: 16 / 9;
+			object-fit: cover;
+			will-change: transform;
+		}
+
+		@media (max-width: 640px) {
+			max-width: 100%;
+		}
 	}
 
-	.instruction-media img,
-	.instruction-media video {
-		width: 100%;
-		display: block;
-		border-radius: var(--border-radius-md);
-		aspect-ratio: 16 / 9;
-		object-fit: cover;
-		will-change: transform;
-	}
-
+	// Utility Classes
 	.custom-badge {
 		font-size: var(--font-size-xs);
 		background: var(--color-primary-light);
@@ -541,94 +649,5 @@
 
 	.temperature-wrapper {
 		display: inline;
-	}
-
-	@media (max-width: 900px) {
-		.recipe-header-section {
-			grid-template-columns: 1fr;
-		}
-
-		.recipe-image {
-			min-height: 250px;
-			margin-bottom: var(--spacing-md);
-		}
-
-		.recipe-content {
-			grid-template-columns: 1fr;
-			gap: var(--spacing-xl);
-		}
-
-		.recipe-sidebar {
-			max-width: 500px;
-		}
-
-		.ingredients-list li {
-			font-size: var(--font-size-md);
-		}
-
-		.measurement {
-			min-width: 60px;
-		}
-	}
-
-	@media (max-width: 640px) {
-		.recipe {
-			padding: var(--spacing-lg);
-			border-radius: var(--border-radius-md);
-		}
-
-		h1 {
-			font-size: var(--font-size-xl);
-		}
-
-		.section-header {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: var(--spacing-sm);
-		}
-
-		.unit-toggle-container {
-			margin-left: 0;
-		}
-
-		.nutrition-grid {
-			grid-template-columns: repeat(2, 1fr);
-			gap: var(--spacing-lg);
-		}
-
-		.nutrition-circle {
-			width: 60px;
-			height: 60px;
-		}
-
-		.nutrition-item .value {
-			font-size: var(--font-size-md);
-		}
-
-		.recipe-title-row {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-
-		.recipe-actions {
-			margin-top: var(--spacing-sm);
-		}
-
-		.instructions-list li {
-			margin-bottom: var(--spacing-lg);
-			padding-bottom: var(--spacing-lg);
-		}
-
-		.instruction-content {
-			gap: var(--spacing-md);
-		}
-
-		.instruction-text {
-			font-size: var(--font-size-base);
-		}
-
-		.instruction-media {
-			max-width: 100%;
-		}
 	}
 </style>
