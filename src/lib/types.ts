@@ -76,7 +76,11 @@ export type RecipeData = {
   title: string
   description?: string
   ingredients: Ingredient[]
-  instructions: string[]
+  instructions: {
+    text: string;
+    mediaUrl?: string;
+    mediaType?: 'image' | 'video';
+  }[]
   imageUrl?: string | null
   diets?: DietType[]
   totalNutrition?: {

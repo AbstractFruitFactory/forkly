@@ -2,7 +2,7 @@
 	import type { User, Recipe as DBRecipe } from '$lib/server/db/schema'
 	import Button from '$lib/components/button/Button.svelte'
 	import ProfileRecipeCard from '$lib/components/profile-recipe-card/ProfileRecipeCard.svelte'
-	import ImageUpload from '$lib/components/image-upload/ImageUpload.svelte'
+	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
 
 	type Recipe = DBRecipe & {
 		likes: number
@@ -62,7 +62,7 @@
 				{#if isEditMode}
 					<div class="edit-form">
 						<form class="form-content" method="POST" enctype="multipart/form-data">
-							<ImageUpload {error} />
+							<MediaUpload name="avatar" type="image" maxSize={5} previewAlt="Profile picture" {error} />
 							<input
 								type="text"
 								name="username"

@@ -1,10 +1,20 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte'
 
-	let { error = '', id = crypto.randomUUID() } = $props()
+	let { 
+		error = '', 
+		id = crypto.randomUUID(), 
+		type = 'both', // 'image', 'video', or 'both'
+		name = 'media',
+		maxSize = type === 'video' ? 50 : 10, // Max size in MB
+		aspectRatio = '16/9',
+		previewAlt = 'Media preview'
+	} = $props()
+	
 	let preview = $state('')
 	let inputElement: HTMLInputElement
 	let dragOver = $state(false)
+	let mediaType = $state<'image' | 'video' | null>(null)
 
 	const handleFileSelect = async (event: Event) => {
 		const input = event.target as HTMLInputElement
@@ -16,14 +26,27 @@
 
 	const handleFile = (file: File) => {
 		// Validate file type
-		if (!file.type.startsWith('image/')) {
+		if (type === 'image' && !file.type.startsWith('image/')) {
 			error = 'Please select an image file'
 			return
 		}
 
-		// Validate file size (5MB max)
-		if (file.size > 5 * 1024 * 1024) {
-			error = 'Image must be less than 5MB'
+		if (type === 'video' && !file.type.startsWith('video/')) {
+			error = 'Please select a video file'
+			return
+		}
+
+		if (type === 'both' && !file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+			error = 'Please select an image or video file'
+			return
+		}
+
+		// Set media type
+		mediaType = file.type.startsWith('image/') ? 'image' : 'video'
+
+		// Validate file size
+		if (file.size > maxSize * 1024 * 1024) {
+			error = `${mediaType === 'image' ? 'Image' : 'Video'} must be less than ${maxSize}MB`
 			return
 		}
 
@@ -66,16 +89,16 @@
 	})
 </script>
 
-<div class="image-upload">
+<div class="media-upload">
 	<input
 		type="file"
-		name="image"
+		name={name}
 		id={id}
-		accept="image/*"
+		accept={type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : 'image/*,video/*'}
 		onchange={handleFileSelect}
 		class="hidden"
 		bind:this={inputElement}
-		aria-label="Upload recipe image"
+		aria-label={`Upload ${type === 'image' ? 'image' : type === 'video' ? 'video' : 'media'}`}
 		aria-describedby={error ? `${id}-error` : undefined}
 	/>
 
@@ -89,15 +112,25 @@
 		ondragleave={handleDragLeave}
 		ondrop={handleDrop}
 	>
-		{#if preview}
+		{#if preview && mediaType === 'image'}
 			<img
 				src={preview}
-				alt="Recipe preview"
+				alt={previewAlt}
 				loading="eager"
 				decoding="sync"
 			/>
 			<div class="preview-overlay">
 				<span>Change Image</span>
+			</div>
+		{:else if preview && mediaType === 'video'}
+			<video 
+				src={preview} 
+				controls 
+				muted 
+				class="video-preview"
+			></video>
+			<div class="preview-overlay">
+				<span>Change Video</span>
 			</div>
 		{:else}
 			<div class="placeholder" aria-hidden="true">
@@ -110,13 +143,18 @@
 					stroke="currentColor"
 					stroke-width="2"
 				>
-					<path
-						d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-					/>
-					<circle cx="12" cy="13" r="4" />
+					{#if type === 'video'}
+						<polygon points="23 7 16 12 23 17 23 7"></polygon>
+						<rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+					{:else}
+						<path
+							d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+						/>
+						<circle cx="12" cy="13" r="4" />
+					{/if}
 				</svg>
 				<span>
-					Drag and drop an image here<br />
+					Drag and drop {type === 'image' ? 'an image' : type === 'video' ? 'a video' : 'an image or video'} here<br />
 					or click to browse
 				</span>
 			</div>
@@ -132,14 +170,14 @@
 </div>
 
 <style lang="scss">
-	.image-upload {
+	.media-upload {
 		margin-bottom: var(--spacing-md);
 	}
 
 	.preview-area {
 		position: relative;
 		width: 100%;
-		aspect-ratio: 16 / 9;
+		aspect-ratio: var(--aspect-ratio, 16/9);
 		border: var(--border-width-normal) dashed var(--color-neutral);
 		border-radius: var(--border-radius-lg);
 		overflow: hidden;
@@ -262,7 +300,7 @@
 		}
 	}
 
-	img {
+	img, .video-preview {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
@@ -308,4 +346,4 @@
 			}
 		}
 	}
-</style>
+</style> 

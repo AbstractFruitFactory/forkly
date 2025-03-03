@@ -7,7 +7,14 @@ import type { PageServerLoad } from './$types'
 export const load: PageServerLoad = async ({ params, locals }) => {
   const recipeId = params.id
 
-  const recipes = await db.select()
+  const recipes = await db.select({
+    id: recipe.id,
+    title: recipe.title,
+    description: recipe.description,
+    instructions: recipe.instructions,
+    imageUrl: recipe.imageUrl,
+    diets: recipe.diets
+  })
     .from(recipe)
     .where(eq(recipe.id, recipeId))
 

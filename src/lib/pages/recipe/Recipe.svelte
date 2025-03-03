@@ -194,7 +194,23 @@
 					{#each recipe.instructions as instruction, i}
 						<li>
 							<div class="instruction-number">{i + 1}</div>
-							<div class="instruction-text">{instruction}</div>
+							<div class="instruction-content">
+								{#if instruction.mediaUrl}
+									<div class="instruction-media">
+										{#if instruction.mediaType === 'image'}
+											<img
+												src={instruction.mediaUrl}
+												alt={`Step ${i + 1} visual`}
+												loading="lazy"
+												decoding="async"
+											/>
+										{:else if instruction.mediaType === 'video'}
+											<video src={instruction.mediaUrl} controls muted></video>
+										{/if}
+									</div>
+								{/if}
+								<div class="instruction-text">{instruction.text}</div>
+							</div>
 						</li>
 					{/each}
 				</ol>
@@ -356,7 +372,7 @@
 
 	.recipe-content {
 		display: grid;
-		grid-template-columns: 300px 1fr;
+		grid-template-columns: 250px 1fr;
 		gap: var(--spacing-xl);
 		margin-top: var(--spacing-xl);
 	}
@@ -365,8 +381,9 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: var(--spacing-md);
+		margin-bottom: var(--spacing-lg);
 		padding-bottom: var(--spacing-xs);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	.section-header h2 {
@@ -388,6 +405,8 @@
 		padding: var(--spacing-sm) 0;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 		display: flex;
+		justify-content: space-between;
+		font-size: var(--font-size-sm);
 	}
 
 	.ingredients-list li:last-child {
@@ -398,7 +417,7 @@
 		margin-right: var(--spacing-sm);
 		font-weight: var(--font-weight-semibold);
 		color: var(--color-primary);
-		min-width: 60px;
+		min-width: 50px;
 	}
 
 	.ingredient-name {
@@ -406,14 +425,14 @@
 	}
 
 	.instructions-list {
-		counter-reset: instruction;
 		padding-left: 0;
+		max-width: 800px;
 	}
 
 	.instructions-list li {
 		display: flex;
-		margin-bottom: var(--spacing-lg);
-		padding-bottom: var(--spacing-lg);
+		margin-bottom: var(--spacing-xl);
+		padding-bottom: var(--spacing-xl);
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 		position: relative;
 	}
@@ -428,19 +447,48 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 30px;
-		height: 30px;
+		width: 36px;
+		height: 36px;
 		background-color: var(--color-primary);
 		color: var(--color-neutral-darkest);
 		border-radius: 50%;
 		font-weight: var(--font-weight-bold);
 		margin-right: var(--spacing-md);
 		flex-shrink: 0;
+		font-size: var(--font-size-lg);
+	}
+
+	.instruction-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
 	}
 
 	.instruction-text {
+		line-height: 1.6;
+		font-size: var(--font-size-md);
 		flex: 1;
-		line-height: 1.5;
+	}
+
+	.instruction-media {
+		width: 100%;
+		max-width: 450px;
+		border-radius: var(--border-radius-md);
+		overflow: hidden;
+		box-shadow: var(--shadow-md);
+		will-change: transform;
+		content-visibility: auto;
+	}
+
+	.instruction-media img,
+	.instruction-media video {
+		width: 100%;
+		display: block;
+		border-radius: var(--border-radius-md);
+		aspect-ratio: 16 / 9;
+		object-fit: cover;
+		will-change: transform;
 	}
 
 	.custom-badge {
@@ -469,9 +517,16 @@
 			gap: var(--spacing-xl);
 		}
 
-		.nutrition-grid {
-			grid-template-columns: repeat(2, 1fr);
-			gap: var(--spacing-lg);
+		.recipe-sidebar {
+			max-width: 500px;
+		}
+
+		.ingredients-list li {
+			font-size: var(--font-size-md);
+		}
+
+		.measurement {
+			min-width: 60px;
 		}
 	}
 
@@ -488,11 +543,16 @@
 		.section-header {
 			flex-direction: column;
 			align-items: flex-start;
+			gap: var(--spacing-sm);
 		}
 
 		.unit-toggle-container {
 			margin-left: 0;
-			margin-top: var(--spacing-sm);
+		}
+
+		.nutrition-grid {
+			grid-template-columns: repeat(2, 1fr);
+			gap: var(--spacing-lg);
 		}
 
 		.nutrition-circle {
@@ -504,14 +564,6 @@
 			font-size: var(--font-size-md);
 		}
 
-		.instructions-list li {
-			flex-direction: column;
-		}
-
-		.instruction-number {
-			margin-bottom: var(--spacing-sm);
-		}
-
 		.recipe-title-row {
 			flex-direction: column;
 			align-items: flex-start;
@@ -519,6 +571,23 @@
 
 		.recipe-actions {
 			margin-top: var(--spacing-sm);
+		}
+
+		.instructions-list li {
+			margin-bottom: var(--spacing-lg);
+			padding-bottom: var(--spacing-lg);
+		}
+
+		.instruction-content {
+			gap: var(--spacing-md);
+		}
+
+		.instruction-text {
+			font-size: var(--font-size-base);
+		}
+
+		.instruction-media {
+			max-width: 100%;
 		}
 	}
 </style>

@@ -42,7 +42,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms'
 	import { browser } from '$app/environment'
-	import ImageUpload from '$lib/components/image-upload/ImageUpload.svelte'
+	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import { dietTypes, dietColors } from '$lib/types'
 
@@ -146,7 +146,7 @@
 			}
 		}}
 	>
-		<ImageUpload />
+		<MediaUpload name="image" type="image" maxSize={5} previewAlt="Recipe preview" />
 
 		{#if errors}
 			<div class="error-container">
@@ -332,12 +332,20 @@
 			<label for="instructions">Instructions</label>
 			<div id="instructions">
 				{#each Array(instructionCount) as _, i}
-					<div class="input-group">
+					<div class="instruction-group">
 						<div class="instruction-input">
-							<Input>
-								<textarea name={`instructions-${i}`} placeholder="Enter instruction step" rows="2"
-								></textarea>
-							</Input>
+							<div class="instruction-media">
+								<MediaUpload name={`instructions-${i}-media`} />
+							</div>
+							<div class="instruction-text">
+								<Input>
+									<textarea
+										name={`instructions-${i}-text`}
+										placeholder="Enter instruction step"
+										rows="2"
+									></textarea>
+								</Input>
+							</div>
 						</div>
 						<button
 							type="button"
@@ -460,7 +468,36 @@
 		}
 	}
 
+	.instruction-group {
+		display: flex;
+		gap: var(--spacing-md);
+		margin-bottom: var(--spacing-lg);
+		align-items: flex-start;
+	}
+
 	.instruction-input {
+		flex: 1;
+		display: flex;
+		flex-direction: row;
+		gap: var(--spacing-md);
+		align-items: flex-start;
+
+		@media (max-width: 600px) {
+			flex-direction: column;
+
+			.instruction-media {
+				width: 100%;
+				margin-bottom: var(--spacing-sm);
+			}
+		}
+	}
+
+	.instruction-media {
+		width: 300px;
+		flex-shrink: 0;
+	}
+
+	.instruction-text {
 		flex: 1;
 	}
 

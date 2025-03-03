@@ -8,22 +8,27 @@ cloudinary.config({
 })
 
 type UploadOptions = {
-  folder?: 'recipe-images' | 'avatars'
+  folder?: 'recipe-images' | 'recipe-videos' | 'instruction-media' | 'avatars'
   transformation?: {
     width?: number
     height?: number
     crop?: string
     gravity?: string
+    quality?: string
+    duration?: number
   }
+  resource_type?: 'image' | 'video' | 'auto'
 }
 
-export const uploadImage = async (
-  imageBuffer: Buffer,
-  options: UploadOptions = { folder: 'recipe-images' }
+export const uploadMedia = async (
+  mediaBuffer: Buffer,
+  options: UploadOptions = { folder: 'recipe-images', resource_type: 'auto' }
 ): Promise<string> => {
   const defaultOptions = {
-    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-    max_file_size: 5000000 // 5MB
+    allowed_formats: options.resource_type === 'video' 
+      ? ['mp4', 'mov', 'avi', 'webm'] 
+      : ['jpg', 'png', 'jpeg', 'webp'],
+    max_file_size: options.resource_type === 'video' ? 50000000 : 10000000 // 50MB for videos, 10MB for images
   }
 
   if (options.folder === 'avatars') {
@@ -33,20 +38,35 @@ export const uploadImage = async (
       crop: 'fill',
       gravity: 'face'
     }
+  } else if (options.folder === 'instruction-media' && options.resource_type === 'video') {
+    options.transformation = {
+      ...options.transformation,
+      quality: 'auto',
+      duration: 30 // Limit videos to 30 seconds
+    }
   }
 
   return new Promise((resolve, reject) => {
     cloudinary.uploader.upload_stream(
       {
         ...defaultOptions,
-        ...options
+        ...options,
+        resource_type: options.resource_type || 'auto'
       },
       (error, result) => {
         if (error) reject(error)
         else resolve(result!.secure_url)
       }
-    ).end(imageBuffer)
+    ).end(mediaBuffer)
   })
+}
+
+// Keep the old function for backward compatibility
+export const uploadImage = async (
+  imageBuffer: Buffer,
+  options: Omit<UploadOptions, 'resource_type'> = { folder: 'recipe-images' }
+): Promise<string> => {
+  return uploadMedia(imageBuffer, { ...options, resource_type: 'image' })
 }
 
 export const deleteImage = async (url: string): Promise<void> => {

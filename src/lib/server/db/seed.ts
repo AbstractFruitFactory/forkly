@@ -26,15 +26,15 @@ export const seed = async () => {
       title: 'Grilled Salmon with Asparagus',
       description: 'Perfectly grilled salmon fillet served with fresh asparagus and creamy mashed potatoes, garnished with lemon and microgreens.',
       instructions: [
-        'Peel and quarter potatoes. Boil until tender, about 15-20 minutes.',
-        'While potatoes cook, season salmon with salt, pepper, and olive oil.',
-        'Trim asparagus ends and toss with olive oil, salt, and pepper.',
-        'Preheat grill or grill pan to medium-high heat.',
-        'Grill salmon for 4-5 minutes per side until desired doneness.',
-        'Grill asparagus for 3-4 minutes, turning occasionally.',
-        'Mash potatoes with butter, milk, salt, and pepper until creamy.',
-        'Plate mashed potatoes, arrange asparagus, and top with grilled salmon.',
-        'Garnish with lemon wedges and microgreens. Serve immediately.'
+        { text: 'Peel and quarter potatoes. Boil until tender, about 15-20 minutes.' },
+        { text: 'While potatoes cook, season salmon with salt, pepper, and olive oil.' },
+        { text: 'Trim asparagus ends and toss with olive oil, salt, and pepper.' },
+        { text: 'Preheat grill or grill pan to medium-high heat.' },
+        { text: 'Grill salmon for 4-5 minutes per side until desired doneness.' },
+        { text: 'Grill asparagus for 3-4 minutes, turning occasionally.' },
+        { text: 'Mash potatoes with butter, milk, salt, and pepper until creamy.' },
+        { text: 'Plate mashed potatoes, arrange asparagus, and top with grilled salmon.' },
+        { text: 'Garnish with lemon wedges and microgreens. Serve immediately.' }
       ],
       imageUrl: 'https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&q=80',
       userId: null,
@@ -45,11 +45,11 @@ export const seed = async () => {
       title: 'Classic Spaghetti Carbonara',
       description: 'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
       instructions: [
-        'Bring a large pot of salted water to boil and cook spaghetti according to package instructions.',
-        'While pasta cooks, cut pancetta into small cubes and fry until crispy.',
-        'In a bowl, whisk together eggs, grated pecorino romano, and black pepper.',
-        'Drain pasta, reserving some pasta water. While pasta is still very hot, quickly stir in the egg mixture and pancetta.',
-        'Add pasta water as needed to create a creamy sauce. Serve immediately with extra cheese and black pepper.'
+        { text: 'Bring a large pot of salted water to boil and cook spaghetti according to package instructions.' },
+        { text: 'While pasta cooks, cut pancetta into small cubes and fry until crispy.' },
+        { text: 'In a bowl, whisk together eggs, grated pecorino romano, and black pepper.' },
+        { text: 'Drain pasta, reserving some pasta water. While pasta is still very hot, quickly stir in the egg mixture and pancetta.' },
+        { text: 'Add pasta water as needed to create a creamy sauce. Serve immediately with extra cheese and black pepper.' }
       ],
       imageUrl: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&q=80',
       userId: null,
@@ -60,13 +60,25 @@ export const seed = async () => {
       title: 'Classic Chocolate Chip Cookies',
       description: 'Soft and chewy cookies with melty chocolate chips - a timeless favorite!',
       instructions: [
-        'Preheat oven to 375°F (190°C)',
-        'Cream together butter and sugars until light and fluffy',
-        'Beat in eggs one at a time, then stir in vanilla',
-        'Combine flour, baking soda, and salt; gradually blend into the butter mixture',
-        'Stir in chocolate chips',
-        'Drop by rounded tablespoons onto ungreased baking sheets',
-        'Bake for 9 to 11 minutes or until golden brown'
+        { text: 'Preheat oven to 375°F (190°C)' },
+        { 
+          text: 'Cream together butter and sugars until light and fluffy',
+          mediaUrl: 'https://images.unsplash.com/photo-1612207339340-8fa5ed562f88?auto=format&fit=crop&q=80',
+          mediaType: 'image' as const
+        },
+        { text: 'Beat in eggs one at a time, then stir in vanilla' },
+        { text: 'Combine flour, baking soda, and salt; gradually blend into the butter mixture' },
+        { 
+          text: 'Stir in chocolate chips',
+          mediaUrl: 'https://images.unsplash.com/photo-1621236378699-8597faf6a176?auto=format&fit=crop&q=80',
+          mediaType: 'image' as const
+        },
+        { text: 'Drop by rounded tablespoons onto ungreased baking sheets' },
+        { 
+          text: 'Bake for 9 to 11 minutes or until golden brown',
+          mediaUrl: 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?auto=format&fit=crop&q=80',
+          mediaType: 'image' as const
+        }
       ],
       imageUrl: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&q=80',
       userId: null,
@@ -77,13 +89,13 @@ export const seed = async () => {
       title: 'Fresh Garden Salad',
       description: 'A light and refreshing salad packed with seasonal vegetables and a zesty vinaigrette.',
       instructions: [
-        'Wash and dry all vegetables thoroughly',
-        'Slice cucumber and red onion thinly',
-        'Halve the cherry tomatoes',
-        'In a small bowl, whisk together olive oil, balsamic vinegar, and honey',
-        'Combine all vegetables in a large bowl',
-        'Drizzle with dressing just before serving',
-        'Toss gently and serve immediately'
+        { text: 'Wash and dry all vegetables thoroughly' },
+        { text: 'Slice cucumber and red onion thinly' },
+        { text: 'Halve the cherry tomatoes' },
+        { text: 'In a small bowl, whisk together olive oil, balsamic vinegar, and honey' },
+        { text: 'Combine all vegetables in a large bowl' },
+        { text: 'Drizzle with dressing just before serving' },
+        { text: 'Toss gently and serve immediately' }
       ],
       imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80',
       userId: null,
@@ -94,13 +106,13 @@ export const seed = async () => {
       title: 'Homemade Pizza',
       description: 'A delicious pizza with a crispy crust and classic toppings.',
       instructions: [
-        'Preheat oven to 450°F (230°C)',
-        'Roll out pizza dough on a floured surface',
-        'Brush the dough with olive oil',
-        'Spread tomato sauce evenly over the dough',
-        'Top with mozzarella cheese and pepperoni',
-        'Sprinkle with dried oregano',
-        'Bake for 15-20 minutes until crust is golden and cheese is bubbly'
+        { text: 'Preheat oven to 450°F (230°C)' },
+        { text: 'Roll out pizza dough on a floured surface' },
+        { text: 'Brush the dough with olive oil' },
+        { text: 'Spread tomato sauce evenly over the dough' },
+        { text: 'Top with mozzarella cheese and pepperoni' },
+        { text: 'Sprinkle with dried oregano' },
+        { text: 'Bake for 15-20 minutes until crust is golden and cheese is bubbly' }
       ],
       imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80',
       userId: null,
@@ -111,14 +123,14 @@ export const seed = async () => {
       title: 'Chicken Stir-Fry',
       description: 'A quick and healthy Asian-inspired stir-fry with colorful vegetables.',
       instructions: [
-        'Cut chicken into bite-sized pieces',
-        'Slice vegetables into uniform pieces',
-        'Heat oil in a large wok or skillet over high heat',
-        'Stir-fry chicken until cooked through, remove from pan',
-        'Add vegetables, ginger, and garlic to the pan',
-        'Return chicken to pan, add soy sauce',
-        'Stir-fry until vegetables are crisp-tender',
-        'Serve hot over rice'
+        { text: 'Cut chicken into bite-sized pieces' },
+        { text: 'Slice vegetables into uniform pieces' },
+        { text: 'Heat oil in a large wok or skillet over high heat' },
+        { text: 'Stir-fry chicken until cooked through, remove from pan' },
+        { text: 'Add vegetables, ginger, and garlic to the pan' },
+        { text: 'Return chicken to pan, add soy sauce' },
+        { text: 'Stir-fry until vegetables are crisp-tender' },
+        { text: 'Serve hot over rice' }
       ],
       imageUrl: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&q=80',
       userId: null,
@@ -129,14 +141,26 @@ export const seed = async () => {
       title: 'Vegan Quinoa Buddha Bowl',
       description: 'A nutrient-packed vegan and gluten-free bowl with quinoa, roasted vegetables, avocado, and a tahini dressing.',
       instructions: [
-        'Rinse quinoa thoroughly and cook according to package instructions.',
-        'Preheat oven to 425°F (220°C).',
-        'Toss sweet potatoes and chickpeas with olive oil, cumin, paprika, salt, and pepper.',
-        'Spread on a baking sheet and roast for 25-30 minutes until golden.',
-        'Prepare the tahini dressing by whisking tahini, lemon juice, garlic, water, and salt.',
-        'Assemble bowls with quinoa as the base, topped with roasted vegetables, chickpeas, avocado, and kale.',
-        'Drizzle with tahini dressing and sprinkle with sesame seeds.',
-        'Garnish with fresh herbs and serve immediately.'
+        { text: 'Rinse quinoa thoroughly and cook according to package instructions.' },
+        { text: 'Preheat oven to 425°F (220°C).' },
+        { 
+          text: 'Toss sweet potatoes and chickpeas with olive oil, cumin, paprika, salt, and pepper.',
+          mediaUrl: 'https://images.unsplash.com/photo-1604328727766-a151d1045ab4?auto=format&fit=crop&q=80',
+          mediaType: 'image' as const
+        },
+        { 
+          text: 'Spread on a baking sheet and roast for 25-30 minutes until golden.',
+          mediaUrl: 'https://images.unsplash.com/photo-1592415499556-74fcb9f18667?auto=format&fit=crop&q=80',
+          mediaType: 'image' as const
+        },
+        { text: 'Prepare the tahini dressing by whisking tahini, lemon juice, garlic, water, and salt.' },
+        { 
+          text: 'Assemble bowls with quinoa as the base, topped with roasted vegetables, chickpeas, avocado, and kale.',
+          mediaUrl: 'https://images.unsplash.com/photo-1546007600-8c2e5a9b8ea3?auto=format&fit=crop&q=80',
+          mediaType: 'image' as const
+        },
+        { text: 'Drizzle with tahini dressing and sprinkle with sesame seeds.' },
+        { text: 'Garnish with fresh herbs and serve immediately.' }
       ],
       imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80',
       userId: null,

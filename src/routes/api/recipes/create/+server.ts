@@ -55,7 +55,11 @@ const createRecipeSchema = v.object({
       ])
     ])
   ),
-  instructions: v.array(v.string()),
+  instructions: v.array(v.object({
+    text: v.string(),
+    mediaUrl: v.optional(v.string()),
+    mediaType: v.optional(v.union([v.literal('image'), v.literal('video')]))
+  })),
   nutrition: v.object({
     totalNutrition: v.object({
       calories: v.number(),

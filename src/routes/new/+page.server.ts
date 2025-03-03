@@ -6,7 +6,7 @@ import { generateId } from '$lib/server/id'
 import { api } from '$lib/server/food-api'
 import { Ok, Result } from 'ts-results-es'
 import * as v from 'valibot'
-import { uploadImage } from '$lib/server/cloudinary'
+import { uploadImage, uploadMedia } from '$lib/server/cloudinary'
 import { recipe, ingredient, recipeIngredient, recipeNutrition } from '$lib/server/db/schema'
 import { db } from '$lib/server/db'
 import { eq } from 'drizzle-orm'
@@ -61,12 +61,16 @@ const recipeSchema = v.object({
     v.maxLength(500, 'Description must be less than 500 characters')
   ),
   ingredients: v.array(ingredientSchema),
-  instructions: v.array(v.pipe(
-    v.string(),
-    v.transform(input => input ?? ''),
-    v.minLength(1, 'Instruction step cannot be empty'),
-    v.maxLength(1000, 'Instruction step must be less than 1000 characters')
-  )),
+  instructions: v.array(v.object({
+    text: v.pipe(
+      v.string(),
+      v.transform(input => input ?? ''),
+      v.minLength(1, 'Instruction step cannot be empty'),
+      v.maxLength(1000, 'Instruction step must be less than 1000 characters')
+    ),
+    mediaUrl: v.optional(v.string()),
+    mediaType: v.optional(v.union([v.literal('image'), v.literal('video')]))
+  })),
   diets: v.array(
     v.pipe(
       v.string(),
@@ -82,11 +86,15 @@ type FormFields = {
   title: string
   description: string
   ingredients: Ingredient[]
-  instructions: string[]
+  instructions: {
+    text: string;
+    mediaUrl?: string;
+    mediaType?: 'image' | 'video';
+  }[]
   diets: DietType[]
 }
 
-const parseIngredients = (formData: FormData): Ingredient[] => {
+function parseIngredients(formData: FormData): Ingredient[] {
   const ingredientEntries = Array.from(formData.entries())
     .filter(([key]) => key.split('-')[0] === 'ingredient')
     .map(([key, value]) => {
@@ -127,25 +135,29 @@ const parseIngredients = (formData: FormData): Ingredient[] => {
   })
 }
 
-const parseInstructions = (formData: FormData): string[] => {
-  return Array.from(formData.entries())
-    .filter(([key]) => key.split('-')[0] === 'instructions')
-    .map(([key, value]) => ({
-      index: parseInt(key.split('-')[1]),
-      value: value.toString()
-    }))
-    .sort((a, b) => a.index - b.index)
-    .map(({ value }) => value)
-}
-
 function parseFormData(formData: FormData): FormFields {
   const diets = formData.getAll('diets').map(value => value.toString()) as DietType[]
+
+  // Parse instructions
+  const instructions: FormFields['instructions'] = []
+  let i = 0
+  while (formData.has(`instructions-${i}-text`)) {
+    const text = formData.get(`instructions-${i}-text`) as string
+    const mediaFile = formData.get(`instructions-${i}-media`) as File | null
+    
+    if (text) {
+      instructions.push({
+        text
+      })
+    }
+    i++
+  }
 
   return {
     title: formData.get('title')?.toString() ?? '',
     description: formData.get('description')?.toString() ?? '',
     ingredients: parseIngredients(formData),
-    instructions: parseInstructions(formData),
+    instructions,
     diets
   }
 }
@@ -159,6 +171,39 @@ export const actions = {
     const formData = await request.formData()
     const recipeData = parseFormData(formData)
     const imageFile = formData.get('image') as File | null
+
+    // Process instruction media files
+    let i = 0
+    const instructionMediaPromises = []
+    while (formData.has(`instructions-${i}-text`)) {
+      const mediaFile = formData.get(`instructions-${i}-media`) as File | null
+      
+      if (mediaFile && mediaFile.size > 0) {
+        const processMedia = async () => {
+          const arrayBuffer = await mediaFile.arrayBuffer()
+          const buffer = Buffer.from(arrayBuffer)
+          const isVideo = mediaFile.type.startsWith('video/')
+          const mediaUrl = await uploadMedia(buffer, {
+            folder: 'instruction-media',
+            resource_type: isVideo ? 'video' : 'image'
+          })
+          
+          if (recipeData.instructions[i]) {
+            recipeData.instructions[i].mediaUrl = mediaUrl
+            recipeData.instructions[i].mediaType = isVideo ? 'video' : 'image'
+          }
+        }
+        
+        instructionMediaPromises.push(processMedia())
+      }
+      
+      i++
+    }
+    
+    // Wait for all media uploads to complete
+    if (instructionMediaPromises.length > 0) {
+      await Promise.all(instructionMediaPromises)
+    }
 
     const result = v.safeParse(recipeSchema, recipeData)
     if (!result.success) {
