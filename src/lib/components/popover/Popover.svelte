@@ -18,7 +18,8 @@
 		autoCloseDelay = 3000,
 		type = 'default',
 		trigger,
-		content
+		content,
+		triggerOn = 'click'
 	}: {
 		placement?: Placement
 		showArrow?: boolean
@@ -27,6 +28,7 @@
 		type?: 'default' | 'warning'
 		trigger: Snippet
 		content: Snippet
+		triggerOn?: 'click' | 'hover'
 	} = $props()
 
 	let isOpen = $state(false)
@@ -36,15 +38,19 @@
 	let cleanup: (() => void) | undefined
 	let autoCloseTimeout: ReturnType<typeof setTimeout>
 
-	const togglePopover = () => {
+	const openPopover = () => {
 		isOpen = true
+	}
+
+	const closePopover = () => {
+		isOpen = false
 	}
 
 	$effect(() => {
 		if (isOpen && reference && floating) {
 			setupFloating()
 
-			if (autoCloseDelay > 0) {
+			if (autoCloseDelay > 0 && triggerOn === 'click') {
 				clearTimeout(autoCloseTimeout)
 				autoCloseTimeout = setTimeout(() => {
 					isOpen = false
@@ -103,20 +109,30 @@
 	const injectReference = (node: HTMLElement) => {
 		const firstChild = node.firstElementChild as HTMLDivElement
 		if (firstChild) {
-			firstChild.addEventListener('click', togglePopover)
+			if (triggerOn === 'click') {
+				firstChild.addEventListener('click', openPopover)
+			} else {
+				firstChild.addEventListener('mouseenter', openPopover)
+				firstChild.addEventListener('mouseleave', closePopover)
+			}
 			reference = firstChild
 		}
 		return {
 			destroy() {
 				if (firstChild) {
-					firstChild.removeEventListener('click', togglePopover)
+					if (triggerOn === 'click') {
+						firstChild.removeEventListener('click', openPopover)
+					} else {
+						firstChild.removeEventListener('mouseenter', openPopover)
+						firstChild.removeEventListener('mouseleave', closePopover)
+					}
 				}
 			}
 		}
 	}
 </script>
 
-<div use:injectReference>
+<div style:display="contents" use:injectReference>
 	{@render trigger()}
 </div>
 
@@ -127,6 +143,7 @@
 		bind:this={floating}
 		transition:fade={{ duration: 100 }}
 		role="tooltip"
+		on:mouseleave={triggerOn === 'hover' ? closePopover : undefined}
 	>
 		{#if showArrow}
 			<div class="arrow" bind:this={arrowElement}></div>

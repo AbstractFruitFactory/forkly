@@ -15,6 +15,8 @@
 	import { page } from '$app/state'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import Popover from '$lib/components/popover/Popover.svelte'
+	import { parseTemperature, getConversionText } from '$lib/utils/temperature'
+	import type { TemperatureUnit } from '$lib/utils/temperature'
 
 	let {
 		recipe,
@@ -209,7 +211,25 @@
 										{/if}
 									</div>
 								{/if}
-								<div class="instruction-text">{instruction.text}</div>
+								<div class="instruction-text">
+									{#each parseTemperature(instruction.text) as part}
+										{#if part.isTemperature && part.value !== undefined && part.unit}
+											<span class="temperature-wrapper">
+												<Popover triggerOn="hover" placement="top">
+													{#snippet trigger()}
+														<span class="temperature">{part.text}</span>
+													{/snippet}
+
+													{#snippet content()}
+														<span class="conversion">{getConversionText(part.value as number, part.unit as TemperatureUnit)}</span>
+													{/snippet}
+												</Popover>
+											</span>
+										{:else}
+											<span>{part.text}</span>
+										{/if}
+									{/each}
+								</div>
 							</div>
 						</li>
 					{/each}
@@ -469,6 +489,10 @@
 		line-height: 1.6;
 		font-size: var(--font-size-md);
 		flex: 1;
+
+		:global(span) {
+			display: inline;
+		}
 	}
 
 	.instruction-media {
@@ -500,6 +524,23 @@
 		margin-left: var(--spacing-sm);
 		vertical-align: middle;
 		font-weight: var(--font-weight-semibold);
+	}
+
+	.temperature {
+		text-decoration: underline;
+		text-decoration-style: dotted;
+		cursor: help;
+		display: inline;
+	}
+
+	.conversion {
+		font-size: var(--font-size-sm);
+		white-space: nowrap;
+		display: inline;
+	}
+
+	.temperature-wrapper {
+		display: inline;
 	}
 
 	@media (max-width: 900px) {
