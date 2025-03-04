@@ -75,11 +75,12 @@ export const actions = {
             path: '/'
         })
 
-        return json({
+        return {
+            success: true,
             user: {
                 id: userId,
                 username: input.output.username
             }
-        })
+        }
     }
 } satisfies Actions 
