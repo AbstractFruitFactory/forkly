@@ -1,9 +1,6 @@
 import { error, fail } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
-import { json } from '@sveltejs/kit'
-import { db } from '$lib/server/db'
-import { user } from '$lib/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { getUserByUsername, updateUserProfile } from '$lib/server/db/user'
 import * as v from 'valibot'
 import { deleteImage } from '$lib/server/cloudinary'
 
@@ -57,41 +54,24 @@ export const actions = {
     })
 
     if (output.username !== locals.user.username) {
-      const existingUser = await db
-        .select()
-        .from(user)
-        .where(eq(user.username, output.username))
-        .then(results => results[0])
-
+      const existingUser = await getUserByUsername(output.username)
       if (existingUser) fail(400, { error: 'Username is already taken' })
     }
 
-    if (output.avatarUrl) {
-      const currentUser = await db
-        .select()
-        .from(user)
-        .where(eq(user.id, locals.user.id))
-        .then(results => results[0])
-
-      if (currentUser?.avatarUrl && currentUser.avatarUrl !== output.avatarUrl) {
-        await deleteImage(currentUser.avatarUrl)
-      }
+    if (output.avatarUrl && locals.user.avatarUrl && locals.user.avatarUrl !== output.avatarUrl) {
+      await deleteImage(locals.user.avatarUrl)
     }
 
-    const updateData: Partial<typeof user.$inferSelect> = {
+    const updateData = {
       username: output.username,
       bio: output.bio,
       ...(output.avatarUrl ? { avatarUrl: output.avatarUrl } : {})
     }
 
-    const updatedUser = await db
-      .update(user)
-      .set(updateData)
-      .where(eq(user.id, locals.user.id))
-      .returning()
+    const updatedUser = await updateUserProfile(locals.user.id, updateData)
 
     return {
-      user: updatedUser[0]
+      user: updatedUser
     }
   }
 } satisfies Actions 
