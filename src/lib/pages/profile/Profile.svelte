@@ -119,10 +119,6 @@
 					<span class="stat-value">{userStats.totalLikes}</span>
 					<span class="stat-label">Total Likes</span>
 				</div>
-				<div class="stat-card">
-					<span class="stat-value">{userStats.bookmarksCount}</span>
-					<span class="stat-label">Bookmarks</span>
-				</div>
 			</div>
 		</div>
 
@@ -285,10 +281,12 @@
 	}
 
 	.stats-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 1rem;
-		margin-top: 2rem;
+		display: flex;
+		gap: var(--spacing-md);
+
+		* {
+			flex: 1;
+		}
 	}
 
 	.stat-card {
