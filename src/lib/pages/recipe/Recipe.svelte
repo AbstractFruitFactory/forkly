@@ -169,7 +169,6 @@
 				</div>
 
 				<div class="nutrition-facts">
-					<h3>Nutrition Facts</h3>
 					<div class="nutrition-grid">
 						<div class="nutrition-item">
 							<div class="nutrition-circle">
@@ -288,7 +287,6 @@
 </div>
 
 <style lang="scss">
-	// Layout and Container Styles
 	.container {
 		max-width: 1000px;
 		margin: 0 auto;
@@ -298,9 +296,8 @@
 	.recipe {
 		background-color: var(--color-neutral-dark);
 		border-radius: var(--border-radius-lg);
-		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+		box-shadow: var(--shadow-lg);
 		padding: var(--spacing-xl);
-		overflow: hidden;
 
 		@media (max-width: 640px) {
 			padding: var(--spacing-lg);
@@ -308,7 +305,6 @@
 		}
 	}
 
-	// Header Section
 	.recipe-header-section {
 		display: grid;
 		grid-template-columns: minmax(250px, 40%) 1fr;
@@ -322,8 +318,8 @@
 
 	.recipe-image {
 		position: relative;
-		height: 100%;
-		min-height: 300px;
+		aspect-ratio: 1 / 1;
+		width: 100%;
 		overflow: hidden;
 		border-radius: var(--border-radius-md);
 
@@ -334,8 +330,8 @@
 		}
 
 		@media (max-width: 900px) {
-			min-height: 250px;
-			margin-bottom: var(--spacing-md);
+			max-width: 400px;
+			margin: 0 auto var(--spacing-md) auto;
 		}
 	}
 
