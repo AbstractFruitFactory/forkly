@@ -28,19 +28,23 @@
 	class="action-button"
 	class:active={isActive}
 	onclick={interactive ? onAction : undefined}
-	aria-label={interactive ? (isActive ? `${activeLabel}` : `${inactiveLabel}`) : `${count} ${countLabel}`}
+	aria-label={interactive
+		? isActive
+			? `${activeLabel}`
+			: `${inactiveLabel}`
+		: `${count} ${countLabel}`}
 >
-	<svelte:component 
-		this={icon} 
-		size={interactive ? 20 : 16} 
-		class={interactive ? (isActive ? 'filled' : '') : 'filled'} 
+	<svelte:component
+		this={icon}
+		size={interactive ? 20 : 16}
+		class={interactive ? (isActive ? 'filled' : '') : 'filled'}
 	/>
 	<span class="count">{count}</span>
 </svelte:element>
 
 <style lang="scss">
 	.action-button {
-		background: var(--inactive-bg-color);
+		background: var(--color-neutral-dark);
 		border: none;
 		border-radius: var(--border-radius-full);
 		padding: var(--spacing-xs) var(--spacing-sm);
@@ -107,4 +111,4 @@
 		font-size: var(--font-size-sm);
 		font-weight: 600;
 	}
-</style> 
+</style>
