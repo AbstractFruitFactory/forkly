@@ -19,6 +19,8 @@
 	import type { TemperatureUnit } from '$lib/utils/temperature'
 	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
+	import ArrowLeft from 'lucide-svelte/icons/arrow-left'
+	import ArrowRight from 'lucide-svelte/icons/arrow-right'
 
 	let {
 		recipe,
@@ -42,6 +44,47 @@
 		isLoggedIn: boolean
 		onBookmark?: () => void
 	} = $props()
+
+	let currentCardIndex = $state(0)
+	let touchStartX = $state(0)
+	let touchEndX = $state(0)
+	let cardContainer: HTMLDivElement | null = null
+
+	const CARD_OVERVIEW = 0
+	const CARD_INGREDIENTS = 1
+	const CARD_INSTRUCTIONS_START = 2
+
+	const totalCards = $derived(recipe.instructions ? recipe.instructions.length + 2 : 3)
+
+	function handleTouchStart(e: TouchEvent) {
+		touchStartX = e.touches[0].clientX
+	}
+
+	function handleTouchEnd(e: TouchEvent) {
+		touchEndX = e.changedTouches[0].clientX
+		handleSwipe()
+	}
+
+	function handleSwipe() {
+		const swipeThreshold = 50
+		if (touchStartX - touchEndX > swipeThreshold) {
+			// Swipe left - go to next card
+			if (currentCardIndex < totalCards - 1) {
+				currentCardIndex++
+			}
+		} else if (touchEndX - touchStartX > swipeThreshold) {
+			// Swipe right - go to previous card
+			if (currentCardIndex > 0) {
+				currentCardIndex--
+			}
+		}
+	}
+
+	function goToCard(index: number) {
+		if (index >= 0 && index < totalCards) {
+			currentCardIndex = index
+		}
+	}
 
 	const getFormattedIngredient = (ingredient: Ingredient) => {
 		if (
@@ -79,218 +122,501 @@
 
 <div class="container">
 	<article class="recipe">
-		<div class="recipe-header-section">
-			{#if recipe.imageUrl}
-				<div class="recipe-image">
-					<img src={recipe.imageUrl} alt={recipe.title} />
-				</div>
-			{/if}
-
-			<div class="recipe-intro">
-				<div class="recipe-title-row">
-					<h2>{recipe.title}</h2>
-					<div class="recipe-actions">
-						<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
-
-						{#snippet likeButton()}
-							<LikeButton
-								count={recipe.likes}
-								isLiked={recipe.isLiked}
-								interactive={!!onLike}
-								onLike={isLoggedIn ? onLike : undefined}
-							/>
-						{/snippet}
-
-						{#snippet dislikeButton()}
-							<DislikeButton
-								isDisliked={recipe.isDisliked}
-								interactive={!!onDislike}
-								onDislike={isLoggedIn ? onDislike : undefined}
-							/>
-						{/snippet}
-
-						{#snippet bookmarkButton()}
-							<BookmarkButton
-								count={recipe.bookmarks}
-								isBookmarked={recipe.isBookmarked}
-								interactive={!!onBookmark}
-								onBookmark={isLoggedIn ? onBookmark : undefined}
-							/>
-						{/snippet}
-
-						{#if isLoggedIn}
-							{@render dislikeButton()}
-							{@render likeButton()}
-							{@render bookmarkButton()}
-						{:else}
-							<Popover type="warning">
-								{#snippet trigger()}
-									{@render dislikeButton()}
-								{/snippet}
-
-								{#snippet content()}
-									Login to dislike recipes!
-								{/snippet}
-							</Popover>
-							<Popover type="warning">
-								{#snippet trigger()}
-									{@render likeButton()}
-								{/snippet}
-
-								{#snippet content()}
-									Login to like recipes!
-								{/snippet}
-							</Popover>
-							<Popover type="warning">
-								{#snippet trigger()}
-									{@render bookmarkButton()}
-								{/snippet}
-
-								{#snippet content()}
-									Login to bookmark recipes!
-								{/snippet}
-							</Popover>
-						{/if}
+		<!-- Desktop View -->
+		<div class="desktop-view">
+			<div class="recipe-header-section">
+				{#if recipe.imageUrl}
+					<div class="recipe-image">
+						<img src={recipe.imageUrl} alt={recipe.title} />
 					</div>
-				</div>
-
-				{#if recipe.description}
-					<p class="description">{recipe.description}</p>
 				{/if}
 
-				<div class="recipe-tags">
-					{#if recipe.diets && recipe.diets.length > 0}
-						<div class="tags">
-							{#each recipe.diets as diet}
-								<Pill text={diet} color={dietColors[diet]} />
-							{/each}
-						</div>
-					{/if}
-				</div>
+				<div class="recipe-intro">
+					<div class="recipe-title-row">
+						<h2>{recipe.title}</h2>
+						<div class="recipe-actions">
+							<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
 
-				<div class="nutrition-facts">
-					<div class="nutrition-grid">
-						<div class="nutrition-item">
-							<div class="nutrition-circle">
-								<span class="value">{Math.round(nutrition.totalNutrition.calories)}</span>
-							</div>
-							<span class="label">CALORIES</span>
-						</div>
-						<div class="nutrition-item">
-							<div class="nutrition-circle">
-								<span class="value">{Math.round(nutrition.totalNutrition.protein)}g</span>
-							</div>
-							<span class="label">PROTEIN</span>
-						</div>
-						<div class="nutrition-item">
-							<div class="nutrition-circle">
-								<span class="value">{Math.round(nutrition.totalNutrition.carbs)}g</span>
-							</div>
-							<span class="label">CARBS</span>
-						</div>
-						<div class="nutrition-item">
-							<div class="nutrition-circle">
-								<span class="value">{Math.round(nutrition.totalNutrition.fat)}g</span>
-							</div>
-							<span class="label">FAT</span>
+							{#snippet likeButton()}
+								<LikeButton
+									count={recipe.likes}
+									isLiked={recipe.isLiked}
+									interactive={!!onLike}
+									onLike={isLoggedIn ? onLike : undefined}
+								/>
+							{/snippet}
+
+							{#snippet dislikeButton()}
+								<DislikeButton
+									isDisliked={recipe.isDisliked}
+									interactive={!!onDislike}
+									onDislike={isLoggedIn ? onDislike : undefined}
+								/>
+							{/snippet}
+
+							{#snippet bookmarkButton()}
+								<BookmarkButton
+									count={recipe.bookmarks}
+									isBookmarked={recipe.isBookmarked}
+									interactive={!!onBookmark}
+									onBookmark={isLoggedIn ? onBookmark : undefined}
+								/>
+							{/snippet}
+
+							{#if isLoggedIn}
+								{@render dislikeButton()}
+								{@render likeButton()}
+								{@render bookmarkButton()}
+							{:else}
+								<Popover type="warning">
+									{#snippet trigger()}
+										{@render dislikeButton()}
+									{/snippet}
+
+									{#snippet content()}
+										Login to dislike recipes!
+									{/snippet}
+								</Popover>
+								<Popover type="warning">
+									{#snippet trigger()}
+										{@render likeButton()}
+									{/snippet}
+
+									{#snippet content()}
+										Login to like recipes!
+									{/snippet}
+								</Popover>
+								<Popover type="warning">
+									{#snippet trigger()}
+										{@render bookmarkButton()}
+									{/snippet}
+
+									{#snippet content()}
+										Login to bookmark recipes!
+									{/snippet}
+								</Popover>
+							{/if}
 						</div>
 					</div>
-					<p class="nutrition-disclaimer">* Nutrition information is estimated</p>
+
+					{#if recipe.description}
+						<p class="description">{recipe.description}</p>
+					{/if}
+
+					<div class="recipe-tags">
+						{#if recipe.diets && recipe.diets.length > 0}
+							<div class="tags">
+								{#each recipe.diets as diet}
+									<Pill text={diet} color={dietColors[diet]} />
+								{/each}
+							</div>
+						{/if}
+					</div>
+
+					<div class="nutrition-facts">
+						<div class="nutrition-grid">
+							<div class="nutrition-item">
+								<div class="nutrition-circle">
+									<span class="value">{Math.round(nutrition.totalNutrition.calories)}</span>
+								</div>
+								<span class="label">CALORIES</span>
+							</div>
+							<div class="nutrition-item">
+								<div class="nutrition-circle">
+									<span class="value">{Math.round(nutrition.totalNutrition.protein)}g</span>
+								</div>
+								<span class="label">PROTEIN</span>
+							</div>
+							<div class="nutrition-item">
+								<div class="nutrition-circle">
+									<span class="value">{Math.round(nutrition.totalNutrition.carbs)}g</span>
+								</div>
+								<span class="label">CARBS</span>
+							</div>
+							<div class="nutrition-item">
+								<div class="nutrition-circle">
+									<span class="value">{Math.round(nutrition.totalNutrition.fat)}g</span>
+								</div>
+								<span class="label">FAT</span>
+							</div>
+						</div>
+						<p class="nutrition-disclaimer">* Nutrition information is estimated</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="recipe-content">
+				<div class="recipe-sidebar">
+					<div class="section-header">
+						<h3>Ingredients</h3>
+						<div class="unit-toggle-container">
+							<UnitToggle state={unitSystem} onSelect={onUnitChange} />
+						</div>
+					</div>
+					<ul class="ingredients-list">
+						{#each recipe.ingredients as ingredient}
+							{@const formattedIngredient = getFormattedIngredient(ingredient)}
+							<li>
+								<span class="measurement">
+									{#if ingredient.measurement === 'to taste' || ingredient.measurement === 'pinch'}
+										{ingredient.measurement}
+									{:else}
+										{formattedIngredient.formattedMeasurement}
+									{/if}
+								</span>
+								<span class="ingredient-name">
+									{ingredient.name}
+									{#if ingredient.custom}
+										<span class="custom-badge">custom</span>
+									{/if}
+								</span>
+							</li>
+						{/each}
+					</ul>
+				</div>
+
+				<div class="recipe-main">
+					<div class="section-header">
+						<h3>Instructions</h3>
+					</div>
+					<ol class="instructions-list">
+						{#each recipe.instructions as instruction, i}
+							<li>
+								<div class="instruction-number">{i + 1}</div>
+								<div class="instruction-content">
+									{#if instruction.mediaUrl}
+										<div class="instruction-media">
+											{#if instruction.mediaType === 'image'}
+												<img
+													src={instruction.mediaUrl}
+													alt={`Step ${i + 1} visual`}
+													loading="lazy"
+													decoding="async"
+												/>
+											{:else if instruction.mediaType === 'video'}
+												<video src={instruction.mediaUrl} controls muted></video>
+											{/if}
+										</div>
+									{/if}
+									<div class="instruction-text">
+										{#each parseTemperature(instruction.text) as part}
+											{#if part.isTemperature && part.value !== undefined && part.unit}
+												<span class="temperature-wrapper">
+													<Popover triggerOn="hover" placement="top">
+														{#snippet trigger()}
+															<span class="temperature">{part.text}</span>
+														{/snippet}
+
+														{#snippet content()}
+															<span class="conversion"
+																>{getConversionText(
+																	part.value as number,
+																	part.unit as TemperatureUnit
+																)}</span
+															>
+														{/snippet}
+													</Popover>
+												</span>
+											{:else}
+												<span>{part.text}</span>
+											{/if}
+										{/each}
+									</div>
+								</div>
+							</li>
+						{/each}
+					</ol>
 				</div>
 			</div>
 		</div>
 
-		<div class="recipe-content">
-			<div class="recipe-sidebar">
-				<div class="section-header">
-					<h3>Ingredients</h3>
-					<div class="unit-toggle-container">
-						<UnitToggle state={unitSystem} onSelect={onUnitChange} />
-					</div>
-				</div>
-				<ul class="ingredients-list">
-					{#each recipe.ingredients as ingredient}
-						{@const formattedIngredient = getFormattedIngredient(ingredient)}
-						<li>
-							<span class="measurement">
-								{#if ingredient.measurement === 'to taste' || ingredient.measurement === 'pinch'}
-									{ingredient.measurement}
-								{:else}
-									{formattedIngredient.formattedMeasurement}
-								{/if}
-							</span>
-							<span class="ingredient-name">
-								{ingredient.name}
-								{#if ingredient.custom}
-									<span class="custom-badge">custom</span>
-								{/if}
-							</span>
-						</li>
-					{/each}
-				</ul>
-			</div>
+		<!-- Mobile Swipeable View -->
+		<div
+			class="mobile-view"
+			bind:this={cardContainer}
+			ontouchstart={handleTouchStart}
+			ontouchend={handleTouchEnd}
+		>
+			<div
+				class="progress-bar"
+				style:width={`${(currentCardIndex / (totalCards - 1)) * 100}%`}
+			></div>
 
-			<div class="recipe-main">
-				<div class="section-header">
-					<h3>Instructions</h3>
-				</div>
-				<ol class="instructions-list">
-					{#each recipe.instructions as instruction, i}
-						<li>
-							<div class="instruction-number">{i + 1}</div>
-							<div class="instruction-content">
-								{#if instruction.mediaUrl}
-									<div class="instruction-media">
-										{#if instruction.mediaType === 'image'}
-											<img
-												src={instruction.mediaUrl}
-												alt={`Step ${i + 1} visual`}
-												loading="lazy"
-												decoding="async"
-											/>
-										{:else if instruction.mediaType === 'video'}
-											<video src={instruction.mediaUrl} controls muted></video>
-										{/if}
-									</div>
-								{/if}
-								<div class="instruction-text">
-									{#each parseTemperature(instruction.text) as part}
-										{#if part.isTemperature && part.value !== undefined && part.unit}
-											<span class="temperature-wrapper">
-												<Popover triggerOn="hover" placement="top">
-													{#snippet trigger()}
-														<span class="temperature">{part.text}</span>
-													{/snippet}
+			<div class="card-container" style:transform={`translateX(-${currentCardIndex * 100}%)`}>
+				<!-- Card 1: Overview -->
+				<div class="recipe-card overview-card" class:active={currentCardIndex === CARD_OVERVIEW}>
+					<div class="card-content">
+						{#if recipe.imageUrl}
+							<div class="recipe-image">
+								<img src={recipe.imageUrl} alt={recipe.title} />
+							</div>
+						{/if}
+						<h2>{recipe.title}</h2>
 
-													{#snippet content()}
-														<span class="conversion"
-															>{getConversionText(
-																part.value as number,
-																part.unit as TemperatureUnit
-															)}</span
-														>
-													{/snippet}
-												</Popover>
-											</span>
-										{:else}
-											<span>{part.text}</span>
-										{/if}
+						{#if recipe.description}
+							<p class="description">{recipe.description}</p>
+						{/if}
+
+						<div class="recipe-tags">
+							{#if recipe.diets && recipe.diets.length > 0}
+								<div class="tags">
+									{#each recipe.diets as diet}
+										<Pill text={diet} color={dietColors[diet]} />
 									{/each}
 								</div>
+							{/if}
+						</div>
+
+						<div class="nutrition-facts">
+							<div class="nutrition-grid">
+								<div class="nutrition-item">
+									<div class="nutrition-circle">
+										<span class="value">{Math.round(nutrition.totalNutrition.calories)}</span>
+									</div>
+									<span class="label">CALORIES</span>
+								</div>
+								<div class="nutrition-item">
+									<div class="nutrition-circle">
+										<span class="value">{Math.round(nutrition.totalNutrition.protein)}g</span>
+									</div>
+									<span class="label">PROTEIN</span>
+								</div>
+								<div class="nutrition-item">
+									<div class="nutrition-circle">
+										<span class="value">{Math.round(nutrition.totalNutrition.carbs)}g</span>
+									</div>
+									<span class="label">CARBS</span>
+								</div>
+								<div class="nutrition-item">
+									<div class="nutrition-circle">
+										<span class="value">{Math.round(nutrition.totalNutrition.fat)}g</span>
+									</div>
+									<span class="label">FAT</span>
+								</div>
 							</div>
-						</li>
+						</div>
+
+						<div class="recipe-actions">
+							<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
+							{#if isLoggedIn}
+								<DislikeButton
+									isDisliked={recipe.isDisliked}
+									interactive={!!onDislike}
+									{onDislike}
+								/>
+								<LikeButton
+									count={recipe.likes}
+									isLiked={recipe.isLiked}
+									interactive={!!onLike}
+									{onLike}
+								/>
+								<BookmarkButton
+									count={recipe.bookmarks}
+									isBookmarked={recipe.isBookmarked}
+									interactive={!!onBookmark}
+									{onBookmark}
+								/>
+							{:else}
+								<Popover type="warning">
+									{#snippet trigger()}
+										<DislikeButton isDisliked={recipe.isDisliked} interactive={false} />
+									{/snippet}
+									{#snippet content()}
+										Login to dislike recipes!
+									{/snippet}
+								</Popover>
+								<Popover type="warning">
+									{#snippet trigger()}
+										<LikeButton count={recipe.likes} isLiked={recipe.isLiked} interactive={false} />
+									{/snippet}
+									{#snippet content()}
+										Login to like recipes!
+									{/snippet}
+								</Popover>
+								<Popover type="warning">
+									{#snippet trigger()}
+										<BookmarkButton
+											count={recipe.bookmarks}
+											isBookmarked={recipe.isBookmarked}
+											interactive={false}
+										/>
+									{/snippet}
+									{#snippet content()}
+										Login to bookmark recipes!
+									{/snippet}
+								</Popover>
+							{/if}
+						</div>
+					</div>
+				</div>
+
+				<!-- Card 2: Ingredients -->
+				<div
+					class="recipe-card ingredients-card"
+					class:active={currentCardIndex === CARD_INGREDIENTS}
+				>
+					<div class="card-header">
+						<h3>Ingredients</h3>
+						<div class="unit-toggle-container">
+							<UnitToggle state={unitSystem} onSelect={onUnitChange} />
+						</div>
+					</div>
+					<div class="card-content">
+						<ul class="ingredients-list">
+							{#each recipe.ingredients as ingredient}
+								{@const formattedIngredient = getFormattedIngredient(ingredient)}
+								<li>
+									<span class="measurement">
+										{#if ingredient.measurement === 'to taste' || ingredient.measurement === 'pinch'}
+											{ingredient.measurement}
+										{:else}
+											{formattedIngredient.formattedMeasurement}
+										{/if}
+									</span>
+									<span class="ingredient-name">
+										{ingredient.name}
+										{#if ingredient.custom}
+											<span class="custom-badge">custom</span>
+										{/if}
+									</span>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				</div>
+
+				<!-- Cards 3+: Instructions (one per step) -->
+				{#each recipe.instructions as instruction, i}
+					<div
+						class="recipe-card instruction-card"
+						class:active={currentCardIndex === CARD_INSTRUCTIONS_START + i}
+					>
+						<div class="card-header">
+							<h3>Step {i + 1}</h3>
+						</div>
+						<div class="card-content">
+							{#if instruction.mediaUrl}
+								<div class="instruction-media">
+									{#if instruction.mediaType === 'image'}
+										<img
+											src={instruction.mediaUrl}
+											alt={`Step ${i + 1} visual`}
+											loading="lazy"
+											decoding="async"
+										/>
+									{:else if instruction.mediaType === 'video'}
+										<video src={instruction.mediaUrl} controls muted></video>
+									{/if}
+								</div>
+							{/if}
+							<div class="instruction-text">
+								{#each parseTemperature(instruction.text) as part}
+									{#if part.isTemperature && part.value !== undefined && part.unit}
+										<span class="temperature-wrapper">
+											<Popover triggerOn="hover" placement="top">
+												{#snippet trigger()}
+													<span class="temperature">{part.text}</span>
+												{/snippet}
+
+												{#snippet content()}
+													<span class="conversion"
+														>{getConversionText(
+															part.value as number,
+															part.unit as TemperatureUnit
+														)}</span
+													>
+												{/snippet}
+											</Popover>
+										</span>
+									{:else}
+										<span>{part.text}</span>
+									{/if}
+								{/each}
+							</div>
+						</div>
+					</div>
+				{/each}
+			</div>
+
+			<!-- Fixed Navigation Footer -->
+			<div class="fixed-navigation-footer">
+				<div class="nav-button-container">
+					{#if currentCardIndex > 0}
+						<button
+							class="nav-button prev"
+							onclick={() =>
+								goToCard(
+									currentCardIndex === CARD_INGREDIENTS
+										? CARD_OVERVIEW
+										: currentCardIndex === CARD_INSTRUCTIONS_START
+											? CARD_INGREDIENTS
+											: CARD_INSTRUCTIONS_START + (currentCardIndex - CARD_INSTRUCTIONS_START - 1)
+								)}
+							aria-label={currentCardIndex === CARD_INGREDIENTS
+								? 'Back to Overview'
+								: currentCardIndex === CARD_INSTRUCTIONS_START
+									? 'Back to Ingredients'
+									: `Back to Step ${currentCardIndex - CARD_INSTRUCTIONS_START}`}
+						>
+							<ArrowLeft />
+						</button>
+					{:else}
+						<div class="nav-button-placeholder"></div>
+					{/if}
+				</div>
+
+				<!-- Mobile Navigation Dots -->
+				<div class="mobile-nav-dots">
+					{#each Array(totalCards) as _, i}
+						<button
+							class="nav-dot"
+							class:active={currentCardIndex === i}
+							onclick={() => goToCard(i)}
+							aria-label={i === 0 ? 'Overview' : i === 1 ? 'Ingredients' : `Step ${i - 1}`}
+						></button>
 					{/each}
-				</ol>
+				</div>
+
+				<div class="nav-button-container">
+					{#if currentCardIndex < totalCards - 1}
+						<button
+							class="nav-button next"
+							onclick={() => goToCard(currentCardIndex + 1)}
+							aria-label={currentCardIndex === CARD_OVERVIEW
+								? 'Go to Ingredients'
+								: currentCardIndex === CARD_INGREDIENTS
+									? 'Go to Instructions'
+									: `Go to Step ${currentCardIndex - CARD_INSTRUCTIONS_START + 2}`}
+						>
+							<ArrowRight />
+						</button>
+					{:else}
+						<div class="nav-button-placeholder"></div>
+					{/if}
+				</div>
 			</div>
 		</div>
 	</article>
 </div>
 
 <style lang="scss">
+	@import '$lib/global.scss';
+
 	.container {
 		max-width: 1000px;
 		margin: 0 auto;
 		padding: var(--spacing-xl) var(--spacing-md);
+
+		@include mobile {
+			padding: 0;
+			display: flex;
+			flex-direction: column;
+			background-color: var(--color-neutral-darkest);
+			overflow: hidden;
+			margin: 0;
+			width: 100%;
+			max-width: 100%;
+		}
 	}
 
 	.recipe {
@@ -298,20 +624,266 @@
 		border-radius: var(--border-radius-lg);
 		box-shadow: var(--shadow-lg);
 		padding: var(--spacing-xl);
+		position: relative;
+		overflow: hidden;
 
-		@media (max-width: 640px) {
+		@include small-mobile {
 			padding: var(--spacing-lg);
 			border-radius: var(--border-radius-md);
 		}
+
+		@include mobile {
+			height: 100%;
+			width: 100%;
+			margin: 0;
+			padding: 0;
+			display: flex;
+			flex-direction: column;
+			border-radius: 0;
+			flex: 1;
+			overflow: hidden;
+		}
 	}
 
+	// Desktop View Styles
+	.desktop-view {
+		display: block;
+
+		@include mobile {
+			display: none;
+		}
+	}
+
+	// Mobile View Styles
+	.mobile-view {
+		display: none;
+		width: 100%;
+		height: 100%;
+		transition: transform 0.3s ease;
+		touch-action: pan-x;
+		position: relative;
+		overflow: hidden;
+
+		@include mobile {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+			padding-top: 0;
+			background-color: var(--color-neutral-darkest);
+			height: 100%;
+			min-height: 0;
+			width: 100%;
+		}
+	}
+
+	.card-container {
+		display: flex;
+		width: 100%;
+		height: 100%;
+		transition: transform 0.3s ease;
+
+		@include mobile {
+			will-change: transform;
+			min-width: 100%;
+			flex-wrap: nowrap;
+			flex: 1;
+			overflow: visible;
+			padding-bottom: 0;
+			padding: 0;
+			display: flex;
+			align-items: stretch;
+			min-height: 0;
+		}
+	}
+
+	.recipe-card {
+		flex: 0 0 100%;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		padding: var(--spacing-md);
+		box-sizing: border-box;
+		position: relative;
+
+		@include mobile {
+			padding: 0;
+			overflow: hidden;
+			border-radius: 0;
+			margin: 0;
+			width: 100%;
+		}
+	}
+
+	.card-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-md);
+		padding-bottom: var(--spacing-xs);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+		@include mobile {
+			margin-bottom: 0;
+			padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
+			flex-shrink: 0;
+			background-color: var(--color-primary-dark);
+			border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+			border-bottom: none;
+		}
+
+		h3 {
+			@include mobile {
+				color: var(--color-neutral-lightest);
+				font-size: var(--font-size-lg);
+				letter-spacing: 0.5px;
+
+				&::after {
+					display: none;
+				}
+			}
+		}
+	}
+
+	.card-content {
+		flex: 1;
+		overflow-y: auto;
+		padding: var(--spacing-sm) 0;
+
+		@include mobile {
+			padding: var(--spacing-sm) var(--spacing-md);
+			-webkit-overflow-scrolling: touch;
+			scrollbar-width: thin;
+			overflow-y: auto;
+			flex: 1 1 auto;
+			min-height: 0;
+			display: flex;
+			flex-direction: column;
+			padding-bottom: 80px; /* Increase padding to account for fixed footer */
+
+			&::-webkit-scrollbar {
+				width: 4px;
+			}
+
+			&::-webkit-scrollbar-thumb {
+				background-color: var(--color-primary);
+				border-radius: 4px;
+			}
+		}
+	}
+
+	.card-footer {
+		display: flex;
+		justify-content: space-between;
+		margin-top: var(--spacing-md);
+		padding-top: var(--spacing-md);
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+		@include mobile {
+			display: none; /* Hide individual card footers on mobile */
+		}
+	}
+
+	.fixed-navigation-footer {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		background-color: var(--color-neutral-darkest);
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--spacing-sm) var(--spacing-md);
+		z-index: 20;
+		height: 70px;
+
+		@include mobile {
+			display: flex;
+			padding: var(--spacing-md);
+		}
+	}
+
+	.nav-button-container {
+		width: 60px;
+		display: flex;
+		justify-content: flex-start;
+
+		&:last-child {
+			justify-content: flex-end;
+		}
+	}
+
+	.nav-button-placeholder {
+		width: 40px;
+		height: 40px;
+	}
+
+	.nav-button {
+		background-color: var(--color-primary-dark);
+		color: var(--color-neutral-lightest);
+		border: none;
+		border-radius: 50%;
+		width: 40px;
+		height: 40px;
+		font-weight: var(--font-weight-semibold);
+		cursor: pointer;
+		transition: background-color 0.2s ease;
+		z-index: 21;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 20px;
+
+		&:hover {
+			background-color: var(--color-primary-light);
+		}
+
+		@include mobile {
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+			font-weight: var(--font-weight-bold);
+		}
+	}
+
+	.mobile-nav-dots {
+		display: flex;
+		justify-content: center;
+		gap: var(--spacing-xs);
+		margin: 0;
+		padding: 6px 10px;
+		background-color: rgba(0, 0, 0, 0.6);
+		border-radius: 20px;
+		width: fit-content;
+		box-shadow: var(--shadow-sm);
+		z-index: 20;
+	}
+
+	.nav-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background-color: var(--color-neutral);
+		border: none;
+		padding: 0;
+		cursor: pointer;
+		transition:
+			background-color 0.2s ease,
+			transform 0.2s ease;
+
+		&.active {
+			background-color: var(--color-primary);
+			transform: scale(1.3);
+		}
+
+		margin: 0 2px;
+	}
+
+	// Original styles (now applied to desktop view)
 	.recipe-header-section {
 		display: grid;
 		grid-template-columns: minmax(250px, 40%) 1fr;
 		gap: var(--spacing-xl);
 		margin-bottom: var(--spacing-xl);
 
-		@media (max-width: 900px) {
+		@include tablet {
 			grid-template-columns: 1fr;
 		}
 	}
@@ -329,9 +901,30 @@
 			object-fit: cover;
 		}
 
-		@media (max-width: 900px) {
+		@include tablet {
 			max-width: 400px;
 			margin: 0 auto var(--spacing-md) auto;
+		}
+
+		// Mobile card specific styles
+		.mobile-view & {
+			max-width: 100%;
+			margin: 0 0 var(--spacing-md) 0;
+			aspect-ratio: 16 / 9;
+
+			@include mobile {
+				max-height: 22vh;
+				margin: 0 0 var(--spacing-sm) 0;
+				border-radius: var(--border-radius-md);
+				box-shadow: var(--shadow-sm);
+				overflow: hidden;
+				flex-shrink: 0;
+
+				img {
+					transform: scale(1.02);
+					transition: transform 0.3s ease;
+				}
+			}
 		}
 	}
 
@@ -344,7 +937,7 @@
 			color: var(--color-neutral-lightest);
 			flex: 1;
 
-			@media (max-width: 640px) {
+			@include small-mobile {
 				font-size: var(--font-size-xl);
 			}
 		}
@@ -381,7 +974,7 @@
 		gap: var(--spacing-md);
 		margin-bottom: var(--spacing-sm);
 
-		@media (max-width: 640px) {
+		@include small-mobile {
 			flex-direction: column;
 			align-items: flex-start;
 		}
@@ -392,22 +985,49 @@
 		align-items: center;
 		gap: var(--spacing-sm);
 
-		@media (max-width: 640px) {
+		@include small-mobile {
 			margin-top: var(--spacing-sm);
+		}
+
+		// Mobile card specific styles
+		.mobile-view & {
+			margin-top: var(--spacing-md);
+			justify-content: center;
+
+			@include mobile {
+				background-color: rgba(0, 0, 0, 0.2);
+				padding: var(--spacing-sm);
+				border-radius: var(--border-radius-md);
+				margin-top: var(--spacing-sm);
+				flex-shrink: 0;
+			}
 		}
 	}
 
 	.recipe-tags {
 		margin-bottom: var(--spacing-md);
 
+		@include mobile {
+			flex-shrink: 0;
+		}
+
 		.tags {
 			display: flex;
 			flex-wrap: wrap;
 			gap: var(--spacing-xs);
+
+			@include mobile {
+				justify-content: center;
+			}
 		}
 	}
+
 	.nutrition-facts {
 		margin-top: var(--spacing-md);
+
+		@include mobile {
+			flex-shrink: 0;
+		}
 	}
 
 	.nutrition-grid {
@@ -416,9 +1036,20 @@
 		gap: var(--spacing-md);
 		margin-top: var(--spacing-lg);
 
-		@media (max-width: 640px) {
+		@include small-mobile {
 			grid-template-columns: repeat(2, 1fr);
 			gap: var(--spacing-lg);
+		}
+
+		// Mobile card specific styles
+		.mobile-view & {
+			@include mobile {
+				margin-top: var(--spacing-sm);
+				gap: var(--spacing-sm);
+				background-color: rgba(0, 0, 0, 0.2);
+				padding: var(--spacing-sm);
+				border-radius: var(--border-radius-md);
+			}
 		}
 	}
 
@@ -433,7 +1064,7 @@
 			font-weight: var(--font-weight-bold);
 			color: var(--color-primary);
 
-			@media (max-width: 640px) {
+			@include small-mobile {
 				font-size: var(--font-size-md);
 			}
 		}
@@ -458,9 +1089,18 @@
 		margin-bottom: var(--spacing-xs);
 		border: 2px solid var(--color-primary);
 
-		@media (max-width: 640px) {
+		@include small-mobile {
 			width: 60px;
 			height: 60px;
+		}
+
+		// Mobile card specific styles
+		.mobile-view & {
+			@include mobile {
+				width: 50px;
+				height: 50px;
+				background-color: var(--color-neutral-darkest);
+			}
 		}
 	}
 
@@ -479,14 +1119,14 @@
 		gap: var(--spacing-xl);
 		margin-top: var(--spacing-xl);
 
-		@media (max-width: 900px) {
+		@include tablet {
 			grid-template-columns: 1fr;
 			gap: var(--spacing-xl);
 		}
 	}
 
 	.recipe-sidebar {
-		@media (max-width: 900px) {
+		@include tablet {
 			max-width: 500px;
 		}
 	}
@@ -517,7 +1157,7 @@
 			}
 		}
 
-		@media (max-width: 640px) {
+		@include small-mobile {
 			flex-direction: column;
 			align-items: flex-start;
 			gap: var(--spacing-sm);
@@ -527,7 +1167,7 @@
 	.unit-toggle-container {
 		margin-left: var(--spacing-md);
 
-		@media (max-width: 640px) {
+		@include small-mobile {
 			margin-left: 0;
 		}
 	}
@@ -549,8 +1189,27 @@
 				border-bottom: none;
 			}
 
-			@media (max-width: 900px) {
+			@include tablet {
 				font-size: var(--font-size-md);
+			}
+		}
+
+		.mobile-view & {
+			@include mobile {
+				li {
+					padding: var(--spacing-sm) 0;
+					font-size: var(--font-size-sm);
+					border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+				}
+
+				.measurement {
+					min-width: 40px;
+					color: var(--color-primary-light);
+				}
+
+				.ingredient-name {
+					font-weight: var(--font-weight-medium);
+				}
 			}
 		}
 	}
@@ -561,7 +1220,7 @@
 		color: var(--color-primary);
 		min-width: 50px;
 
-		@media (max-width: 900px) {
+		@include tablet {
 			min-width: 60px;
 		}
 	}
@@ -589,7 +1248,7 @@
 				padding-bottom: 0;
 			}
 
-			@media (max-width: 640px) {
+			@include small-mobile {
 				margin-bottom: var(--spacing-lg);
 				padding-bottom: var(--spacing-lg);
 			}
@@ -627,8 +1286,16 @@
 			display: inline;
 		}
 
-		@media (max-width: 640px) {
+		@include small-mobile {
 			font-size: var(--font-size-base);
+		}
+
+		@include mobile {
+			font-size: var(--font-size-sm);
+			line-height: 1.5;
+			color: var(--color-neutral-lightest);
+			flex: 1;
+			overflow-y: auto;
 		}
 	}
 
@@ -652,8 +1319,12 @@
 			will-change: transform;
 		}
 
-		@media (max-width: 640px) {
+		@include small-mobile {
 			max-width: 100%;
+		}
+
+		@include mobile {
+			flex-shrink: 0;
 		}
 	}
 
@@ -684,5 +1355,113 @@
 
 	.temperature-wrapper {
 		display: inline;
+	}
+
+	// Mobile card specific styles for typography
+	.mobile-view {
+		h2 {
+			@include mobile {
+				font-size: 1.5rem;
+				margin-top: 0;
+				margin-bottom: var(--spacing-sm);
+				color: var(--color-primary);
+				text-align: center;
+				font-weight: var(--font-weight-bold);
+				flex-shrink: 0;
+			}
+		}
+
+		h3 {
+			@include mobile {
+				font-size: 1.1rem;
+				margin: 0;
+			}
+		}
+
+		.description {
+			@include mobile {
+				font-size: var(--font-size-sm);
+				margin-bottom: var(--spacing-md);
+				line-height: 1.5;
+				text-align: center;
+				color: var(--color-neutral-lightest);
+			}
+		}
+
+		.instruction-text {
+			@include mobile {
+				font-size: var(--font-size-sm);
+			}
+		}
+
+		.nutrition-item .value {
+			@include mobile {
+				font-size: var(--font-size-sm);
+			}
+		}
+
+		.nutrition-item .label {
+			@include mobile {
+				font-size: 0.65rem;
+			}
+		}
+
+		// Add progress indicator
+		.progress-bar {
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: 3px;
+			background-color: var(--color-primary);
+			transition: width 0.3s ease;
+			z-index: 10;
+		}
+	}
+
+	@keyframes fade-in-out {
+		0% {
+			opacity: 0;
+		}
+		20% {
+			opacity: 1;
+		}
+		80% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
+
+	.progress-bar {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 3px;
+		background-color: var(--color-primary);
+		transition: width 0.3s ease;
+		z-index: 10;
+
+		@include mobile {
+			height: 4px;
+			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+		}
+	}
+
+	.overview-card,
+	.ingredients-card,
+	.instruction-card {
+		@include mobile {
+			display: flex;
+			flex-direction: column;
+			height: 100%;
+
+			.card-content {
+				overflow-y: auto;
+				-webkit-overflow-scrolling: touch;
+				flex: 1;
+				min-height: 0;
+			}
+		}
 	}
 </style>

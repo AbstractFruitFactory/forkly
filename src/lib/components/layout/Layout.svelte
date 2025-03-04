@@ -22,6 +22,8 @@
 </div>
 
 <style lang="scss">
+	@import '$lib/global.scss';
+
 	.layout {
 		height: 100vh;
 		display: flex;
@@ -29,6 +31,10 @@
 		overflow-y: auto;
 		scrollbar-width: thin;
 		scrollbar-gutter: stable;
+
+		@include mobile {
+			background: var(--color-neutral-dark);
+		}
 	}
 
 	.header {
@@ -56,14 +62,26 @@
 		padding: 0 var(--spacing-md);
 		width: 100%;
 		box-sizing: border-box;
+
+		@include mobile {
+			padding: 0;
+		}
 	}
 
 	.main {
-		flex: 1;
-		
 		.container {
 			padding-top: var(--spacing-xl);
 			padding-bottom: var(--spacing-xl);
+
+			@include mobile {
+				padding: 0;
+				height: 100%;
+				display: flex;
+			}
+		}
+
+		@include mobile {
+			overflow: hidden;
 		}
 	}
 </style>

@@ -92,7 +92,9 @@
 	</nav>
 </header>
 
-<style>
+<style lang="scss">
+	@import '$lib/global.scss';
+
 	.header {
 		display: flex;
 		justify-content: space-between;
@@ -100,6 +102,10 @@
 		position: relative;
 		padding: var(--spacing-md) 0;
 		width: 100%;
+
+		@include mobile {
+			padding: var(--spacing-sm);
+		}
 	}
 
 	.left-section {
@@ -115,6 +121,10 @@
 		text-decoration: none;
 		transition: opacity var(--transition-fast) var(--ease-in-out);
 		white-space: nowrap;
+
+		@include mobile {
+			font-size: var(--font-size-2xl);
+		}
 	}
 
 	nav {
