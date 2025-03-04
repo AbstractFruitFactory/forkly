@@ -99,12 +99,14 @@
 		align-items: center;
 		position: relative;
 		padding: var(--spacing-md) 0;
+		width: 100%;
 	}
 
 	.left-section {
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-xl);
+		flex: 1;
 	}
 
 	.logo a {
@@ -112,12 +114,14 @@
 		font-size: var(--font-size-3xl);
 		text-decoration: none;
 		transition: opacity var(--transition-fast) var(--ease-in-out);
+		white-space: nowrap;
 	}
 
 	nav {
 		transition:
 			transform var(--transition-fast) var(--ease-in-out),
 			opacity var(--transition-fast) var(--ease-in-out);
+		flex-shrink: 0;
 	}
 
 	nav ul {
@@ -126,6 +130,7 @@
 		list-style: none;
 		margin: 0;
 		padding: 0;
+		align-items: center;
 	}
 
 	nav a {
@@ -135,6 +140,7 @@
 		font-weight: 500;
 		padding: var(--spacing-xs) var(--spacing-sm);
 		border-radius: var(--border-radius-sm);
+		white-space: nowrap;
 	}
 
 	nav a:hover,

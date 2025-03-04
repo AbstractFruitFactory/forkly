@@ -35,6 +35,7 @@
 		position: sticky;
 		top: 0;
 		z-index: var(--z-sticky);
+		width: 100%;
 	}
 
 	.header-background {
@@ -49,15 +50,20 @@
 	}
 
 	.container {
+		position: relative;
 		max-width: 1200px;
 		margin: 0 auto;
-		padding: 0 1rem;
+		padding: 0 var(--spacing-md);
+		width: 100%;
+		box-sizing: border-box;
 	}
 
 	.main {
+		flex: 1;
+		
 		.container {
-			padding-top: 2rem;
-			padding-bottom: 2rem;
+			padding-top: var(--spacing-xl);
+			padding-bottom: var(--spacing-xl);
 		}
 	}
 </style>
