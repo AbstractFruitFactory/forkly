@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit'
 import { db } from '$lib/server/db'
-import { recipe, recipeLike, ingredient, recipeIngredient, recipeNutrition } from '$lib/server/db/schema'
+import { recipe, recipeLike, recipeBookmark, ingredient, recipeIngredient, recipeNutrition } from '$lib/server/db/schema'
 import { and, eq } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 
@@ -47,6 +47,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   // Get like status if user is logged in
   let isLiked = false
+  let isBookmarked = false
   if (locals.user?.id) {
     const likes = await db
       .select()
@@ -56,12 +57,26 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         eq(recipeLike.userId, locals.user.id)
       ))
     isLiked = likes.length > 0
+
+    const bookmarks = await db
+      .select()
+      .from(recipeBookmark)
+      .where(and(
+        eq(recipeBookmark.recipeId, recipeId),
+        eq(recipeBookmark.userId, locals.user.id)
+      ))
+    isBookmarked = bookmarks.length > 0
   }
 
   const likes = await db
     .select()
     .from(recipeLike)
     .where(eq(recipeLike.recipeId, recipeId))
+
+  const bookmarks = await db
+    .select()
+    .from(recipeBookmark)
+    .where(eq(recipeBookmark.recipeId, recipeId))
 
   return {
     recipe: {
@@ -74,7 +89,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         spoonacularId: ri.ingredient.spoonacularId
       })),
       isLiked,
-      likes: likes.length
+      likes: likes.length,
+      isBookmarked,
+      bookmarks: bookmarks.length
     },
     nutrition
   }

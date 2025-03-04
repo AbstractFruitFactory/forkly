@@ -5,8 +5,12 @@
 	let { data } = $props()
 
 	const handleLike = async () => {
-		const response = await fetch(`/api/recipes/${data.recipe.id}/like`, {
-			method: 'POST'
+		const response = await fetch(`/api/recipes/like`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ id: data.recipe.id })
 		})
 
 		if (response.ok) {
@@ -15,8 +19,25 @@
 		}
 	}
 
+	const handleBookmark = async () => {
+		const response = await fetch(`/api/recipes/bookmark`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ id: data.recipe.id })
+		})
+
+		if (response.ok) {
+			isBookmarked = !isBookmarked
+			bookmarks = isBookmarked ? bookmarks + 1 : bookmarks - 1
+		}
+	}
+
 	let isLiked = $state(data.recipe.isLiked)
 	let likes = $state(data.recipe.likes)
+	let isBookmarked = $state(data.recipe.isBookmarked)
+	let bookmarks = $state(data.recipe.bookmarks)
 
 	const handleUnitChange = (system: UnitSystem) => {
 		if (system === 'metric') {
@@ -34,7 +55,9 @@
 	recipe={{
 		...data.recipe,
 		likes,
-		isLiked
+		isLiked,
+		bookmarks,
+		isBookmarked
 	}}
 	nutrition={{
 		totalNutrition: {
@@ -46,6 +69,8 @@
 		hasCustomIngredients: false
 	}}
 	onLike={handleLike}
+	onBookmark={handleBookmark}
 	{unitSystem}
 	onUnitChange={handleUnitChange}
+	isLoggedIn={!!data.user}
 />

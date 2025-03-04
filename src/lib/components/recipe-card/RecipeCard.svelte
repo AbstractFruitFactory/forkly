@@ -3,6 +3,7 @@
 	import List from 'lucide-svelte/icons/list'
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
+	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import { dietColors } from '$lib/types'
 	import type { DietType } from '$lib/types'
@@ -20,6 +21,7 @@
 			avatarUrl?: string | null
 		}
 		likes: number
+		bookmarks: number
 	}
 
 	let {
@@ -52,7 +54,10 @@
 				{/if}
 			</div>
 		{/if}
-		<LikeButton count={recipe.likes} />
+		<div class="action-buttons">
+			<LikeButton count={recipe.likes} />
+			<BookmarkButton count={recipe.bookmarks || 0} />
+		</div>
 	</div>
 	<div class="content">
 		<h2 id="recipe-title-{recipe.id}">{recipe.title}</h2>
@@ -130,11 +135,13 @@
 	.header {
 		position: relative;
 		
-		:global(.like-button) {
+		.action-buttons {
 			position: absolute;
 			top: var(--spacing-md);
 			right: var(--spacing-md);
 			z-index: 2;
+			display: flex;
+			gap: var(--spacing-xs);
 		}
 	}
 

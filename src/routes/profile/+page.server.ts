@@ -21,11 +21,16 @@ const updateProfileSchema = v.object({
 export const load: PageServerLoad = async ({ locals, fetch }) => {
   if (!locals.user) error(401, 'Unauthorized')
 
-  const response = await fetch('/api/recipes/user')
-  if (!response.ok) error(500, 'Failed to load recipes')
+  const recipesResponse = await fetch('/api/recipes/user')
+  if (!recipesResponse.ok) error(500, 'Failed to load recipes')
 
-  const recipes = await response.json()
-  return { recipes, user: locals.user }
+  const recipesData = await recipesResponse.json()
+  
+  return { 
+    recipes: recipesData.created, 
+    bookmarkedRecipes: recipesData.bookmarked, 
+    user: locals.user 
+  }
 }
 
 export const actions = {

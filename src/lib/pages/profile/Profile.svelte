@@ -6,21 +6,25 @@
 
 	type Recipe = DBRecipe & {
 		likes: number
+		bookmarks?: number
 	}
 
 	let {
 		user,
 		recipes = [],
+		bookmarkedRecipes = [],
 		recipeHref
 	}: {
 		user: Omit<User, 'passwordHash'>
 		recipes: Recipe[]
+		bookmarkedRecipes?: Recipe[]
 		recipeHref?: string
 	} = $props()
 
 	let userStats = $derived({
 		recipesCreated: recipes.length,
-		totalLikes: recipes.reduce((acc: number, recipe: Recipe) => acc + (recipe.likes || 0), 0)
+		totalLikes: recipes.reduce((acc: number, recipe: Recipe) => acc + (recipe.likes || 0), 0),
+		bookmarksCount: bookmarkedRecipes.length
 	})
 
 	let isEditMode = $state(false)
@@ -28,6 +32,7 @@
 	let editedBio = $state('')
 	let avatarPreview = $state<string | null>(null)
 	let error = $state('')
+	let activeTab = $state<'created' | 'bookmarked'>('created')
 
 	function toggleEditMode() {
 		if (!isEditMode) {
@@ -37,6 +42,10 @@
 		isEditMode = !isEditMode
 		avatarPreview = null
 		error = ''
+	}
+
+	function switchTab(tab: 'created' | 'bookmarked') {
+		activeTab = tab
 	}
 </script>
 
@@ -62,7 +71,13 @@
 				{#if isEditMode}
 					<div class="edit-form">
 						<form class="form-content" method="POST" enctype="multipart/form-data">
-							<MediaUpload name="avatar" type="image" maxSize={5} previewAlt="Profile picture" {error} />
+							<MediaUpload
+								name="avatar"
+								type="image"
+								maxSize={5}
+								previewAlt="Profile picture"
+								{error}
+							/>
 							<input
 								type="text"
 								name="username"
@@ -104,21 +119,54 @@
 					<span class="stat-value">{userStats.totalLikes}</span>
 					<span class="stat-label">Total Likes</span>
 				</div>
+				<div class="stat-card">
+					<span class="stat-value">{userStats.bookmarksCount}</span>
+					<span class="stat-label">Bookmarks</span>
+				</div>
 			</div>
 		</div>
 
 		<div class="recipes-section">
-			<h2>My Recipes</h2>
-			{#if recipes.length > 0}
+			<div class="tabs">
+				<button
+					class="tab-button"
+					class:active={activeTab === 'created'}
+					onclick={() => switchTab('created')}
+				>
+					My Recipes
+				</button>
+				<button
+					class="tab-button"
+					class:active={activeTab === 'bookmarked'}
+					onclick={() => switchTab('bookmarked')}
+				>
+					Bookmarked Recipes
+				</button>
+			</div>
+
+			{#if activeTab === 'created'}
+				{#if recipes.length > 0}
+					<div class="recipes-grid">
+						{#each recipes as recipe}
+							<ProfileRecipeCard {recipe} {recipeHref} />
+						{/each}
+					</div>
+				{:else}
+					<div class="empty-state">
+						<p>You haven't created any recipes yet.</p>
+						<Button href="/new" variant="primary">Create Your First Recipe</Button>
+					</div>
+				{/if}
+			{:else if bookmarkedRecipes.length > 0}
 				<div class="recipes-grid">
-					{#each recipes as recipe}
+					{#each bookmarkedRecipes as recipe}
 						<ProfileRecipeCard {recipe} {recipeHref} />
 					{/each}
 				</div>
 			{:else}
 				<div class="empty-state">
-					<p>You haven't created any recipes yet.</p>
-					<Button href="/new" variant="primary">Create Your First Recipe</Button>
+					<p>You haven't bookmarked any recipes yet.</p>
+					<Button href="/" variant="primary">Explore Recipes</Button>
 				</div>
 			{/if}
 		</div>
@@ -238,7 +286,7 @@
 
 	.stats-grid {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(3, 1fr);
 		gap: 1rem;
 		margin-top: 2rem;
 	}
@@ -359,5 +407,41 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
+	}
+
+	.tabs {
+		display: flex;
+		margin-bottom: 1.5rem;
+		border-bottom: 1px solid var(--color-neutral);
+	}
+
+	.tab-button {
+		background: none;
+		border: none;
+		padding: var(--spacing-md) var(--spacing-lg);
+		color: var(--color-neutral-light);
+		font-size: var(--font-size-md);
+		cursor: pointer;
+		position: relative;
+		transition: all var(--transition-fast) var(--ease-out);
+
+		&:hover {
+			color: white;
+		}
+
+		&.active {
+			color: var(--color-primary);
+			font-weight: 600;
+
+			&::after {
+				content: '';
+				position: absolute;
+				bottom: -1px;
+				left: 0;
+				width: 100%;
+				height: 2px;
+				background-color: var(--color-primary);
+			}
+		}
 	}
 </style>

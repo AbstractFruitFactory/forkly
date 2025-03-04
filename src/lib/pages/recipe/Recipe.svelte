@@ -17,6 +17,7 @@
 	import Popover from '$lib/components/popover/Popover.svelte'
 	import { parseTemperature, getConversionText } from '$lib/utils/temperature'
 	import type { TemperatureUnit } from '$lib/utils/temperature'
+	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 
 	let {
 		recipe,
@@ -24,7 +25,8 @@
 		onLike,
 		unitSystem,
 		onUnitChange,
-		isLoggedIn
+		isLoggedIn,
+		onBookmark
 	}: {
 		recipe: RecipeData
 		nutrition: {
@@ -35,6 +37,7 @@
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
 		isLoggedIn: boolean
+		onBookmark?: () => void
 	} = $props()
 
 	const getFormattedIngredient = (ingredient: Ingredient) => {
@@ -95,8 +98,18 @@
 							/>
 						{/snippet}
 
+						{#snippet bookmarkButton()}
+							<BookmarkButton
+								count={recipe.bookmarks}
+								isBookmarked={recipe.isBookmarked}
+								interactive={!!onBookmark}
+								onBookmark={isLoggedIn ? onBookmark : undefined}
+							/>
+						{/snippet}
+
 						{#if isLoggedIn}
 							{@render likeButton()}
+							{@render bookmarkButton()}
 						{:else}
 							<Popover type="warning">
 								{#snippet trigger()}
@@ -105,6 +118,15 @@
 
 								{#snippet content()}
 									Login to like recipes!
+								{/snippet}
+							</Popover>
+							<Popover type="warning">
+								{#snippet trigger()}
+									{@render bookmarkButton()}
+								{/snippet}
+
+								{#snippet content()}
+									Login to bookmark recipes!
 								{/snippet}
 							</Popover>
 						{/if}

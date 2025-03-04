@@ -3,6 +3,7 @@
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
+	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import { dietColors } from '$lib/types'
 	import type { DietType } from '$lib/types'
 
@@ -12,6 +13,7 @@
 		imageUrl?: string
 		diets?: DietType[]
 		likes?: number
+		bookmarks?: number
 	}
 
 	let {
@@ -47,8 +49,9 @@
 		<h3 class="title">{recipe.title}</h3>
 
 		<div class="details">
-			<div class="like-container">
+			<div class="action-container">
 				<LikeButton count={recipe.likes ?? 0} interactive={false} />
+				<BookmarkButton count={recipe.bookmarks ?? 0} interactive={false} />
 			</div>
 			
 			{#if recipe.diets && recipe.diets.length > 0}
@@ -213,10 +216,13 @@
 		backdrop-filter: blur(4px);
 	}
 
-	.like-container {
+	.action-container {
+		display: flex;
+		gap: var(--spacing-xs);
 		filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 		
-		:global(.like-button) {
+		:global(.like-button),
+		:global(.bookmark-button) {
 			background: rgba(0, 0, 0, 0.3);
 			backdrop-filter: blur(4px);
 		}

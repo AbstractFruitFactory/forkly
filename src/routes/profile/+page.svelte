@@ -4,4 +4,9 @@
 	let { data, form } = $props()
 </script>
 
-<Profile user={form?.user ?? data.user} recipes={data.recipes} recipeHref="/recipe" />
+<Profile 
+	user={form?.user ?? data.user} 
+	recipes={data.recipes} 
+	bookmarkedRecipes={data.bookmarkedRecipes}
+	recipeHref="/recipe" 
+/>

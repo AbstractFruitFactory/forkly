@@ -69,6 +69,20 @@ export const recipeLike = pgTable('recipe_like', {
 	}
 })
 
+export const recipeBookmark = pgTable('recipe_bookmark', {
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	recipeId: text('recipe_id')
+		.notNull()
+		.references(() => recipe.id, { onDelete: 'cascade' }),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => {
+	return {
+		pk: primaryKey({ columns: [table.userId, table.recipeId] })
+	}
+})
+
 export const recipeIngredient = pgTable('recipe_ingredient', {
 	recipeId: text('recipe_id')
 		.notNull()
@@ -96,3 +110,5 @@ export type IngredientRecord = typeof ingredient.$inferSelect
 export type RecipeIngredient = typeof recipeIngredient.$inferSelect
 
 export type RecipeNutrition = typeof recipeNutrition.$inferSelect
+
+export type RecipeBookmark = typeof recipeBookmark.$inferSelect
