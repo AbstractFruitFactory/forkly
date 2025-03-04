@@ -25,8 +25,8 @@ export const uploadMedia = async (
   options: UploadOptions = { folder: 'recipe-images', resource_type: 'auto' }
 ): Promise<string> => {
   const defaultOptions = {
-    allowed_formats: options.resource_type === 'video' 
-      ? ['mp4', 'mov', 'avi', 'webm'] 
+    allowed_formats: options.resource_type === 'video'
+      ? ['mp4', 'mov', 'avi', 'webm']
       : ['jpg', 'png', 'jpeg', 'webp'],
     max_file_size: options.resource_type === 'video' ? 50000000 : 10000000 // 50MB for videos, 10MB for images
   }
@@ -61,13 +61,10 @@ export const uploadMedia = async (
   })
 }
 
-// Keep the old function for backward compatibility
 export const uploadImage = async (
   imageBuffer: Buffer,
   options: Omit<UploadOptions, 'resource_type'> = { folder: 'recipe-images' }
-): Promise<string> => {
-  return uploadMedia(imageBuffer, { ...options, resource_type: 'image' })
-}
+): Promise<string> => uploadMedia(imageBuffer, { ...options, resource_type: 'image' })
 
 export const deleteImage = async (url: string): Promise<void> => {
   const matches = url.match(/\/v\d+\/(.+?)\.[^.]+$/)

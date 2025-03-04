@@ -101,6 +101,8 @@ export const load: PageServerLoad = async ({ url }) => {
 		})
 	}
 
+	console.log(recipes)
+
 	return {
 		recipes,
 		searchQuery,

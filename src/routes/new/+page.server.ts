@@ -87,9 +87,9 @@ type FormFields = {
   description: string
   ingredients: Ingredient[]
   instructions: {
-    text: string;
-    mediaUrl?: string;
-    mediaType?: 'image' | 'video';
+    text: string
+    mediaUrl?: string
+    mediaType?: 'image' | 'video'
   }[]
   diets: DietType[]
 }
@@ -144,10 +144,12 @@ function parseFormData(formData: FormData): FormFields {
   while (formData.has(`instructions-${i}-text`)) {
     const text = formData.get(`instructions-${i}-text`) as string
     const mediaFile = formData.get(`instructions-${i}-media`) as File | null
-    
+
     if (text) {
       instructions.push({
-        text
+        text,
+        mediaUrl: undefined,
+        mediaType: mediaFile ? (mediaFile.type.startsWith('video/') ? 'video' : 'image') : undefined
       })
     }
     i++
@@ -170,16 +172,16 @@ export const actions = {
   default: async ({ request, locals }) => {
     const formData = await request.formData()
     const recipeData = parseFormData(formData)
-    const imageFile = formData.get('image') as File | null
+    const imageFile = formData.get('image') as File | undefined
 
-    // Process instruction media files
-    let i = 0
-    const instructionMediaPromises = []
-    while (formData.has(`instructions-${i}-text`)) {
-      const mediaFile = formData.get(`instructions-${i}-media`) as File | null
-      
-      if (mediaFile && mediaFile.size > 0) {
-        const processMedia = async () => {
+    console.log(formData)
+
+    // Create a separate structure for instructions with their media
+    const instructionsWithMedia = await Promise.all(
+      recipeData.instructions.map(async (instruction, index) => {
+        const mediaFile = formData.get(`instructions-${index}-media`) as File | undefined
+
+        if (mediaFile && mediaFile.size > 0) {
           const arrayBuffer = await mediaFile.arrayBuffer()
           const buffer = Buffer.from(arrayBuffer)
           const isVideo = mediaFile.type.startsWith('video/')
@@ -187,23 +189,24 @@ export const actions = {
             folder: 'instruction-media',
             resource_type: isVideo ? 'video' : 'image'
           })
-          
-          if (recipeData.instructions[i]) {
-            recipeData.instructions[i].mediaUrl = mediaUrl
-            recipeData.instructions[i].mediaType = isVideo ? 'video' : 'image'
+
+          console.log('mediaURL', mediaUrl)
+
+          return {
+            ...instruction,
+            mediaUrl,
+            mediaType: isVideo ? ('video' as const) : ('image' as const)
           }
         }
-        
-        instructionMediaPromises.push(processMedia())
-      }
-      
-      i++
-    }
-    
-    // Wait for all media uploads to complete
-    if (instructionMediaPromises.length > 0) {
-      await Promise.all(instructionMediaPromises)
-    }
+
+        return instruction
+      })
+    )
+
+    // Update recipeData with the processed instructions
+    recipeData.instructions = instructionsWithMedia
+
+    console.log(recipeData)
 
     const result = v.safeParse(recipeSchema, recipeData)
     if (!result.success) {
@@ -277,60 +280,72 @@ export const actions = {
 
     const recipeId = generateId()
 
-    await db.insert(recipe).values({
-      id: recipeId,
-      title: result.output.title,
-      description: result.output.description,
-      instructions: result.output.instructions,
-      diets: recipeData.diets,
-      userId: locals.user?.id ?? null,
-      imageUrl
-    })
-
-    await db.insert(recipeNutrition).values({
-      recipeId,
-      ...nutrition
-    })
-
-    for (const ing of mappedIngredients) {
-      let ingredientId: string
-
-      if (!ing.custom && 'spoonacularId' in ing && ing.spoonacularId) {
-        const existingIngredients = await db
-          .select()
-          .from(ingredient)
-          .where(eq(ingredient.spoonacularId, ing.spoonacularId))
-
-        if (existingIngredients.length > 0) {
-          ingredientId = existingIngredients[0].id
-        } else {
-
-          const newIngredient = await db.insert(ingredient).values({
-            id: generateId(),
-            name: ing.name,
-            spoonacularId: ing.spoonacularId
-          }).returning()
-
-          ingredientId = newIngredient[0].id
-        }
-      } else {
-
-        const newIngredient = await db.insert(ingredient).values({
-          id: generateId(),
-          name: ing.name,
-          spoonacularId: null
-        }).returning()
-
-        ingredientId = newIngredient[0].id
-      }
-
-      await db.insert(recipeIngredient).values({
-        recipeId,
-        ingredientId,
-        quantity: ing.quantity,
-        measurement: ing.measurement
+    await db.transaction(async (tx) => {
+      await tx.insert(recipe).values({
+        id: recipeId,
+        title: result.output.title,
+        description: result.output.description,
+        instructions: result.output.instructions,
+        diets: recipeData.diets,
+        userId: locals.user?.id ?? null,
+        imageUrl
       })
-    }
+
+      await tx.insert(recipeNutrition).values({
+        recipeId,
+        ...nutrition
+      })
+
+      for (const ing of mappedIngredients) {
+        let ingredientId: string
+
+        if (!ing.custom && 'spoonacularId' in ing && ing.spoonacularId) {
+          const dbIngredient = await tx.insert(ingredient)
+            .values({
+              id: generateId(),
+              name: ing.name,
+              spoonacularId: ing.spoonacularId,
+              custom: false
+            })
+            .onConflictDoUpdate({
+              target: ingredient.spoonacularId,
+              set: {
+                name: ing.name,
+                custom: false
+              }
+            })
+            .returning()
+
+          ingredientId = dbIngredient[0].id
+        } else {
+          const dbIngredient = await tx.insert(ingredient)
+            .values({
+              id: generateId(),
+              name: ing.name,
+              spoonacularId: null,
+              custom: true
+            })
+            .onConflictDoUpdate({
+              target: ingredient.name,
+              set: {
+                name: ing.name,
+                spoonacularId: null,
+                custom: true
+              }
+            })
+            .returning()
+
+          ingredientId = dbIngredient[0].id
+        }
+
+        await tx.insert(recipeIngredient).values({
+          recipeId,
+          ingredientId,
+          quantity: ing.quantity,
+          measurement: ing.measurement
+        })
+      }
+    })
 
     return {
       success: true,
