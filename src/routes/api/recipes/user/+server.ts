@@ -56,7 +56,7 @@ const recipeQuery = (whereClause: SQL<unknown>) => {
     .orderBy(desc(recipe.createdAt))
 }
 
-export const GET: RequestHandler = async ({ locals, url }) => {
+export const GET: RequestHandler = async ({ locals }) => {
   if (!locals.user) error(401, { message: 'Unauthorized' })
 
   const createdRecipes = await recipeQuery(eq(recipe.userId, locals.user.id))
@@ -75,7 +75,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
     const quotedIds = recipeIds.map(id => `'${id}'`).join(',')
 
     bookmarkedRecipes = await recipeQuery(
-      sql`${recipe.id} IN (${sql.raw(quotedIds)}) AND ${recipe.userId} != ${locals.user.id}`
+      sql`${recipe.id} IN (${sql.raw(quotedIds)})`
     )
   }
 
