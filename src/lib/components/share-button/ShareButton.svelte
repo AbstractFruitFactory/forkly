@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { scale } from 'svelte/transition'
-	import Button from '../button/Button.svelte'
+	import Share from 'lucide-svelte/icons/share-2'
+	import ActionButton from '$lib/components/action-button/ActionButton.svelte'
 	import Popup from '../popup/Popup.svelte'
 	import Toast from '../toast/Toast.svelte'
 
@@ -63,27 +64,15 @@
 </script>
 
 <div class="share-wrapper">
-	<button onclick={togglePopup}>
-		<div class="share-button-content">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="16"
-				height="16"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			>
-				<circle cx="18" cy="5" r="3" />
-				<circle cx="6" cy="12" r="3" />
-				<circle cx="18" cy="19" r="3" />
-				<line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-				<line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-			</svg>
-		</div>
-	</button>
+	<ActionButton 
+		count={0}
+		interactive={true}
+		onAction={togglePopup}
+		icon={Share}
+		inactiveLabel="Share"
+		showCount={false}
+		--inactive-color="var(--color-text)"
+	/>
 
 	<Popup isOpen={isPopupOpen} onClose={togglePopup} title="Share" width="350px">
 		<div class="share-popup-content">
@@ -217,14 +206,6 @@
 <style lang="scss">
 	.share-wrapper {
 		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 1rem;
-		height: 1rem;
-	}
-
-	.share-button-content {
 		display: flex;
 		align-items: center;
 		justify-content: center;

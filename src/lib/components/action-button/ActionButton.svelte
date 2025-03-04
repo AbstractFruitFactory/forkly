@@ -9,7 +9,8 @@
 		icon,
 		activeLabel = 'Remove',
 		inactiveLabel = 'Add',
-		countLabel = 'items'
+		countLabel = 'items',
+		showCount = true
 	}: {
 		count: number
 		isActive?: boolean
@@ -19,6 +20,7 @@
 		activeLabel?: string
 		inactiveLabel?: string
 		countLabel?: string
+		showCount?: boolean
 	} = $props()
 </script>
 
@@ -39,7 +41,9 @@
 		size={interactive ? 20 : 16}
 		class={interactive ? (isActive ? 'filled' : '') : 'filled'}
 	/>
-	<span class="count">{count}</span>
+	{#if showCount}
+		<span class="count">{count}</span>
+	{/if}
 </svelte:element>
 
 <style lang="scss">

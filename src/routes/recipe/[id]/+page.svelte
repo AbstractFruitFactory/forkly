@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Recipe from '$lib/pages/recipe/Recipe.svelte'
 	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
+	import type { Ingredient } from '$lib/types'
 
 	let { data } = $props()
 
@@ -10,12 +11,26 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ id: data.recipe.id })
+			body: JSON.stringify({ id: data.id })
 		})
 
 		if (response.ok) {
 			isLiked = !isLiked
 			likes = isLiked ? likes + 1 : likes - 1
+		}
+	}
+
+	const handleDislike = async () => {
+		const response = await fetch(`/api/recipes/dislike`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ id: data.id })
+		})
+
+		if (response.ok) {
+			isDisliked = !isDisliked
 		}
 	}
 
@@ -25,7 +40,7 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ id: data.recipe.id })
+			body: JSON.stringify({ id: data.id })
 		})
 
 		if (response.ok) {
@@ -34,10 +49,17 @@
 		}
 	}
 
-	let isLiked = $state(data.recipe.isLiked)
-	let likes = $state(data.recipe.likes)
-	let isBookmarked = $state(data.recipe.isBookmarked)
-	let bookmarks = $state(data.recipe.bookmarks)
+	let isLiked = $state(data.isLiked)
+	let likes = $state(data.likes)
+	let isDisliked = $state(data.isDisliked)
+	let isBookmarked = $state(data.isBookmarked)
+	let bookmarks = $state(data.bookmarks)
+
+	// Map ingredients to the correct type
+	const ingredients = data.ingredients.map((ingredient: any): Ingredient => ({
+		...ingredient,
+		custom: ingredient.custom ?? false
+	}))
 
 	const handleUnitChange = (system: UnitSystem) => {
 		if (system === 'metric') {
@@ -53,9 +75,11 @@
 
 <Recipe
 	recipe={{
-		...data.recipe,
+		...data,
+		ingredients,
 		likes,
 		isLiked,
+		isDisliked,
 		bookmarks,
 		isBookmarked
 	}}
@@ -69,6 +93,7 @@
 		hasCustomIngredients: false
 	}}
 	onLike={handleLike}
+	onDislike={handleDislike}
 	onBookmark={handleBookmark}
 	{unitSystem}
 	onUnitChange={handleUnitChange}

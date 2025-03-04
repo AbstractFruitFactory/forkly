@@ -18,11 +18,13 @@
 	import { parseTemperature, getConversionText } from '$lib/utils/temperature'
 	import type { TemperatureUnit } from '$lib/utils/temperature'
 	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
+	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
 
 	let {
 		recipe,
 		nutrition,
 		onLike,
+		onDislike,
 		unitSystem,
 		onUnitChange,
 		isLoggedIn,
@@ -34,6 +36,7 @@
 			hasCustomIngredients: boolean
 		}
 		onLike?: () => void
+		onDislike?: () => void
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
 		isLoggedIn: boolean
@@ -98,6 +101,14 @@
 							/>
 						{/snippet}
 
+						{#snippet dislikeButton()}
+							<DislikeButton
+								isDisliked={recipe.isDisliked}
+								interactive={!!onDislike}
+								onDislike={isLoggedIn ? onDislike : undefined}
+							/>
+						{/snippet}
+
 						{#snippet bookmarkButton()}
 							<BookmarkButton
 								count={recipe.bookmarks}
@@ -108,9 +119,19 @@
 						{/snippet}
 
 						{#if isLoggedIn}
+							{@render dislikeButton()}
 							{@render likeButton()}
 							{@render bookmarkButton()}
 						{:else}
+							<Popover type="warning">
+								{#snippet trigger()}
+									{@render dislikeButton()}
+								{/snippet}
+
+								{#snippet content()}
+									Login to dislike recipes!
+								{/snippet}
+							</Popover>
 							<Popover type="warning">
 								{#snippet trigger()}
 									{@render likeButton()}
@@ -374,14 +395,12 @@
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-sm);
-		flex-shrink: 0;
 
 		@media (max-width: 640px) {
 			margin-top: var(--spacing-sm);
 		}
 	}
 
-	// Tags Section
 	.recipe-tags {
 		margin-bottom: var(--spacing-md);
 
@@ -391,8 +410,6 @@
 			gap: var(--spacing-xs);
 		}
 	}
-
-	// Nutrition Section
 	.nutrition-facts {
 		margin-top: var(--spacing-md);
 	}

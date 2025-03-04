@@ -91,6 +91,7 @@ export type RecipeData = {
   }
   likes: number
   isLiked?: boolean
+  isDisliked?: boolean
   bookmarks: number
   isBookmarked?: boolean
 }
