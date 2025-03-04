@@ -277,20 +277,16 @@
 						<div class="ingredient-input">
 							{#if showCustomInput[i] || !browser}
 								<div class="custom-ingredient">
-									<Input>
+									<Input actionButton={{
+										text: "Search instead",
+										onClick: () => (showCustomInput[i] = false)
+									}}>
 										<input
 											name={`ingredient-${i}-name&custom`}
 											placeholder="Enter custom ingredient"
 											value={inputValues[i] ?? ''}
 										/>
 									</Input>
-									<button
-										type="button"
-										class="text-button"
-										onclick={() => (showCustomInput[i] = false)}
-									>
-										Search instead
-									</button>
 								</div>
 							{:else}
 								<div class="custom-ingredient">
@@ -299,17 +295,11 @@
 										isLoading={isLoading[i]}
 										onSearch={(query) => searchIngredients(query, i)}
 										onSelect={(suggestion) => handleSelect(i, suggestion)}
+										actionButton={{
+											text: "Add manually",
+											onClick: () => setCustomIngredientInput(i)
+										}}
 									/>
-
-									{#if suggestions[i]?.length === 0 && !isLoading[i] && !selectedLookupIngredients[i] && inputValues[i]?.length >= 3}
-										<button
-											type="button"
-											class="text-button"
-											onclick={() => setCustomIngredientInput(i)}
-										>
-											Ingredient not found? Add it manually
-										</button>
-									{/if}
 								</div>
 							{/if}
 						</div>
@@ -511,26 +501,17 @@
 	}
 
 	.custom-ingredient {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-sm);
 		width: 100%;
+		height: 100%;
+
+		:global(.search),
+		:global(.input-wrapper) {
+			width: 100%;
+		}
 	}
 
 	.text-button {
-		background: none;
-		border: none;
-		color: var(--color-primary);
-		cursor: pointer;
-		font-size: var(--font-size-sm);
-		padding: 0;
-		text-align: left;
-		text-decoration: underline;
-		margin-top: var(--spacing-xs);
-
-		&:hover {
-			color: var(--color-primary-dark);
-		}
+		display: none;
 	}
 
 	.error-container {

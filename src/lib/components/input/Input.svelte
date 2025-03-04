@@ -1,11 +1,29 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
 
-	let { children }: { children: Snippet } = $props()
+	let { 
+		children,
+		actionButton,
+		isLoading
+	}: { 
+		children: Snippet
+		actionButton?: { text: string; onClick: () => void }
+		isLoading?: boolean
+	} = $props()
 </script>
 
 <div class="input-wrapper">
 	{@render children()}
+	<div class="right-elements">
+		{#if isLoading}
+			<div class="loading-spinner" />
+		{/if}
+		{#if actionButton}
+			<button class="action-button" type="button" on:click={actionButton.onClick}>
+				{actionButton.text}
+			</button>
+		{/if}
+	</div>
 </div>
 
 <style lang="scss">
@@ -48,6 +66,40 @@
 		display: flex;
 		flex-direction: column;
 
+		.right-elements {
+			position: absolute;
+			right: var(--spacing-md);
+			top: 50%;
+			transform: translateY(-50%);
+			display: flex;
+			align-items: center;
+			gap: var(--spacing-md);
+			z-index: 2;
+		}
+
+		.loading-spinner {
+			width: 16px;
+			height: 16px;
+			border: 2px solid var(--color-neutral);
+			border-top-color: var(--color-primary);
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+			pointer-events: none;
+		}
+
+		.action-button {
+			background: none;
+			border: none;
+			color: var(--color-primary);
+			cursor: pointer;
+			font-size: var(--font-size-sm);
+			padding: var(--spacing-xs) var(--spacing-sm);
+
+			&:hover {
+				color: var(--color-primary-dark);
+			}
+		}
+
 		:global(input),
 		:global(select),
 		:global(textarea) {
@@ -73,6 +125,12 @@
 			height: 10rem;
 			padding: var(--spacing-md);
 			line-height: 1.5;
+		}
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
 		}
 	}
 </style>

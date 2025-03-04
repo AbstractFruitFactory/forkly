@@ -10,7 +10,8 @@
 		onSearch,
 		onSelect,
 		inputElement = $bindable(),
-		clearInput = false
+		clearInput = false,
+		actionButton
 	}: {
 		placeholder?: string
 		isLoading?: boolean
@@ -18,6 +19,7 @@
 		onSelect?: (suggestion: T) => void
 		inputElement?: HTMLInputElement
 		clearInput?: boolean
+		actionButton?: { text: string; onClick: () => void }
 	} = $props()
 
 	let searchValue = $state('')
@@ -67,7 +69,7 @@
 
 <div class="search-wrapper" bind:this={searchWrapper}>
 	<Autocomplete
-		{isLoading}
+		isLoading={false}
 		suggestions={showSuggestions && suggestions.length > 0 ? suggestions : []}
 		onSelect={handleSelect}
 	>
@@ -87,7 +89,7 @@
 				<circle cx="11" cy="11" r="8" />
 				<line x1="21" y1="21" x2="16.65" y2="16.65" />
 			</svg>
-			<Input>
+			<Input {actionButton} {isLoading}>
 				<input
 					type="search"
 					{placeholder}
@@ -121,7 +123,27 @@
 		z-index: 1;
 	}
 
+	.loading-spinner {
+		position: absolute;
+		right: calc(var(--spacing-xl) * 2 + var(--spacing-xs));
+		width: 16px;
+		height: 16px;
+		border: 2px solid var(--color-neutral);
+		border-top-color: var(--color-primary);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+		pointer-events: none;
+		z-index: 2;
+	}
+
 	:global(.search-input-container input) {
 		padding-left: calc(var(--spacing-xl) + var(--spacing-xs)) !important;
+		padding-right: calc(var(--spacing-xl) * 2 + var(--spacing-xs)) !important;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 </style>
