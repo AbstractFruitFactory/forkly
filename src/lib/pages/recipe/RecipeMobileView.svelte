@@ -311,21 +311,13 @@
 
 	.mobile-view {
 		display: none;
-		width: 100%;
-		height: 100%;
-		transition: transform 0.3s ease;
-		touch-action: pan-x;
-		position: relative;
 
 		@include mobile {
+			touch-action: pan-x;
+			height: 100%;
+			overflow: hidden;
 			display: flex;
 			flex-direction: column;
-			flex: 1;
-			padding-top: 0;
-			background-color: var(--color-neutral-darkest);
-			height: 100%;
-			min-height: 0;
-			width: 100%;
 		}
 	}
 
@@ -426,11 +418,10 @@
 	}
 
 	.fixed-navigation-footer {
-		position: fixed;
 		bottom: 0;
 		left: 0;
 		right: 0;
-		background-color: var(--color-neutral-darkest);
+		background-color: var(--color-neutral-dark);
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -528,6 +519,7 @@
 			margin-left: -20px;
 			margin-right: -20px;
 			width: calc(100% + 40px);
+			height: 250px;
 			object-fit: cover;
 			object-position: center;
 		}

@@ -10,14 +10,10 @@
 <div class="layout">
 	<header class="header">
 		<div class="header-background"></div>
-		<div class="container">
-			{@render header()}
-		</div>
+		{@render header()}
 	</header>
 	<main class="main">
-		<div class="container">
-			{@render content()}
-		</div>
+		{@render content()}
 	</main>
 </div>
 
@@ -25,12 +21,10 @@
 	@import '$lib/global.scss';
 
 	.layout {
-		height: 100vh;
+		height: 100dvh;
 		display: flex;
 		flex-direction: column;
-		overflow-y: auto;
-		scrollbar-width: thin;
-		scrollbar-gutter: stable;
+		
 	}
 
 	.header {
@@ -38,6 +32,12 @@
 		top: 0;
 		z-index: var(--z-sticky);
 		width: 100%;
+
+		padding: 0 var(--spacing-xl);
+
+		@include mobile {
+			padding: 0 var(--spacing-md);
+		}
 	}
 
 	.header-background {
@@ -51,33 +51,16 @@
 		box-shadow: var(--shadow-sm);
 	}
 
-	.container {
-		position: relative;
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 0 var(--spacing-md);
-		width: 100%;
-		box-sizing: border-box;
+	.main {
+		flex-grow: 1;
+		overflow-y: auto;
+		scrollbar-width: thin;
+		scrollbar-gutter: stable;
+
+		padding: var(--spacing-xl);
 
 		@include mobile {
 			padding: 0;
-		}
-	}
-
-	.main {
-		.container {
-			padding-top: var(--spacing-xl);
-			padding-bottom: var(--spacing-xl);
-
-			@include mobile {
-				padding: 0;
-				height: 100%;
-				display: flex;
-			}
-		}
-
-		@include mobile {
-			overflow: hidden;
 		}
 	}
 </style>
