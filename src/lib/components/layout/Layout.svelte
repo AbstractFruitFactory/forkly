@@ -31,10 +31,6 @@
 		overflow-y: auto;
 		scrollbar-width: thin;
 		scrollbar-gutter: stable;
-
-		@include mobile {
-			background: var(--color-neutral-dark);
-		}
 	}
 
 	.header {

@@ -74,7 +74,7 @@
 				<span>{recipe.instructions} steps</span>
 			</span>
 		</div>
-		
+
 		{#if recipe.diets && recipe.diets.length > 0}
 			<div class="tags">
 				{#each recipe.diets as diet}
@@ -88,6 +88,7 @@
 <style lang="scss">
 	.recipe-card {
 		display: block;
+		min-height: 300px;
 		border-radius: var(--border-radius-lg);
 		background: var(--color-neutral-dark);
 		border: 1px solid rgba(255, 255, 255, 0.1);
@@ -134,7 +135,7 @@
 
 	.header {
 		position: relative;
-		
+
 		.action-buttons {
 			position: absolute;
 			top: var(--spacing-md);

@@ -122,10 +122,19 @@
 	{/if}
 </div>
 
-<style>
+<style lang="scss">
+	@import '$lib/global.scss';
 	.home-container {
 		max-width: 1400px;
 		margin: 0 auto;
+
+		@include mobile {
+			padding: var(--spacing-lg);
+			padding-bottom: 0;
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: column;
+		}
 	}
 
 	.empty-state {
@@ -137,6 +146,14 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 		gap: var(--spacing-lg);
+
+		&:last-child {
+			padding-bottom: var(--spacing-lg);
+		}
+
+		@include mobile {
+			overflow-y: auto;
+		}
 	}
 
 	.search-results-header {
