@@ -60,18 +60,39 @@
 				onkeydown={(e) => e.key === 'Enter' && handleSearchClick()}
 				type="button"
 			>
-				<Search placeholder="Search recipes..." isLoading={false} onSearch={() => []} />
+				<div class="search-desktop">
+					<Search placeholder="Search recipes..." isLoading={false} onSearch={() => []} />
+				</div>
+				<div class="search-mobile">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<circle cx="11" cy="11" r="8"></circle>
+						<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+					</svg>
+				</div>
 
 				<div class="search-shortcut">
 					<kbd>{isMac ? '⌘' : 'Ctrl'}+K</kbd>
 				</div>
 			</button>
-			<Button href={newRecipeHref} variant="primary" size="sm">New Recipe</Button>
 		</div>
 	</div>
 
-	<div class="hamburger-menu">
-		<HamburgerMenu bind:isOpen={isMenuOpen} size="sm" ariaLabel="Toggle navigation menu" />
+	<Button href={newRecipeHref} variant="primary" size="sm">New Recipe</Button>
+
+	<div class="mobile-actions">
+		<div class="hamburger-menu">
+			<HamburgerMenu bind:isOpen={isMenuOpen} size="sm" ariaLabel="Toggle navigation menu" />
+		</div>
 	</div>
 
 	<nav class:active={isMenuOpen}>
@@ -106,6 +127,7 @@
 
 			@include mobile {
 				display: block;
+				width: 24px;
 			}
 		}
 
@@ -129,6 +151,7 @@
 		position: relative;
 		padding: var(--spacing-md) 0;
 		width: 100%;
+		gap: var(--spacing-lg);
 
 		@include mobile {
 			padding: var(--spacing-sm);
@@ -143,6 +166,16 @@
 
 		@include mobile {
 			gap: var(--spacing-sm);
+		}
+	}
+
+	.mobile-actions {
+		display: none;
+		align-items: center;
+		gap: var(--spacing-sm);
+
+		@include mobile {
+			display: flex;
 		}
 	}
 
@@ -214,9 +247,28 @@
 			display: flex;
 			align-items: center;
 			gap: var(--spacing-sm);
+		}
+
+		&-desktop {
+			display: block;
 
 			@include mobile {
 				display: none;
+			}
+		}
+
+		&-mobile {
+			display: none;
+			width: 36px;
+			height: 36px;
+			border-radius: 50%;
+			background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
+			color: var(--color-neutral);
+			align-items: center;
+			justify-content: center;
+
+			@include mobile {
+				display: flex;
 			}
 		}
 
@@ -246,6 +298,10 @@
 			height: 100%;
 			pointer-events: none;
 
+			@include mobile {
+				display: none;
+			}
+
 			kbd {
 				background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
 				border-radius: var(--border-radius-sm);
@@ -258,10 +314,6 @@
 	}
 
 	.hamburger-menu {
-		display: none;
-
-		@include mobile {
-			display: block;
-		}
+		display: block;
 	}
 </style>
