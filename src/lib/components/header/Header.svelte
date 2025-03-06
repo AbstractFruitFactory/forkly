@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/button/Button.svelte'
 	import Search from '$lib/components/search/Search.svelte'
+	import HamburgerMenu from '$lib/components/hamburger-menu'
 	import { onMount } from 'svelte'
 
 	let {
@@ -23,10 +24,6 @@
 
 	let isMenuOpen = $state(false)
 	let isMac = $state(false)
-
-	const toggleMenu = () => {
-		isMenuOpen = !isMenuOpen
-	}
 
 	const handleSearchClick = () => {
 		onOpenSearch?.()
@@ -53,7 +50,8 @@
 <header class="header">
 	<div class="left-section">
 		<div class="logo">
-			<a href="/">Forkly</a>
+			<a href="/" class="logo-desktop">Forkly</a>
+			<a href="/" class="logo-mobile">F</a>
 		</div>
 		<div class="search-container">
 			<button
@@ -72,10 +70,9 @@
 		</div>
 	</div>
 
-	<button class="menu-toggle" onclick={toggleMenu}>
-		<span class="sr-only">Toggle menu</span>
-		<span class="icon">{isMenuOpen ? '✕' : '☰'}</span>
-	</button>
+	<div class="hamburger-menu">
+		<HamburgerMenu bind:isOpen={isMenuOpen} size="sm" ariaLabel="Toggle navigation menu" />
+	</div>
 
 	<nav class:active={isMenuOpen}>
 		<ul>
@@ -95,6 +92,36 @@
 <style lang="scss">
 	@import '$lib/global.scss';
 
+	.logo {
+		&-desktop {
+			display: block;
+
+			@include mobile {
+				display: none;
+			}
+		}
+
+		&-mobile {
+			display: none;
+
+			@include mobile {
+				display: block;
+			}
+		}
+
+		a {
+			font-family: 'Pacifico', cursive;
+			font-size: var(--font-size-3xl);
+			text-decoration: none;
+			transition: opacity var(--transition-fast) var(--ease-in-out);
+			white-space: nowrap;
+
+			@include mobile {
+				font-size: var(--font-size-2xl);
+			}
+		}
+	}
+
 	.header {
 		display: flex;
 		justify-content: space-between;
@@ -113,17 +140,9 @@
 		align-items: center;
 		gap: var(--spacing-xl);
 		flex: 1;
-	}
-
-	.logo a {
-		font-family: 'Pacifico', cursive;
-		font-size: var(--font-size-3xl);
-		text-decoration: none;
-		transition: opacity var(--transition-fast) var(--ease-in-out);
-		white-space: nowrap;
 
 		@include mobile {
-			font-size: var(--font-size-2xl);
+			gap: var(--spacing-sm);
 		}
 	}
 
@@ -132,114 +151,44 @@
 			transform var(--transition-fast) var(--ease-in-out),
 			opacity var(--transition-fast) var(--ease-in-out);
 		flex-shrink: 0;
-	}
 
-	nav ul {
-		display: flex;
-		gap: var(--spacing-lg);
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		align-items: center;
-	}
-
-	nav a {
-		text-decoration: none;
-		color: var(--color-neutral);
-		transition: all var(--transition-fast) var(--ease-in-out);
-		font-weight: 500;
-		padding: var(--spacing-xs) var(--spacing-sm);
-		border-radius: var(--border-radius-sm);
-		white-space: nowrap;
-	}
-
-	nav a:hover,
-	nav a:focus-visible {
-		color: var(--color-primary);
-		background: var(--color-neutral-dark-hover, rgba(255, 255, 255, 0.1));
-		outline: none;
-	}
-
-	.menu-toggle {
-		display: none;
-		padding: var(--spacing-sm);
-		background: transparent;
-		border: 1px solid var(--color-neutral);
-		border-radius: var(--border-radius-sm);
-		color: var(--color-neutral);
-		transition: all var(--transition-fast) var(--ease-in-out);
-		cursor: pointer;
-	}
-
-	.menu-toggle:hover,
-	.menu-toggle:focus-visible {
-		color: var(--color-primary);
-		border-color: var(--color-primary);
-		outline: none;
-	}
-
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		border: 0;
-	}
-
-	.search-container {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-	}
-
-	.search-trigger {
-		cursor: pointer;
-		width: 100%;
-		transition: all var(--transition-fast) var(--ease-in-out);
-		position: relative;
-		background: none;
-		border: none;
-		padding: 0;
-		display: block;
-	}
-
-	.search-trigger:hover {
-		opacity: 0.8;
-	}
-
-	.search-shortcut {
-		position: absolute;
-		right: var(--spacing-sm);
-		top: 50%;
-		transform: translateY(-50%);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		height: 100%;
-		pointer-events: none;
-	}
-
-	.search-shortcut kbd {
-		background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
-		border-radius: var(--border-radius-sm);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		font-size: var(--font-size-xs);
-		color: var(--color-neutral);
-		font-family: monospace;
-	}
-
-	@media (max-width: 768px) {
-		.menu-toggle {
+		ul {
 			display: flex;
+			gap: var(--spacing-lg);
+			list-style: none;
+			margin: 0;
+			padding: 0;
 			align-items: center;
-			justify-content: center;
-			font-size: var(--font-size-lg);
+
+			@include mobile {
+				flex-direction: column;
+				gap: var(--spacing-md);
+			}
 		}
 
-		nav {
+		a {
+			text-decoration: none;
+			color: var(--color-neutral);
+			transition: all var(--transition-fast) var(--ease-in-out);
+			font-weight: 500;
+			padding: var(--spacing-xs) var(--spacing-sm);
+			border-radius: var(--border-radius-sm);
+			white-space: nowrap;
+
+			&:hover,
+			&:focus-visible {
+				color: var(--color-primary);
+				background: var(--color-neutral-dark-hover, rgba(255, 255, 255, 0.1));
+				outline: none;
+			}
+
+			@include mobile {
+				display: block;
+				padding: var(--spacing-sm) var(--spacing-md);
+			}
+		}
+
+		@include mobile {
 			position: absolute;
 			top: calc(100% + 1px);
 			left: 0;
@@ -250,31 +199,69 @@
 			transform: translateY(-1rem);
 			pointer-events: none;
 			border-bottom: 1px solid var(--color-neutral);
-		}
 
-		nav.active {
-			opacity: 1;
-			transform: translateY(0);
-			pointer-events: auto;
-			z-index: var(--z-drawer);
+			&.active {
+				opacity: 1;
+				transform: translateY(0);
+				pointer-events: auto;
+				z-index: var(--z-drawer);
+			}
 		}
+	}
 
-		nav ul {
-			flex-direction: column;
-			gap: var(--spacing-md);
-		}
-
-		nav a {
-			display: block;
-			padding: var(--spacing-sm) var(--spacing-md);
-		}
-
-		.left-section {
+	.search {
+		&-container {
+			display: flex;
+			align-items: center;
 			gap: var(--spacing-sm);
+
+			@include mobile {
+				display: none;
+			}
 		}
 
-		.search-container {
-			display: none;
+		&-trigger {
+			cursor: pointer;
+			width: 100%;
+			transition: all var(--transition-fast) var(--ease-in-out);
+			position: relative;
+			background: none;
+			border: none;
+			padding: 0;
+			display: block;
+
+			&:hover {
+				opacity: 0.8;
+			}
+		}
+
+		&-shortcut {
+			position: absolute;
+			right: var(--spacing-sm);
+			top: 50%;
+			transform: translateY(-50%);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			height: 100%;
+			pointer-events: none;
+
+			kbd {
+				background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
+				border-radius: var(--border-radius-sm);
+				padding: var(--spacing-xs) var(--spacing-sm);
+				font-size: var(--font-size-xs);
+				color: var(--color-neutral);
+				font-family: monospace;
+			}
+		}
+	}
+
+	.hamburger-menu {
+		display: none;
+
+		@include mobile {
+			display: block;
 		}
 	}
 </style>
