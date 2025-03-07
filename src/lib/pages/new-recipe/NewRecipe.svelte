@@ -45,6 +45,7 @@
 	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import { dietTypes, dietColors } from '$lib/types'
+	import IngredientInput from '$lib/components/ingredient-input/IngredientInput.svelte'
 
 	type T = $$Generic<{ name: string; custom: false }>
 	type Ingredient = T | { name: string; custom: true }
@@ -189,87 +190,11 @@
 			<div id="ingredients">
 				{#each Array(ingredientCount) as _, i}
 					<div class="ingredient-group">
-						<div class="quantity-wrapper">
-							<Input>
-								<input
-									type="number"
-									step="0.01"
-									min="0"
-									name={`ingredient-${i}-quantity`}
-									placeholder="Qty"
-									class="quantity-input"
-								/>
-							</Input>
-						</div>
-
-						<div class="unit-wrapper">
-							<Input>
-								<select name={`ingredient-${i}-measurement`}>
-									<option value="">Unit</option>
-
-									{#if unitSystem === 'metric'}
-										{#each UNITS.weight.metric as unit}
-											{#if measurementUnits.includes(unit as any)}
-												<option value={unit}
-													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
-												>
-											{/if}
-										{/each}
-									{:else}
-										{#each UNITS.weight.imperial as unit}
-											{#if measurementUnits.includes(unit as any)}
-												<option value={unit}
-													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
-												>
-											{/if}
-										{/each}
-									{/if}
-
-									{#if unitSystem === 'metric'}
-										{#each UNITS.volume.metric as unit}
-											{#if measurementUnits.includes(unit as any)}
-												<option value={unit}
-													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
-												>
-											{/if}
-										{/each}
-									{:else}
-										{#each UNITS.volume.imperial as unit}
-											{#if measurementUnits.includes(unit as any)}
-												<option value={unit}
-													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
-												>
-											{/if}
-										{/each}
-									{/if}
-
-									{#if unitSystem === 'metric'}
-										{#each UNITS.length.metric as unit}
-											{#if measurementUnits.includes(unit as any)}
-												<option value={unit}
-													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
-												>
-											{/if}
-										{/each}
-									{:else}
-										{#each UNITS.length.imperial as unit}
-											{#if measurementUnits.includes(unit as any)}
-												<option value={unit}
-													>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
-												>
-											{/if}
-										{/each}
-									{/if}
-
-									{#each UNITS.other as unit}
-										{#if measurementUnits.includes(unit as any)}
-											<option value={unit}
-												>{measurementUnitDisplayText[unit as MeasurementUnit]}</option
-											>
-										{/if}
-									{/each}
-								</select>
-							</Input>
+						<div class="quantity-unit-wrapper">
+							<IngredientInput
+								name={`ingredient-${i}`}
+								{unitSystem}
+							/>
 						</div>
 
 						<div class="ingredient-input">
@@ -423,12 +348,8 @@
 		margin-bottom: var(--spacing-md);
 		align-items: flex-start;
 
-		.quantity-wrapper {
-			flex: 0 0 100px;
-		}
-
-		.unit-wrapper {
-			flex: 0 0 150px;
+		.quantity-unit-wrapper {
+			flex: 0 0 200px;
 		}
 
 		.ingredient-input {
@@ -452,6 +373,10 @@
 
 			> div {
 				width: 100%;
+			}
+
+			.quantity-unit-wrapper {
+				flex: none;
 			}
 		}
 	}
