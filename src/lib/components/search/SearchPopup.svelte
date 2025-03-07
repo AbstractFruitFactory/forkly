@@ -295,7 +295,7 @@
 				</div>
 			{/if}
 		</div>
-		<div style:margin="auto">
+		<div class="footer">
 			<Button
 				onclick={handleShowAllResults}
 				disabled={searchQuery.trim().length === 0 &&
@@ -309,10 +309,17 @@
 </Popup>
 
 <style lang="scss">
+	@import '$lib/global.scss';
+
 	.search-popup-content {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
+		height: 100%;
+
+		@include mobile {
+			max-height: 100%;
+		}
 	}
 
 	.search-container {
@@ -358,6 +365,7 @@
 		background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
 		border-radius: var(--border-radius-lg);
 		border: 1px solid rgba(255, 255, 255, 0.05);
+		overflow: hidden;
 	}
 
 	.content-container,
@@ -489,7 +497,9 @@
 
 	.result-item {
 		width: 100%;
-		min-width: 0;
+
+		@include mobile {
+		}
 	}
 
 	.scroll-indicator {
@@ -515,5 +525,19 @@
 		flex-wrap: wrap;
 		gap: var(--spacing-xs);
 		margin-bottom: var(--spacing-sm);
+	}
+
+	.footer {
+		display: flex;
+		justify-content: flex-end;
+		padding: var(--spacing-md);
+		flex-grow: 1;
+		align-items: flex-end;
+
+		@include mobile {
+			:global(.button) {
+				width: 100%;
+			}
+		}
 	}
 </style>

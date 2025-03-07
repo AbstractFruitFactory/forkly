@@ -127,8 +127,6 @@
 </script>
 
 <div class="container">
-	<h1>Create New Recipe</h1>
-
 	<form
 		method="POST"
 		enctype="multipart/form-data"
@@ -157,7 +155,7 @@
 		{/if}
 
 		<div class="form-group">
-			<label for="title">Recipe Title</label>
+			<label for="title">Title</label>
 			<Input>
 				<input id="title" name="title" type="text" required placeholder="Enter recipe title" />
 			</Input>

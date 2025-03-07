@@ -85,6 +85,7 @@
 {/if}
 
 <style lang="scss">
+	@import '$lib/global.scss';
 	.popup-overlay {
 		position: fixed;
 		top: 0;
@@ -97,6 +98,10 @@
 		justify-content: center;
 		z-index: var(--z-modal);
 		padding: var(--spacing-md);
+
+		@include mobile {
+			padding: 0;
+		}
 	}
 
 	.popup-container {
@@ -108,6 +113,14 @@
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
+
+		@include mobile {
+			width: 100vw;
+			height: 100vh;
+			border-radius: 0;
+			box-shadow: none;
+			max-height: none;
+		}
 	}
 
 	.popup-header {
@@ -147,5 +160,11 @@
 	.popup-content {
 		padding: var(--spacing-lg);
 		overflow-y: auto;
+		height: 100%;
+
+		@include mobile {
+			padding: var(--spacing-md);
+			
+		}
 	}
 </style>
