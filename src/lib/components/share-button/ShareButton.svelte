@@ -70,6 +70,7 @@
 		icon={Share}
 		inactiveLabel="Share"
 		showCount={false}
+		interactive={true}
 		--inactive-color="var(--color-text)"
 	/>
 
