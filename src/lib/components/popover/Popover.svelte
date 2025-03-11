@@ -32,7 +32,7 @@
 	} = $props()
 
 	let isOpen = $state(false)
-	let reference: HTMLDivElement
+	let reference: HTMLElement
 	let floating: HTMLDivElement
 	let arrowElement: HTMLDivElement
 	let cleanup: (() => void) | undefined
@@ -107,32 +107,29 @@
 	}
 
 	const injectReference = (node: HTMLElement) => {
-		const firstChild = node.firstElementChild as HTMLDivElement
-		if (firstChild) {
-			if (triggerOn === 'click') {
-				firstChild.addEventListener('click', openPopover)
-			} else {
-				firstChild.addEventListener('mouseenter', openPopover)
-				firstChild.addEventListener('mouseleave', closePopover)
-			}
-			reference = firstChild
+		reference = node;
+		
+		if (triggerOn === 'click') {
+			node.addEventListener('click', openPopover)
+		} else {
+			node.addEventListener('mouseenter', openPopover)
+			node.addEventListener('mouseleave', closePopover)
 		}
+		
 		return {
 			destroy() {
-				if (firstChild) {
-					if (triggerOn === 'click') {
-						firstChild.removeEventListener('click', openPopover)
-					} else {
-						firstChild.removeEventListener('mouseenter', openPopover)
-						firstChild.removeEventListener('mouseleave', closePopover)
-					}
+				if (triggerOn === 'click') {
+					node.removeEventListener('click', openPopover)
+				} else {
+					node.removeEventListener('mouseenter', openPopover)
+					node.removeEventListener('mouseleave', closePopover)
 				}
 			}
 		}
 	}
 </script>
 
-<div style:display="contents" use:injectReference>
+<div use:injectReference>
 	{@render trigger()}
 </div>
 
@@ -143,7 +140,7 @@
 		bind:this={floating}
 		transition:fade={{ duration: 100 }}
 		role="tooltip"
-		on:mouseleave={triggerOn === 'hover' ? closePopover : undefined}
+		onmouseleave={triggerOn === 'hover' ? closePopover : undefined}
 	>
 		{#if showArrow}
 			<div class="arrow" bind:this={arrowElement}></div>
