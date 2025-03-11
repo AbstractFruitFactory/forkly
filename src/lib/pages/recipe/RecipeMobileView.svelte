@@ -302,7 +302,7 @@
 
 	.tabs {
 		display: flex;
-		background-color: var(--color-neutral-dark);
+		background-color: var(--color-background);
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 		padding: 0;
 		margin: 0;
@@ -350,7 +350,7 @@
 
 	.tab-content {
 		flex: 1;
-		background-color: var(--color-neutral-dark);
+		background-color: var(--color-background);
 	}
 
 	.overview-content,
@@ -432,26 +432,6 @@
 			gap: var(--spacing-md);
 			justify-content: flex-end;
 			padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
-		}
-	}
-
-	h2 {
-		@include mobile {
-			font-size: 1.75rem;
-			margin-top: var(--spacing-sm);
-			margin-bottom: var(--spacing-md);
-			color: var(--color-primary);
-			text-align: center;
-			font-weight: var(--font-weight-bold);
-			flex-shrink: 0;
-			width: 100%;
-		}
-	}
-
-	h3 {
-		@include mobile {
-			font-size: 1.1rem;
-			margin: 0;
 		}
 	}
 
