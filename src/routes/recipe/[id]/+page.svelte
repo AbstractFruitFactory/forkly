@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation'
 	import Recipe from '$lib/pages/recipe/Recipe.svelte'
 	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
 	import type { Ingredient } from '$lib/types'
@@ -56,10 +57,12 @@
 	let bookmarks = $state(data.bookmarks)
 
 	// Map ingredients to the correct type
-	const ingredients = data.ingredients.map((ingredient: any): Ingredient => ({
-		...ingredient,
-		custom: ingredient.custom ?? false
-	}))
+	const ingredients = data.ingredients.map(
+		(ingredient: any): Ingredient => ({
+			...ingredient,
+			custom: ingredient.custom ?? false
+		})
+	)
 
 	const handleUnitChange = (system: UnitSystem) => {
 		if (system === 'metric') {
@@ -98,4 +101,5 @@
 	{unitSystem}
 	onUnitChange={handleUnitChange}
 	isLoggedIn={!!data.user}
+	onBackClick={() => goto('/')}
 />

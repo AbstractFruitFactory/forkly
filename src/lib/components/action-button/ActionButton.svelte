@@ -4,47 +4,34 @@
 	let {
 		count = 0,
 		isActive = false,
-		interactive = false,
 		onAction,
 		icon,
 		activeLabel = 'Remove',
 		inactiveLabel = 'Add',
-		countLabel = 'items',
 		showCount = true
 	}: {
 		count: number
 		isActive?: boolean
-		interactive?: boolean
 		onAction?: () => void
 		icon: ComponentType
 		activeLabel?: string
 		inactiveLabel?: string
-		countLabel?: string
 		showCount?: boolean
 	} = $props()
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<svelte:element
-	this={interactive ? 'button' : 'div'}
+<button
 	class="action-button"
 	class:active={isActive}
-	onclick={interactive ? onAction : undefined}
-	aria-label={interactive
-		? isActive
-			? `${activeLabel}`
-			: `${inactiveLabel}`
-		: `${count} ${countLabel}`}
+	onclick={onAction}
+	aria-label={isActive ? `${activeLabel}` : `${inactiveLabel}`}
 >
-	<svelte:component
-		this={icon}
-		size={interactive ? 20 : 16}
-		class={interactive ? (isActive ? 'filled' : '') : 'filled'}
-	/>
+	<svelte:component this={icon} size={20} class={isActive ? 'filled' : ''} />
 	{#if showCount}
 		<span class="count">{count}</span>
 	{/if}
-</svelte:element>
+</button>
 
 <style lang="scss">
 	.action-button {

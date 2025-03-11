@@ -24,7 +24,8 @@
 		onUnitChange,
 		isLoggedIn,
 		onBookmark,
-		getFormattedIngredient
+		getFormattedIngredient,
+		onBackClick
 	}: {
 		recipe: RecipeData
 		nutrition: {
@@ -38,28 +39,41 @@
 		isLoggedIn: boolean
 		onBookmark?: () => void
 		getFormattedIngredient: (ingredient: Ingredient, unitSystem: UnitSystem) => any
+		onBackClick?: () => void
 	} = $props()
 
 	let activeTab = $state('overview')
 	let currentStep = $state(0)
 	let stepsContainer: HTMLElement | null = null
+	let showActions = $state(true)
 
 	function goToStep(index: number) {
 		if (index >= 0 && index < recipe.instructions.length) {
 			currentStep = index
-			stepsContainer?.scrollTo({
-				left: index * window.innerWidth,
-				behavior: 'smooth'
-			})
+			const stepElement = document.getElementById(`instruction-step-${index}`)
+			if (stepElement && stepsContainer) {
+				stepsContainer.scrollTo({
+					left: stepElement.offsetLeft,
+					behavior: 'smooth'
+				})
+			}
 		}
 	}
 
 	function handleScroll(e: Event) {
 		if (stepsContainer) {
-			const newStep = Math.round(stepsContainer.scrollLeft / window.innerWidth)
-			if (newStep !== currentStep) {
-				currentStep = newStep
-			}
+			// Use requestAnimationFrame to avoid excessive calculations during scroll
+			requestAnimationFrame(() => {
+				if (stepsContainer) {
+					const containerWidth = stepsContainer.clientWidth
+					const scrollPosition = stepsContainer.scrollLeft
+					const newStep = Math.round(scrollPosition / containerWidth)
+					
+					if (newStep !== currentStep && newStep >= 0 && newStep < recipe.instructions.length) {
+						currentStep = newStep
+					}
+				}
+			})
 		}
 	}
 </script>
@@ -95,57 +109,9 @@
 				{#if recipe.imageUrl}
 					<div class="recipe-image">
 						<img src={recipe.imageUrl} alt={recipe.title} />
-						<div class="recipe-actions">
-							<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
-							{#if isLoggedIn}
-								<DislikeButton
-									isDisliked={recipe.isDisliked}
-									interactive={!!onDislike}
-									{onDislike}
-								/>
-								<LikeButton
-									count={recipe.likes}
-									isLiked={recipe.isLiked}
-									interactive={!!onLike}
-									{onLike}
-								/>
-								<BookmarkButton
-									count={recipe.bookmarks}
-									isBookmarked={recipe.isBookmarked}
-									interactive={!!onBookmark}
-									{onBookmark}
-								/>
-							{:else}
-								<Popover type="warning">
-									{#snippet trigger()}
-										<DislikeButton isDisliked={recipe.isDisliked} interactive={false} />
-									{/snippet}
-									{#snippet content()}
-										Login to dislike recipes!
-									{/snippet}
-								</Popover>
-								<Popover type="warning">
-									{#snippet trigger()}
-										<LikeButton count={recipe.likes} isLiked={recipe.isLiked} interactive={false} />
-									{/snippet}
-									{#snippet content()}
-										Login to like recipes!
-									{/snippet}
-								</Popover>
-								<Popover type="warning">
-									{#snippet trigger()}
-										<BookmarkButton
-											count={recipe.bookmarks}
-											isBookmarked={recipe.isBookmarked}
-											interactive={false}
-										/>
-									{/snippet}
-									{#snippet content()}
-										Login to bookmark recipes!
-									{/snippet}
-								</Popover>
-							{/if}
-						</div>
+						<button class="back-button" onclick={onBackClick} aria-label="Back to home">
+							<ArrowLeft size={20} />
+						</button>
 					</div>
 				{/if}
 				<h3>{recipe.title}</h3>
@@ -195,9 +161,6 @@
 				<div class="steps-container" bind:this={stepsContainer} onscroll={handleScroll}>
 					{#each recipe.instructions as instruction, i}
 						<div class="instruction-step" id="instruction-step-{i}">
-							<div class="step-header">
-								<h3>Step {i + 1}</h3>
-							</div>
 							{#if instruction.mediaUrl}
 								<div class="recipe-image">
 									{#if instruction.mediaType === 'image'}
@@ -284,6 +247,51 @@
 			</div>
 		{/if}
 	</div>
+
+	{#if activeTab === 'overview' && showActions}
+		<div class="floating-actions">
+			<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
+			{#if isLoggedIn}
+				<DislikeButton isDisliked={recipe.isDisliked} interactive={!!onDislike} {onDislike} />
+				<LikeButton count={recipe.likes} isLiked={recipe.isLiked} interactive={!!onLike} {onLike} />
+				<BookmarkButton
+					count={recipe.bookmarks}
+					isBookmarked={recipe.isBookmarked}
+					interactive={!!onBookmark}
+					{onBookmark}
+				/>
+			{:else}
+				<Popover type="warning">
+					{#snippet trigger()}
+						<DislikeButton isDisliked={recipe.isDisliked} interactive={false} />
+					{/snippet}
+					{#snippet content()}
+						Login to dislike recipes!
+					{/snippet}
+				</Popover>
+				<Popover type="warning">
+					{#snippet trigger()}
+						<LikeButton count={recipe.likes} isLiked={recipe.isLiked} interactive={false} />
+					{/snippet}
+					{#snippet content()}
+						Login to like recipes!
+					{/snippet}
+				</Popover>
+				<Popover type="warning">
+					{#snippet trigger()}
+						<BookmarkButton
+							count={recipe.bookmarks}
+							isBookmarked={recipe.isBookmarked}
+							interactive={false}
+						/>
+					{/snippet}
+					{#snippet content()}
+						Login to bookmark recipes!
+					{/snippet}
+				</Popover>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style lang="scss">
@@ -291,21 +299,48 @@
 
 	.mobile-view {
 		display: none;
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: var(--z-modal);
+		background-color: var(--color-neutral-darkest);
+		overflow: hidden;
 
 		@include mobile {
-			height: 100%;
 			display: flex;
 			flex-direction: column;
-			overflow-y: auto;
+		}
+	}
+
+	.back-button {
+		position: absolute;
+		top: 10px;
+		left: 10px;
+		background-color: rgba(0, 0, 0, 0.5);
+		color: white;
+		border: none;
+		border-radius: 50%;
+		width: 36px;
+		height: 36px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		z-index: 10;
+		transition: background-color 0.2s ease;
+
+		&:hover {
+			background-color: rgba(0, 0, 0, 0.7);
 		}
 	}
 
 	.tabs {
 		display: flex;
-		background-color: var(--color-background);
+		justify-content: space-between;
+		background-color: var(--color-neutral-dark);
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-		padding: 0;
-		margin: 0;
 		position: sticky;
 		top: 0;
 		z-index: 10;
@@ -350,7 +385,14 @@
 
 	.tab-content {
 		flex: 1;
-		background-color: var(--color-background);
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+		position: relative;
+		background: var(--color-background);
+
+		&.allow-scroll {
+			overflow: hidden;
+		}
 	}
 
 	.overview-content,
@@ -364,6 +406,7 @@
 		height: calc(100vh - 126px); /* Account for tabs (56px) and navigation footer (70px) */
 		overflow: hidden;
 		padding-bottom: 70px; /* Space for the navigation footer */
+		background-color: var(--color-neutral-darkest);
 	}
 
 	.steps-container {
@@ -376,6 +419,8 @@
 		-webkit-overflow-scrolling: touch;
 		scrollbar-width: none; /* Firefox */
 		-ms-overflow-style: none; /* IE and Edge */
+		scroll-behavior: smooth;
+		gap: 0; /* Ensure no gap between steps */
 
 		&::-webkit-scrollbar {
 			display: none; /* Chrome, Safari and Opera */
@@ -387,11 +432,20 @@
 		width: 100vw;
 		min-width: 100vw;
 		max-width: 100vw;
+		height: 100%;
 		padding: var(--spacing-md);
-		scroll-snap-align: start;
+		scroll-snap-align: center;
 		scroll-snap-stop: always;
-		overflow: hidden;
+		overflow-y: auto;
+		overflow-x: hidden;
 		box-sizing: border-box;
+		background-color: var(--color-neutral-darkest);
+		isolation: isolate; /* Create a new stacking context */
+
+		.recipe-image {
+			margin-top: 0;
+			margin-bottom: var(--spacing-lg);
+		}
 	}
 
 	.overview-content {
@@ -422,17 +476,6 @@
 			object-fit: cover;
 			object-position: center;
 		}
-
-		.recipe-actions {
-			position: absolute;
-			top: -20px;
-			left: -20px;
-			right: -20px;
-			display: flex;
-			gap: var(--spacing-md);
-			justify-content: flex-end;
-			padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
-		}
 	}
 
 	.description {
@@ -448,6 +491,7 @@
 			color: var(--color-neutral-lightest);
 			flex: 1;
 			overflow-y: auto;
+			margin-top: var(--spacing-md);
 		}
 	}
 
@@ -753,5 +797,19 @@
 		}
 
 		margin: 0 2px;
+	}
+
+	.floating-actions {
+		position: fixed;
+		bottom: 20px;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		gap: var(--spacing-md);
+		background-color: var(--color-neutral-dark);
+		padding: 10px 16px;
+		border-radius: 50px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+		z-index: 30;
 	}
 </style>

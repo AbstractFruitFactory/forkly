@@ -14,7 +14,8 @@
 		unitSystem,
 		onUnitChange,
 		isLoggedIn,
-		onBookmark
+		onBookmark,
+		onBackClick
 	}: {
 		recipe: RecipeData
 		nutrition: {
@@ -27,6 +28,7 @@
 		onUnitChange: (system: UnitSystem) => void
 		isLoggedIn: boolean
 		onBookmark?: () => void
+		onBackClick?: () => void
 	} = $props()
 </script>
 
@@ -50,4 +52,5 @@
 	{onUnitChange}
 	{isLoggedIn}
 	{onBookmark}
+	{onBackClick}
 />
