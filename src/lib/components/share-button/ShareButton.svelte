@@ -64,9 +64,8 @@
 </script>
 
 <div class="share-wrapper">
-	<ActionButton 
+	<ActionButton
 		count={0}
-		interactive={true}
 		onAction={togglePopup}
 		icon={Share}
 		inactiveLabel="Share"

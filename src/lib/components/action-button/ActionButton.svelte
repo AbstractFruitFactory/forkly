@@ -57,6 +57,7 @@
 		align-items: center;
 		gap: var(--spacing-xs);
 		width: fit-content;
+		height: 29px;
 
 		&.active {
 			color: var(--active-color);
