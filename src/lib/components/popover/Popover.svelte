@@ -175,7 +175,7 @@
 	}
 
 	.warning {
-		background: var(--color-error-light);
+		background: var(--color-error);
 		border-color: var(--color-error-dark);
 
 		.arrow {
