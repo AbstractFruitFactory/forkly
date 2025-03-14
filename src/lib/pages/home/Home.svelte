@@ -125,9 +125,6 @@
 <style lang="scss">
 	@import '$lib/global.scss';
 	.home-container {
-		max-width: 1400px;
-		margin: 0 auto;
-
 		@include mobile {
 			padding: var(--spacing-lg);
 			padding-bottom: 0;

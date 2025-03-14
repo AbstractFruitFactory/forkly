@@ -1,28 +1,24 @@
 <script lang="ts">
 	import Button from '$lib/components/button/Button.svelte'
 	import Search from '$lib/components/search/Search.svelte'
-	import HamburgerMenu from '$lib/components/hamburger-menu'
 	import { onMount } from 'svelte'
 
 	let {
 		loggedIn = false,
 		newRecipeHref,
-		aboutHref,
 		profileHref,
 		loginHref,
-		onLogout,
+		profilePicUrl = '',
 		onOpenSearch
 	}: {
 		loggedIn: boolean
 		newRecipeHref?: string
-		aboutHref?: string
 		profileHref?: string
 		loginHref?: string
-		onLogout?: () => void
+		profilePicUrl?: string
 		onOpenSearch?: () => void
 	} = $props()
 
-	let isMenuOpen = $state(false)
 	let isMac = $state(false)
 
 	const handleSearchClick = () => {
@@ -87,27 +83,41 @@
 		</div>
 	</div>
 
-	<Button href={newRecipeHref} variant="primary" size="sm">New Recipe</Button>
-
-	<div class="mobile-actions">
-		<div class="hamburger-menu">
-			<HamburgerMenu bind:isOpen={isMenuOpen} size="sm" ariaLabel="Toggle navigation menu" />
+	<div class="right-section">
+		<div class="new-recipe-wrapper">
+			<Button href={newRecipeHref} variant="primary" size="sm">New Recipe</Button>
 		</div>
-	</div>
 
-	<nav class:active={isMenuOpen}>
-		<ul>
-			<li><a href={aboutHref}>About</a></li>
+		<nav class="main-nav">
 			{#if loggedIn}
-				<li><a href={profileHref}>Profile</a></li>
-				<li>
-					<Button variant="text" onclick={onLogout}>Logout</Button>
-				</li>
+				<a href={profileHref} class="profile-link">
+					{#if profilePicUrl}
+						<img src={profilePicUrl} alt="Profile" class="profile-pic" />
+					{:else}
+						<div class="profile-pic-placeholder">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="20"
+								height="20"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
+								<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+								<circle cx="12" cy="7" r="4"></circle>
+							</svg>
+						</div>
+					{/if}
+					<span class="profile-text">Profile</span>
+				</a>
 			{:else}
-				<li><a href={loginHref}>Login</a></li>
+				<Button href={loginHref} variant="secondary" size="sm">Login</Button>
 			{/if}
-		</ul>
-	</nav>
+		</nav>
+	</div>
 </header>
 
 <style lang="scss">
@@ -169,77 +179,19 @@
 		}
 	}
 
-	.mobile-actions {
-		display: none;
+	.right-section {
+		display: flex;
 		align-items: center;
-		gap: var(--spacing-sm);
+		gap: var(--spacing-lg);
 
 		@include mobile {
-			display: flex;
+			gap: var(--spacing-sm);
 		}
 	}
 
-	nav {
-		transition:
-			transform var(--transition-fast) var(--ease-in-out),
-			opacity var(--transition-fast) var(--ease-in-out);
-		flex-shrink: 0;
-
-		ul {
-			display: flex;
-			gap: var(--spacing-lg);
-			list-style: none;
-			margin: 0;
-			padding: 0;
-			align-items: center;
-
-			@include mobile {
-				flex-direction: column;
-				gap: var(--spacing-md);
-			}
-		}
-
-		a {
-			text-decoration: none;
-			color: var(--color-neutral);
-			transition: all var(--transition-fast) var(--ease-in-out);
-			font-weight: 500;
-			padding: var(--spacing-xs) var(--spacing-sm);
-			border-radius: var(--border-radius-sm);
-			white-space: nowrap;
-
-			&:hover,
-			&:focus-visible {
-				color: var(--color-primary);
-				background: var(--color-neutral-dark-hover, rgba(255, 255, 255, 0.1));
-				outline: none;
-			}
-
-			@include mobile {
-				display: block;
-				padding: var(--spacing-sm) var(--spacing-md);
-			}
-		}
-
-		@include mobile {
-			position: absolute;
-			top: calc(100% + 1px);
-			left: 0;
-			right: 0;
-			background: var(--color-neutral-dark);
-			padding: var(--spacing-md);
-			opacity: 0;
-			transform: translateY(-1rem);
-			pointer-events: none;
-			border-bottom: 1px solid var(--color-neutral);
-
-			&.active {
-				opacity: 1;
-				transform: translateY(0);
-				pointer-events: auto;
-				z-index: var(--z-drawer);
-			}
-		}
+	.main-nav {
+		display: flex;
+		align-items: center;
 	}
 
 	.search {
@@ -313,7 +265,42 @@
 		}
 	}
 
-	.hamburger-menu {
-		display: block;
+	.profile {
+		&-link {
+			display: flex;
+			align-items: center;
+			gap: var(--spacing-sm);
+
+			&:hover,
+			&:focus-visible {
+				color: var(--color-primary);
+				background: var(--color-neutral-dark-hover, rgba(255, 255, 255, 0.1));
+				outline: none;
+			}
+		}
+
+		&-text {
+			@include mobile {
+				display: none;
+			}
+		}
+
+		&-pic {
+			width: 32px;
+			height: 32px;
+			border-radius: 50%;
+			object-fit: cover;
+		}
+
+		&-pic-placeholder {
+			width: 32px;
+			height: 32px;
+			border-radius: 50%;
+			background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: var(--color-neutral);
+		}
 	}
 </style>

@@ -24,7 +24,6 @@
 		height: 100dvh;
 		display: flex;
 		flex-direction: column;
-		
 	}
 
 	.header {
@@ -32,6 +31,8 @@
 		top: 0;
 		z-index: var(--z-sticky);
 		width: 100%;
+		max-width: 1400px;
+		margin: 0 auto;
 
 		padding: 0 var(--spacing-xl);
 
@@ -49,6 +50,8 @@
 		background: var(--color-neutral-dark);
 		border-bottom: 1px solid var(--color-neutral);
 		box-shadow: var(--shadow-sm);
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
 	}
 
 	.main {
@@ -56,6 +59,8 @@
 		overflow-y: auto;
 		scrollbar-width: thin;
 		scrollbar-gutter: stable;
+		max-width: 1400px;
+		margin: 0 auto;
 
 		padding: var(--spacing-xl);
 
