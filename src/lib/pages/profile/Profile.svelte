@@ -13,12 +13,14 @@
 		user,
 		recipes = [],
 		bookmarkedRecipes = [],
-		recipeHref
+		recipeHref,
+		onLogout
 	}: {
 		user: Omit<User, 'passwordHash'>
 		recipes: Recipe[]
 		bookmarkedRecipes?: Recipe[]
 		recipeHref?: string
+		onLogout?: () => void
 	} = $props()
 
 	let userStats = $derived({
@@ -105,7 +107,10 @@
 					<div class="profile-info">
 						<h1>{user.username}</h1>
 						<p class="bio">{user.bio || 'No bio yet'}</p>
-						<Button variant="secondary" size="sm" onclick={toggleEditMode}>Edit Profile</Button>
+						<div class="profile-actions">
+							<Button variant="secondary" size="sm" onclick={toggleEditMode}>Edit Profile</Button>
+							<Button variant="text" size="sm" onclick={onLogout}>Logout</Button>
+						</div>
 					</div>
 				{/if}
 			</div>
@@ -441,5 +446,11 @@
 				background-color: var(--color-primary);
 			}
 		}
+	}
+
+	.profile-actions {
+		display: flex;
+		gap: var(--spacing-md);
+		margin-top: var(--spacing-md);
 	}
 </style>
