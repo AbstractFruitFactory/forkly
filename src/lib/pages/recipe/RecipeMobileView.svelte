@@ -68,7 +68,7 @@
 					const containerWidth = stepsContainer.clientWidth
 					const scrollPosition = stepsContainer.scrollLeft
 					const newStep = Math.round(scrollPosition / containerWidth)
-					
+
 					if (newStep !== currentStep && newStep >= 0 && newStep < recipe.instructions.length) {
 						currentStep = newStep
 					}
@@ -177,7 +177,7 @@
 							{/if}
 							<div class="instruction-text">
 								{#each parseTemperature(instruction.text) as part}
-									{#if part.isTemperature && part.value !== undefined && part.unit}
+									{#if part.isTemperature}
 										<span class="temperature-wrapper">
 											<Popover triggerOn="hover" placement="top">
 												{#snippet trigger()}
@@ -304,7 +304,7 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		z-index: var(--z-modal);
+		z-index: var(--z-drawer);
 		background-color: var(--color-neutral-darkest);
 		overflow: hidden;
 
@@ -802,8 +802,6 @@
 	.floating-actions {
 		position: fixed;
 		bottom: 20px;
-		left: 50%;
-		transform: translateX(-50%);
 		display: flex;
 		gap: var(--spacing-md);
 		background-color: var(--color-neutral-dark);
@@ -811,5 +809,10 @@
 		border-radius: 50px;
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 		z-index: 30;
+		left: 0;
+		right: 0;
+		margin-left: auto;
+		margin-right: auto;
+		width: fit-content;
 	}
 </style>

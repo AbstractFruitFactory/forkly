@@ -107,15 +107,15 @@
 	}
 
 	const injectReference = (node: HTMLElement) => {
-		reference = node;
-		
+		reference = node
+
 		if (triggerOn === 'click') {
 			node.addEventListener('click', openPopover)
 		} else {
 			node.addEventListener('mouseenter', openPopover)
 			node.addEventListener('mouseleave', closePopover)
 		}
-		
+
 		return {
 			destroy() {
 				if (triggerOn === 'click') {
@@ -129,9 +129,9 @@
 	}
 </script>
 
-<div use:injectReference>
+<span use:injectReference>
 	{@render trigger()}
-</div>
+</span>
 
 {#if isOpen}
 	<div
