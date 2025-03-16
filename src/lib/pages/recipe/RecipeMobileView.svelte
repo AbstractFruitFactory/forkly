@@ -112,21 +112,20 @@
 						<button class="back-button" onclick={onBackClick} aria-label="Back to home">
 							<ArrowLeft size={20} />
 						</button>
+						{#if recipe.diets && recipe.diets.length > 0}
+							<div class="diet-pills-overlay">
+								{#each recipe.diets as diet}
+									<Pill text={diet} color={dietColors[diet]} />
+								{/each}
+							</div>
+						{/if}
 					</div>
 				{/if}
-				<h3>{recipe.title}</h3>
+				<div class="recipe-details">
+					<h2 class="recipe-title">{recipe.title}</h2>
 
-				{#if recipe.description}
-					<p class="description subtext">{recipe.description}</p>
-				{/if}
-
-				<div class="recipe-tags">
-					{#if recipe.diets && recipe.diets.length > 0}
-						<div class="tags">
-							{#each recipe.diets as diet}
-								<Pill text={diet} color={dietColors[diet]} />
-							{/each}
-						</div>
+					{#if recipe.description}
+						<p class="description">{recipe.description}</p>
 					{/if}
 				</div>
 			</div>
@@ -316,14 +315,14 @@
 
 	.back-button {
 		position: absolute;
-		top: 10px;
-		left: 10px;
-		background-color: rgba(0, 0, 0, 0.5);
+		top: 16px;
+		left: 16px;
+		background-color: rgba(0, 0, 0, 0.6);
 		color: white;
 		border: none;
 		border-radius: 50%;
-		width: 36px;
-		height: 36px;
+		width: 40px;
+		height: 40px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -332,7 +331,7 @@
 		transition: background-color 0.2s ease;
 
 		&:hover {
-			background-color: rgba(0, 0, 0, 0.7);
+			background-color: rgba(0, 0, 0, 0.8);
 		}
 	}
 
@@ -364,7 +363,7 @@
 			bottom: 0;
 			left: 0;
 			width: 100%;
-			height: 2px;
+			height: 3px;
 			background-color: var(--color-primary);
 			transform: scaleX(0);
 			transition: transform 0.2s ease;
@@ -395,10 +394,37 @@
 		}
 	}
 
-	.overview-content,
+	.overview-content {
+		display: flex;
+		flex-direction: column;
+		padding: 0;
+		overflow: hidden;
+	}
+
+	.recipe-details {
+		padding: var(--spacing-md) var(--spacing-lg);
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+	}
+
+	.recipe-title {
+		font-size: var(--font-size-xl);
+		font-weight: var(--font-weight-bold);
+		margin: 0;
+		color: var(--color-neutral-lightest);
+		line-height: 1.2;
+	}
+
 	.ingredients-content {
 		padding: var(--spacing-md);
 		overflow: hidden;
+
+		.unit-toggle-container {
+			margin-bottom: var(--spacing-md);
+			display: flex;
+			justify-content: flex-end;
+		}
 	}
 
 	.instructions-content {
@@ -448,40 +474,61 @@
 		}
 	}
 
-	.overview-content {
-		display: flex;
-		flex-direction: column;
-	}
+	.recipe-image {
+		width: 100%;
+		height: 280px;
+		position: relative;
+		overflow: hidden;
 
-	.ingredients-content {
-		.unit-toggle-container {
-			margin-bottom: var(--spacing-md);
-			display: flex;
-			justify-content: flex-end;
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			object-position: center;
+		}
+
+		&::after {
+			content: '';
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 150px;
+			background: linear-gradient(
+				to top, 
+				var(--color-background) 0%,
+				color-mix(in srgb, var(--color-background) 90%, transparent) 20%, 
+				color-mix(in srgb, var(--color-background) 70%, transparent) 40%,
+				color-mix(in srgb, var(--color-background) 40%, transparent) 70%, 
+				transparent 100%
+			);
+			pointer-events: none;
 		}
 	}
 
-	.recipe-image {
-		aspect-ratio: 16 / 9;
-		width: 100%;
-		margin: 0 0 var(--spacing-md) 0;
-		position: relative;
+	.diet-pills-overlay {
+		position: absolute;
+		bottom: var(--spacing-md);
+		left: 0;
+		right: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-sm);
+		justify-content: center;
+		z-index: 5;
+		padding: 0 var(--spacing-md);
 
-		img {
-			margin-top: -20px;
-			margin-left: -20px;
-			margin-right: -20px;
-			width: calc(100% + 40px);
-			height: 250px;
-			object-fit: cover;
-			object-position: center;
+		:global(.pill) {
+			margin: 0;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 		}
 	}
 
 	.description {
-		font-size: var(--font-size-sm);
-		margin-bottom: var(--spacing-md);
-		line-height: 1.5;
+		font-size: var(--font-size-md);
+		line-height: 1.6;
+		color: var(--color-neutral-light);
+		margin: 0;
 	}
 
 	.instruction-text {
@@ -814,5 +861,17 @@
 		margin-left: auto;
 		margin-right: auto;
 		width: fit-content;
+	}
+
+	.diet-pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-sm);
+		margin: var(--spacing-sm) 0 var(--spacing-md);
+		justify-content: center;
+
+		:global(.pill) {
+			margin: 0;
+		}
 	}
 </style>
