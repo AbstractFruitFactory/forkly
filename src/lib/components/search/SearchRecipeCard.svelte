@@ -58,7 +58,7 @@
 				<div class="diet-tags">
 					{#each recipe.diets.slice(0, 2) as diet}
 						<div class="small-pill">
-							<Pill text={diet} color={dietColors[diet]} />
+							<Pill text={diet} color={dietColors[diet as keyof typeof dietColors]} />
 						</div>
 					{/each}
 					{#if recipe.diets.length > 2}

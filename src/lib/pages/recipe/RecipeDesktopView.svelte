@@ -13,6 +13,7 @@
 	import type { TemperatureUnit } from '$lib/utils/temperature'
 	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
+	import CommentList from '$lib/components/comment/CommentList.svelte'
 
 	let {
 		recipe,
@@ -23,7 +24,9 @@
 		onUnitChange,
 		isLoggedIn,
 		onBookmark,
-		getFormattedIngredient
+		getFormattedIngredient,
+		comments = [],
+		onAddComment
 	}: {
 		recipe: RecipeData
 		nutrition: {
@@ -37,6 +40,17 @@
 		isLoggedIn: boolean
 		onBookmark?: () => void
 		getFormattedIngredient: (ingredient: Ingredient, unitSystem: UnitSystem) => any
+		comments?: {
+			id: string
+			content: string
+			createdAt: string | Date
+			user: {
+				id: string
+				username: string
+				avatarUrl: string | null
+			}
+		}[]
+		onAddComment?: (content: string) => Promise<void>
 	} = $props()
 </script>
 
@@ -244,6 +258,10 @@
 				{/each}
 			</ol>
 		</div>
+	</div>
+
+	<div class="comments-section">
+		<CommentList {comments} {isLoggedIn} onAddComment={onAddComment || (() => Promise.resolve())} />
 	</div>
 </div>
 
@@ -644,5 +662,12 @@
 
 	.temperature-wrapper {
 		display: inline;
+	}
+
+	// Comments Section
+	.comments-section {
+		margin-top: var(--spacing-xl);
+		padding-top: var(--spacing-xl);
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
 	}
 </style>

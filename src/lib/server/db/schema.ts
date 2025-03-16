@@ -113,6 +113,18 @@ export const recipeIngredient = pgTable('recipe_ingredient', {
 	}
 })
 
+export const recipeComment = pgTable('recipe_comment', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	recipeId: text('recipe_id')
+		.notNull()
+		.references(() => recipe.id, { onDelete: 'cascade' }),
+	content: text('content').notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
 export type Session = typeof session.$inferSelect
 
 export type User = typeof user.$inferSelect
@@ -126,3 +138,5 @@ export type RecipeIngredient = typeof recipeIngredient.$inferSelect
 export type RecipeNutrition = typeof recipeNutrition.$inferSelect
 
 export type RecipeBookmark = typeof recipeBookmark.$inferSelect
+
+export type RecipeComment = typeof recipeComment.$inferSelect

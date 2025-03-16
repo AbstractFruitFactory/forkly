@@ -15,6 +15,7 @@
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
 	import ArrowLeft from 'lucide-svelte/icons/arrow-left'
 	import ArrowRight from 'lucide-svelte/icons/arrow-right'
+	import CommentList from '$lib/components/comment/CommentList.svelte'
 
 	let {
 		recipe,
@@ -25,7 +26,9 @@
 		isLoggedIn,
 		onBookmark,
 		getFormattedIngredient,
-		onBackClick
+		onBackClick,
+		comments = [],
+		onAddComment
 	}: {
 		recipe: RecipeData
 		nutrition: {
@@ -40,12 +43,31 @@
 		onBookmark?: () => void
 		getFormattedIngredient: (ingredient: Ingredient, unitSystem: UnitSystem) => any
 		onBackClick?: () => void
+		comments?: {
+			id: string
+			content: string
+			createdAt: string | Date
+			user: {
+				id: string
+				username: string
+				avatarUrl: string | null
+			}
+		}[]
+		onAddComment?: (content: string) => Promise<void>
 	} = $props()
 
 	let activeTab = $state('overview')
 	let currentStep = $state(0)
 	let stepsContainer: HTMLElement | null = null
 	let showActions = $state(true)
+
+	// Default implementation for onAddComment if not provided
+	const handleAddComment = async (content: string) => {
+		if (onAddComment) {
+			return onAddComment(content)
+		}
+		return Promise.resolve()
+	}
 
 	function goToStep(index: number) {
 		if (index >= 0 && index < recipe.instructions.length) {
@@ -101,6 +123,13 @@
 		>
 			Instructions
 		</button>
+		<button
+			class="tab-button"
+			class:active={activeTab === 'comments'}
+			onclick={() => (activeTab = 'comments')}
+		>
+			Comments
+		</button>
 	</div>
 
 	<div class="tab-content" class:allow-scroll={activeTab === 'instructions'}>
@@ -154,6 +183,10 @@
 						</li>
 					{/each}
 				</ul>
+			</div>
+		{:else if activeTab === 'comments'}
+			<div class="comments-content">
+				<CommentList {comments} {isLoggedIn} onAddComment={handleAddComment} />
 			</div>
 		{:else}
 			<div class="instructions-content">
@@ -425,6 +458,13 @@
 			display: flex;
 			justify-content: flex-end;
 		}
+	}
+
+	.comments-content {
+		padding: 0;
+		overflow-y: auto;
+		height: 100%;
+		background-color: var(--color-neutral-darkest);
 	}
 
 	.instructions-content {

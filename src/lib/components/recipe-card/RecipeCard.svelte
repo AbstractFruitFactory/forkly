@@ -78,7 +78,7 @@
 		{#if recipe.diets && recipe.diets.length > 0}
 			<div class="tags">
 				{#each recipe.diets as diet}
-					<Pill text={diet} color={dietColors[diet]} />
+					<Pill text={diet} color={dietColors[diet as keyof typeof dietColors]} />
 				{/each}
 			</div>
 		{/if}
