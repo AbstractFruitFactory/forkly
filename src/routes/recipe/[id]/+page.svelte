@@ -77,32 +77,46 @@
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
-<Recipe
-	recipe={{
-		...data,
-		ingredients,
-		likes,
-		isLiked,
-		isDisliked,
-		bookmarks,
-		isBookmarked
-	}}
-	nutrition={{
-		totalNutrition: {
-			calories: data.nutrition.calories,
-			protein: data.nutrition.protein,
-			carbs: data.nutrition.carbs,
-			fat: data.nutrition.fat
-		},
-		hasCustomIngredients: false
-	}}
-	onLike={handleLike}
-	onDislike={handleDislike}
-	onBookmark={handleBookmark}
-	{unitSystem}
-	onUnitChange={handleUnitChange}
-	isLoggedIn={!!data.user}
-	onBackClick={() => goto('/')}
-	comments={data.comments}
-	formError={page.form?.error}
-/>
+<svelte:head>
+	<style lang="scss">
+		@import '$lib/global.scss';
+
+		@include mobile {
+			.header {
+				display: none !important;
+			}
+		}
+	</style>
+</svelte:head>
+
+<div class="recipe-page" data-page="recipe">
+	<Recipe
+		recipe={{
+			...data,
+			ingredients,
+			likes,
+			isLiked,
+			isDisliked,
+			bookmarks,
+			isBookmarked
+		}}
+		nutrition={{
+			totalNutrition: {
+				calories: data.nutrition.calories,
+				protein: data.nutrition.protein,
+				carbs: data.nutrition.carbs,
+				fat: data.nutrition.fat
+			},
+			hasCustomIngredients: false
+		}}
+		onLike={handleLike}
+		onDislike={handleDislike}
+		onBookmark={handleBookmark}
+		{unitSystem}
+		onUnitChange={handleUnitChange}
+		isLoggedIn={!!data.user}
+		onBackClick={() => goto('/')}
+		comments={data.comments}
+		formError={page.form?.error}
+	/>
+</div>

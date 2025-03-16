@@ -14,6 +14,7 @@
 	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
+	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
 
 	let {
 		recipe,
@@ -175,26 +176,11 @@
 					<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 				</div>
 			</div>
-			<ul class="ingredients-list">
-				{#each recipe.ingredients as ingredient}
-					{@const formattedIngredient = getFormattedIngredient(ingredient, unitSystem)}
-					<li>
-						<span class="measurement">
-							{#if ingredient.measurement === 'to taste' || ingredient.measurement === 'pinch'}
-								{ingredient.measurement}
-							{:else}
-								{formattedIngredient.formattedMeasurement}
-							{/if}
-						</span>
-						<span class="ingredient-name">
-							{ingredient.name}
-							{#if ingredient.custom}
-								<span class="custom-badge">custom</span>
-							{/if}
-						</span>
-					</li>
-				{/each}
-			</ul>
+			<IngredientsList 
+				ingredients={recipe.ingredients} 
+				{unitSystem} 
+				{getFormattedIngredient} 
+			/>
 		</div>
 
 		<div class="recipe-main">
@@ -508,44 +494,6 @@
 		}
 	}
 
-	// Ingredients List
-	.ingredients-list {
-		margin: 0;
-		padding: 0;
-
-		li {
-			list-style: none;
-			padding: var(--spacing-sm) 0;
-			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-			display: flex;
-			justify-content: space-between;
-			font-size: var(--font-size-sm);
-
-			&:last-child {
-				border-bottom: none;
-			}
-
-			@include tablet {
-				font-size: var(--font-size-md);
-			}
-		}
-	}
-
-	.measurement {
-		margin-right: var(--spacing-sm);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-primary);
-		min-width: 50px;
-
-		@include tablet {
-			min-width: 60px;
-		}
-	}
-
-	.ingredient-name {
-		color: var(--color-neutral-lightest);
-	}
-
 	// Instructions List
 	.instructions-list {
 		padding-left: 0;
@@ -634,17 +582,6 @@
 	}
 
 	// Utility Classes
-	.custom-badge {
-		font-size: var(--font-size-xs);
-		background: var(--color-primary-light);
-		color: var(--color-neutral-darkest);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		border-radius: var(--border-radius-md);
-		margin-left: var(--spacing-sm);
-		vertical-align: middle;
-		font-weight: var(--font-weight-semibold);
-	}
-
 	.temperature {
 		text-decoration: underline;
 		text-decoration-style: dotted;

@@ -138,10 +138,8 @@
 		<Header
 			loggedIn={!!data.user}
 			newRecipeHref="/new"
-			aboutHref="/about"
 			profileHref="/profile"
 			loginHref="/login"
-			onLogout={handleLogout}
 			onOpenSearch={openSearchPopup}
 		/>
 	{/snippet}
@@ -162,3 +160,17 @@
 	onShowAllResults={handleShowAllResults}
 	onIngredientSearch={searchIngredients}
 />
+
+<style lang="scss">
+	@import '$lib/global.scss';
+
+	@include mobile {
+		:global(.recipe-page) {
+			--header-display: none;
+		}
+	}
+
+	:global(.header) {
+		display: var(--header-display, block);
+	}
+</style>

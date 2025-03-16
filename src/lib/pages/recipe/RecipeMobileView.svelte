@@ -1,905 +1,497 @@
 <script lang="ts">
+	import type { RecipeData } from '$lib/types'
 	import type { NutritionInfo } from '$lib/server/food-api'
-	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
-	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
-	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import type { RecipeData, Ingredient } from '$lib/types'
-	import { dietColors } from '$lib/types'
-	import { page } from '$app/state'
-	import Pill from '$lib/components/pill/Pill.svelte'
-	import Popover from '$lib/components/popover/Popover.svelte'
-	import { parseTemperature, getConversionText } from '$lib/utils/temperature'
-	import type { TemperatureUnit } from '$lib/utils/temperature'
-	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
-	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
-	import ArrowLeft from 'lucide-svelte/icons/arrow-left'
-	import ArrowRight from 'lucide-svelte/icons/arrow-right'
+	import { Spring } from 'svelte/motion'
+	import { onMount } from 'svelte'
+	import Apple from 'lucide-svelte/icons/apple'
+	import FileText from 'lucide-svelte/icons/file-text'
+	import MessageSquare from 'lucide-svelte/icons/message-square'
+	import type { getFormattedIngredient as GetFormattedIngredient } from './utils/recipeUtils'
+	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
+	import InstructionAccordion from '$lib/components/accordion/InstructionAccordion.svelte'
+	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
+	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
+	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
+	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
+	import { page } from '$app/state'
 
 	let {
 		recipe,
-		onLike,
-		onDislike,
+		nutrition,
+		getFormattedIngredient,
 		unitSystem,
 		onUnitChange,
 		isLoggedIn,
 		onBookmark,
-		getFormattedIngredient,
 		onBackClick,
-		comments = [],
-		formError
+		comments,
+		formError,
+		onLike,
+		onDislike,
+		chef = { name: 'Emma Brown', title: 'Professional Chef', avatar: '/images/chef-avatar.jpg' }
 	} = $props<{
 		recipe: RecipeData
 		nutrition: {
 			totalNutrition: Omit<NutritionInfo, 'servingSize'>
 			hasCustomIngredients: boolean
 		}
-		onLike?: () => void
-		onDislike?: () => void
+		getFormattedIngredient: typeof GetFormattedIngredient
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
 		isLoggedIn: boolean
 		onBookmark?: () => void
-		getFormattedIngredient: (ingredient: Ingredient, unitSystem: UnitSystem) => any
 		onBackClick?: () => void
-		comments?: any[]
-		formError?: string | null
+		onLike?: () => void
+		onDislike?: () => void
+		comments: any[]
+		formError?: string
+		chef?: { name: string; title: string; avatar: string }
 	}>()
 
-	let activeTab = $state('overview')
-	let currentStep = $state(0)
-	let stepsContainer: HTMLElement | null = null
-	let showActions = $state(true)
+	// Sheet drag state
+	let sheetY = new Spring(0, {
+		stiffness: 0.15,
+		damping: 0.7
+	})
+	let startY: number
+	let startSheetY: number
+	let isDragging = false
+	let windowHeight: number
+	let dragHandleElement: HTMLDivElement
 
-	function goToStep(index: number) {
-		if (index >= 0 && index < recipe.instructions.length) {
-			currentStep = index
-			const stepElement = document.getElementById(`instruction-step-${index}`)
-			if (stepElement && stepsContainer) {
-				stepsContainer.scrollTo({
-					left: stepElement.offsetLeft,
-					behavior: 'smooth'
-				})
-			}
+	// Active tab state
+	let activeTab = $state<'ingredients' | 'instructions' | 'comments'>('ingredients')
+
+	// Track expanded instruction steps
+	let expandedInstructions = $state<number[]>([])
+
+	// Mock data for recipe metadata
+	const cookTime = '30 Min'
+	const difficulty = 'Medium'
+	const servings = '2-3 Cal'
+
+	function switchTab(tab: 'ingredients' | 'instructions' | 'comments') {
+		activeTab = tab
+	}
+
+	function toggleInstruction(index: number) {
+		if (expandedInstructions.includes(index)) {
+			expandedInstructions = expandedInstructions.filter((i) => i !== index)
+		} else {
+			expandedInstructions = [...expandedInstructions, index]
 		}
 	}
 
-	function handleScroll(e: Event) {
-		if (stepsContainer) {
-			// Use requestAnimationFrame to avoid excessive calculations during scroll
-			requestAnimationFrame(() => {
-				if (stepsContainer) {
-					const containerWidth = stepsContainer.clientWidth
-					const scrollPosition = stepsContainer.scrollLeft
-					const newStep = Math.round(scrollPosition / containerWidth)
+	onMount(() => {
+		windowHeight = window.innerHeight
+		sheetY.set(windowHeight * 0.3)
 
-					if (newStep !== currentStep && newStep >= 0 && newStep < recipe.instructions.length) {
-						currentStep = newStep
-					}
-				}
-			})
+		// Add document-level touch event listeners
+		document.addEventListener('touchmove', handleDocumentTouchMove, { passive: false })
+		document.addEventListener('touchend', handleTouchEnd)
+
+		return () => {
+			document.removeEventListener('touchmove', handleDocumentTouchMove)
+			document.removeEventListener('touchend', handleTouchEnd)
+		}
+	})
+
+	function handleDragHandleTouchStart(e: TouchEvent) {
+		isDragging = true
+		startY = e.touches[0].clientY
+		startSheetY = sheetY.current
+		e.stopPropagation()
+	}
+
+	function handleDocumentTouchMove(e: TouchEvent) {
+		if (!isDragging) return
+
+		// Prevent scrolling when dragging
+		e.preventDefault()
+
+		const currentY = e.touches[0].clientY
+		const deltaY = currentY - startY
+		const newY = Math.max(70, Math.min(windowHeight - 60, startSheetY + deltaY))
+
+		sheetY.set(newY)
+	}
+
+	function handleTouchEnd() {
+		if (!isDragging) return
+
+		isDragging = false
+
+		if (sheetY.current < windowHeight * 0.2) {
+			sheetY.set(70)
+		} else if (sheetY.current > windowHeight * 0.6) {
+			sheetY.set(windowHeight - 60)
+		} else {
+			sheetY.set(windowHeight * 0.3)
 		}
 	}
 </script>
 
-<div class="mobile-view">
-	<div class="tabs">
-		<button
-			class="tab-button"
-			class:active={activeTab === 'overview'}
-			onclick={() => (activeTab = 'overview')}
-		>
-			Overview
-		</button>
-		<button
-			class="tab-button"
-			class:active={activeTab === 'ingredients'}
-			onclick={() => (activeTab = 'ingredients')}
-		>
-			Ingredients
-		</button>
-		<button
-			class="tab-button"
-			class:active={activeTab === 'instructions'}
-			onclick={() => (activeTab = 'instructions')}
-		>
-			Instructions
-		</button>
-		<button
-			class="tab-button"
-			class:active={activeTab === 'comments'}
-			onclick={() => (activeTab = 'comments')}
-		>
-			Comments
-		</button>
+<div class="recipe-mobile-view" data-page="recipe">
+	<button class="back-button" onclick={onBackClick}>
+		<svg width="24" height="24" viewBox="0 0 24 24">
+			<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+		</svg>
+	</button>
+
+	<div class="recipe-image">
+		<img src={recipe.imageUrl} alt={recipe.title} />
+
+		<div class="action-buttons">
+			<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
+			<DislikeButton
+				isDisliked={recipe.isDisliked}
+				interactive={!!onDislike}
+				onDislike={isLoggedIn ? onDislike : undefined}
+			/>
+			<LikeButton
+				count={recipe.likes}
+				isLiked={recipe.isLiked}
+				interactive={!!onLike}
+				onLike={isLoggedIn ? onLike : undefined}
+			/>
+			<BookmarkButton
+				count={recipe.bookmarks}
+				isBookmarked={recipe.isBookmarked}
+				interactive={!!onBookmark}
+				{onBookmark}
+			/>
+		</div>
 	</div>
 
-	<div class="tab-content" class:allow-scroll={activeTab === 'instructions'}>
-		{#if activeTab === 'overview'}
-			<div class="overview-content">
-				{#if recipe.imageUrl}
-					<div class="recipe-image">
-						<img src={recipe.imageUrl} alt={recipe.title} />
-						<button class="back-button" onclick={onBackClick} aria-label="Back to home">
-							<ArrowLeft size={20} />
-						</button>
-						{#if recipe.diets && recipe.diets.length > 0}
-							<div class="diet-pills-overlay">
-								{#each recipe.diets as diet}
-									<Pill text={diet} color={dietColors[diet as keyof typeof dietColors]} />
-								{/each}
-							</div>
-						{/if}
-					</div>
-				{/if}
-				<div class="recipe-details">
-					<h2 class="recipe-title">{recipe.title}</h2>
+	<div class="draggable-sheet" style="transform: translateY({sheetY.current}px)">
+		<div
+			class="drag-handle"
+			bind:this={dragHandleElement}
+			ontouchstart={handleDragHandleTouchStart}
+		>
+			<div class="handle-bar"></div>
+		</div>
 
-					{#if recipe.description}
-						<p class="description">{recipe.description}</p>
-					{/if}
+		<div class="recipe-content">
+			<h3>{recipe.title}</h3>
+			<p class="description">{recipe.description}</p>
+
+			<div class="recipe-meta">
+				<div class="meta-item">
+					<span class="meta-value">{cookTime}</span>
+					<span class="meta-label">Cook Time</span>
+				</div>
+				<div class="meta-item">
+					<span class="meta-value">{difficulty}</span>
+					<span class="meta-label">Difficulty</span>
+				</div>
+				<div class="meta-item">
+					<span class="meta-value">{servings}</span>
+					<span class="meta-label">Servings</span>
 				</div>
 			</div>
-		{:else if activeTab === 'ingredients'}
-			<div class="ingredients-content">
-				<div class="unit-toggle-container">
-					<UnitToggle state={unitSystem} onSelect={onUnitChange} />
+
+			<div class="chef-info">
+				<div class="chef-avatar">
+					<img src={chef.avatar} alt={chef.name} />
 				</div>
-				<ul class="ingredients-list">
-					{#each recipe.ingredients as ingredient}
-						{@const formattedIngredient = getFormattedIngredient(ingredient, unitSystem)}
-						<li>
-							<span class="measurement">
-								{#if ingredient.measurement === 'to taste' || ingredient.measurement === 'pinch'}
-									{ingredient.measurement}
-								{:else}
-									{formattedIngredient.formattedMeasurement}
-								{/if}
-							</span>
-							<span class="ingredient-name">
-								{ingredient.name}
-								{#if ingredient.custom}
-									<span class="custom-badge">custom</span>
-								{/if}
-							</span>
-						</li>
-					{/each}
-				</ul>
-			</div>
-		{:else if activeTab === 'comments'}
-			<div class="comments-content">
-				<CommentList 
-					{comments} 
-					{isLoggedIn} 
-					recipeId={recipe.id}
-					{formError}
-				/>
-			</div>
-		{:else}
-			<div class="instructions-content">
-				<div class="steps-container" bind:this={stepsContainer} onscroll={handleScroll}>
-					{#each recipe.instructions as instruction, i}
-						<div class="instruction-step" id="instruction-step-{i}">
-							{#if instruction.mediaUrl}
-								<div class="recipe-image">
-									{#if instruction.mediaType === 'image'}
-										<img
-											src={instruction.mediaUrl}
-											alt={`Step ${i + 1} visual`}
-											loading="lazy"
-											decoding="async"
-										/>
-									{:else if instruction.mediaType === 'video'}
-										<video src={instruction.mediaUrl} controls muted></video>
-									{/if}
-								</div>
-							{/if}
-							<div class="instruction-text">
-								{#each parseTemperature(instruction.text) as part}
-									{#if part.isTemperature}
-										<span class="temperature-wrapper">
-											<Popover triggerOn="hover" placement="top">
-												{#snippet trigger()}
-													<span class="temperature">{part.text}</span>
-												{/snippet}
-
-												{#snippet content()}
-													<span class="conversion"
-														>{getConversionText(
-															part.value as number,
-															part.unit as TemperatureUnit
-														)}</span
-													>
-												{/snippet}
-											</Popover>
-										</span>
-									{:else}
-										<span>{part.text}</span>
-									{/if}
-								{/each}
-							</div>
-						</div>
-					{/each}
+				<div class="chef-details">
+					<div class="chef-name">{chef.name}</div>
+					<div class="chef-title">{chef.title}</div>
 				</div>
+				<button class="follow-button">+ Follow</button>
+			</div>
 
-				<!-- Instructions Navigation Dots -->
-				<div class="fixed-navigation-footer">
-					<div class="nav-button-container">
-						{#if currentStep > 0}
-							<button
-								class="nav-button prev"
-								onclick={() => goToStep(currentStep - 1)}
-								aria-label="Previous step"
-							>
-								<ArrowLeft />
-							</button>
-						{:else}
-							<div class="nav-button-placeholder"></div>
-						{/if}
-					</div>
+			<div class="tabs">
+				<button
+					class="tab-button"
+					class:active={activeTab === 'ingredients'}
+					onclick={() => switchTab('ingredients')}
+				>
+					<svelte:component this={Apple} class="tab-icon" size={18} />
+					Ingredients
+				</button>
+				<button
+					class="tab-button"
+					class:active={activeTab === 'instructions'}
+					onclick={() => switchTab('instructions')}
+				>
+					<svelte:component this={FileText} class="tab-icon" size={18} />
+					Instructions
+				</button>
+				<button
+					class="tab-button"
+					class:active={activeTab === 'comments'}
+					onclick={() => switchTab('comments')}
+				>
+					<svelte:component this={MessageSquare} class="tab-icon" size={18} />
+					Comments
+				</button>
+			</div>
 
-					<div class="mobile-nav-dots">
-						{#each recipe.instructions as _, i}
-							<button
-								class="nav-dot"
-								class:active={currentStep === i}
-								onclick={() => goToStep(i)}
-								aria-label={`Go to Step ${i + 1}`}
-							></button>
+			<div class="tab-content">
+				{#if activeTab === 'ingredients'}
+					<IngredientsList ingredients={recipe.ingredients} {unitSystem} {getFormattedIngredient} />
+				{:else if activeTab === 'instructions'}
+					<div class="instructions-list">
+						{#each recipe.instructions as instruction, i}
+							<InstructionAccordion
+								{instruction}
+								index={i}
+								isOpen={expandedInstructions.includes(i)}
+								onToggle={toggleInstruction}
+							/>
 						{/each}
 					</div>
-
-					<div class="nav-button-container">
-						{#if currentStep < recipe.instructions.length - 1}
-							<button
-								class="nav-button next"
-								onclick={() => goToStep(currentStep + 1)}
-								aria-label="Next step"
-							>
-								<ArrowRight />
-							</button>
-						{:else}
-							<div class="nav-button-placeholder"></div>
-						{/if}
-					</div>
-				</div>
+				{:else if activeTab === 'comments'}
+					<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} />
+				{/if}
 			</div>
-		{/if}
-	</div>
-
-	{#if activeTab === 'overview' && showActions}
-		<div class="floating-actions">
-			<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
-			{#if isLoggedIn}
-				<DislikeButton isDisliked={recipe.isDisliked} interactive={!!onDislike} {onDislike} />
-				<LikeButton count={recipe.likes} isLiked={recipe.isLiked} interactive={!!onLike} {onLike} />
-				<BookmarkButton
-					count={recipe.bookmarks}
-					isBookmarked={recipe.isBookmarked}
-					interactive={!!onBookmark}
-					{onBookmark}
-				/>
-			{:else}
-				<Popover type="warning">
-					{#snippet trigger()}
-						<DislikeButton isDisliked={recipe.isDisliked} interactive={false} />
-					{/snippet}
-					{#snippet content()}
-						Login to dislike recipes!
-					{/snippet}
-				</Popover>
-				<Popover type="warning">
-					{#snippet trigger()}
-						<LikeButton count={recipe.likes} isLiked={recipe.isLiked} interactive={false} />
-					{/snippet}
-					{#snippet content()}
-						Login to like recipes!
-					{/snippet}
-				</Popover>
-				<Popover type="warning">
-					{#snippet trigger()}
-						<BookmarkButton
-							count={recipe.bookmarks}
-							isBookmarked={recipe.isBookmarked}
-							interactive={false}
-						/>
-					{/snippet}
-					{#snippet content()}
-						Login to bookmark recipes!
-					{/snippet}
-				</Popover>
-			{/if}
 		</div>
-	{/if}
+	</div>
 </div>
 
-<style lang="scss">
-	@import '$lib/global.scss';
-
-	.mobile-view {
-		display: none;
+<style>
+	.recipe-mobile-view {
 		position: fixed;
 		top: 0;
 		left: 0;
-		right: 0;
-		bottom: 0;
-		z-index: var(--z-drawer);
-		background-color: var(--color-neutral-darkest);
+		width: 100%;
+		height: 100vh;
 		overflow: hidden;
-
-		@include mobile {
-			display: flex;
-			flex-direction: column;
-		}
+		background: var(--color-background);
 	}
 
 	.back-button {
-		position: absolute;
+		position: fixed;
 		top: 16px;
 		left: 16px;
-		background-color: rgba(0, 0, 0, 0.6);
-		color: white;
+		z-index: var(--z-elevated);
+		background: rgba(0, 0, 0, 0.5);
 		border: none;
-		border-radius: 50%;
+		border-radius: var(--border-radius-full);
 		width: 40px;
 		height: 40px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
-		z-index: 10;
-		transition: background-color 0.2s ease;
-
-		&:hover {
-			background-color: rgba(0, 0, 0, 0.8);
-		}
+		backdrop-filter: blur(4px);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 	}
 
-	.tabs {
-		display: flex;
-		justify-content: space-between;
-		background-color: var(--color-neutral-dark);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-		position: sticky;
-		top: 0;
-		z-index: 10;
-	}
-
-	.tab-button {
-		flex: 1;
-		padding: var(--spacing-md);
-		background: none;
-		border: none;
-		color: var(--color-neutral-light);
-		font-size: var(--font-size-md);
-		font-weight: var(--font-weight-medium);
-		cursor: pointer;
-		transition: all 0.2s ease;
-		position: relative;
-
-		&:after {
-			content: '';
-			position: absolute;
-			bottom: 0;
-			left: 0;
-			width: 100%;
-			height: 3px;
-			background-color: var(--color-primary);
-			transform: scaleX(0);
-			transition: transform 0.2s ease;
-		}
-
-		&.active {
-			color: var(--color-primary);
-
-			&:after {
-				transform: scaleX(1);
-			}
-		}
-
-		&:hover {
-			color: var(--color-primary-light);
-		}
-	}
-
-	.tab-content {
-		flex: 1;
-		overflow-y: auto;
-		-webkit-overflow-scrolling: touch;
-		position: relative;
-		background: var(--color-background);
-
-		&.allow-scroll {
-			overflow: hidden;
-		}
-	}
-
-	.overview-content {
-		display: flex;
-		flex-direction: column;
-		padding: 0;
-		overflow: hidden;
-	}
-
-	.recipe-details {
-		padding: var(--spacing-md) var(--spacing-lg);
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
-	}
-
-	.recipe-title {
-		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-bold);
-		margin: 0;
-		color: var(--color-neutral-lightest);
-		line-height: 1.2;
-	}
-
-	.ingredients-content {
-		padding: var(--spacing-md);
-		overflow: hidden;
-
-		.unit-toggle-container {
-			margin-bottom: var(--spacing-md);
-			display: flex;
-			justify-content: flex-end;
-		}
-	}
-
-	.comments-content {
-		padding: 0;
-		overflow-y: auto;
-		height: 100%;
-		background-color: var(--color-neutral-darkest);
-	}
-
-	.instructions-content {
-		position: relative;
-		height: calc(100vh - 126px); /* Account for tabs (56px) and navigation footer (70px) */
-		overflow: hidden;
-		padding-bottom: 70px; /* Space for the navigation footer */
-		background-color: var(--color-neutral-darkest);
-	}
-
-	.steps-container {
-		display: flex;
-		width: 100%;
-		height: 100%;
-		overflow-x: auto;
-		overflow-y: hidden;
-		scroll-snap-type: x mandatory;
-		-webkit-overflow-scrolling: touch;
-		scrollbar-width: none; /* Firefox */
-		-ms-overflow-style: none; /* IE and Edge */
-		scroll-behavior: smooth;
-		gap: 0; /* Ensure no gap between steps */
-
-		&::-webkit-scrollbar {
-			display: none; /* Chrome, Safari and Opera */
-		}
-	}
-
-	.instruction-step {
-		flex: 0 0 100%;
-		width: 100vw;
-		min-width: 100vw;
-		max-width: 100vw;
-		height: 100%;
-		padding: var(--spacing-md);
-		scroll-snap-align: center;
-		scroll-snap-stop: always;
-		overflow-y: auto;
-		overflow-x: hidden;
-		box-sizing: border-box;
-		background-color: var(--color-neutral-darkest);
-		isolation: isolate; /* Create a new stacking context */
-
-		.recipe-image {
-			margin-top: 0;
-			margin-bottom: var(--spacing-lg);
-		}
+	.back-button svg {
+		fill: white;
 	}
 
 	.recipe-image {
+		position: absolute;
+		top: 0;
+		left: 0;
 		width: 100%;
-		height: 280px;
-		position: relative;
-		overflow: hidden;
-
-		img {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-			object-position: center;
-		}
-
-		&::after {
-			content: '';
-			position: absolute;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			height: 150px;
-			background: linear-gradient(
-				to top,
-				var(--color-background) 0%,
-				color-mix(in srgb, var(--color-background) 90%, transparent) 20%,
-				color-mix(in srgb, var(--color-background) 70%, transparent) 40%,
-				color-mix(in srgb, var(--color-background) 40%, transparent) 70%,
-				transparent 100%
-			);
-			pointer-events: none;
-		}
+		height: 40vh;
+		background: var(--color-neutral-dark);
 	}
 
-	.diet-pills-overlay {
+	.recipe-image::after {
+		content: '';
 		position: absolute;
-		bottom: var(--spacing-md);
+		bottom: 0;
 		left: 0;
-		right: 0;
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-sm);
-		justify-content: center;
-		z-index: 5;
-		padding: 0 var(--spacing-md);
+		width: 100%;
+		height: 20%;
+		background: linear-gradient(to bottom, rgba(11, 25, 44, 0), var(--color-background));
+		pointer-events: none;
+	}
 
-		:global(.pill) {
-			margin: 0;
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-		}
+	.recipe-image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.draggable-sheet {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100vh;
+		background: var(--color-neutral-dark);
+		border-radius: var(--border-radius-3xl) var(--border-radius-3xl) 0 0;
+		box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+	}
+
+	.drag-handle {
+		width: 100%;
+		height: 40px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: var(--spacing-md) 0;
+		cursor: grab;
+		touch-action: none;
+	}
+
+	.drag-handle:active {
+		cursor: grabbing;
+	}
+
+	.handle-bar {
+		width: 40px;
+		height: 4px;
+		background: var(--color-neutral);
+		border-radius: var(--border-radius-full);
+	}
+
+	.recipe-content {
+		padding: 0 var(--spacing-lg) var(--spacing-lg);
+		height: calc(100% - 52px);
+		overflow-y: auto;
 	}
 
 	.description {
 		font-size: var(--font-size-md);
-		line-height: 1.6;
-		color: var(--color-neutral-light);
-		margin: 0;
+		color: var(--color-neutral);
+		line-height: 1.5;
+		margin: 0 0 var(--spacing-md) 0;
 	}
 
-	.instruction-text {
-		@include mobile {
-			font-size: var(--font-size-sm);
-			line-height: 1.5;
-			color: var(--color-neutral-lightest);
-			flex: 1;
-			overflow-y: auto;
-			margin-top: var(--spacing-md);
-		}
-	}
-
-	.nutrition-item .value {
-		font-weight: var(--font-weight-bold);
-		color: var(--color-neutral-lightest);
-
-		@include mobile {
-			font-size: var(--font-size-md);
-		}
-	}
-
-	.nutrition-item .label {
-		font-size: var(--font-size-xs);
-		color: var(--color-neutral-light);
-		text-transform: uppercase;
-		letter-spacing: 0.5px;
-
-		@include mobile {
-			font-size: 0.7rem;
-			margin-top: var(--spacing-xs);
-		}
-	}
-
-	// Recipe actions
-	.recipe-actions {
+	.recipe-meta {
 		display: flex;
-		gap: var(--spacing-md);
-		justify-content: flex-end;
+		justify-content: space-between;
+		margin-bottom: var(--spacing-lg);
+		padding: var(--spacing-md) 0;
+		border-bottom: 1px solid var(--color-neutral-dark);
 	}
 
-	// Recipe tags
-	.recipe-tags {
-		margin: var(--spacing-sm) 0 var(--spacing-md);
-		width: 100%;
-
-		@include mobile {
-			flex-shrink: 0;
-		}
-
-		.tags {
-			@include mobile {
-				display: flex;
-				flex-wrap: wrap;
-				gap: var(--spacing-sm);
-				justify-content: center;
-				align-items: center;
-
-				:global(.pill) {
-					margin: 0;
-				}
-			}
-		}
-	}
-
-	// Nutrition facts
-	.nutrition-facts {
-		margin-top: var(--spacing-md);
-		width: 100%;
-
-		@include mobile {
-			flex-shrink: 0;
-		}
-	}
-
-	.nutrition-grid {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: var(--spacing-md);
-
-		@include mobile {
-			margin-top: var(--spacing-sm);
-			gap: var(--spacing-sm);
-			background-color: rgba(0, 0, 0, 0.2);
-			padding: var(--spacing-md);
-			border-radius: var(--border-radius-md);
-			width: 100%;
-		}
-	}
-
-	.nutrition-item {
+	.meta-item {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
 	}
 
-	.nutrition-circle {
-		width: 60px;
-		height: 60px;
-		border-radius: 50%;
-		background-color: var(--color-primary-dark);
-		display: flex;
-		align-items: center;
-		justify-content: center;
+	.meta-value {
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-neutral-light);
 		margin-bottom: var(--spacing-xs);
-
-		@include mobile {
-			width: 60px;
-			height: 60px;
-			background-color: var(--color-neutral-darkest);
-		}
 	}
 
-	.ingredients-list {
-		width: 100%;
-		padding: 0;
-		margin: 0;
-		list-style-type: none;
-
-		@include mobile {
-			li {
-				display: flex;
-				padding: var(--spacing-sm) 0;
-				font-size: var(--font-size-md);
-				border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-			}
-
-			.measurement {
-				min-width: 80px;
-				color: var(--color-primary-light);
-				font-weight: var(--font-weight-bold);
-				margin-right: var(--spacing-sm);
-			}
-
-			.ingredient-name {
-				font-weight: var(--font-weight-medium);
-				color: var(--color-neutral-lightest);
-				flex: 1;
-				text-align: right;
-			}
-		}
-	}
-
-	.progress-bar {
-		position: absolute;
-		top: 0;
-		left: 0;
-		height: 3px;
-		background-color: var(--color-primary);
-		transition: width 0.3s ease;
-		z-index: 10;
-
-		@include mobile {
-			height: 4px;
-			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-		}
-	}
-
-	.overview-card,
-	.ingredients-card,
-	.instruction-card {
-		@include mobile {
-			display: flex;
-			flex-direction: column;
-			height: 100%;
-			background-color: var(--color-neutral-dark);
-			border-radius: 0;
-			margin: 0;
-			overflow: hidden;
-
-			.card-content {
-				overflow-y: auto;
-				-webkit-overflow-scrolling: touch;
-				flex: 1;
-				min-height: 0;
-				padding: var(--spacing-md);
-			}
-		}
-	}
-
-	.overview-card {
-		@include mobile {
-			.card-content {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-			}
-		}
-	}
-
-	.ingredients-card {
-		@include mobile {
-			.card-content {
-				padding: var(--spacing-md) var(--spacing-md) 80px var(--spacing-md);
-			}
-		}
-	}
-
-	// Utility Classes
-	.custom-badge {
-		font-size: var(--font-size-xs);
-		background: var(--color-primary-light);
-		color: var(--color-neutral-darkest);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		border-radius: var(--border-radius-md);
-		margin-left: var(--spacing-sm);
-		vertical-align: middle;
-		font-weight: var(--font-weight-semibold);
-	}
-
-	.temperature {
-		text-decoration: underline;
-		text-decoration-style: dotted;
-		cursor: help;
-		display: inline;
-	}
-
-	.conversion {
+	.meta-label {
 		font-size: var(--font-size-sm);
-		white-space: nowrap;
-		display: inline;
+		color: var(--color-neutral);
 	}
 
-	.temperature-wrapper {
-		display: inline;
-	}
-
-	.fixed-navigation-footer {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		background-color: var(--color-neutral-dark);
+	.chef-info {
 		display: flex;
-		justify-content: space-between;
 		align-items: center;
-		padding: var(--spacing-sm) var(--spacing-md);
-		z-index: 20;
-		height: 70px;
-		box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+		margin-bottom: var(--spacing-lg);
+		padding-bottom: var(--spacing-md);
+		border-bottom: 1px solid var(--color-neutral-dark);
 	}
 
-	.nav-button-container {
-		width: 60px;
-		display: flex;
-		justify-content: flex-start;
-
-		&:last-child {
-			justify-content: flex-end;
-		}
-	}
-
-	.nav-button-placeholder {
+	.chef-avatar {
 		width: 40px;
 		height: 40px;
+		border-radius: var(--border-radius-full);
+		overflow: hidden;
+		margin-right: var(--spacing-md);
 	}
 
-	.nav-button {
-		background-color: var(--color-primary-dark);
-		color: var(--color-neutral-lightest);
-		border: none;
-		border-radius: 50%;
-		width: 40px;
-		height: 40px;
+	.chef-avatar img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.chef-details {
+		flex: 1;
+	}
+
+	.chef-name {
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-neutral-light);
+	}
+
+	.chef-title {
+		font-size: var(--font-size-sm);
+		color: var(--color-neutral);
+	}
+
+	.follow-button {
+		background: transparent;
+		border: 1px solid var(--color-primary);
+		color: var(--color-primary);
+		border-radius: var(--border-radius-md);
+		padding: var(--spacing-xs) var(--spacing-md);
+		font-size: var(--font-size-sm);
 		font-weight: var(--font-weight-semibold);
 		cursor: pointer;
-		transition: background-color 0.2s ease;
-		z-index: 21;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 20px;
-
-		&:hover {
-			background-color: var(--color-primary-light);
-		}
-
-		@include mobile {
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-			font-weight: var(--font-weight-bold);
-		}
+		transition: all var(--transition-fast) var(--ease-in-out);
 	}
 
-	.mobile-nav-dots {
-		display: flex;
-		justify-content: center;
-		gap: var(--spacing-xs);
-		margin: 0;
-		padding: 6px 10px;
-		background-color: rgba(0, 0, 0, 0.6);
-		border-radius: 20px;
-		width: fit-content;
-		box-shadow: var(--shadow-sm);
-		z-index: 20;
+	.follow-button:hover {
+		background: var(--color-primary);
+		color: white;
 	}
 
-	.nav-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background-color: var(--color-neutral);
+	.tabs {
+		display: flex;
+		margin-bottom: var(--spacing-lg);
+
+		border-radius: var(--border-radius-xl);
+		padding: var(--spacing-xs);
+	}
+
+	.tab-button {
+		flex: 1;
+		background: none;
 		border: none;
-		padding: 0;
+		padding: var(--spacing-sm) 0;
+		color: var(--color-neutral-light);
+		font-size: var(--font-size-sm);
 		cursor: pointer;
-		transition:
-			background-color 0.2s ease,
-			transform 0.2s ease;
-
-		&.active {
-			background-color: var(--color-primary);
-			transform: scale(1.3);
-		}
-
-		margin: 0 2px;
+		position: relative;
+		transition: all var(--transition-fast) var(--ease-in-out);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing-xs);
+		border-radius: var(--border-radius-sm);
+		font-weight: var(--font-weight-medium);
 	}
 
-	.floating-actions {
-		position: fixed;
-		bottom: 20px;
-		display: flex;
-		gap: var(--spacing-md);
-		background-color: var(--color-neutral-dark);
-		padding: 10px 16px;
-		border-radius: 50px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-		z-index: 30;
-		left: 0;
-		right: 0;
-		margin-left: auto;
-		margin-right: auto;
-		width: fit-content;
+	.tab-button:hover {
+		color: white;
 	}
 
-	.diet-pills {
+	.tab-button.active {
+		color: var(--color-primary);
+		background-color: var(--color-background);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	}
+
+	.tab-icon {
+		fill: currentColor;
+	}
+
+	.tab-content {
+		padding: var(--spacing-md) 0;
+	}
+
+	.instructions-list {
 		display: flex;
-		flex-wrap: wrap;
+		flex-direction: column;
 		gap: var(--spacing-sm);
-		margin: var(--spacing-sm) 0 var(--spacing-md);
-		justify-content: center;
+	}
 
-		:global(.pill) {
-			margin: 0;
-		}
+	.action-buttons {
+		position: absolute;
+		top: 16px;
+		right: 16px;
+		display: flex;
+		gap: 8px;
+		z-index: var(--z-elevated);
 	}
 </style>
