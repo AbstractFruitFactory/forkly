@@ -5,12 +5,14 @@
 		username,
 		content,
 		createdAt,
-		avatarUrl = null
+		avatarUrl = null,
+		imageUrl = null
 	}: {
 		username: string
 		content: string
 		createdAt: string | Date
 		avatarUrl: string | null
+		imageUrl?: string | null
 	} = $props()
 
 	function formatDate(date: string | Date): string {
@@ -35,6 +37,11 @@
 			</div>
 		</div>
 		<p class="comment-text">{content}</p>
+		{#if imageUrl}
+			<div class="comment-image">
+				<img src={imageUrl} alt="Comment attachment" />
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -113,4 +120,19 @@
 		line-height: 1.5;
 		word-break: break-word;
 	}
-</style> 
+
+	.comment-image {
+		margin-top: var(--spacing-sm);
+		border-radius: var(--border-radius-md);
+		overflow: hidden;
+		max-width: 100%;
+
+		img {
+			max-width: 100%;
+			max-height: 300px;
+			object-fit: contain;
+			border-radius: var(--border-radius-md);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+		}
+	}
+</style>

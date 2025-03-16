@@ -1,19 +1,22 @@
 <script lang="ts">
 	import Comment from './Comment.svelte'
-	import type { RecipeComment } from '$lib/server/db/schema'
-	import { page } from '$app/state'
 	import Popover from '$lib/components/popover/Popover.svelte'
 	import MessageSquare from 'lucide-svelte/icons/message-square'
+	import ImageIcon from 'lucide-svelte/icons/image'
+	import { enhance } from '$app/forms'
+	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
 
 	let {
 		comments = [],
 		isLoggedIn,
-		onAddComment
+		recipeId,
+		formError = null
 	}: {
 		comments: {
 			id: string
 			content: string
 			createdAt: string | Date
+			imageUrl?: string | null
 			user: {
 				id: string
 				username: string
@@ -21,29 +24,45 @@
 			}
 		}[]
 		isLoggedIn: boolean
-		onAddComment: (content: string) => Promise<void>
+		onAddComment?: (content: string, imageUrl?: string) => Promise<void>
+		recipeId: string
+		formError?: string | null
 	} = $props()
 
-	let newComment = $state('')
+	let imagePreview = $state<string | null>(null)
 	let isSubmitting = $state(false)
-	let error = $state('')
+	let imageError = $state<string | null>(null)
 
-	async function handleSubmit() {
-		if (!newComment.trim()) {
-			error = 'Comment cannot be empty'
+	function handleImageSelect(event: Event) {
+		const input = event.target as HTMLInputElement
+		if (!input.files || input.files.length === 0) {
+			imagePreview = null
 			return
 		}
 
-		try {
-			isSubmitting = true
-			await onAddComment(newComment.trim())
-			newComment = ''
-			error = ''
-		} catch (err) {
-			error = 'Failed to add comment'
-			console.error(err)
-		} finally {
-			isSubmitting = false
+		const file = input.files[0]
+
+		if (imagePreview) {
+			cleanupPreview(imagePreview)
+		}
+		const result = handleMediaFile(file, {
+			type: 'image',
+			maxSize: 5
+		})
+
+		if (result.error) {
+			imageError = result.error
+			return
+		}
+
+		imagePreview = result.preview
+		imageError = null
+	}
+
+	function removeImage() {
+		if (imagePreview) {
+			cleanupPreview(imagePreview)
+			imagePreview = null
 		}
 	}
 </script>
@@ -55,19 +74,53 @@
 	</h3>
 
 	{#if isLoggedIn}
-		<form class="comment-form" on:submit|preventDefault={handleSubmit}>
-			<textarea
-				bind:value={newComment}
-				placeholder="Add a comment..."
-				rows="2"
-				disabled={isSubmitting}
+		<form
+			class="comment-form"
+			method="POST"
+			action="?/addComment"
+			enctype="multipart/form-data"
+			use:enhance
+		>
+			<input type="hidden" name="recipeId" value={recipeId} />
+
+			<textarea name="content" placeholder="Add a comment..." rows="2" disabled={isSubmitting}
 			></textarea>
-			{#if error}
-				<p class="error-message">{error}</p>
+
+			{#if imagePreview}
+				<div class="image-preview">
+					<img src={imagePreview} alt="Preview" />
+					<button type="button" class="remove-image" onclick={removeImage}>×</button>
+				</div>
 			{/if}
-			<button type="submit" class="submit-button" disabled={isSubmitting}>
-				{isSubmitting ? 'Posting...' : 'Post Comment'}
-			</button>
+
+			{#if formError}
+				<p class="error-message">{formError}</p>
+			{/if}
+
+			{#if imageError}
+				<p class="error-message">{imageError}</p>
+			{/if}
+
+			<div class="form-actions">
+				<div class="image-upload">
+					<label for="image-upload" class="image-upload-label" class:disabled={isSubmitting}>
+						<ImageIcon size={18} />
+						<span>Add Image</span>
+					</label>
+					<input
+						type="file"
+						name="image"
+						id="image-upload"
+						accept="image/jpeg,image/png,image/gif,image/webp"
+						onchange={handleImageSelect}
+						disabled={isSubmitting}
+					/>
+				</div>
+
+				<button type="submit" class="submit-button" disabled={isSubmitting}>
+					{isSubmitting ? 'Posting...' : 'Post Comment'}
+				</button>
+			</div>
 		</form>
 	{:else}
 		<Popover type="warning">
@@ -94,6 +147,7 @@
 					content={comment.content}
 					createdAt={comment.createdAt}
 					avatarUrl={comment.user.avatarUrl}
+					imageUrl={comment.imageUrl}
 				/>
 			{/each}
 		{/if}
@@ -156,6 +210,86 @@
 		}
 	}
 
+	.form-actions {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-md);
+	}
+
+	.image-upload {
+		position: relative;
+
+		input[type='file'] {
+			position: absolute;
+			width: 0.1px;
+			height: 0.1px;
+			opacity: 0;
+			overflow: hidden;
+			z-index: -1;
+		}
+
+		.image-upload-label {
+			display: flex;
+			align-items: center;
+			gap: var(--spacing-xs);
+			padding: var(--spacing-xs) var(--spacing-sm);
+			background-color: rgba(255, 255, 255, 0.1);
+			border-radius: var(--border-radius-sm);
+			color: var(--color-neutral-lightest);
+			font-size: var(--font-size-xs);
+			cursor: pointer;
+			transition: all 0.2s ease;
+
+			&:hover:not(.disabled) {
+				background-color: rgba(255, 255, 255, 0.15);
+			}
+
+			&.disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+			}
+		}
+	}
+
+	.image-preview {
+		position: relative;
+		margin-bottom: var(--spacing-sm);
+		border-radius: var(--border-radius-md);
+		overflow: hidden;
+		max-width: 200px;
+
+		img {
+			max-width: 100%;
+			max-height: 150px;
+			object-fit: contain;
+			border-radius: var(--border-radius-md);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+		}
+
+		.remove-image {
+			position: absolute;
+			top: 5px;
+			right: 5px;
+			width: 24px;
+			height: 24px;
+			border-radius: 50%;
+			background-color: rgba(0, 0, 0, 0.6);
+			color: white;
+			border: none;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: var(--font-size-md);
+			cursor: pointer;
+			transition: all 0.2s ease;
+
+			&:hover {
+				background-color: rgba(0, 0, 0, 0.8);
+			}
+		}
+	}
+
 	.submit-button {
 		background-color: var(--color-primary);
 		color: var(--color-neutral-darkest);
@@ -165,10 +299,8 @@
 		font-weight: var(--font-weight-semibold);
 		cursor: pointer;
 		transition: all 0.2s ease;
-		float: right;
 		font-size: var(--font-size-sm);
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-		margin-bottom: var(--spacing-md);
 
 		&:hover:not(:disabled) {
 			background-color: var(--color-primary-light);
@@ -190,7 +322,9 @@
 	.error-message {
 		color: var(--color-error);
 		font-size: var(--font-size-xs);
-		margin: 0 0 var(--spacing-sm) 0;
+		margin: var(--spacing-xs) 0;
+		padding: 0;
+		text-align: left;
 	}
 
 	.comments-list {

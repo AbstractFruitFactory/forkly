@@ -26,8 +26,8 @@
 		onBookmark,
 		getFormattedIngredient,
 		comments = [],
-		onAddComment
-	}: {
+		formError
+	} = $props<{
 		recipe: RecipeData
 		nutrition: {
 			totalNutrition: Omit<NutritionInfo, 'servingSize'>
@@ -40,18 +40,9 @@
 		isLoggedIn: boolean
 		onBookmark?: () => void
 		getFormattedIngredient: (ingredient: Ingredient, unitSystem: UnitSystem) => any
-		comments?: {
-			id: string
-			content: string
-			createdAt: string | Date
-			user: {
-				id: string
-				username: string
-				avatarUrl: string | null
-			}
-		}[]
-		onAddComment?: (content: string) => Promise<void>
-	} = $props()
+		comments?: any[]
+		formError?: string | null
+	}>()
 </script>
 
 <div class="desktop-view">
@@ -138,7 +129,7 @@
 				{#if recipe.diets && recipe.diets.length > 0}
 					<div class="tags">
 						{#each recipe.diets as diet}
-							<Pill text={diet} color={dietColors[diet]} />
+							<Pill text={diet} color={dietColors[diet as keyof typeof dietColors]} />
 						{/each}
 					</div>
 				{/if}
@@ -261,7 +252,14 @@
 	</div>
 
 	<div class="comments-section">
-		<CommentList {comments} {isLoggedIn} onAddComment={onAddComment || (() => Promise.resolve())} />
+		<div class="comments-content">
+			<CommentList 
+				{comments} 
+				{isLoggedIn} 
+				recipeId={recipe.id}
+				{formError}
+			/>
+		</div>
 	</div>
 </div>
 

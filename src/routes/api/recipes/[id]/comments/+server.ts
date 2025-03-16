@@ -24,7 +24,8 @@ const commentSchema = v.object({
     v.string(),
     v.minLength(1, 'Comment cannot be empty'),
     v.maxLength(1000, 'Comment is too long')
-  )
+  ),
+  imageUrl: v.optional(v.string())
 })
 
 export const POST: RequestHandler = async ({ params, request, locals }) => {
@@ -42,7 +43,12 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     const body = await request.json()
     const validatedData = v.parse(commentSchema, body)
     
-    const newComment = await addComment(recipeId, locals.user.id, validatedData.content)
+    const newComment = await addComment(
+      recipeId, 
+      locals.user.id, 
+      validatedData.content,
+      validatedData.imageUrl
+    )
     
     // Fetch the complete comment with user info to return
     const comments = await getComments(recipeId)

@@ -28,8 +28,8 @@
 		getFormattedIngredient,
 		onBackClick,
 		comments = [],
-		onAddComment
-	}: {
+		formError
+	} = $props<{
 		recipe: RecipeData
 		nutrition: {
 			totalNutrition: Omit<NutritionInfo, 'servingSize'>
@@ -43,31 +43,14 @@
 		onBookmark?: () => void
 		getFormattedIngredient: (ingredient: Ingredient, unitSystem: UnitSystem) => any
 		onBackClick?: () => void
-		comments?: {
-			id: string
-			content: string
-			createdAt: string | Date
-			user: {
-				id: string
-				username: string
-				avatarUrl: string | null
-			}
-		}[]
-		onAddComment?: (content: string) => Promise<void>
-	} = $props()
+		comments?: any[]
+		formError?: string | null
+	}>()
 
 	let activeTab = $state('overview')
 	let currentStep = $state(0)
 	let stepsContainer: HTMLElement | null = null
 	let showActions = $state(true)
-
-	// Default implementation for onAddComment if not provided
-	const handleAddComment = async (content: string) => {
-		if (onAddComment) {
-			return onAddComment(content)
-		}
-		return Promise.resolve()
-	}
 
 	function goToStep(index: number) {
 		if (index >= 0 && index < recipe.instructions.length) {
@@ -144,7 +127,7 @@
 						{#if recipe.diets && recipe.diets.length > 0}
 							<div class="diet-pills-overlay">
 								{#each recipe.diets as diet}
-									<Pill text={diet} color={dietColors[diet]} />
+									<Pill text={diet} color={dietColors[diet as keyof typeof dietColors]} />
 								{/each}
 							</div>
 						{/if}
@@ -186,7 +169,12 @@
 			</div>
 		{:else if activeTab === 'comments'}
 			<div class="comments-content">
-				<CommentList {comments} {isLoggedIn} onAddComment={handleAddComment} />
+				<CommentList 
+					{comments} 
+					{isLoggedIn} 
+					recipeId={recipe.id}
+					{formError}
+				/>
 			</div>
 		{:else}
 			<div class="instructions-content">
@@ -535,11 +523,11 @@
 			right: 0;
 			height: 150px;
 			background: linear-gradient(
-				to top, 
+				to top,
 				var(--color-background) 0%,
-				color-mix(in srgb, var(--color-background) 90%, transparent) 20%, 
+				color-mix(in srgb, var(--color-background) 90%, transparent) 20%,
 				color-mix(in srgb, var(--color-background) 70%, transparent) 40%,
-				color-mix(in srgb, var(--color-background) 40%, transparent) 70%, 
+				color-mix(in srgb, var(--color-background) 40%, transparent) 70%,
 				transparent 100%
 			);
 			pointer-events: none;

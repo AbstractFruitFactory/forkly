@@ -1,16 +1,25 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte'
+	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
 
-	let { 
-		error = '', 
-		id = crypto.randomUUID(), 
-		type = 'both', // 'image', 'video', or 'both'
+	let {
+		error,
+		id = crypto.randomUUID(),
+		type = 'both',
 		name = 'media',
-		maxSize = type === 'video' ? 50 : 10, // Max size in MB
+		maxSize = type === 'video' ? 50 : 10,
 		aspectRatio = '16/9',
 		previewAlt = 'Media preview'
+	}: {
+		error?: string
+		id?: string
+		type?: 'image' | 'video' | 'both'
+		name?: string
+		maxSize?: number
+		aspectRatio?: string
+		previewAlt?: string
 	} = $props()
-	
+
 	let preview = $state('')
 	let inputElement: HTMLInputElement
 	let dragOver = $state(false)
@@ -25,44 +34,23 @@
 	}
 
 	const handleFile = (file: File) => {
-		// Validate file type
-		if (type === 'image' && !file.type.startsWith('image/')) {
-			error = 'Please select an image file'
-			return
-		}
-
-		if (type === 'video' && !file.type.startsWith('video/')) {
-			error = 'Please select a video file'
-			return
-		}
-
-		if (type === 'both' && !file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-			error = 'Please select an image or video file'
-			return
-		}
-
-		// Set media type
-		mediaType = file.type.startsWith('image/') ? 'image' : 'video'
-
-		// Validate file size
-		if (file.size > maxSize * 1024 * 1024) {
-			error = `${mediaType === 'image' ? 'Image' : 'Video'} must be less than ${maxSize}MB`
-			return
-		}
-
 		// Clean up previous preview
-		if (preview) URL.revokeObjectURL(preview)
+		if (preview) cleanupPreview(preview)
 
-		// Create preview
-		preview = URL.createObjectURL(file)
+		// Use the utility function to handle the file
+		const result = handleMediaFile(file, { type, maxSize })
+		
+		// Update state based on result
+		error = result.error
+		preview = result.preview
+		mediaType = result.mediaType
 
-		// Set the file directly on the input element
-		const dataTransfer = new DataTransfer()
-		dataTransfer.items.add(file)
-		inputElement.files = dataTransfer.files
-
-		// Clear error if successful
-		error = ''
+		if (!error) {
+			// Set the file directly on the input element
+			const dataTransfer = new DataTransfer()
+			dataTransfer.items.add(file)
+			inputElement.files = dataTransfer.files
+		}
 	}
 
 	const handleDragOver = (e: DragEvent) => {
@@ -78,22 +66,22 @@
 	const handleDrop = (e: DragEvent) => {
 		e.preventDefault()
 		dragOver = false
-		
+
 		const file = e.dataTransfer?.files[0]
 		if (file) handleFile(file)
 	}
 
 	onDestroy(() => {
 		// Clean up object URL
-		if (preview) URL.revokeObjectURL(preview)
+		if (preview) cleanupPreview(preview)
 	})
 </script>
 
 <div class="media-upload">
 	<input
 		type="file"
-		name={name}
-		id={id}
+		{name}
+		{id}
 		accept={type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : 'image/*,video/*'}
 		onchange={handleFileSelect}
 		class="hidden"
@@ -113,22 +101,12 @@
 		ondrop={handleDrop}
 	>
 		{#if preview && mediaType === 'image'}
-			<img
-				src={preview}
-				alt={previewAlt}
-				loading="eager"
-				decoding="sync"
-			/>
+			<img src={preview} alt={previewAlt} loading="eager" decoding="sync" />
 			<div class="preview-overlay">
 				<span>Change Image</span>
 			</div>
 		{:else if preview && mediaType === 'video'}
-			<video 
-				src={preview} 
-				controls 
-				muted 
-				class="video-preview"
-			></video>
+			<video src={preview} controls muted class="video-preview"></video>
 			<div class="preview-overlay">
 				<span>Change Video</span>
 			</div>
@@ -154,7 +132,11 @@
 					{/if}
 				</svg>
 				<span>
-					Drag and drop {type === 'image' ? 'an image' : type === 'video' ? 'a video' : 'an image or video'} here<br />
+					Drag and drop {type === 'image'
+						? 'an image'
+						: type === 'video'
+							? 'a video'
+							: 'an image or video'} here<br />
 					or click to browse
 				</span>
 			</div>
@@ -183,8 +165,9 @@
 		overflow: hidden;
 		cursor: pointer;
 		background: var(--color-neutral-dark);
-		transition: border-color var(--transition-fast) var(--ease-in-out),
-					transform var(--transition-fast) var(--ease-in-out);
+		transition:
+			border-color var(--transition-fast) var(--ease-in-out),
+			transform var(--transition-fast) var(--ease-in-out);
 		will-change: transform;
 
 		&::after {
@@ -300,7 +283,8 @@
 		}
 	}
 
-	img, .video-preview {
+	img,
+	.video-preview {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
@@ -346,4 +330,4 @@
 			}
 		}
 	}
-</style> 
+</style>

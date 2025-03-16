@@ -8,7 +8,7 @@ cloudinary.config({
 })
 
 type UploadOptions = {
-  folder?: 'recipe-images' | 'recipe-videos' | 'instruction-media' | 'avatars'
+  folder?: 'recipe-images' | 'recipe-videos' | 'instruction-media' | 'avatars' | 'recipe-comments'
   transformation?: {
     width?: number
     height?: number

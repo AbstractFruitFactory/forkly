@@ -122,6 +122,7 @@ export const recipeComment = pgTable('recipe_comment', {
 		.notNull()
 		.references(() => recipe.id, { onDelete: 'cascade' }),
 	content: text('content').notNull(),
+	imageUrl: text('image_url'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 

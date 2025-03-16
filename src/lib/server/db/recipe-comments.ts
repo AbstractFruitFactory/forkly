@@ -3,14 +3,15 @@ import { recipeComment, user } from './schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { generateId } from '$lib/server/id'
 
-export async function addComment(recipeId: string, userId: string, content: string) {
+export async function addComment(recipeId: string, userId: string, content: string, imageUrl?: string) {
   const commentId = generateId()
   
   const newComment = await db.insert(recipeComment).values({
     id: commentId,
     userId,
     recipeId,
-    content
+    content,
+    imageUrl
   }).returning()
   
   return newComment[0]
@@ -21,6 +22,7 @@ export async function getComments(recipeId: string) {
     .select({
       id: recipeComment.id,
       content: recipeComment.content,
+      imageUrl: recipeComment.imageUrl,
       createdAt: recipeComment.createdAt,
       user: {
         id: user.id,

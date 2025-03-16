@@ -3,6 +3,7 @@
 	import Recipe from '$lib/pages/recipe/Recipe.svelte'
 	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
 	import type { Ingredient } from '$lib/types'
+	import { page } from '$app/state'
 
 	let { data } = $props()
 
@@ -102,4 +103,6 @@
 	onUnitChange={handleUnitChange}
 	isLoggedIn={!!data.user}
 	onBackClick={() => goto('/')}
+	comments={data.comments}
+	formError={page.form?.error}
 />
