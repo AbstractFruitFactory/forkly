@@ -119,7 +119,7 @@
 
 		// Variants
 		&.primary {
-			background: var(--color-secondary);
+			background: var(--color-primary-dark);
 			color: white;
 
 			&:active:not(:disabled) {
@@ -128,6 +128,7 @@
 		}
 
 		&.secondary {
+			background: var(--color-secondary);
 			border: var(--border-width-thin) solid var(--color-neutral);
 
 			&:hover:not(:disabled) {
