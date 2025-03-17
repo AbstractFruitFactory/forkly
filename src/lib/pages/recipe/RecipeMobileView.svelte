@@ -281,9 +281,7 @@
 
 	<div class="background-box">
 		<div class="start-cooking-wrapper">
-			<Button variant="primary" size="lg" onclick={() => startCookingMode()}>
-				Start Cooking
-			</Button>
+			<Button variant="primary" size="lg" onclick={() => startCookingMode()}>Start Cooking</Button>
 		</div>
 		{#if instructionMedia.length > 0}
 			<MediaPlayer {instructionMedia} />
@@ -459,15 +457,21 @@
 	</div>
 {/if}
 
-<style>
+<style lang="scss">
+	@import '$lib/global.scss';
 	.recipe-mobile-view {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100dvh;
-		overflow: hidden;
-		background: var(--color-background);
+		display: none;
+		
+		@include mobile() {
+			display: block;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100dvh;
+			overflow: hidden;
+			background: var(--color-background);
+		}
 	}
 
 	.back-button {
