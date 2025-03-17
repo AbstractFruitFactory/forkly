@@ -461,7 +461,7 @@
 	@import '$lib/global.scss';
 	.recipe-mobile-view {
 		display: none;
-		
+
 		@include mobile() {
 			display: block;
 			position: fixed;
@@ -668,7 +668,9 @@
 	.tabs {
 		display: flex;
 		margin-bottom: var(--spacing-lg);
-
+		position: sticky;
+		top: 0;
+		background: var(--color-background);
 		border-radius: var(--border-radius-xl);
 		padding: var(--spacing-xs);
 	}
