@@ -17,6 +17,7 @@
 	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
 	import MediaPlayer from '$lib/components/media-player/MediaPlayer.svelte'
+	import Button from '$lib/components/button/Button.svelte'
 	import { page } from '$app/state'
 
 	let {
@@ -69,19 +70,29 @@
 	// Track expanded instruction steps
 	let expandedInstructions = $state<number[]>([])
 
+	// Cooking mode state
+	let isCookingMode = $state(false)
+	let currentStep = $state(0)
+
 	// Mock data for recipe metadata
 	const cookTime = '30 Min'
 	const difficulty = 'Medium'
 	const servings = '2-3 Cal'
 
 	// Transform recipe instructions with media into format for MediaPlayer
-	const instructionMedia = $state<Array<{ type: 'image' | 'video'; url: string; duration?: number }>>(
+	const instructionMedia = $state<
+		Array<{ type: 'image' | 'video'; url: string; duration?: number }>
+	>(
 		recipe.instructions
-			.filter((instruction): instruction is typeof instruction & { mediaUrl: string; mediaType: 'image' | 'video' } => 
-				!!instruction.mediaUrl && !!instruction.mediaType && 
-				(instruction.mediaType === 'image' || instruction.mediaType === 'video')
+			.filter(
+				(
+					instruction
+				): instruction is typeof instruction & { mediaUrl: string; mediaType: 'image' | 'video' } =>
+					!!instruction.mediaUrl &&
+					!!instruction.mediaType &&
+					(instruction.mediaType === 'image' || instruction.mediaType === 'video')
 			)
-			.map(instruction => ({
+			.map((instruction) => ({
 				type: instruction.mediaType,
 				url: instruction.mediaUrl,
 				duration: 3000 // Default duration
@@ -98,6 +109,55 @@
 		} else {
 			expandedInstructions = [...expandedInstructions, index]
 		}
+	}
+
+	function startCookingMode() {
+		isCookingMode = true
+		currentStep = 0
+	}
+
+	function exitCookingMode() {
+		isCookingMode = false
+	}
+
+	function nextStep(e: Event) {
+		e.preventDefault()
+		if (currentStep < recipe.instructions.length - 1) {
+			currentStep++
+		}
+	}
+
+	function prevStep(e: Event) {
+		e.preventDefault()
+		if (currentStep > 0) {
+			currentStep--
+		}
+	}
+
+	// Swipe handling for cooking mode
+	let touchStartX = 0
+	let touchEndX = 0
+
+	function handleCookingTouchStart(e: TouchEvent) {
+		touchStartX = e.touches[0].clientX
+	}
+
+	function handleCookingTouchMove(e: TouchEvent) {
+		touchEndX = e.touches[0].clientX
+	}
+
+	function handleCookingTouchEnd(e: TouchEvent) {
+		e.preventDefault()
+		if (touchStartX - touchEndX > 50) {
+			// Swipe left - next step
+			nextStep(e)
+		} else if (touchEndX - touchStartX > 50) {
+			// Swipe right - previous step
+			prevStep(e)
+		}
+		// Reset values
+		touchStartX = 0
+		touchEndX = 0
 	}
 
 	onMount(() => {
@@ -220,6 +280,11 @@
 	</div>
 
 	<div class="background-box">
+		<div class="start-cooking-wrapper">
+			<Button variant="primary" size="lg" onclick={() => startCookingMode()}>
+				Start Cooking
+			</Button>
+		</div>
 		{#if instructionMedia.length > 0}
 			<MediaPlayer {instructionMedia} />
 		{:else}
@@ -318,6 +383,81 @@
 		</div>
 	</div>
 </div>
+
+{#if isCookingMode}
+	<div class="cooking-mode">
+		<div class="cooking-header">
+			<button class="cooking-close-button" onclick={exitCookingMode}>
+				<svg width="24" height="24" viewBox="0 0 24 24">
+					<path
+						d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+					/>
+				</svg>
+			</button>
+			<div class="cooking-progress">
+				<div class="cooking-progress-text">
+					Step {currentStep + 1} of {recipe.instructions.length}
+				</div>
+				<div class="cooking-progress-bar">
+					<div
+						class="cooking-progress-fill"
+						style="width: {((currentStep + 1) / recipe.instructions.length) * 100}%"
+					></div>
+				</div>
+			</div>
+		</div>
+
+		<div
+			class="cooking-content"
+			ontouchstart={handleCookingTouchStart}
+			ontouchmove={handleCookingTouchMove}
+			ontouchend={handleCookingTouchEnd}
+		>
+			{#if recipe.instructions[currentStep].mediaUrl}
+				<div class="cooking-media">
+					{#if recipe.instructions[currentStep].mediaType === 'video'}
+						<video
+							src={recipe.instructions[currentStep].mediaUrl}
+							controls
+							autoplay
+							muted
+							class="cooking-media-content"
+						></video>
+					{:else if recipe.instructions[currentStep].mediaType === 'image'}
+						<img
+							src={recipe.instructions[currentStep].mediaUrl}
+							alt="Step {currentStep + 1}"
+							class="cooking-media-content"
+						/>
+					{/if}
+				</div>
+			{/if}
+
+			<div class="cooking-instruction">
+				<p class="cooking-instruction-text">{recipe.instructions[currentStep].text}</p>
+			</div>
+		</div>
+
+		<div class="cooking-navigation">
+			<button class="cooking-nav-button" onclick={prevStep} disabled={currentStep === 0}>
+				<svg width="24" height="24" viewBox="0 0 24 24">
+					<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+				</svg>
+				Previous
+			</button>
+			<button
+				class="cooking-nav-button"
+				onclick={nextStep}
+				disabled={currentStep === recipe.instructions.length - 1}
+			>
+				Next
+				<svg width="24" height="24" viewBox="0 0 24 24">
+					<path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+				</svg>
+			</button>
+		</div>
+	</div>
+{/if}
 
 <style>
 	.recipe-mobile-view {
@@ -574,5 +714,138 @@
 		display: flex;
 		gap: 8px;
 		z-index: var(--z-elevated);
+	}
+
+	.start-cooking-wrapper {
+		position: absolute;
+		bottom: var(--spacing-md);
+		left: 0;
+		right: 0;
+		display: flex;
+		justify-content: center;
+		z-index: 3;
+	}
+
+	.cooking-mode {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100vh;
+		background: var(--color-background);
+		z-index: 1000;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.cooking-header {
+		padding: var(--spacing-md);
+		display: flex;
+		align-items: center;
+		border-bottom: 1px solid var(--color-neutral-dark);
+		background: var(--color-neutral-dark);
+	}
+
+	.cooking-close-button {
+		background: transparent;
+		border: none;
+		padding: var(--spacing-xs);
+		margin-right: var(--spacing-md);
+		cursor: pointer;
+	}
+
+	.cooking-close-button svg {
+		fill: var(--color-neutral-light);
+	}
+
+	.cooking-progress {
+		flex: 1;
+	}
+
+	.cooking-progress-text {
+		font-size: var(--font-size-sm);
+		color: var(--color-neutral-light);
+		margin-bottom: var(--spacing-xs);
+	}
+
+	.cooking-progress-bar {
+		height: 4px;
+		background: var(--color-neutral);
+		border-radius: var(--border-radius-full);
+		overflow: hidden;
+	}
+
+	.cooking-progress-fill {
+		height: 100%;
+		background: var(--color-primary);
+		transition: width 0.3s ease;
+	}
+
+	.cooking-content {
+		flex: 1;
+		overflow-y: auto;
+		padding: var(--spacing-md);
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
+	}
+
+	.cooking-media {
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		background: var(--color-neutral-dark);
+		border-radius: var(--border-radius-lg);
+		overflow: hidden;
+	}
+
+	.cooking-media-content {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.cooking-instruction {
+		display: flex;
+		gap: var(--spacing-md);
+		padding: var(--spacing-md);
+		background: var(--color-neutral-darker);
+		border-radius: var(--border-radius-lg);
+	}
+
+	.cooking-instruction-text {
+		font-size: var(--font-size-md);
+		color: var(--color-neutral-light);
+		line-height: 1.6;
+	}
+
+	.cooking-navigation {
+		display: flex;
+		justify-content: space-between;
+		padding: var(--spacing-md);
+		border-top: 1px solid var(--color-neutral-dark);
+		background: var(--color-neutral-dark);
+	}
+
+	.cooking-nav-button {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		background: var(--color-neutral-darker);
+		border: none;
+		border-radius: var(--border-radius-md);
+		padding: var(--spacing-md) var(--spacing-lg);
+		color: var(--color-neutral-light);
+		font-weight: var(--font-weight-medium);
+		cursor: pointer;
+		transition: all var(--transition-fast) var(--ease-in-out);
+	}
+
+	.cooking-nav-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.cooking-nav-button svg {
+		fill: currentColor;
 	}
 </style>
