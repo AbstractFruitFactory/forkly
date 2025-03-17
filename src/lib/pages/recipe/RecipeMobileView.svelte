@@ -52,8 +52,8 @@
 
 	// Sheet drag state
 	let sheetY = new Spring(0, {
-		stiffness: 0.15,
-		damping: 0.7
+		stiffness: 0.25,
+		damping: 0.6
 	})
 	let startY: number
 	let startSheetY: number
@@ -123,12 +123,44 @@
 
 		isDragging = false
 
-		if (sheetY.current < windowHeight * 0.2) {
-			sheetY.set(70)
-		} else if (sheetY.current > windowHeight * 0.6) {
-			sheetY.set(windowHeight - 60)
-		} else {
-			sheetY.set(windowHeight * 0.3)
+		// Calculate the threshold for snapping based on the current position
+		const topPosition = 70;
+		const middlePosition = windowHeight * 0.3;
+		const bottomPosition = windowHeight - 60;
+		
+		// Determine which position to snap to based on drag direction and velocity
+		const currentPosition = sheetY.current;
+		const dragDistance = currentPosition - startSheetY;
+		
+		// If dragged up significantly, snap to the next position up
+		if (dragDistance < -20) {
+			if (currentPosition < middlePosition) {
+				sheetY.set(topPosition);
+			} else {
+				sheetY.set(middlePosition);
+			}
+		} 
+		// If dragged down significantly, snap to the next position down
+		else if (dragDistance > 20) {
+			if (currentPosition > middlePosition) {
+				sheetY.set(bottomPosition);
+			} else {
+				sheetY.set(middlePosition);
+			}
+		} 
+		// For small movements, snap to the closest position
+		else {
+			const distanceToTop = Math.abs(currentPosition - topPosition);
+			const distanceToMiddle = Math.abs(currentPosition - middlePosition);
+			const distanceToBottom = Math.abs(currentPosition - bottomPosition);
+			
+			if (distanceToTop <= distanceToMiddle && distanceToTop <= distanceToBottom) {
+				sheetY.set(topPosition);
+			} else if (distanceToMiddle <= distanceToTop && distanceToMiddle <= distanceToBottom) {
+				sheetY.set(middlePosition);
+			} else {
+				sheetY.set(bottomPosition);
+			}
 		}
 	}
 
