@@ -31,7 +31,7 @@
 		formError,
 		onLike,
 		onDislike,
-		chef = { name: 'Emma Brown', title: 'Professional Chef' }
+		chef = { name: 'Emma Brown', title: 'Professional Chef', avatar: '' }
 	}: {
 		recipe: RecipeData
 		nutrition: {
@@ -87,7 +87,7 @@
 
 	onMount(() => {
 		windowHeight = window.innerHeight
-		sheetY.set(windowHeight * 0.3)
+		sheetY.set(windowHeight * 0.35)
 
 		// Add document-level touch event listeners
 		document.addEventListener('touchmove', handleDocumentTouchMove, { passive: false })
@@ -126,7 +126,7 @@
 
 		// Calculate the threshold for snapping based on the current position
 		const topPosition = 70
-		const middlePosition = windowHeight * 0.3
+		const middlePosition = windowHeight * 0.35
 		const bottomPosition = windowHeight - 60
 
 		// Determine which position to snap to based on drag direction and velocity
@@ -203,6 +203,8 @@
 			/>
 		</div>
 	</div>
+
+	<div class="background-box"></div>
 
 	<div class="draggable-sheet" style="transform: translateY({sheetY.current}px)">
 		<div
@@ -355,6 +357,18 @@
 		object-fit: cover;
 	}
 
+	.background-box {
+		position: absolute;
+		top: 33vh;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 90%;
+		height: 50%;
+		background: var(--color-neutral);
+		z-index: 1;
+		border-radius: var(--border-radius-xl);
+	}
+
 	.draggable-sheet {
 		position: absolute;
 		top: 0;
@@ -364,6 +378,7 @@
 		background: var(--color-neutral-dark);
 		border-radius: var(--border-radius-3xl) var(--border-radius-3xl) 0 0;
 		box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+		z-index: 2;
 	}
 
 	.drag-handle {
