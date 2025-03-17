@@ -16,6 +16,7 @@
 	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
 	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
+	import MediaPlayer from '$lib/components/media-player/MediaPlayer.svelte'
 	import { page } from '$app/state'
 
 	let {
@@ -72,6 +73,20 @@
 	const cookTime = '30 Min'
 	const difficulty = 'Medium'
 	const servings = '2-3 Cal'
+
+	// Transform recipe instructions with media into format for MediaPlayer
+	const instructionMedia = $state<Array<{ type: 'image' | 'video'; url: string; duration?: number }>>(
+		recipe.instructions
+			.filter((instruction): instruction is typeof instruction & { mediaUrl: string; mediaType: 'image' | 'video' } => 
+				!!instruction.mediaUrl && !!instruction.mediaType && 
+				(instruction.mediaType === 'image' || instruction.mediaType === 'video')
+			)
+			.map(instruction => ({
+				type: instruction.mediaType,
+				url: instruction.mediaUrl,
+				duration: 3000 // Default duration
+			}))
+	)
 
 	function switchTab(tab: 'ingredients' | 'instructions' | 'comments') {
 		activeTab = tab
@@ -204,7 +219,13 @@
 		</div>
 	</div>
 
-	<div class="background-box"></div>
+	<div class="background-box">
+		{#if instructionMedia.length > 0}
+			<MediaPlayer {instructionMedia} />
+		{:else}
+			<div class="no-media">No media available</div>
+		{/if}
+	</div>
 
 	<div class="draggable-sheet" style="transform: translateY({sheetY.current}px)">
 		<div
@@ -364,9 +385,19 @@
 		transform: translateX(-50%);
 		width: 90%;
 		height: 50%;
-		background: var(--color-neutral);
+		background: white;
 		z-index: 1;
 		border-radius: var(--border-radius-xl);
+		padding: var(--spacing-lg);
+	}
+
+	.no-media {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100%;
+		color: var(--color-neutral);
+		font-style: italic;
 	}
 
 	.draggable-sheet {
