@@ -131,6 +131,12 @@
 			sheetY.set(windowHeight * 0.3)
 		}
 	}
+
+	// Add this function to handle touch events in the content area
+	function handleContentTouchStart(e: TouchEvent) {
+		// Don't start dragging when touching the content area
+		e.stopPropagation()
+	}
 </script>
 
 <div class="recipe-mobile-view" data-page="recipe">
@@ -174,7 +180,11 @@
 			<div class="handle-bar"></div>
 		</div>
 
-		<div class="recipe-content">
+		<div
+			class="recipe-content"
+			style:--sheet-position="{sheetY.current}px"
+			ontouchstart={handleContentTouchStart}
+		>
 			<h3>{recipe.title}</h3>
 			<p class="description">{recipe.description}</p>
 
@@ -347,8 +357,10 @@
 
 	.recipe-content {
 		padding: 0 var(--spacing-lg) var(--spacing-lg);
-		height: calc(100% - 52px);
 		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+		touch-action: pan-y;
+		max-height: calc(100vh - var(--sheet-position) - 52px);
 	}
 
 	.description {
@@ -470,10 +482,6 @@
 		color: var(--color-primary);
 		background-color: var(--color-background);
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-	}
-
-	.tab-icon {
-		fill: currentColor;
 	}
 
 	.tab-content {
