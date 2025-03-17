@@ -465,7 +465,7 @@
 		top: 0;
 		left: 0;
 		width: 100%;
-		height: 100vh;
+		height: 100dvh;
 		overflow: hidden;
 		background: var(--color-background);
 	}
@@ -497,7 +497,7 @@
 		top: 0;
 		left: 0;
 		width: 100%;
-		height: 40vh;
+		height: 40dvh;
 		background: var(--color-neutral-dark);
 	}
 
@@ -520,7 +520,7 @@
 
 	.background-box {
 		position: absolute;
-		top: 33vh;
+		top: 33dvh;
 		left: 50%;
 		transform: translateX(-50%);
 		width: 90%;
@@ -545,7 +545,7 @@
 		top: 0;
 		left: 0;
 		width: 100%;
-		height: 100vh;
+		height: 100dvh;
 		background: var(--color-neutral-dark);
 		border-radius: var(--border-radius-3xl) var(--border-radius-3xl) 0 0;
 		box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
@@ -579,7 +579,7 @@
 		overflow-y: auto;
 		-webkit-overflow-scrolling: touch;
 		touch-action: pan-y;
-		max-height: calc(100vh - var(--sheet-position) - 52px);
+		max-height: calc(100dvh - var(--sheet-position) - 52px);
 	}
 
 	.description {
@@ -731,7 +731,7 @@
 		top: 0;
 		left: 0;
 		width: 100%;
-		height: 100vh;
+		height: 100dvh;
 		background: var(--color-background);
 		z-index: 1000;
 		display: flex;
