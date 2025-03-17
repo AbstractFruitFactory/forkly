@@ -15,6 +15,7 @@
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
 	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
 	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
+	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
 	import { page } from '$app/state'
 
 	let {
@@ -30,8 +31,8 @@
 		formError,
 		onLike,
 		onDislike,
-		chef = { name: 'Emma Brown', title: 'Professional Chef', avatar: '/images/chef-avatar.jpg' }
-	} = $props<{
+		chef = { name: 'Emma Brown', title: 'Professional Chef' }
+	}: {
 		recipe: RecipeData
 		nutrition: {
 			totalNutrition: Omit<NutritionInfo, 'servingSize'>
@@ -48,7 +49,7 @@
 		comments: any[]
 		formError?: string
 		chef?: { name: string; title: string; avatar: string }
-	}>()
+	} = $props()
 
 	// Sheet drag state
 	let sheetY = new Spring(0, {
@@ -124,42 +125,42 @@
 		isDragging = false
 
 		// Calculate the threshold for snapping based on the current position
-		const topPosition = 70;
-		const middlePosition = windowHeight * 0.3;
-		const bottomPosition = windowHeight - 60;
-		
+		const topPosition = 70
+		const middlePosition = windowHeight * 0.3
+		const bottomPosition = windowHeight - 60
+
 		// Determine which position to snap to based on drag direction and velocity
-		const currentPosition = sheetY.current;
-		const dragDistance = currentPosition - startSheetY;
-		
+		const currentPosition = sheetY.current
+		const dragDistance = currentPosition - startSheetY
+
 		// If dragged up significantly, snap to the next position up
 		if (dragDistance < -20) {
 			if (currentPosition < middlePosition) {
-				sheetY.set(topPosition);
+				sheetY.set(topPosition)
 			} else {
-				sheetY.set(middlePosition);
+				sheetY.set(middlePosition)
 			}
-		} 
+		}
 		// If dragged down significantly, snap to the next position down
 		else if (dragDistance > 20) {
 			if (currentPosition > middlePosition) {
-				sheetY.set(bottomPosition);
+				sheetY.set(bottomPosition)
 			} else {
-				sheetY.set(middlePosition);
+				sheetY.set(middlePosition)
 			}
-		} 
+		}
 		// For small movements, snap to the closest position
 		else {
-			const distanceToTop = Math.abs(currentPosition - topPosition);
-			const distanceToMiddle = Math.abs(currentPosition - middlePosition);
-			const distanceToBottom = Math.abs(currentPosition - bottomPosition);
-			
+			const distanceToTop = Math.abs(currentPosition - topPosition)
+			const distanceToMiddle = Math.abs(currentPosition - middlePosition)
+			const distanceToBottom = Math.abs(currentPosition - bottomPosition)
+
 			if (distanceToTop <= distanceToMiddle && distanceToTop <= distanceToBottom) {
-				sheetY.set(topPosition);
+				sheetY.set(topPosition)
 			} else if (distanceToMiddle <= distanceToTop && distanceToMiddle <= distanceToBottom) {
-				sheetY.set(middlePosition);
+				sheetY.set(middlePosition)
 			} else {
-				sheetY.set(bottomPosition);
+				sheetY.set(bottomPosition)
 			}
 		}
 	}
@@ -237,7 +238,7 @@
 
 			<div class="chef-info">
 				<div class="chef-avatar">
-					<img src={chef.avatar} alt={chef.name} />
+					<ProfilePic profilePicUrl={chef.avatar} size="40px" />
 				</div>
 				<div class="chef-details">
 					<div class="chef-name">{chef.name}</div>
@@ -441,12 +442,6 @@
 		border-radius: var(--border-radius-full);
 		overflow: hidden;
 		margin-right: var(--spacing-md);
-	}
-
-	.chef-avatar img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
 	}
 
 	.chef-details {
