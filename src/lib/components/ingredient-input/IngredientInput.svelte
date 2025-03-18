@@ -14,7 +14,7 @@
 		value?: string
 		unit?: MeasurementUnit
 		unitSystem?: UnitSystem
-		name?: string
+		name: string
 		placeholder?: string
 	} = $props()
 
@@ -61,8 +61,15 @@
 <div class="ingredient-input">
 	<Input>
 		<div class="input-container">
-			<input type="text" inputmode="decimal" {name} {placeholder} {value} oninput={handleInput} />
-			<select name={name ? `${name}-unit` : undefined} bind:value={unit}>
+			<input
+				type="text"
+				inputmode="decimal"
+				name="{name}-quantity"
+				{placeholder}
+				{value}
+				oninput={handleInput}
+			/>
+			<select name="{name}-measurement" bind:value={unit}>
 				<option value="">Unit</option>
 				{#each getUnits(unitSystem) as unit}
 					<option value={unit}>{UNIT_DISPLAY_TEXT[unit]}</option>
