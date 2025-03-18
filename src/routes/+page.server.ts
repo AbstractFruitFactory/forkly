@@ -3,19 +3,31 @@ import type { PageServerLoad } from './$types'
 import type { DietType } from '$lib/types'
 
 export const load: PageServerLoad = async ({ url }) => {
-	const searchQuery = url.searchParams.get('search') || ''
+	const [searchQuery, dietsParam, ingredientsParam] = ['search', 'diets', 'ingredients'].map(url.searchParams.get)
 
-	const dietsParam = url.searchParams.get('diets') || ''
 	const diets = dietsParam ? dietsParam.split(',') as DietType[] : []
-
-	const ingredientsParam = url.searchParams.get('ingredients') || ''
 	const ingredients = ingredientsParam ? ingredientsParam.split(',') : []
 
-	const recipes = await getHomePageRecipes(searchQuery, diets, ingredients)
+	const recipes = await getHomePageRecipes(diets, ingredients, searchQuery)
+
+	const transformedRecipes = recipes
+		.map((recipe) => ({
+			...recipe,
+			ingredients: recipe.ingredients.length,
+			instructions: recipe.instructions.length,
+			imageUrl: recipe.imageUrl,
+			createdAt: recipe.createdAt.toISOString(),
+			user: recipe.user?.username
+				? {
+					username: recipe.user.username,
+					avatarUrl: recipe.user.avatarUrl
+				}
+				: undefined
+		}))
 
 	return {
-		recipes,
-		searchQuery,
+		recipes: transformedRecipes,
+		searchQuery: searchQuery || undefined,
 		filters: {
 			diets,
 			ingredients

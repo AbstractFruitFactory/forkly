@@ -21,7 +21,7 @@
 
 	let {
 		recipes,
-		searchQuery = '',
+		searchQuery,
 		filters = { diets: [], ingredients: [] },
 		sortBy = 'popular',
 		onSortChange = (newSortBy: 'popular' | 'newest' | 'easiest') => {}

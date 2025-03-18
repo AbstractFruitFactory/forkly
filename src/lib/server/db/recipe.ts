@@ -148,7 +148,7 @@ export async function getRecipesByIds(recipeIds: string[]) {
   if (recipeIds.length === 0) {
     return []
   }
-  
+
   const quotedIds = recipeIds.map(id => `'${id}'`).join(',')
   return getDetailedRecipeQuery(sql`${recipe.id} IN (${sql.raw(quotedIds)})`)
 }
@@ -185,11 +185,11 @@ export async function deleteRecipe(recipeId: string, userId: string) {
  * @returns Filtered recipes for the home page
  */
 export async function getHomePageRecipes(
-  searchQuery: string = '',
-  diets: DietType[] = [],
-  ingredients: string[] = []
+  diets: DietType[],
+  ingredients: string[],
+  searchQuery: string | null
 ) {
-  let whereCondition = undefined
+  let whereCondition: SQL<unknown> | undefined
   const conditions = []
 
   if (searchQuery) {
@@ -227,6 +227,7 @@ export async function getHomePageRecipes(
       diets: recipe.diets,
       createdAt: recipe.createdAt,
       likes: sql<number>`count(DISTINCT ${recipeLike.userId})::int`,
+      dislikes: sql<number>`count(DISTINCT ${recipeDislike.userId})::int`,
       bookmarks: sql<number>`count(DISTINCT ${recipeBookmark.userId})::int`,
       calories: recipeNutrition.calories,
       protein: recipeNutrition.protein,
@@ -253,6 +254,7 @@ export async function getHomePageRecipes(
     .from(recipe)
     .leftJoin(user, eq(recipe.userId, user.id))
     .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
+    .leftJoin(recipeDislike, eq(recipe.id, recipeDislike.recipeId))
     .leftJoin(recipeBookmark, eq(recipe.id, recipeBookmark.recipeId))
     .leftJoin(recipeNutrition, eq(recipe.id, recipeNutrition.recipeId))
     .leftJoin(recipeIngredient, eq(recipe.id, recipeIngredient.recipeId))
