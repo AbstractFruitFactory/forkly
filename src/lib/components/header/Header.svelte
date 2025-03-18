@@ -252,7 +252,9 @@
 			display: flex;
 			align-items: center;
 			gap: var(--spacing-sm);
-
+			padding: var(--spacing-sm);
+			border-radius: var(--border-radius-sm);
+			transition: all var(--transition-fast) var(--ease-in-out);
 			&:hover,
 			&:focus-visible {
 				color: var(--color-primary);
