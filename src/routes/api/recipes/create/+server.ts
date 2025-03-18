@@ -4,7 +4,6 @@ import { createRecipe } from '$lib/server/db/recipe-create'
 import * as v from 'valibot'
 import type { MeasurementUnit, DietType } from '$lib/types'
 import { measurementUnits, dietTypes } from '$lib/types'
-import { validate } from '$lib/utils/validate'
 
 const baseIngredientSchema = v.object({
   name: v.string(),
@@ -20,7 +19,7 @@ const baseIngredientSchema = v.object({
 
 const createRecipeSchema = v.object({
   title: v.pipe(v.string(), v.minLength(1)),
-  description: v.pipe(v.string(), v.minLength(1)),
+  description: v.optional(v.string()),
   ingredients: v.array(
     v.union([
       v.intersect([
@@ -80,12 +79,12 @@ const createRecipeSchema = v.object({
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   const data = await request.json()
-  const validationResult = validate(createRecipeSchema, data)
+  const validationResult = v.safeParse(createRecipeSchema, data)
 
-  if (validationResult.isErr()) error(400, { message: validationResult.error.message })
+  if (!validationResult.success) error(400, { message: validationResult.issues.map(issue => issue.message).join(', ') })
 
-  const input = validationResult.value
+  const input = validationResult.output
 
-  const newRecipe = await createRecipe(input.data, locals.user?.id)
+  const newRecipe = await createRecipe(input, locals.user?.id)
   return json(newRecipe)
 } 

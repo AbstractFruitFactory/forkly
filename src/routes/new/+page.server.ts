@@ -172,8 +172,6 @@ export const actions = {
       })
     }
 
-    console.log('recipeData', recipeData)
-
     const invalidIngredients = recipeData.ingredients.filter(
       ing => !ing.name || ing.quantity === undefined || !ing.measurement
     )
@@ -220,7 +218,11 @@ export const actions = {
 
     if (mappedIngredientsResult.isErr()) {
       return fail(500, {
-        error: mappedIngredientsResult.error
+        success: false,
+        errors: [{
+          path: 'ingredients',
+          message: mappedIngredientsResult.error.message
+        }]
       })
     }
 
@@ -296,7 +298,10 @@ export const actions = {
     if (fetchResponse.isErr()) {
       return fail(500, {
         success: false,
-        error: 'An unexpected error occurred while creating the recipe'
+        errors: [{
+          path: 'api',
+          message: 'An unexpected error occurred while creating the recipe'
+        }]
       })
     }
 

@@ -30,7 +30,7 @@ export const recipe = pgTable('recipe', {
 	userId: text('user_id')
 		.references(() => user.id, { onDelete: 'cascade' }),
 	title: text('title').notNull(),
-	description: text('description').notNull(),
+	description: text('description'),
 	instructions: jsonb('instructions').$type<{
 		text: string;
 		mediaUrl?: string;

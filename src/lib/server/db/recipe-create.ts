@@ -33,7 +33,7 @@ type InstructionInput = {
 
 type RecipeInput = {
   title: string
-  description: string
+  description?: string
   ingredients: IngredientInput[]
   instructions: InstructionInput[]
   nutrition: NutritionInput
@@ -66,17 +66,28 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
     let ingredientId: string
 
     if (ingredientData.custom) {
-      const newIngredient = await db.insert(ingredient).values({
-        id: generateId(),
-        name: ingredientData.name,
-        spoonacularId: null,
-        custom: true
-      }).returning()
-      ingredientId = newIngredient[0].id
+      const existingIngredient = await db
+        .select()
+        .from(ingredient)
+        .where(eq(ingredient.name, ingredientData.name))
+        .limit(1)
+
+      if (existingIngredient.length) {
+        ingredientId = existingIngredient[0].id
+      } else {
+        const newIngredient = await db.insert(ingredient).values({
+          id: generateId(),
+          name: ingredientData.name,
+          spoonacularId: null,
+          custom: true
+        }).returning()
+        ingredientId = newIngredient[0].id
+      }
     } else {
       const spoonacularId = ingredientData.spoonacularId || null
-      
-      let existingIngredient: IngredientRecord[] = [];
+
+      let existingIngredient: IngredientRecord[] = []
+
       if (spoonacularId !== null) {
         existingIngredient = await db
           .select()
@@ -86,6 +97,16 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
       }
 
       if (!existingIngredient.length) {
+        existingIngredient = await db
+          .select()
+          .from(ingredient)
+          .where(eq(ingredient.name, ingredientData.name))
+          .limit(1)
+      }
+
+      if (existingIngredient.length) {
+        ingredientId = existingIngredient[0].id
+      } else {
         const newIngredient = await db.insert(ingredient).values({
           id: generateId(),
           name: ingredientData.name,
@@ -93,8 +114,6 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
           custom: false
         }).returning()
         ingredientId = newIngredient[0].id
-      } else {
-        ingredientId = existingIngredient[0].id
       }
     }
 
