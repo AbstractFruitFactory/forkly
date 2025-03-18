@@ -13,7 +13,9 @@
 		{@render header()}
 	</header>
 	<main class="main">
-		{@render content()}
+		<div class="main-content">
+			{@render content()}
+		</div>
 	</main>
 </div>
 
@@ -33,7 +35,6 @@
 		width: 100%;
 		max-width: 1400px;
 		margin: 0 auto;
-
 		padding: 0 var(--spacing-xl);
 
 		@include mobile {
@@ -58,10 +59,18 @@
 		flex-grow: 1;
 		overflow-y: auto;
 		scrollbar-width: thin;
-		scrollbar-gutter: stable;
+		scrollbar-gutter: stable both-edges;
+		padding: var(--spacing-xl);
+
+		@include mobile {
+			padding: 0;
+		}
+	}
+
+	.main-content {
+		flex-grow: 1;
 		max-width: 1400px;
 		margin: 0 auto;
-
 		padding: var(--spacing-xl);
 
 		@include mobile {

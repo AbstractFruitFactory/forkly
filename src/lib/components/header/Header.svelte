@@ -86,13 +86,13 @@
 
 	<div class="right-section">
 		<div class="new-recipe-wrapper">
-			<Button href={newRecipeHref} variant="primary" size="sm">New Recipe</Button>
+			<Button href={newRecipeHref} variant="secondary" size="sm">New Recipe</Button>
 		</div>
 
 		<nav class="main-nav">
 			{#if loggedIn}
 				<a href={profileHref} class="profile-link">
-					<ProfilePic profilePicUrl={profilePicUrl} size="32px" />
+					<ProfilePic {profilePicUrl} size="32px" />
 					<span class="profile-text">Profile</span>
 				</a>
 			{:else}
