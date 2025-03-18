@@ -44,8 +44,8 @@
 	let ingredientSearchInput: HTMLInputElement
 	let searchQuery = $state('')
 	let ingredientQuery = $state('')
-	let searchTimeout: ReturnType<typeof setTimeout> | null = null
-	let showLoadingTimeout: ReturnType<typeof setTimeout> | null = null
+	let searchTimeout: ReturnType<typeof setTimeout>
+	let showLoadingTimeout: ReturnType<typeof setTimeout>
 	let shouldShowLoading = $state(false)
 
 	let selectedDiets = $state(

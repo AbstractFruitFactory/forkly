@@ -5,14 +5,14 @@
 	import '$lib/global.scss'
 	import type { Snippet } from 'svelte'
 	import type { LayoutData } from './$types'
-	import { goto, invalidateAll } from '$app/navigation'
+	import { goto } from '$app/navigation'
 	import type { DietType } from '$lib/types'
 	import { safeFetch } from '$lib/utils/fetch'
 	import type { IngredientLookupResult } from './api/ingredients/lookup/[query]/+server'
+	import type { RecipesSearchResponse } from './api/recipes/search/+server'
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props()
 
-	let searchSuggestions = $state<Array<{ name: string }>>([])
 	let isSearchLoading = $state(false)
 	let searchResults = $state<
 		Array<{ id: string; title: string; imageUrl?: string; cookTime?: number; diets?: DietType[] }>
@@ -20,31 +20,18 @@
 	let isResultsLoading = $state(false)
 	let isSearchPopupOpen = $state(false)
 
-	function openSearchPopup() {
-		isSearchPopupOpen = true
-	}
+	const openSearchPopup = () => (isSearchPopupOpen = true)
 
-	function closeSearchPopup() {
-		isSearchPopupOpen = false
-	}
+	const closeSearchPopup = () => (isSearchPopupOpen = false)
 
-	async function handleLogout() {
-		const response = await fetch('/api/logout', { method: 'POST' })
-		if (response.ok) {
-			await invalidateAll()
-			goto('/')
-		}
-	}
-
-	async function handleSearch(
+	const handleSearch = async (
 		query: string,
 		filters?: { diets: DietType[]; ingredients: string[] }
-	) {
+	) => {
 		if (
 			!query.trim() &&
 			(!filters || (filters.diets.length === 0 && filters.ingredients.length === 0))
 		) {
-			searchSuggestions = []
 			searchResults = []
 			return
 		}
@@ -54,7 +41,6 @@
 
 		let url = `/api/recipes/search?q=${encodeURIComponent(query)}`
 
-		// Add filters to the URL if they exist
 		if (filters) {
 			if (filters.diets.length > 0) {
 				url += `&diets=${filters.diets.join(',')}`
@@ -64,20 +50,17 @@
 			}
 		}
 
-		const response = await fetch(url)
-		if (response.ok) {
-			const data = await response.json()
-			searchResults = data.results.map((recipe: any) => ({
+		const response = await safeFetch<RecipesSearchResponse>()(url)
+
+		if (response.isOk()) {
+			const data = response.value
+
+			searchResults = data.results.map((recipe) => ({
 				id: recipe.id,
 				title: recipe.title,
-				imageUrl: recipe.imageUrl,
-				cookTime: recipe.cookTime,
+				imageUrl: recipe.imageUrl ?? undefined,
 				diets: recipe.diets,
 				likes: recipe.likes
-			}))
-
-			searchSuggestions = data.results.map((recipe: any) => ({
-				name: recipe.title
 			}))
 		}
 
@@ -85,7 +68,7 @@
 		isResultsLoading = false
 	}
 
-	function handleSelectRecipe(recipe: { name: string }) {
+	const handleSelectRecipe = (recipe: { name: string }) => {
 		const selectedRecipe = searchResults.find((r) => r.title === recipe.name)
 		if (selectedRecipe) {
 			isSearchPopupOpen = false
@@ -93,10 +76,10 @@
 		}
 	}
 
-	function handleShowAllResults(
+	const handleShowAllResults = (
 		query: string,
 		filters?: { diets: DietType[]; ingredients: string[] }
-	) {
+	) => {
 		let url = `/?search=${encodeURIComponent(query)}`
 
 		if (filters) {
@@ -116,10 +99,7 @@
 
 		const result = await safeFetch<IngredientLookupResult>()(`/api/ingredients/lookup/${query}`)
 
-		if (result.isOk()) {
-			return result.value
-		}
-
+		if (result.isOk()) return result.value
 		return []
 	}
 </script>
