@@ -8,6 +8,10 @@ const dislikeRecipeSchema = v.object({
   id: v.string()
 })
 
+export type RecipesDislikeResponse = {
+  disliked: boolean
+}
+
 export const POST: RequestHandler = async ({ request, locals }) => {
   if (!locals.user) error(401, { message: 'Unauthorized' })
 
@@ -18,7 +22,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   if (!existingRecipe) error(404, { message: 'Recipe not found' })
 
   const disliked = await toggleRecipeDislike(input.id, locals.user.id)
-  return json({ disliked })
+
+  const response: RecipesDislikeResponse = {
+    disliked
+  }
+
+  return json(response)
 }
 
 export const DELETE: RequestHandler = async ({ request, locals }) => {

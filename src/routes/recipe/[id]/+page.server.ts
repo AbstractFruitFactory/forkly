@@ -3,15 +3,12 @@ import { getRecipeWithDetails } from '$lib/server/db/recipe'
 import type { PageServerLoad, Actions } from './$types'
 import { addComment, getComments } from '$lib/server/db/recipe-comments'
 import { uploadImage } from '$lib/server/cloudinary'
+import * as v from 'valibot'
 
-export const load: PageServerLoad = async ({ params, locals, depends }) => {
-  const recipeId = params.id
-  const userId = locals.user?.id
-
-  const result = await getRecipeWithDetails(recipeId, userId)
+export const load: PageServerLoad = async ({ params, locals }) => {
+  const result = await getRecipeWithDetails(params.id, locals.user?.id)
   if (!result) throw error(404, 'Recipe not found')
 
-  // Get comments for this recipe
   const comments = await getComments(params.id)
 
   return {
@@ -20,57 +17,54 @@ export const load: PageServerLoad = async ({ params, locals, depends }) => {
   }
 }
 
+const commentSchema = v.object({
+  content: v.pipe(
+    v.string(),
+    v.minLength(1, 'Comment cannot be empty'),
+    v.maxLength(1000, 'Comment is too long (maximum 1000 characters)')
+  )
+})
+
 export const actions: Actions = {
   addComment: async ({ request, params, locals }) => {
-    if (!locals.user) {
-      return fail(401, { error: 'You must be logged in to comment' })
-    }
-
-    const recipeId = params.id
-    if (!recipeId) {
-      return fail(400, { error: 'Recipe ID is required' })
-    }
+    if (!locals.user) return fail(401, { error: 'You must be logged in to comment' })
+    if (!params.id) return fail(400, { error: 'Recipe ID is required' })
 
     const formData = await request.formData()
-    const content = formData.get('content') as string
-    const imageFile = formData.get('image') as File | null
+    const content = formData.get('content')
+    const imageFile = formData.get('image') as File | undefined
 
-    // Validate content
-    if (!content.trim() && (!imageFile || imageFile.size === 0)) {
-      return fail(400, { error: 'Comment cannot be empty' })
+    if (!content || typeof content !== 'string') {
+      return fail(400, { error: 'Comment content is required' })
     }
 
-    try {
-      let imageUrl: string | undefined = undefined
+    const trimmedContent = content.trim()
+    
+    const validatedData = v.safeParse(commentSchema, {
+      content: trimmedContent
+    })
 
-      // Upload image if one is selected
-      if (imageFile && imageFile.size > 0) {
-        // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-        if (!allowedTypes.includes(imageFile.type)) {
-          return fail(400, { error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed' })
-        }
+    if (!validatedData.success) return fail(400, { error: validatedData.issues[0].message })
 
-        // Validate file size (max 5MB)
-        const maxSize = 5 * 1024 * 1024 // 5MB
-        if (imageFile.size > maxSize) {
-          return fail(400, { error: 'File size exceeds the 5MB limit' })
-        }
+    let imageUrl: string | undefined = undefined
 
-        // Upload to Cloudinary
-        const arrayBuffer = await imageFile.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-
-        imageUrl = await uploadImage(buffer, { folder: 'recipe-comments' })
+    if (imageFile && imageFile.size > 0) {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+      if (!allowedTypes.includes(imageFile.type)) {
+        return fail(400, { error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed' })
       }
 
-      // Add comment to database
-      await addComment(recipeId, locals.user.id, content.trim(), imageUrl)
+      const maxSize = 5 * 1024 * 1024 // 5MB
+      if (imageFile.size > maxSize) return fail(400, { error: 'File size exceeds the 5MB limit' })
 
-      return { success: true }
-    } catch (err) {
-      console.error('Error adding comment:', err)
-      return fail(500, { error: 'Failed to add comment' })
+      const arrayBuffer = await imageFile.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+
+      imageUrl = await uploadImage(buffer, { folder: 'recipe-comments' })
     }
+
+    await addComment(params.id, locals.user.id, trimmedContent, imageUrl)
+
+    return { success: true }
   }
 }

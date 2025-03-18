@@ -295,7 +295,6 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
   const foundRecipe = recipes[0]
   if (!foundRecipe) return null
 
-  // Get recipe ingredients
   const recipeIngredients = await db
     .select({
       ingredient: ingredient,
@@ -318,7 +317,6 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     fat: 0
   }
 
-  // Get like status if user is logged in
   let isLiked = false
   let isDisliked = false
   let isBookmarked = false
@@ -370,7 +368,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     id: ri.ingredient.id,
     name: ri.ingredient.name,
     quantity: ri.quantity,
-    measurement: ri.measurement
+    measurement: ri.measurement,
+    custom: ri.ingredient.custom
   }))
 
   return {

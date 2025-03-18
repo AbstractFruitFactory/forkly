@@ -174,9 +174,6 @@ export const actions = {
     const recipeData = parseFormData(formData)
     const imageFile = formData.get('image') as File | undefined
 
-    console.log(formData)
-
-    // Create a separate structure for instructions with their media
     const instructionsWithMedia = await Promise.all(
       recipeData.instructions.map(async (instruction, index) => {
         const mediaFile = formData.get(`instructions-${index}-media`) as File | undefined
@@ -203,7 +200,6 @@ export const actions = {
       })
     )
 
-    // Update recipeData with the processed instructions
     recipeData.instructions = instructionsWithMedia
 
     console.log(recipeData)

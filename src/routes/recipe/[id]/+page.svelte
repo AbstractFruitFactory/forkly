@@ -2,13 +2,16 @@
 	import { goto } from '$app/navigation'
 	import Recipe from '$lib/pages/recipe/Recipe.svelte'
 	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
-	import type { Ingredient } from '$lib/types'
 	import { page } from '$app/state'
+	import { safeFetch } from '$lib/utils/fetch.js'
+	import type { RecipesLikeResponse } from '../../api/recipes/like/+server.js'
+	import type { RecipesDislikeResponse } from '../../api/recipes/dislike/+server.js'
+	import type { RecipesBookmarkResponse } from '../../api/recipes/bookmark/+server.js'
 
 	let { data } = $props()
 
 	const handleLike = async () => {
-		const response = await fetch(`/api/recipes/like`, {
+		const response = await safeFetch<RecipesLikeResponse>()(`/api/recipes/like`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -16,14 +19,14 @@
 			body: JSON.stringify({ id: data.id })
 		})
 
-		if (response.ok) {
+		if (response.isOk()) {
 			isLiked = !isLiked
 			likes = isLiked ? likes + 1 : likes - 1
 		}
 	}
 
 	const handleDislike = async () => {
-		const response = await fetch(`/api/recipes/dislike`, {
+		const response = await safeFetch<RecipesDislikeResponse>()(`/api/recipes/dislike`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -31,13 +34,13 @@
 			body: JSON.stringify({ id: data.id })
 		})
 
-		if (response.ok) {
+		if (response.isOk()) {
 			isDisliked = !isDisliked
 		}
 	}
 
 	const handleBookmark = async () => {
-		const response = await fetch(`/api/recipes/bookmark`, {
+		const response = await safeFetch<RecipesBookmarkResponse>()(`/api/recipes/bookmark`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -45,7 +48,7 @@
 			body: JSON.stringify({ id: data.id })
 		})
 
-		if (response.ok) {
+		if (response.isOk()) {
 			isBookmarked = !isBookmarked
 			bookmarks = isBookmarked ? bookmarks + 1 : bookmarks - 1
 		}
@@ -57,13 +60,10 @@
 	let isBookmarked = $state(data.isBookmarked)
 	let bookmarks = $state(data.bookmarks)
 
-	// Map ingredients to the correct type
-	const ingredients = data.ingredients.map(
-		(ingredient: any): Ingredient => ({
-			...ingredient,
-			custom: ingredient.custom ?? false
-		})
-	)
+	const ingredients = data.ingredients.map((ingredient) => ({
+		...ingredient,
+		custom: ingredient.custom
+	}))
 
 	const handleUnitChange = (system: UnitSystem) => {
 		if (system === 'metric') {
@@ -73,7 +73,6 @@
 		}
 	}
 
-	// Get the current unit system as a derived value
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
