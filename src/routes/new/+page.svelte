@@ -36,12 +36,11 @@
 		}
 	}
 
-	// Get the current unit system as a derived value
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
 {#if form?.success}
-	<RecipeSuccess recipeId={form.recipeId} />
+	<RecipeSuccess recipeId={form.recipeId!} />
 {:else}
 	<NewRecipe
 		errors={form?.errors}

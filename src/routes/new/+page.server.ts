@@ -1,85 +1,36 @@
 import { fail } from '@sveltejs/kit'
 import type { Actions } from './$types'
-import { measurementUnits, dietTypes, type Ingredient, type MeasurementUnit, type DietType } from '$lib/types'
+import { type Ingredient, type MeasurementUnit, type DietType } from '$lib/types'
 import groupBy from 'ramda/src/groupBy'
-import { generateId } from '$lib/server/id'
 import { api } from '$lib/server/food-api'
 import { Ok, Result } from 'ts-results-es'
 import * as v from 'valibot'
 import { uploadImage, uploadMedia } from '$lib/server/cloudinary'
-import { recipe, ingredient, recipeIngredient, recipeNutrition } from '$lib/server/db/schema'
-import { db } from '$lib/server/db'
-import { eq } from 'drizzle-orm'
+import { safeFetch } from '$lib/utils/fetch'
 
-const baseIngredientSchema = {
-  name: v.pipe(
-    v.string(),
-    v.transform(input => input ?? ''),
-    v.minLength(1, 'Ingredient name is required'),
-    v.maxLength(100, 'Ingredient name must be less than 100 characters')
-  ),
-  quantity: v.pipe(
-    v.number('Please enter a valid number'),
-    v.minValue(0, 'Quantity must be a positive number')
-  ),
-  measurement: v.pipe(
-    v.string(),
-    v.transform(input => input ?? ''),
-    v.minLength(1, 'Measurement is required'),
-    v.custom<MeasurementUnit>(
-      (value) => measurementUnits.includes(value as MeasurementUnit),
-      'Invalid measurement unit'
-    )
-  )
+type ExtendedIngredient = Ingredient & {
+  spoonacularId?: number
 }
 
-const lookupIngredientSchema = v.object({
-  ...baseIngredientSchema,
-  id: v.number('Missing ID for ingredient'),
-  custom: v.literal(false)
-})
-
-const customIngredientSchema = v.object({
-  ...baseIngredientSchema,
-  custom: v.literal(true)
-})
-
-const ingredientSchema = v.union([lookupIngredientSchema, customIngredientSchema],
-  'Ingredient validation failed'
-)
-
-const recipeSchema = v.object({
+const formValidationSchema = v.object({
   title: v.pipe(
     v.string(),
     v.transform(input => input ?? ''),
-    v.minLength(1, 'Title is required'),
-    v.maxLength(100, 'Title must be less than 100 characters')
+    v.minLength(1, 'Title is required')
   ),
   description: v.pipe(
     v.string(),
-    v.transform(input => input ?? ''),
-    v.maxLength(500, 'Description must be less than 500 characters')
+    v.transform(input => input ?? '')
   ),
-  ingredients: v.array(ingredientSchema),
-  instructions: v.array(v.object({
-    text: v.pipe(
-      v.string(),
-      v.transform(input => input ?? ''),
-      v.minLength(1, 'Instruction step cannot be empty'),
-      v.maxLength(1000, 'Instruction step must be less than 1000 characters')
-    ),
-    mediaUrl: v.optional(v.string()),
-    mediaType: v.optional(v.union([v.literal('image'), v.literal('video')]))
-  })),
-  diets: v.array(
-    v.pipe(
-      v.string(),
-      v.custom<DietType>(
-        (value) => dietTypes.includes(value as DietType),
-        'Invalid diet type'
-      )
-    )
-  )
+  ingredients: v.pipe(
+    v.array(v.any()),
+    v.minLength(1, 'At least one ingredient is required')
+  ),
+  instructions: v.pipe(
+    v.array(v.any()),
+    v.minLength(1, 'At least one instruction is required')
+  ),
+  diets: v.array(v.string())
 })
 
 type FormFields = {
@@ -94,13 +45,20 @@ type FormFields = {
   diets: DietType[]
 }
 
-function parseIngredients(formData: FormData): Ingredient[] {
+type RecipeApiResponse = {
+  id: string
+  [key: string]: any
+}
+
+const parseIngredients = (formData: FormData): Ingredient[] => {
   const ingredientEntries = Array.from(formData.entries())
     .filter(([key]) => key.split('-')[0] === 'ingredient')
     .map(([key, value]) => {
       const [_, index, field] = key.split('-')
       return { index: parseInt(index), field, value: value.toString() }
     })
+
+  console.log('ingredientEntries', ingredientEntries)
 
   const byIndex = groupBy(entry => entry.index.toString(), ingredientEntries)
 
@@ -135,7 +93,7 @@ function parseIngredients(formData: FormData): Ingredient[] {
   })
 }
 
-function parseFormData(formData: FormData): FormFields {
+const parseFormData = (formData: FormData): FormFields => {
   const diets = formData.getAll('diets').map(value => value.toString()) as DietType[]
 
   // Parse instructions
@@ -164,12 +122,8 @@ function parseFormData(formData: FormData): FormFields {
   }
 }
 
-type ExtendedIngredient = Ingredient & {
-  spoonacularId?: number
-}
-
 export const actions = {
-  default: async ({ request, locals }) => {
+  default: async ({ request, fetch }) => {
     const formData = await request.formData()
     const recipeData = parseFormData(formData)
     const imageFile = formData.get('image') as File | undefined
@@ -187,8 +141,6 @@ export const actions = {
             resource_type: isVideo ? 'video' : 'image'
           })
 
-          console.log('mediaURL', mediaUrl)
-
           return {
             ...instruction,
             mediaUrl,
@@ -202,9 +154,14 @@ export const actions = {
 
     recipeData.instructions = instructionsWithMedia
 
-    console.log(recipeData)
+    const result = v.safeParse(formValidationSchema, {
+      title: recipeData.title,
+      description: recipeData.description,
+      ingredients: recipeData.ingredients,
+      instructions: recipeData.instructions,
+      diets: recipeData.diets
+    })
 
-    const result = v.safeParse(recipeSchema, recipeData)
     if (!result.success) {
       return fail(400, {
         success: false,
@@ -212,6 +169,36 @@ export const actions = {
           path: issue.path?.map(p => p.key).join('.') || '',
           message: issue.message
         }))
+      })
+    }
+
+    console.log('recipeData', recipeData)
+
+    const invalidIngredients = recipeData.ingredients.filter(
+      ing => !ing.name || ing.quantity === undefined || !ing.measurement
+    )
+
+    if (invalidIngredients.length > 0) {
+      return fail(400, {
+        success: false,
+        errors: [{
+          path: 'ingredients',
+          message: 'All ingredients must have a name, quantity, and measurement unit'
+        }]
+      })
+    }
+
+    const invalidInstructions = recipeData.instructions.filter(
+      inst => !inst.text || inst.text.trim() === ''
+    )
+
+    if (invalidInstructions.length > 0) {
+      return fail(400, {
+        success: false,
+        errors: [{
+          path: 'instructions',
+          message: 'All instructions must have text'
+        }]
       })
     }
 
@@ -267,85 +254,55 @@ export const actions = {
       }
     }
 
-    let imageUrl: string | null = null
+    let imageUrl: string | undefined = undefined
     if (imageFile && imageFile.size > 0) {
       const arrayBuffer = await imageFile.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
       imageUrl = await uploadImage(buffer)
     }
 
-    const recipeId = generateId()
+    const formattedIngredients = mappedIngredients.map(ing => ({
+      name: ing.name,
+      quantity: ing.quantity,
+      measurement: ing.measurement,
+      custom: ing.custom,
+      spoonacularId: ing.spoonacularId
+    }))
 
-    await db.transaction(async (tx) => {
-      await tx.insert(recipe).values({
-        id: recipeId,
-        title: result.output.title,
-        description: result.output.description,
-        instructions: result.output.instructions,
-        diets: recipeData.diets,
-        userId: locals.user?.id ?? null,
-        imageUrl
-      })
+    const requestPayload = {
+      title: recipeData.title,
+      description: recipeData.description,
+      instructions: recipeData.instructions,
+      ingredients: formattedIngredients,
+      nutrition: {
+        totalNutrition: nutrition,
+        hasCustomIngredients: mappedIngredients.some(ing => ing.custom)
+      },
+      diets: recipeData.diets,
+      imageUrl
+    }
 
-      await tx.insert(recipeNutrition).values({
-        recipeId,
-        ...nutrition
-      })
-
-      for (const ing of mappedIngredients) {
-        let ingredientId: string
-
-        if (!ing.custom && 'spoonacularId' in ing && ing.spoonacularId) {
-          const dbIngredient = await tx.insert(ingredient)
-            .values({
-              id: generateId(),
-              name: ing.name,
-              spoonacularId: ing.spoonacularId,
-              custom: false
-            })
-            .onConflictDoUpdate({
-              target: ingredient.spoonacularId,
-              set: {
-                name: ing.name,
-                custom: false
-              }
-            })
-            .returning()
-
-          ingredientId = dbIngredient[0].id
-        } else {
-          const dbIngredient = await tx.insert(ingredient)
-            .values({
-              id: generateId(),
-              name: ing.name,
-              spoonacularId: null,
-              custom: true
-            })
-            .onConflictDoUpdate({
-              target: ingredient.name,
-              set: {
-                name: ing.name,
-                spoonacularId: null,
-                custom: true
-              }
-            })
-            .returning()
-
-          ingredientId = dbIngredient[0].id
-        }
-
-        await tx.insert(recipeIngredient).values({
-          recipeId,
-          ingredientId,
-          quantity: ing.quantity,
-          measurement: ing.measurement
-        })
+    const fetchResponse = await safeFetch<RecipeApiResponse>(fetch)(
+      '/api/recipes/create',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestPayload)
       }
-    })
+    )
+
+    if (fetchResponse.isErr()) {
+      return fail(500, {
+        success: false,
+        error: 'An unexpected error occurred while creating the recipe'
+      })
+    }
 
     return {
       success: true,
-      recipeId
+      recipeId: fetchResponse.value.id
     }
   }
 } satisfies Actions 
