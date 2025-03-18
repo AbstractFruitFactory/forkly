@@ -6,7 +6,7 @@
 	type Recipe = {
 		id: string
 		title: string
-		description: string
+		description?: string
 		ingredients: number
 		instructions: number
 		imageUrl?: string | null

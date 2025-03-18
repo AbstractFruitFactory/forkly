@@ -13,6 +13,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const transformedRecipes = recipes
 		.map((recipe) => ({
 			...recipe,
+			description: recipe.description || undefined,
 			ingredients: recipe.ingredients.length,
 			instructions: recipe.instructions.length,
 			imageUrl: recipe.imageUrl,
