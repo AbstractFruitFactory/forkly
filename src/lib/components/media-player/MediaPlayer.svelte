@@ -67,9 +67,12 @@
 			preload="auto"
 			muted={true}
 			loop={false}
-			on:ended={handleVideoEnded}
-			on:error={handleVideoError}
-			on:loadeddata={handleVideoLoaded}
+			playsinline
+			data-webkit-playsinline="true"
+			onended={handleVideoEnded}
+			onerror={handleVideoError}
+			onloadeddata={handleVideoLoaded}
+			onclick={(e) => e.preventDefault()}
 			class="media-content"
 		></video>
 		{#if videoError}

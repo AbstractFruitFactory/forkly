@@ -450,10 +450,13 @@
 							autoplay
 							loop
 							muted
+							playsinline
+							data-webkit-playsinline="true"
 							preload="auto"
 							class="cooking-media-content"
 							onerror={handleCookingVideoError}
 							onloadeddata={handleCookingVideoLoaded}
+							onclick={(e) => e.preventDefault()}
 						></video>
 						{#if videoError}
 							<div class="video-error">
