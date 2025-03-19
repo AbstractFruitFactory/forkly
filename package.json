@@ -17,7 +17,6 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/lib/server/db/seed.ts",
-    "db:reset": "tsx src/lib/server/db/reset.ts",
     "db:studio": "drizzle-kit studio",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o storybook-static",
