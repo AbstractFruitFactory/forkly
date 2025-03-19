@@ -64,8 +64,11 @@
 	let windowHeight: number
 	let dragHandleElement: HTMLDivElement
 
-	// Active tab state
-	let activeTab = $state<'ingredients' | 'instructions' | 'comments'>('ingredients')
+	// Section references for scrolling
+	let ingredientsSection: HTMLElement
+	let instructionsSection: HTMLElement
+	let commentsSection: HTMLElement
+	let recipeContent: HTMLElement
 
 	// Track expanded instruction steps
 	let expandedInstructions = $state<number[]>([])
@@ -99,8 +102,18 @@
 			}))
 	)
 
-	function switchTab(tab: 'ingredients' | 'instructions' | 'comments') {
-		activeTab = tab
+	function scrollToSection(section: HTMLElement) {
+		if (section && recipeContent) {
+			// Calculate the position to scroll to
+			// Subtract some extra pixels to position the header below the nav
+			const navHeight = 70; // Approximate height of the sticky nav
+			const topPosition = section.offsetTop - navHeight;
+			
+			recipeContent.scrollTo({
+				top: topPosition,
+				behavior: 'smooth'
+			});
+		}
 	}
 
 	function toggleInstruction(index: number) {
@@ -299,10 +312,26 @@
 			<div class="handle-bar"></div>
 		</div>
 
+		<div class="sticky-nav">
+			<button class="nav-button" onclick={() => scrollToSection(ingredientsSection)}>
+				<svelte:component this={Apple} class="nav-icon" size={14} />
+				<span>Ingredients</span>
+			</button>
+			<button class="nav-button" onclick={() => scrollToSection(instructionsSection)}>
+				<svelte:component this={FileText} class="nav-icon" size={14} />
+				<span>Instructions</span>
+			</button>
+			<button class="nav-button" onclick={() => scrollToSection(commentsSection)}>
+				<svelte:component this={MessageSquare} class="nav-icon" size={14} />
+				<span>Comments</span>
+			</button>
+		</div>
+
 		<div
 			class="recipe-content"
 			style:--sheet-position="{sheetY.current}px"
 			ontouchstart={handleContentTouchStart}
+			bind:this={recipeContent}
 		>
 			<h3>{recipe.title}</h3>
 			<p class="description">{recipe.description}</p>
@@ -333,37 +362,14 @@
 				<button class="follow-button">+ Follow</button>
 			</div>
 
-			<div class="tabs">
-				<button
-					class="tab-button"
-					class:active={activeTab === 'ingredients'}
-					onclick={() => switchTab('ingredients')}
-				>
-					<svelte:component this={Apple} class="tab-icon" size={18} />
-					Ingredients
-				</button>
-				<button
-					class="tab-button"
-					class:active={activeTab === 'instructions'}
-					onclick={() => switchTab('instructions')}
-				>
-					<svelte:component this={FileText} class="tab-icon" size={18} />
-					Instructions
-				</button>
-				<button
-					class="tab-button"
-					class:active={activeTab === 'comments'}
-					onclick={() => switchTab('comments')}
-				>
-					<svelte:component this={MessageSquare} class="tab-icon" size={18} />
-					Comments
-				</button>
-			</div>
-
-			<div class="tab-content">
-				{#if activeTab === 'ingredients'}
+			<div class="section-container">
+				<section class="content-section" bind:this={ingredientsSection}>
+					<h4 class="section-title">Ingredients</h4>
 					<IngredientsList ingredients={recipe.ingredients} {unitSystem} {getFormattedIngredient} />
-				{:else if activeTab === 'instructions'}
+				</section>
+
+				<section class="content-section" bind:this={instructionsSection}>
+					<h4 class="section-title">Instructions</h4>
 					<div class="instructions-list">
 						{#each recipe.instructions as instruction, i}
 							<InstructionAccordion
@@ -374,9 +380,12 @@
 							/>
 						{/each}
 					</div>
-				{:else if activeTab === 'comments'}
+				</section>
+
+				<section class="content-section" bind:this={commentsSection}>
+					<h4 class="section-title">Comments</h4>
 					<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} />
-				{/if}
+				</section>
 			</div>
 		</div>
 	</div>
@@ -579,11 +588,11 @@
 	}
 
 	.recipe-content {
-		padding: 0 var(--spacing-lg) var(--spacing-lg);
+		padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-lg);
 		overflow-y: auto;
 		-webkit-overflow-scrolling: touch;
 		touch-action: pan-y;
-		max-height: calc(100dvh - var(--sheet-position) - 52px);
+		max-height: calc(100dvh - var(--sheet-position) - 100px);
 	}
 
 	.description {
@@ -665,46 +674,67 @@
 		color: white;
 	}
 
-	.tabs {
+	.sticky-nav {
 		display: flex;
-		margin-bottom: var(--spacing-lg);
 		position: sticky;
 		top: 0;
 		background: var(--color-background);
-		border-radius: var(--border-radius-xl);
-		padding: var(--spacing-xs);
+		border-radius: var(--border-radius-lg);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		z-index: 10;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+		margin: 0 var(--spacing-md) var(--spacing-sm);
 	}
 
-	.tab-button {
+	.nav-button {
 		flex: 1;
 		background: none;
 		border: none;
-		padding: var(--spacing-sm) 0;
+		padding: var(--spacing-xs) var(--spacing-xs);
 		color: var(--color-neutral-light);
-		font-size: var(--font-size-sm);
+		font-size: var(--font-size-xs);
 		cursor: pointer;
 		position: relative;
 		transition: all var(--transition-fast) var(--ease-in-out);
 		display: flex;
-		flex-direction: column;
-		align-items: center;
+		justify-content: center;
 		gap: var(--spacing-xs);
 		border-radius: var(--border-radius-sm);
 		font-weight: var(--font-weight-medium);
 	}
 
-	.tab-button:hover {
+	.nav-icon {
+		flex-shrink: 0;
+	}
+
+	.nav-button:hover {
 		color: white;
 	}
 
-	.tab-button.active {
+	.nav-button:active {
 		color: var(--color-primary);
 		background-color: var(--color-background);
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 	}
 
-	.tab-content {
+	.section-container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xl);
+	}
+
+	.content-section {
 		padding: var(--spacing-md) 0;
+		scroll-margin-top: 60px;
+	}
+
+	.section-title {
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-semibold);
+		margin-bottom: var(--spacing-md);
+		color: var(--color-neutral-light);
+		border-bottom: 1px solid var(--color-neutral-dark);
+		padding-bottom: var(--spacing-xs);
 	}
 
 	.instructions-list {
