@@ -109,14 +109,14 @@
 		border-radius: var(--border-radius-lg);
 		box-shadow: var(--shadow-lg);
 		width: 100%;
-		max-height: 90vh;
+		max-height: 90dvh;
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 
 		@include mobile {
 			width: 100vw;
-			height: 100vh;
+			height: 100dvh;
 			border-radius: 0;
 			box-shadow: none;
 			max-height: none;
