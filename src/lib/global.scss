@@ -133,8 +133,14 @@ $breakpoint-xl: 1280px;
   --font-weight-bold: 700;
 }
 
+html {
+  overscroll-behavior: none;
+  touch-action: pan-x pan-y;
+}
+
 // Global styles
 body {
+  overscroll-behavior: none;
   background-color: var(--color-background);
   font-family: var(--font-sans);
   line-height: 1.5;
