@@ -4,6 +4,7 @@ import type { MeasurementUnit } from '$lib/types'
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import * as dotenv from 'dotenv'
+import { sql } from 'drizzle-orm'
 
 dotenv.config()
 
@@ -21,6 +22,22 @@ export const seed = async () => {
 
   // Sample recipes data (without ingredients and nutrition)
   const sampleRecipes = [
+    {
+      id: generateId(),
+      title: 'Chef John\'s Fresh Salmon Cakes',
+      description: 'Delicious salmon cakes made with fresh salmon, sautéed vegetables, and seasonings. A perfect emergency meal that\'s easy to add to anyone\'s rotation.',
+      instructions: [
+        { text: 'Heat extra virgin olive oil in a skillet over medium heat. Cook and stir onion, red pepper, celery, and a pinch of salt until onion is soft and translucent, about 5 minutes.' },
+        { text: 'Add capers; cook and stir until fragrant, about 2 minutes. Remove from heat and cool to room temperature.' },
+        { text: 'Stir salmon, onion mixture, mayonnaise, bread crumbs, garlic, mustard, cayenne, seafood seasoning, salt, and ground black pepper together in a bowl until well-mixed.' },
+        { text: 'Cover the bowl with plastic wrap and refrigerate until firmed and chilled, 1 to 2 hours.' },
+        { text: 'Form salmon mixture into four 1-inch thick patties; sprinkle remaining panko bread crumbs over each patty.' },
+        { text: 'Heat olive oil in a skillet over medium-heat. Cook patties in hot oil until golden and cooked through, 3 to 4 minutes per side.' }
+      ],
+      imageUrl: 'https://www.allrecipes.com/thmb/vtJaLavws0DJyHAbSbL6WyuuRQk=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/4470536-chef-johns-fresh-salmon-cakes-Chef-John-1x1-1-217fa762bb5c4d098ee1cb0044994758.jpg',
+      userId: null,
+      diets: ['pescatarian'] as ("gluten-free" | "dairy-free" | "nut-free" | "vegan" | "vegetarian" | "pescatarian")[]
+    },
     {
       id: generateId(),
       title: 'Grilled Salmon with Asparagus',
@@ -170,6 +187,23 @@ export const seed = async () => {
 
   // Sample ingredients with their data
   const allIngredients = [
+    // Chef John's Fresh Salmon Cakes ingredients
+    { id: generateId(), name: 'fresh wild salmon', spoonacularId: 15247 },
+    { id: generateId(), name: 'extra-virgin olive oil', spoonacularId: 1034053 },
+    { id: generateId(), name: 'onion', spoonacularId: 11282 },
+    { id: generateId(), name: 'red bell pepper', spoonacularId: 11821 },
+    { id: generateId(), name: 'celery', spoonacularId: 11143 },
+    { id: generateId(), name: 'capers', spoonacularId: 2054 },
+    { id: generateId(), name: 'mayonnaise', spoonacularId: 4025 },
+    { id: generateId(), name: 'panko bread crumbs', spoonacularId: 10018079 },
+    { id: generateId(), name: 'garlic', spoonacularId: 11215 },
+    { id: generateId(), name: 'Dijon mustard', spoonacularId: 1002046 },
+    { id: generateId(), name: 'cayenne pepper', spoonacularId: 2031 },
+    { id: generateId(), name: 'seafood seasoning', spoonacularId: 1032034 },
+    { id: generateId(), name: 'salt', spoonacularId: 2047 },
+    { id: generateId(), name: 'black pepper', spoonacularId: 1002030 },
+    { id: generateId(), name: 'olive oil', spoonacularId: 4053 },
+
     // Salmon recipe ingredients
     { id: generateId(), name: 'salmon fillet', spoonacularId: 15076 },
     { id: generateId(), name: 'asparagus', spoonacularId: 11011 },
@@ -177,9 +211,6 @@ export const seed = async () => {
     { id: generateId(), name: 'butter', spoonacularId: 1001 },
     { id: generateId(), name: 'milk', spoonacularId: 1077 },
     { id: generateId(), name: 'lemon', spoonacularId: 9150 },
-    { id: generateId(), name: 'black pepper', spoonacularId: 1002030 },
-    { id: generateId(), name: 'salt', spoonacularId: 2047 },
-    { id: generateId(), name: 'olive oil', spoonacularId: 4053 },
     { id: generateId(), name: 'microgreens', spoonacularId: 11001 },
 
     // Carbonara ingredients
@@ -217,7 +248,6 @@ export const seed = async () => {
     { id: generateId(), name: 'bell pepper', spoonacularId: 10211821 },
     { id: generateId(), name: 'soy sauce', spoonacularId: 16124 },
     { id: generateId(), name: 'ginger', spoonacularId: 11216 },
-    { id: generateId(), name: 'garlic', spoonacularId: 11215 },
     { id: generateId(), name: 'vegetable oil', spoonacularId: 4513 },
 
     // Vegan Buddha Bowl ingredients
@@ -235,122 +265,146 @@ export const seed = async () => {
 
   // Recipe-ingredient relationships
   const recipeIngredients = [
-    // Salmon recipe ingredients
-    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[0].id, quantity: 6, measurement: 'ounces' as MeasurementUnit },
-    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[1].id, quantity: 8, measurement: 'pieces' as MeasurementUnit },
-    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[2].id, quantity: 2, measurement: 'pieces' as MeasurementUnit },
+    // Chef John's Fresh Salmon Cakes ingredients
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[0].id, quantity: 1.25, measurement: 'pounds' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[1].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[2].id, quantity: 0.25, measurement: 'cups' as MeasurementUnit },
     { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[3].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[4].id, quantity: 0.25, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[5].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
-    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[6].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[7].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[8].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[9].id, quantity: 0.5, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[4].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[5].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[6].id, quantity: 0.25, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[7].id, quantity: 0.25, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[8].id, quantity: 2, measurement: 'cloves' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[9].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[10].id, quantity: 1, measurement: 'pinch' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[11].id, quantity: 1, measurement: 'pinch' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[12].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[13].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[0].id, ingredientId: allIngredients[14].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
+
+    // Salmon recipe ingredients
+    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[15].id, quantity: 6, measurement: 'ounces' as MeasurementUnit },
+    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[16].id, quantity: 8, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[17].id, quantity: 2, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[18].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[19].id, quantity: 0.25, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[20].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[13].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[12].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[14].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[21].id, quantity: 0.5, measurement: 'cups' as MeasurementUnit },
 
     // Carbonara ingredients
-    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[10].id, quantity: 400, measurement: 'grams' as MeasurementUnit },
-    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[11].id, quantity: 4, measurement: 'pieces' as MeasurementUnit },
-    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[12].id, quantity: 100, measurement: 'grams' as MeasurementUnit },
-    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[13].id, quantity: 200, measurement: 'grams' as MeasurementUnit },
-    { recipeId: sampleRecipes[1].id, ingredientId: allIngredients[6].id, quantity: 2, measurement: 'teaspoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[10].id, quantity: 400, measurement: 'grams' as MeasurementUnit },
+    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[11].id, quantity: 4, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[12].id, quantity: 100, measurement: 'grams' as MeasurementUnit },
+    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[13].id, quantity: 200, measurement: 'grams' as MeasurementUnit },
+    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[6].id, quantity: 2, measurement: 'teaspoons' as MeasurementUnit },
 
     // Cookie ingredients
-    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[14].id, quantity: 2.25, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[3].id, quantity: 1, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[15].id, quantity: 0.75, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[16].id, quantity: 0.75, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[11].id, quantity: 2, measurement: 'pieces' as MeasurementUnit },
-    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[17].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[2].id, ingredientId: allIngredients[18].id, quantity: 2, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[14].id, quantity: 2.25, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[3].id, quantity: 1, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[15].id, quantity: 0.75, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[16].id, quantity: 0.75, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[11].id, quantity: 2, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[17].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[18].id, quantity: 2, measurement: 'cups' as MeasurementUnit },
 
     // Salad ingredients
-    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[19].id, quantity: 6, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[20].id, quantity: 1, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[21].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
-    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[22].id, quantity: 0.5, measurement: 'pieces' as MeasurementUnit },
-    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[8].id, quantity: 3, measurement: 'tablespoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[23].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[3].id, ingredientId: allIngredients[24].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[19].id, quantity: 6, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[20].id, quantity: 1, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[21].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[22].id, quantity: 0.5, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[8].id, quantity: 3, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[23].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[24].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
 
     // Pizza ingredients
-    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[25].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
-    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[26].id, quantity: 1, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[27].id, quantity: 2, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[28].id, quantity: 4, measurement: 'ounces' as MeasurementUnit },
-    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[8].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[4].id, ingredientId: allIngredients[29].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[25].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[26].id, quantity: 1, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[27].id, quantity: 2, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[28].id, quantity: 4, measurement: 'ounces' as MeasurementUnit },
+    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[8].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[29].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
 
     // Stir-fry ingredients
-    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[30].id, quantity: 1, measurement: 'pounds' as MeasurementUnit },
-    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[31].id, quantity: 2, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[32].id, quantity: 2, measurement: 'pieces' as MeasurementUnit },
-    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[33].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
-    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[34].id, quantity: 3, measurement: 'tablespoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[35].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[36].id, quantity: 2, measurement: 'cloves' as MeasurementUnit },
-    { recipeId: sampleRecipes[5].id, ingredientId: allIngredients[37].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[30].id, quantity: 1, measurement: 'pounds' as MeasurementUnit },
+    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[31].id, quantity: 2, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[32].id, quantity: 2, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[33].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[34].id, quantity: 3, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[35].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[36].id, quantity: 2, measurement: 'cloves' as MeasurementUnit },
+    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[37].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
 
     // Vegan Buddha Bowl ingredients
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[38].id, quantity: 1, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[39].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[40].id, quantity: 1, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[41].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[42].id, quantity: 2, measurement: 'cups' as MeasurementUnit },
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[43].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[44].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[36].id, quantity: 1, measurement: 'cloves' as MeasurementUnit },
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[8].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[45].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[46].id, quantity: 0.5, measurement: 'teaspoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[6].id, ingredientId: allIngredients[47].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit }
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[38].id, quantity: 1, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[39].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[40].id, quantity: 1, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[41].id, quantity: 1, measurement: 'pieces' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[42].id, quantity: 2, measurement: 'cups' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[43].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[44].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[36].id, quantity: 1, measurement: 'cloves' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[8].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[45].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[46].id, quantity: 0.5, measurement: 'teaspoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[47].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit }
   ]
 
   // Nutrition data for each recipe
   const recipeNutritionData = [
     {
       recipeId: sampleRecipes[0].id,
+      calories: 460,
+      protein: 32,
+      carbs: 9,
+      fat: 34
+    },
+    {
+      recipeId: sampleRecipes[1].id,
       calories: 580,
       protein: 42,
       carbs: 35,
       fat: 32
     },
     {
-      recipeId: sampleRecipes[1].id,
+      recipeId: sampleRecipes[2].id,
       calories: 1200,
       protein: 45,
       carbs: 120,
       fat: 55
     },
     {
-      recipeId: sampleRecipes[2].id,
+      recipeId: sampleRecipes[3].id,
       calories: 180,
       protein: 2,
       carbs: 24,
       fat: 9
     },
     {
-      recipeId: sampleRecipes[3].id,
+      recipeId: sampleRecipes[4].id,
       calories: 320,
       protein: 4,
       carbs: 18,
       fat: 28
     },
     {
-      recipeId: sampleRecipes[4].id,
+      recipeId: sampleRecipes[5].id,
       calories: 2000,
       protein: 80,
       carbs: 220,
       fat: 90
     },
     {
-      recipeId: sampleRecipes[5].id,
+      recipeId: sampleRecipes[6].id,
       calories: 850,
       protein: 75,
       carbs: 40,
       fat: 45
     },
     {
-      recipeId: sampleRecipes[6].id,
+      recipeId: sampleRecipes[7].id,
       calories: 450,
       protein: 15,
       carbs: 65,
@@ -361,11 +415,39 @@ export const seed = async () => {
   console.log('Inserting recipes...')
   await db.insert(recipe).values(sampleRecipes)
 
-  console.log('Inserting ingredients...')
-  await db.insert(ingredient).values(allIngredients)
+  console.log('Inserting ingredients with conflict handling...')
+  // Insert ingredients with onConflictDoNothing to handle existing ingredients
+  for (const ingredientData of allIngredients) {
+    await db.insert(ingredient)
+      .values(ingredientData)
+      .onConflictDoNothing({ target: ingredient.name })
+  }
+
+  console.log('Resolving ingredient IDs for recipe relationships...')
+  // Ensure we have the correct ingredient IDs (in case some already existed)
+  const ingredientMap = new Map()
+  for (const ingredientData of allIngredients) {
+    const result = await db.select({ id: ingredient.id })
+      .from(ingredient)
+      .where(sql`${ingredient.name} = ${ingredientData.name}`)
+      .limit(1)
+    
+    if (result.length > 0) {
+      ingredientMap.set(ingredientData.id, result[0].id)
+    }
+  }
+
+  // Update recipe-ingredient relationships with resolved ingredient IDs
+  const updatedRecipeIngredients = recipeIngredients.map(ri => {
+    const resolvedIngredientId = ingredientMap.get(ri.ingredientId) || ri.ingredientId
+    return {
+      ...ri,
+      ingredientId: resolvedIngredientId
+    }
+  })
 
   console.log('Inserting recipe-ingredient relationships...')
-  await db.insert(recipeIngredient).values(recipeIngredients)
+  await db.insert(recipeIngredient).values(updatedRecipeIngredients)
 
   console.log('Inserting nutrition data...')
   await db.insert(recipeNutrition).values(recipeNutritionData)
