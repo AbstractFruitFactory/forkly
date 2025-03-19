@@ -53,6 +53,13 @@
 		chef?: { name: string; title: string; avatar: string }
 	} = $props()
 
+	// Sheet position constants
+	const SHEET_POSITION_TOP = 70
+	const SHEET_POSITION_MIDDLE_RATIO = 0.35
+	let SHEET_POSITION_MIDDLE = 0
+	const SHEET_POSITION_BOTTOM_OFFSET = 60
+	let SHEET_POSITION_BOTTOM = 0
+
 	// Sheet drag state
 	let sheetY = new Spring(0, {
 		stiffness: 0.25,
@@ -197,7 +204,12 @@
 
 	onMount(() => {
 		windowHeight = window.innerHeight
-		sheetY.set(windowHeight * 0.35)
+
+		// Initialize position variables based on window height
+		SHEET_POSITION_MIDDLE = windowHeight * SHEET_POSITION_MIDDLE_RATIO
+		SHEET_POSITION_BOTTOM = windowHeight - SHEET_POSITION_BOTTOM_OFFSET
+
+		sheetY.set(SHEET_POSITION_TOP)
 
 		// Add document-level touch event listeners
 		document.addEventListener('touchmove', handleDocumentTouchMove, { passive: false })
@@ -224,7 +236,7 @@
 
 		const currentY = e.touches[0].clientY
 		const deltaY = currentY - startY
-		const newY = Math.max(70, Math.min(windowHeight - 60, startSheetY + deltaY))
+		const newY = Math.max(SHEET_POSITION_TOP, Math.min(SHEET_POSITION_BOTTOM, startSheetY + deltaY))
 
 		sheetY.set(newY)
 	}
@@ -234,43 +246,38 @@
 
 		isDragging = false
 
-		// Calculate the threshold for snapping based on the current position
-		const topPosition = 70
-		const middlePosition = windowHeight * 0.35
-		const bottomPosition = windowHeight - 60
-
 		// Determine which position to snap to based on drag direction and velocity
 		const currentPosition = sheetY.current
 		const dragDistance = currentPosition - startSheetY
 
 		// If dragged up significantly, snap to the next position up
 		if (dragDistance < -20) {
-			if (currentPosition < middlePosition) {
-				sheetY.set(topPosition)
+			if (currentPosition < SHEET_POSITION_MIDDLE) {
+				sheetY.set(SHEET_POSITION_TOP)
 			} else {
-				sheetY.set(middlePosition)
+				sheetY.set(SHEET_POSITION_MIDDLE)
 			}
 		}
 		// If dragged down significantly, snap to the next position down
 		else if (dragDistance > 20) {
-			if (currentPosition > middlePosition) {
-				sheetY.set(bottomPosition)
+			if (currentPosition > SHEET_POSITION_MIDDLE) {
+				sheetY.set(SHEET_POSITION_BOTTOM)
 			} else {
-				sheetY.set(middlePosition)
+				sheetY.set(SHEET_POSITION_MIDDLE)
 			}
 		}
 		// For small movements, snap to the closest position
 		else {
-			const distanceToTop = Math.abs(currentPosition - topPosition)
-			const distanceToMiddle = Math.abs(currentPosition - middlePosition)
-			const distanceToBottom = Math.abs(currentPosition - bottomPosition)
+			const distanceToTop = Math.abs(currentPosition - SHEET_POSITION_TOP)
+			const distanceToMiddle = Math.abs(currentPosition - SHEET_POSITION_MIDDLE)
+			const distanceToBottom = Math.abs(currentPosition - SHEET_POSITION_BOTTOM)
 
 			if (distanceToTop <= distanceToMiddle && distanceToTop <= distanceToBottom) {
-				sheetY.set(topPosition)
+				sheetY.set(SHEET_POSITION_TOP)
 			} else if (distanceToMiddle <= distanceToTop && distanceToMiddle <= distanceToBottom) {
-				sheetY.set(middlePosition)
+				sheetY.set(SHEET_POSITION_MIDDLE)
 			} else {
-				sheetY.set(bottomPosition)
+				sheetY.set(SHEET_POSITION_BOTTOM)
 			}
 		}
 	}
@@ -336,15 +343,15 @@
 
 		<div class="sticky-nav">
 			<button class="nav-button" onclick={() => scrollToSection(ingredientsSection)}>
-				<svelte:component this={Apple} class="nav-icon" size={14} />
+				<svelte:component this={Apple} class="nav-icon" size={18} />
 				<span>Ingredients</span>
 			</button>
 			<button class="nav-button" onclick={() => scrollToSection(instructionsSection)}>
-				<svelte:component this={FileText} class="nav-icon" size={14} />
+				<svelte:component this={FileText} class="nav-icon" size={18} />
 				<span>Instructions</span>
 			</button>
 			<button class="nav-button" onclick={() => scrollToSection(commentsSection)}>
-				<svelte:component this={MessageSquare} class="nav-icon" size={14} />
+				<svelte:component this={MessageSquare} class="nav-icon" size={18} />
 				<span>Comments</span>
 			</button>
 		</div>
@@ -726,13 +733,15 @@
 		flex: 1;
 		background: none;
 		border: none;
-		padding: var(--spacing-xs) var(--spacing-xs);
+		padding: var(--spacing-sm) var(--spacing-xs);
 		color: var(--color-neutral-light);
 		font-size: var(--font-size-xs);
 		cursor: pointer;
 		position: relative;
 		transition: all var(--transition-fast) var(--ease-in-out);
 		display: flex;
+		flex-direction: column;
+		align-items: center;
 		justify-content: center;
 		gap: var(--spacing-xs);
 		border-radius: var(--border-radius-sm);
@@ -741,6 +750,7 @@
 
 	.nav-icon {
 		flex-shrink: 0;
+		margin-bottom: var(--spacing-xs);
 	}
 
 	.nav-button:hover {
