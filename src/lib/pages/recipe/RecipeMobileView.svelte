@@ -76,6 +76,8 @@
 	// Cooking mode state
 	let isCookingMode = $state(false)
 	let currentStep = $state(0)
+	let videoLoaded = $state(false)
+	let videoError = $state(false)
 
 	// Mock data for recipe metadata
 	const cookTime = '30 Min'
@@ -133,10 +135,28 @@
 		isCookingMode = false
 	}
 
+	function handleCookingVideoError() {
+		videoError = true
+		// Try to reload the video
+		setTimeout(() => {
+			const video = document.querySelector('.cooking-media video') as HTMLVideoElement
+			if (video) {
+				video.load()
+			}
+		}, 1000)
+	}
+
+	function handleCookingVideoLoaded() {
+		videoLoaded = true
+		videoError = false
+	}
+
 	function nextStep(e: Event) {
 		e.preventDefault()
 		if (currentStep < recipe.instructions.length - 1) {
 			currentStep++
+			videoLoaded = false
+			videoError = false
 		}
 	}
 
@@ -144,6 +164,8 @@
 		e.preventDefault()
 		if (currentStep > 0) {
 			currentStep--
+			videoLoaded = false
+			videoError = false
 		}
 	}
 
@@ -428,8 +450,21 @@
 							autoplay
 							loop
 							muted
+							preload="auto"
 							class="cooking-media-content"
+							onerror={handleCookingVideoError}
+							onloadeddata={handleCookingVideoLoaded}
 						></video>
+						{#if videoError}
+							<div class="video-error">
+								<p>Video loading error. Retrying...</p>
+							</div>
+						{/if}
+						{#if !videoLoaded && !videoError}
+							<div class="video-loading">
+								<div class="spinner"></div>
+							</div>
+						{/if}
 					{:else if recipe.instructions[currentStep].mediaType === 'image'}
 						<img
 							src={recipe.instructions[currentStep].mediaUrl}
@@ -883,5 +918,36 @@
 
 	.cooking-nav-button svg {
 		fill: currentColor;
+	}
+
+	.video-error, 
+	.video-loading {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		background: rgba(0, 0, 0, 0.7);
+		color: white;
+		text-align: center;
+		padding: 1rem;
+	}
+
+	.spinner {
+		width: 40px;
+		height: 40px;
+		border: 4px solid rgba(255, 255, 255, 0.3);
+		border-radius: 50%;
+		border-top-color: white;
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
 	}
 </style>

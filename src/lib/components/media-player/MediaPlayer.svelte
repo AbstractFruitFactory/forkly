@@ -11,10 +11,14 @@
 	let videoElement: HTMLVideoElement
 	let currentInstructionIndex = $state(0)
 	let slideshow: ReturnType<typeof setInterval> | null = null
+	let videoLoaded = $state(false)
+	let videoError = $state(false)
 
 	function handleVideoEnded() {
 		// Move to the next instruction media
 		currentInstructionIndex = (currentInstructionIndex + 1) % instructionMedia.length
+		videoLoaded = false
+		videoError = false
 
 		// If it's an image, set a timeout to move to the next one
 		if (instructionMedia[currentInstructionIndex].type === 'image') {
@@ -22,6 +26,21 @@
 				handleVideoEnded()
 			}, instructionMedia[currentInstructionIndex].duration)
 		}
+	}
+
+	function handleVideoError() {
+		videoError = true
+		// Try to reload the video
+		if (videoElement) {
+			setTimeout(() => {
+				videoElement.load()
+			}, 1000)
+		}
+	}
+
+	function handleVideoLoaded() {
+		videoLoaded = true
+		videoError = false
 	}
 
 	onMount(() => {
@@ -45,11 +64,24 @@
 			bind:this={videoElement}
 			src={instructionMedia[currentInstructionIndex].url}
 			autoplay={true}
+			preload="auto"
 			muted={true}
 			loop={false}
 			on:ended={handleVideoEnded}
+			on:error={handleVideoError}
+			on:loadeddata={handleVideoLoaded}
 			class="media-content"
 		></video>
+		{#if videoError}
+			<div class="video-error">
+				<p>Video loading error. Retrying...</p>
+			</div>
+		{/if}
+		{#if !videoLoaded && !videoError}
+			<div class="video-loading">
+				<div class="spinner"></div>
+			</div>
+		{/if}
 	{:else if instructionMedia[currentInstructionIndex].type === 'image'}
 		<img
 			src={instructionMedia[currentInstructionIndex].url}
@@ -75,5 +107,36 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+	}
+
+	.video-error, 
+	.video-loading {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		background: rgba(0, 0, 0, 0.7);
+		color: white;
+		text-align: center;
+		padding: 1rem;
+	}
+
+	.spinner {
+		width: 40px;
+		height: 40px;
+		border: 4px solid rgba(255, 255, 255, 0.3);
+		border-radius: 50%;
+		border-top-color: white;
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
 	}
 </style>
