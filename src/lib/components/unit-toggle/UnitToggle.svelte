@@ -55,7 +55,7 @@
 		}
 
 		&.active {
-			background-color: var(--color-primary);
+			background-color: var(--color-primary-dark);
 			color: white;
 
 			&:hover {

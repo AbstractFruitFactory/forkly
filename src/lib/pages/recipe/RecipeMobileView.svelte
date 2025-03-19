@@ -21,6 +21,7 @@
 	import MediaPlayer from '$lib/components/media-player/MediaPlayer.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import { page } from '$app/state'
+	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 
 	let {
 		recipe,
@@ -347,7 +348,12 @@
 
 			<div class="section-container">
 				<section class="content-section" bind:this={ingredientsSection} id="ingredients-section">
-					<h4 class="section-title">Ingredients</h4>
+					<div class="section-header">
+						<h4 class="section-title">Ingredients</h4>
+						<div class="unit-toggle-container">
+							<UnitToggle state={unitSystem} onSelect={onUnitChange} />
+						</div>
+					</div>
 					<IngredientsList ingredients={recipe.ingredients} {unitSystem} {getFormattedIngredient} />
 				</section>
 
@@ -703,8 +709,27 @@
 		font-weight: var(--font-weight-semibold);
 		margin-bottom: var(--spacing-md);
 		color: white;
+		padding-bottom: var(--spacing-xs);
+	}
+
+	.section-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-lg);
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 		padding-bottom: var(--spacing-xs);
+
+		@include mobile {
+			flex-direction: row;
+			align-items: center;
+			gap: var(--spacing-sm);
+		}
+
+		.section-title {
+			margin-bottom: 0;
+			padding-bottom: 0;
+		}
 	}
 
 	.instructions-list {
@@ -999,6 +1024,14 @@
 
 		&:hover {
 			background: rgba(255, 255, 255, 0.8);
+		}
+	}
+
+	.unit-toggle-container {
+		margin-left: var(--spacing-md);
+
+		@include mobile {
+			margin-left: var(--spacing-sm);
 		}
 	}
 </style>

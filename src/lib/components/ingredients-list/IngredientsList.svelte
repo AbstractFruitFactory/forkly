@@ -2,11 +2,7 @@
 	import type { Ingredient } from '$lib/types'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 
-	let { 
-		ingredients, 
-		unitSystem, 
-		getFormattedIngredient 
-	} = $props<{
+	let { ingredients, unitSystem, getFormattedIngredient } = $props<{
 		ingredients: Ingredient[]
 		unitSystem: UnitSystem
 		getFormattedIngredient: (ingredient: Ingredient, unitSystem: UnitSystem) => any
@@ -43,8 +39,8 @@
 
 		li {
 			list-style: none;
-			padding: var(--spacing-sm) 0;
-			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+			padding: var(--spacing-xs) 0;
+			border-bottom: 2px dotted rgba(255, 255, 255, 0.1);
 			display: flex;
 			justify-content: space-between;
 			font-size: var(--font-size-sm);
@@ -84,4 +80,4 @@
 		vertical-align: middle;
 		font-weight: var(--font-weight-semibold);
 	}
-</style> 
+</style>
