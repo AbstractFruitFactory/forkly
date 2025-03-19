@@ -36,7 +36,7 @@
 			: `${inactiveLabel}`
 		: `${count} ${countLabel}`}
 >
-	<svelte:component this={icon} size={interactive ? 20 : 16} class={isActive ? 'filled' : ''} />
+	<svelte:component this={icon} size={20} class={isActive ? 'filled' : ''} />
 	{#if showCount}
 		<span class="count">{count}</span>
 	{/if}

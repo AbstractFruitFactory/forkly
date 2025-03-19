@@ -108,13 +108,13 @@
 		if (section && recipeContent) {
 			// Calculate the position to scroll to
 			// Subtract some extra pixels to position the header below the nav
-			const navHeight = 70; // Approximate height of the sticky nav
-			const topPosition = section.offsetTop - navHeight;
-			
+			const navHeight = 70 // Approximate height of the sticky nav
+			const topPosition = section.offsetTop - navHeight
+
 			recipeContent.scrollTo({
 				top: topPosition,
 				behavior: 'smooth'
-			});
+			})
 		}
 	}
 
@@ -574,7 +574,6 @@
 		width: 90%;
 		height: 50%;
 		background: white;
-		z-index: 1;
 		border-radius: var(--border-radius-xl);
 		padding: var(--spacing-lg);
 	}
@@ -597,7 +596,6 @@
 		background: var(--color-neutral-dark);
 		border-radius: var(--border-radius-3xl) var(--border-radius-3xl) 0 0;
 		box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-		z-index: 2;
 	}
 
 	.drag-handle {
@@ -920,7 +918,7 @@
 		fill: currentColor;
 	}
 
-	.video-error, 
+	.video-error,
 	.video-loading {
 		position: absolute;
 		top: 0;
@@ -947,7 +945,11 @@
 	}
 
 	@keyframes spin {
-		0% { transform: rotate(0deg); }
-		100% { transform: rotate(360deg); }
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 </style>
