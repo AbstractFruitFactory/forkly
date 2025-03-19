@@ -2,11 +2,13 @@
 	import type { RecipeData } from '$lib/types'
 	import type { NutritionInfo } from '$lib/server/food-api'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import { Spring } from 'svelte/motion'
 	import { onMount } from 'svelte'
 	import Apple from 'lucide-svelte/icons/apple'
 	import FileText from 'lucide-svelte/icons/file-text'
 	import MessageSquare from 'lucide-svelte/icons/message-square'
+	import Play from 'lucide-svelte/icons/play'
+	import ChevronLeft from 'lucide-svelte/icons/chevron-left'
+	import ChevronRight from 'lucide-svelte/icons/chevron-right'
 	import type { getFormattedIngredient as GetFormattedIngredient } from './utils/recipeUtils'
 	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
@@ -53,29 +55,11 @@
 		chef?: { name: string; title: string; avatar: string }
 	} = $props()
 
-	// Sheet position constants
-	const SHEET_POSITION_TOP = 70
-	const SHEET_POSITION_MIDDLE_RATIO = 0.35
-	let SHEET_POSITION_MIDDLE = 0
-	const SHEET_POSITION_BOTTOM_OFFSET = 60
-	let SHEET_POSITION_BOTTOM = 0
-
-	// Sheet drag state
-	let sheetY = new Spring(0, {
-		stiffness: 0.25,
-		damping: 0.6
-	})
-	let startY: number
-	let startSheetY: number
-	let isDragging = false
-	let windowHeight: number
-	let dragHandleElement: HTMLDivElement
-
 	// Section references for scrolling
 	let ingredientsSection: HTMLElement
 	let instructionsSection: HTMLElement
 	let commentsSection: HTMLElement
-	let recipeContent: HTMLElement
+	let contentContainer: HTMLElement
 
 	// Track expanded instruction steps
 	let expandedInstructions = $state<number[]>([])
@@ -86,6 +70,10 @@
 	let videoLoaded = $state(false)
 	let videoError = $state(false)
 
+	// Video player and slideshow state
+	let videoPlayerVisible = $state(false)
+	let currentSlideIndex = $state(0)
+
 	// Mock data for recipe metadata
 	const cookTime = '30 Min'
 	const difficulty = 'Medium'
@@ -94,8 +82,11 @@
 	// Transform recipe instructions with media into format for MediaPlayer
 	const instructionMedia = $state<
 		Array<{ type: 'image' | 'video'; url: string; duration?: number }>
-	>(
-		recipe.instructions
+	>([
+		// Add main recipe image as first slide if it exists
+		...(recipe.imageUrl ? [{ type: 'image' as const, url: recipe.imageUrl }] : []),
+		// Then add instruction media
+		...recipe.instructions
 			.filter(
 				(
 					instruction
@@ -109,20 +100,14 @@
 				url: instruction.mediaUrl,
 				duration: 3000 // Default duration
 			}))
-	)
+	])
+
+	// Check if we only have images (including main recipe image)
+	const hasOnlyImages = $derived(instructionMedia.every((media) => media.type === 'image'))
+	const hasVideos = $derived(instructionMedia.some((media) => media.type === 'video'))
 
 	function scrollToSection(section: HTMLElement) {
-		if (section && recipeContent) {
-			// Calculate the position to scroll to
-			// Subtract some extra pixels to position the header below the nav
-			const navHeight = 70 // Approximate height of the sticky nav
-			const topPosition = section.offsetTop - navHeight
-
-			recipeContent.scrollTo({
-				top: topPosition,
-				behavior: 'smooth'
-			})
-		}
+		section.scrollIntoView({ behavior: 'smooth' })
 	}
 
 	function toggleInstruction(index: number) {
@@ -140,6 +125,10 @@
 
 	function exitCookingMode() {
 		isCookingMode = false
+	}
+
+	function toggleVideoPlayer() {
+		videoPlayerVisible = !videoPlayerVisible
 	}
 
 	function handleCookingVideoError() {
@@ -202,90 +191,16 @@
 		touchEndX = 0
 	}
 
-	onMount(() => {
-		windowHeight = window.innerHeight
-
-		// Initialize position variables based on window height
-		SHEET_POSITION_MIDDLE = windowHeight * SHEET_POSITION_MIDDLE_RATIO
-		SHEET_POSITION_BOTTOM = windowHeight - SHEET_POSITION_BOTTOM_OFFSET
-
-		sheetY.set(SHEET_POSITION_TOP)
-
-		// Add document-level touch event listeners
-		document.addEventListener('touchmove', handleDocumentTouchMove, { passive: false })
-		document.addEventListener('touchend', handleTouchEnd)
-
-		return () => {
-			document.removeEventListener('touchmove', handleDocumentTouchMove)
-			document.removeEventListener('touchend', handleTouchEnd)
-		}
-	})
-
-	function handleDragHandleTouchStart(e: TouchEvent) {
-		isDragging = true
-		startY = e.touches[0].clientY
-		startSheetY = sheetY.current
-		e.stopPropagation()
-	}
-
-	function handleDocumentTouchMove(e: TouchEvent) {
-		if (!isDragging) return
-
-		// Prevent scrolling when dragging
-		e.preventDefault()
-
-		const currentY = e.touches[0].clientY
-		const deltaY = currentY - startY
-		const newY = Math.max(SHEET_POSITION_TOP, Math.min(SHEET_POSITION_BOTTOM, startSheetY + deltaY))
-
-		sheetY.set(newY)
-	}
-
-	function handleTouchEnd() {
-		if (!isDragging) return
-
-		isDragging = false
-
-		// Determine which position to snap to based on drag direction and velocity
-		const currentPosition = sheetY.current
-		const dragDistance = currentPosition - startSheetY
-
-		// If dragged up significantly, snap to the next position up
-		if (dragDistance < -20) {
-			if (currentPosition < SHEET_POSITION_MIDDLE) {
-				sheetY.set(SHEET_POSITION_TOP)
-			} else {
-				sheetY.set(SHEET_POSITION_MIDDLE)
-			}
-		}
-		// If dragged down significantly, snap to the next position down
-		else if (dragDistance > 20) {
-			if (currentPosition > SHEET_POSITION_MIDDLE) {
-				sheetY.set(SHEET_POSITION_BOTTOM)
-			} else {
-				sheetY.set(SHEET_POSITION_MIDDLE)
-			}
-		}
-		// For small movements, snap to the closest position
-		else {
-			const distanceToTop = Math.abs(currentPosition - SHEET_POSITION_TOP)
-			const distanceToMiddle = Math.abs(currentPosition - SHEET_POSITION_MIDDLE)
-			const distanceToBottom = Math.abs(currentPosition - SHEET_POSITION_BOTTOM)
-
-			if (distanceToTop <= distanceToMiddle && distanceToTop <= distanceToBottom) {
-				sheetY.set(SHEET_POSITION_TOP)
-			} else if (distanceToMiddle <= distanceToTop && distanceToMiddle <= distanceToBottom) {
-				sheetY.set(SHEET_POSITION_MIDDLE)
-			} else {
-				sheetY.set(SHEET_POSITION_BOTTOM)
-			}
+	function nextSlide() {
+		if (currentSlideIndex < instructionMedia.length - 1) {
+			currentSlideIndex = currentSlideIndex + 1
 		}
 	}
 
-	// Add this function to handle touch events in the content area
-	function handleContentTouchStart(e: TouchEvent) {
-		// Don't start dragging when touching the content area
-		e.stopPropagation()
+	function prevSlide() {
+		if (currentSlideIndex > 0) {
+			currentSlideIndex = currentSlideIndex - 1
+		}
 	}
 </script>
 
@@ -297,50 +212,72 @@
 	</button>
 
 	<div class="recipe-image">
-		<img src={recipe.imageUrl} alt={recipe.title} />
-
-		<div class="action-buttons">
-			<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
-			<DislikeButton
-				isDisliked={recipe.isDisliked}
-				interactive={!!onDislike}
-				onDislike={isLoggedIn ? onDislike : undefined}
-			/>
-			<LikeButton
-				count={recipe.likes}
-				isLiked={recipe.isLiked}
-				interactive={!!onLike}
-				onLike={isLoggedIn ? onLike : undefined}
-			/>
-			<BookmarkButton
-				count={recipe.bookmarks}
-				isBookmarked={recipe.isBookmarked}
-				interactive={!!onBookmark}
-				{onBookmark}
-			/>
-		</div>
-	</div>
-
-	<div class="background-box">
-		<div class="start-cooking-wrapper">
-			<Button variant="primary" size="lg" onclick={() => startCookingMode()}>Start Cooking</Button>
-		</div>
-		{#if instructionMedia.length > 0}
-			<MediaPlayer {instructionMedia} />
+		{#if hasOnlyImages}
+			<div class="slideshow-container">
+				<div class="slides-wrapper" style="transform: translateX(-{currentSlideIndex * 100}%)">
+					{#each instructionMedia as media}
+						<div class="slide">
+							<img src={media.url} alt={recipe.title} />
+						</div>
+					{/each}
+				</div>
+			</div>
+			{#if instructionMedia.length > 1}
+				<div class="slideshow-controls">
+					<button
+						class="slideshow-button prev"
+						onclick={prevSlide}
+						disabled={currentSlideIndex === 0}
+					>
+						<svelte:component this={ChevronLeft} size={24} color="white" />
+					</button>
+					<button
+						class="slideshow-button next"
+						onclick={nextSlide}
+						disabled={currentSlideIndex === instructionMedia.length - 1}
+					>
+						<svelte:component this={ChevronRight} size={24} color="white" />
+					</button>
+				</div>
+				<div class="slideshow-dots">
+					{#each instructionMedia as _, index}
+						<button
+							class="dot {currentSlideIndex === index ? 'active' : ''}"
+							onclick={() => (currentSlideIndex = index)}
+						></button>
+					{/each}
+				</div>
+			{/if}
 		{:else}
-			<div class="no-media">No media available</div>
+			<div class="slideshow-container">
+				{#if videoPlayerVisible}
+					<div class="video-player-container">
+						<button class="close-button" onclick={toggleVideoPlayer}>
+							<svg width="24" height="24" viewBox="0 0 24 24">
+								<path
+									d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+								/>
+							</svg>
+						</button>
+						<div class="video-player-content">
+							<MediaPlayer {instructionMedia} />
+						</div>
+					</div>
+				{:else}
+					<div class="slide">
+						<img src={instructionMedia[0].url} alt={recipe.title} />
+					</div>
+					{#if hasVideos}
+						<button class="play-button" onclick={toggleVideoPlayer}>
+							<svelte:component this={Play} size={28} color="white" />
+						</button>
+					{/if}
+				{/if}
+			</div>
 		{/if}
 	</div>
 
-	<div class="draggable-sheet" style="transform: translateY({sheetY.current}px)">
-		<div
-			class="drag-handle"
-			bind:this={dragHandleElement}
-			ontouchstart={handleDragHandleTouchStart}
-		>
-			<div class="handle-bar"></div>
-		</div>
-
+	<div class="content-container" bind:this={contentContainer}>
 		<div class="sticky-nav">
 			<button class="nav-button" onclick={() => scrollToSection(ingredientsSection)}>
 				<svelte:component this={Apple} class="nav-icon" size={18} />
@@ -356,14 +293,37 @@
 			</button>
 		</div>
 
-		<div
-			class="recipe-content"
-			style:--sheet-position="{sheetY.current}px"
-			ontouchstart={handleContentTouchStart}
-			bind:this={recipeContent}
-		>
-			<h3>{recipe.title}</h3>
+		<div class="recipe-content">
+			<div class="recipe-header">
+				<h3>{recipe.title}</h3>
+				{#if chef?.avatar && chef.avatar !== ''}
+					<div class="author-avatar">
+						<ProfilePic profilePicUrl={chef.avatar} size="32px" />
+					</div>
+				{/if}
+			</div>
 			<p class="description">{recipe.description}</p>
+
+			<div class="action-buttons">
+				<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
+				<DislikeButton
+					isDisliked={recipe.isDisliked}
+					interactive={!!onDislike}
+					onDislike={isLoggedIn ? onDislike : undefined}
+				/>
+				<LikeButton
+					count={recipe.likes}
+					isLiked={recipe.isLiked}
+					interactive={!!onLike}
+					onLike={isLoggedIn ? onLike : undefined}
+				/>
+				<BookmarkButton
+					count={recipe.bookmarks}
+					isBookmarked={recipe.isBookmarked}
+					interactive={!!onBookmark}
+					{onBookmark}
+				/>
+			</div>
 
 			<div class="recipe-meta">
 				<div class="meta-item">
@@ -380,24 +340,18 @@
 				</div>
 			</div>
 
-			<div class="chef-info">
-				<div class="chef-avatar">
-					<ProfilePic profilePicUrl={chef.avatar} size="40px" />
-				</div>
-				<div class="chef-details">
-					<div class="chef-name">{chef.name}</div>
-					<div class="chef-title">{chef.title}</div>
-				</div>
-				<button class="follow-button">+ Follow</button>
+			<div class="start-cooking-wrapper">
+				<Button variant="primary" size="md" onclick={() => startCookingMode()}>Start Cooking</Button
+				>
 			</div>
 
 			<div class="section-container">
-				<section class="content-section" bind:this={ingredientsSection}>
+				<section class="content-section" bind:this={ingredientsSection} id="ingredients-section">
 					<h4 class="section-title">Ingredients</h4>
 					<IngredientsList ingredients={recipe.ingredients} {unitSystem} {getFormattedIngredient} />
 				</section>
 
-				<section class="content-section" bind:this={instructionsSection}>
+				<section class="content-section" bind:this={instructionsSection} id="instructions-section">
 					<h4 class="section-title">Instructions</h4>
 					<div class="instructions-list">
 						{#each recipe.instructions as instruction, i}
@@ -411,105 +365,105 @@
 					</div>
 				</section>
 
-				<section class="content-section" bind:this={commentsSection}>
+				<section class="content-section" bind:this={commentsSection} id="comments-section">
 					<h4 class="section-title">Comments</h4>
 					<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} />
 				</section>
 			</div>
 		</div>
 	</div>
-</div>
 
-{#if isCookingMode}
-	<div class="cooking-mode">
-		<div class="cooking-header">
-			<button class="cooking-close-button" onclick={exitCookingMode}>
-				<svg width="24" height="24" viewBox="0 0 24 24">
-					<path
-						d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-					/>
-				</svg>
-			</button>
-			<div class="cooking-progress">
-				<div class="cooking-progress-text">
-					Step {currentStep + 1} of {recipe.instructions.length}
-				</div>
-				<div class="cooking-progress-bar">
-					<div
-						class="cooking-progress-fill"
-						style="width: {((currentStep + 1) / recipe.instructions.length) * 100}%"
-					></div>
-				</div>
-			</div>
-		</div>
-
-		<div
-			class="cooking-content"
-			ontouchstart={handleCookingTouchStart}
-			ontouchmove={handleCookingTouchMove}
-			ontouchend={handleCookingTouchEnd}
-		>
-			{#if recipe.instructions[currentStep].mediaUrl}
-				<div class="cooking-media">
-					{#if recipe.instructions[currentStep].mediaType === 'video'}
-						<video
-							src={recipe.instructions[currentStep].mediaUrl}
-							autoplay
-							loop
-							muted
-							playsinline
-							data-webkit-playsinline="true"
-							preload="auto"
-							class="cooking-media-content"
-							onerror={handleCookingVideoError}
-							onloadeddata={handleCookingVideoLoaded}
-							onclick={(e) => e.preventDefault()}
-						></video>
-						{#if videoError}
-							<div class="video-error">
-								<p>Video loading error. Retrying...</p>
-							</div>
-						{/if}
-						{#if !videoLoaded && !videoError}
-							<div class="video-loading">
-								<div class="spinner"></div>
-							</div>
-						{/if}
-					{:else if recipe.instructions[currentStep].mediaType === 'image'}
-						<img
-							src={recipe.instructions[currentStep].mediaUrl}
-							alt="Step {currentStep + 1}"
-							class="cooking-media-content"
+	{#if isCookingMode}
+		<div class="cooking-mode">
+			<div class="cooking-header">
+				<button class="cooking-close-button" onclick={exitCookingMode}>
+					<svg width="24" height="24" viewBox="0 0 24 24">
+						<path
+							d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
 						/>
-					{/if}
+					</svg>
+				</button>
+				<div class="cooking-progress">
+					<div class="cooking-progress-text">
+						Step {currentStep + 1} of {recipe.instructions.length}
+					</div>
+					<div class="cooking-progress-bar">
+						<div
+							class="cooking-progress-fill"
+							style="width: {((currentStep + 1) / recipe.instructions.length) * 100}%"
+						></div>
+					</div>
 				</div>
-			{/if}
+			</div>
 
-			<div class="cooking-instruction">
-				<p class="cooking-instruction-text">{recipe.instructions[currentStep].text}</p>
+			<div
+				class="cooking-content"
+				ontouchstart={handleCookingTouchStart}
+				ontouchmove={handleCookingTouchMove}
+				ontouchend={handleCookingTouchEnd}
+			>
+				{#if recipe.instructions[currentStep].mediaUrl}
+					<div class="cooking-media">
+						{#if recipe.instructions[currentStep].mediaType === 'video'}
+							<video
+								src={recipe.instructions[currentStep].mediaUrl}
+								autoplay
+								loop
+								muted
+								playsinline
+								data-webkit-playsinline="true"
+								preload="auto"
+								class="cooking-media-content"
+								onerror={handleCookingVideoError}
+								onloadeddata={handleCookingVideoLoaded}
+								onclick={(e) => e.preventDefault()}
+							></video>
+							{#if videoError}
+								<div class="video-error">
+									<p>Video loading error. Retrying...</p>
+								</div>
+							{/if}
+							{#if !videoLoaded && !videoError}
+								<div class="video-loading">
+									<div class="spinner"></div>
+								</div>
+							{/if}
+						{:else if recipe.instructions[currentStep].mediaType === 'image'}
+							<img
+								src={recipe.instructions[currentStep].mediaUrl}
+								alt="Step {currentStep + 1}"
+								class="cooking-media-content"
+							/>
+						{/if}
+					</div>
+				{/if}
+
+				<div class="cooking-instruction">
+					<p class="cooking-instruction-text">{recipe.instructions[currentStep].text}</p>
+				</div>
+			</div>
+
+			<div class="cooking-navigation">
+				<button class="cooking-nav-button" onclick={prevStep} disabled={currentStep === 0}>
+					<svg width="24" height="24" viewBox="0 0 24 24">
+						<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+					</svg>
+					Previous
+				</button>
+				<button
+					class="cooking-nav-button"
+					onclick={nextStep}
+					disabled={currentStep === recipe.instructions.length - 1}
+				>
+					Next
+					<svg width="24" height="24" viewBox="0 0 24 24">
+						<path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+					</svg>
+				</button>
 			</div>
 		</div>
-
-		<div class="cooking-navigation">
-			<button class="cooking-nav-button" onclick={prevStep} disabled={currentStep === 0}>
-				<svg width="24" height="24" viewBox="0 0 24 24">
-					<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-				</svg>
-				Previous
-			</button>
-			<button
-				class="cooking-nav-button"
-				onclick={nextStep}
-				disabled={currentStep === recipe.instructions.length - 1}
-			>
-				Next
-				<svg width="24" height="24" viewBox="0 0 24 24">
-					<path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-				</svg>
-			</button>
-		</div>
-	</div>
-{/if}
+	{/if}
+</div>
 
 <style lang="scss">
 	@import '$lib/global.scss';
@@ -523,13 +477,13 @@
 			left: 0;
 			width: 100%;
 			height: 100dvh;
-			overflow: hidden;
-			background: var(--color-background);
+			overflow-y: auto;
+			background: var(--color-neutral-dark);
 		}
 	}
 
 	.back-button {
-		position: fixed;
+		position: absolute;
 		top: 16px;
 		left: 16px;
 		z-index: var(--z-elevated);
@@ -551,96 +505,109 @@
 	}
 
 	.recipe-image {
-		position: absolute;
-		top: 0;
-		left: 0;
+		position: relative;
 		width: 100%;
 		height: 40dvh;
 		background: var(--color-neutral-dark);
+		overflow: hidden;
 	}
 
-	.recipe-image::after {
-		content: '';
-		position: absolute;
-		bottom: 0;
-		left: 0;
+	.slideshow-container {
 		width: 100%;
-		height: 20%;
-		background: linear-gradient(to bottom, rgba(11, 25, 44, 0), var(--color-background));
-		pointer-events: none;
+		height: 100%;
+		overflow: hidden;
 	}
 
-	.recipe-image img {
+	.slides-wrapper {
+		display: flex;
+		width: 100%;
+		height: 100%;
+		transition: transform 0.3s ease-in-out;
+	}
+
+	.slide {
+		flex: 0 0 100%;
+		width: 100%;
+		height: 100%;
+	}
+
+	.slide img {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 	}
 
-	.background-box {
+	.play-button {
 		position: absolute;
-		top: 33dvh;
+		top: 50%;
 		left: 50%;
-		transform: translateX(-50%);
-		width: 90%;
-		height: 50%;
-		background: white;
-		border-radius: var(--border-radius-xl);
-		padding: var(--spacing-lg);
-	}
-
-	.no-media {
+		transform: translate(-50%, -50%);
+		background: rgba(0, 0, 0, 0.3);
+		border: none;
+		border-radius: var(--border-radius-full);
+		width: 56px;
+		height: 56px;
 		display: flex;
-		justify-content: center;
 		align-items: center;
-		height: 100%;
-		color: var(--color-neutral);
-		font-style: italic;
+		justify-content: center;
+		cursor: pointer;
+		backdrop-filter: blur(2px);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+		z-index: 5;
+		transition: all var(--transition-fast) var(--ease-in-out);
 	}
 
-	.draggable-sheet {
-		position: absolute;
-		top: 0;
-		left: 0;
+	.play-button:hover {
+		background: rgba(0, 0, 0, 0.5);
+		transform: translate(-50%, -50%) scale(1.05);
+	}
+
+	.play-button:active {
+		transform: translate(-50%, -50%) scale(0.95);
+	}
+
+	.content-container {
+		position: relative;
 		width: 100%;
-		height: 100dvh;
 		background: var(--color-neutral-dark);
 		border-radius: var(--border-radius-3xl) var(--border-radius-3xl) 0 0;
 		box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-	}
-
-	.drag-handle {
-		width: 100%;
-		height: 40px;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		padding: var(--spacing-md) 0;
-		cursor: grab;
-		touch-action: none;
-	}
-
-	.drag-handle:active {
-		cursor: grabbing;
-	}
-
-	.handle-bar {
-		width: 40px;
-		height: 4px;
-		background: var(--color-neutral);
-		border-radius: var(--border-radius-full);
+		margin-top: -25px;
+		padding-bottom: 100px;
 	}
 
 	.recipe-content {
-		padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-lg);
-		overflow-y: auto;
-		-webkit-overflow-scrolling: touch;
-		touch-action: pan-y;
-		max-height: calc(100dvh - var(--sheet-position) - 100px);
+		padding: 0 var(--spacing-lg) var(--spacing-lg);
+	}
+
+	.recipe-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-md);
+		margin: var(--spacing-lg) 0 var(--spacing-md);
+	}
+
+	.recipe-header h3 {
+		margin: 0;
+		flex: 1;
+		font-size: var(--font-size-xl);
+		font-weight: var(--font-weight-bold);
+		color: white;
+		padding: 0;
+	}
+
+	.author-avatar {
+		flex-shrink: 0;
+		width: 32px;
+		height: 32px;
+		border-radius: var(--border-radius-full);
+		overflow: hidden;
 	}
 
 	.description {
 		font-size: var(--font-size-md);
-		color: var(--color-neutral);
+		color: rgba(255, 255, 255, 0.7);
 		line-height: 1.5;
 		margin: 0 0 var(--spacing-md) 0;
 	}
@@ -650,7 +617,7 @@
 		justify-content: space-between;
 		margin-bottom: var(--spacing-lg);
 		padding: var(--spacing-md) 0;
-		border-bottom: 1px solid var(--color-neutral-dark);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	.meta-item {
@@ -661,90 +628,49 @@
 
 	.meta-value {
 		font-weight: var(--font-weight-semibold);
-		color: var(--color-neutral-light);
+		color: white;
 		margin-bottom: var(--spacing-xs);
 	}
 
 	.meta-label {
 		font-size: var(--font-size-sm);
-		color: var(--color-neutral);
+		color: rgba(255, 255, 255, 0.7);
 	}
 
-	.chef-info {
+	.start-cooking-wrapper {
+		margin: var(--spacing-md) 0 var(--spacing-lg) 0;
 		display: flex;
-		align-items: center;
-		margin-bottom: var(--spacing-lg);
-		padding-bottom: var(--spacing-md);
-		border-bottom: 1px solid var(--color-neutral-dark);
-	}
-
-	.chef-avatar {
-		width: 40px;
-		height: 40px;
-		border-radius: var(--border-radius-full);
-		overflow: hidden;
-		margin-right: var(--spacing-md);
-	}
-
-	.chef-details {
-		flex: 1;
-	}
-
-	.chef-name {
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-neutral-light);
-	}
-
-	.chef-title {
-		font-size: var(--font-size-sm);
-		color: var(--color-neutral);
-	}
-
-	.follow-button {
-		background: transparent;
-		border: 1px solid var(--color-primary);
-		color: var(--color-primary);
-		border-radius: var(--border-radius-md);
-		padding: var(--spacing-xs) var(--spacing-md);
-		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-semibold);
-		cursor: pointer;
-		transition: all var(--transition-fast) var(--ease-in-out);
-	}
-
-	.follow-button:hover {
-		background: var(--color-primary);
-		color: white;
+		justify-content: center;
 	}
 
 	.sticky-nav {
 		display: flex;
 		position: sticky;
 		top: 0;
-		background: var(--color-background);
-		border-radius: var(--border-radius-lg);
-		padding: var(--spacing-xs) var(--spacing-sm);
+		background: var(--color-neutral-dark);
+		border-radius: 0;
+		padding: var(--spacing-md) 0;
 		z-index: 10;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-		margin: 0 var(--spacing-md) var(--spacing-sm);
+		box-shadow: none;
+		margin: 0;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		justify-content: space-around;
 	}
 
 	.nav-button {
 		flex: 1;
 		background: none;
 		border: none;
-		padding: var(--spacing-sm) var(--spacing-xs);
+		padding: 0;
 		color: var(--color-neutral-light);
-		font-size: var(--font-size-xs);
+		font-size: var(--font-size-sm);
 		cursor: pointer;
-		position: relative;
 		transition: all var(--transition-fast) var(--ease-in-out);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 		gap: var(--spacing-xs);
-		border-radius: var(--border-radius-sm);
 		font-weight: var(--font-weight-medium);
 	}
 
@@ -759,8 +685,6 @@
 
 	.nav-button:active {
 		color: var(--color-primary);
-		background-color: var(--color-background);
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 	}
 
 	.section-container {
@@ -771,15 +695,15 @@
 
 	.content-section {
 		padding: var(--spacing-md) 0;
-		scroll-margin-top: 60px;
+		scroll-margin-top: 80px;
 	}
 
 	.section-title {
 		font-size: var(--font-size-lg);
 		font-weight: var(--font-weight-semibold);
 		margin-bottom: var(--spacing-md);
-		color: var(--color-neutral-light);
-		border-bottom: 1px solid var(--color-neutral-dark);
+		color: white;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 		padding-bottom: var(--spacing-xs);
 	}
 
@@ -790,22 +714,61 @@
 	}
 
 	.action-buttons {
-		position: absolute;
-		top: 16px;
-		right: 16px;
 		display: flex;
-		gap: 8px;
-		z-index: var(--z-elevated);
+		align-items: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-md) 0;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
-	.start-cooking-wrapper {
+	.video-player-container {
 		position: absolute;
-		bottom: var(--spacing-md);
+		top: 0;
 		left: 0;
-		right: 0;
+		width: 100%;
+		height: 100%;
+		background: var(--color-neutral-darker);
+		z-index: 10;
+	}
+
+	.video-player-content {
+		width: 100%;
+		height: 100%;
 		display: flex;
+		align-items: center;
 		justify-content: center;
-		z-index: 3;
+	}
+
+	.close-button {
+		position: absolute;
+		top: var(--spacing-md);
+		right: var(--spacing-md);
+		background: rgba(0, 0, 0, 0.5);
+		border: none;
+		border-radius: var(--border-radius-full);
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		z-index: 11;
+		transition: all var(--transition-fast) var(--ease-in-out);
+
+		&:hover {
+			background: rgba(0, 0, 0, 0.7);
+			transform: scale(1.05);
+		}
+
+		&:active {
+			transform: scale(0.95);
+		}
+
+		svg {
+			fill: white;
+			width: 20px;
+			height: 20px;
+		}
 	}
 
 	.cooking-mode {
@@ -963,6 +926,79 @@
 		}
 		100% {
 			transform: rotate(360deg);
+		}
+	}
+
+	.slideshow-controls {
+		position: absolute;
+		top: 50%;
+		left: 0;
+		right: 0;
+		transform: translateY(-50%);
+		display: flex;
+		justify-content: space-between;
+		padding: 0 var(--spacing-md);
+		pointer-events: none;
+	}
+
+	.slideshow-button {
+		background: rgba(0, 0, 0, 0.5);
+		border: none;
+		border-radius: var(--border-radius-full);
+		width: 40px;
+		height: 40px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		pointer-events: auto;
+		transition: all var(--transition-fast) var(--ease-in-out);
+
+		&:disabled {
+			opacity: 0.3;
+			cursor: not-allowed;
+			pointer-events: none;
+		}
+
+		&:not(:disabled) {
+			&:hover {
+				background: rgba(0, 0, 0, 0.7);
+				transform: scale(1.05);
+			}
+
+			&:active {
+				transform: scale(0.95);
+			}
+		}
+	}
+
+	.slideshow-dots {
+		position: absolute;
+		bottom: var(--spacing-md);
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		gap: var(--spacing-xs);
+		z-index: 5;
+	}
+
+	.dot {
+		width: 8px;
+		height: 8px;
+		border-radius: var(--border-radius-full);
+		background: rgba(255, 255, 255, 0.5);
+		border: none;
+		padding: 0;
+		cursor: pointer;
+		transition: all var(--transition-fast) var(--ease-in-out);
+
+		&.active {
+			background: white;
+			transform: scale(1.2);
+		}
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.8);
 		}
 	}
 </style>
