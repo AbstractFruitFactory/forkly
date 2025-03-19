@@ -61,7 +61,7 @@
 		justify-content: center;
 		width: 28px;
 		height: 28px;
-		background: var(--color-primary);
+		background: var(--color-primary-dark);
 		color: white;
 		border-radius: var(--border-radius-full);
 		font-weight: var(--font-weight-semibold);

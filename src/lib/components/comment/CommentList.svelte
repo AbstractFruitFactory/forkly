@@ -5,6 +5,7 @@
 	import ImageIcon from 'lucide-svelte/icons/image'
 	import { enhance } from '$app/forms'
 	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
+	import Button from '../button/Button.svelte'
 
 	let {
 		comments = [],
@@ -117,9 +118,9 @@
 					/>
 				</div>
 
-				<button type="submit" class="submit-button" disabled={isSubmitting}>
+				<Button variant="primary" size="sm" disabled={isSubmitting}>
 					{isSubmitting ? 'Posting...' : 'Post Comment'}
-				</button>
+				</Button>
 			</div>
 		</form>
 	{:else}

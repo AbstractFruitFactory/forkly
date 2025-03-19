@@ -120,7 +120,7 @@
 		// Variants
 		&.primary {
 			background: var(--color-primary-dark);
-			color: white;
+			font-weight: 600;
 
 			&:active:not(:disabled) {
 				transform: translateY(var(--spacing-xs));
