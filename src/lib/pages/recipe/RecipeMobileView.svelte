@@ -425,8 +425,8 @@
 					{#if recipe.instructions[currentStep].mediaType === 'video'}
 						<video
 							src={recipe.instructions[currentStep].mediaUrl}
-							controls
 							autoplay
+							loop
 							muted
 							class="cooking-media-content"
 						></video>

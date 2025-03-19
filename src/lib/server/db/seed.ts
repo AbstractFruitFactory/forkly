@@ -61,20 +61,20 @@ export const seed = async () => {
       description: 'Soft and chewy cookies with melty chocolate chips - a timeless favorite!',
       instructions: [
         { text: 'Preheat oven to 375°F (190°C)' },
-        { 
+        {
           text: 'Cream together butter and sugars until light and fluffy',
           mediaUrl: 'https://images.unsplash.com/photo-1612207339340-8fa5ed562f88?auto=format&fit=crop&q=80',
           mediaType: 'image' as const
         },
         { text: 'Beat in eggs one at a time, then stir in vanilla' },
         { text: 'Combine flour, baking soda, and salt; gradually blend into the butter mixture' },
-        { 
+        {
           text: 'Stir in chocolate chips',
           mediaUrl: 'https://images.unsplash.com/photo-1621236378699-8597faf6a176?auto=format&fit=crop&q=80',
           mediaType: 'image' as const
         },
         { text: 'Drop by rounded tablespoons onto ungreased baking sheets' },
-        { 
+        {
           text: 'Bake for 9 to 11 minutes or until golden brown',
           mediaUrl: 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?auto=format&fit=crop&q=80',
           mediaType: 'image' as const
@@ -107,12 +107,12 @@ export const seed = async () => {
       description: 'A delicious pizza with a crispy crust and classic toppings.',
       instructions: [
         { text: 'Preheat oven to 450°F (230°C)' },
-        { text: 'Roll out pizza dough on a floured surface' },
+        { text: 'Roll out pizza dough on a floured surface', mediaUrl: 'https://videos.pexels.com/video-files/3209831/3209831-uhd_2560_1440_25fps.mp4', mediaType: 'video' as const },
         { text: 'Brush the dough with olive oil' },
-        { text: 'Spread tomato sauce evenly over the dough' },
-        { text: 'Top with mozzarella cheese and pepperoni' },
-        { text: 'Sprinkle with dried oregano' },
-        { text: 'Bake for 15-20 minutes until crust is golden and cheese is bubbly' }
+        { text: 'Spread tomato sauce evenly over the dough', mediaUrl: 'https://videos.pexels.com/video-files/6603320/6603320-uhd_2560_1440_25fps.mp4', mediaType: 'video' as const },
+        { text: 'Top with mozzarella cheese and pepperoni', mediaUrl: 'https://videos.pexels.com/video-files/7008568/7008568-hd_1920_1080_25fps.mp4', mediaType: 'video' as const },
+        { text: 'Sprinkle with dried oregano', mediaUrl: 'https://videos.pexels.com/video-files/18775889/18775889-uhd_2560_1440_25fps.mp4', mediaType: 'video' as const },
+        { text: 'Bake for 15-20 minutes until crust is golden and cheese is bubbly', mediaUrl: 'https://videos.pexels.com/video-files/30627970/13111089_1440_2560_25fps.mp4', mediaType: 'video' as const }
       ],
       imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80',
       userId: null,
@@ -143,18 +143,18 @@ export const seed = async () => {
       instructions: [
         { text: 'Rinse quinoa thoroughly and cook according to package instructions.' },
         { text: 'Preheat oven to 425°F (220°C).' },
-        { 
+        {
           text: 'Toss sweet potatoes and chickpeas with olive oil, cumin, paprika, salt, and pepper.',
           mediaUrl: 'https://images.unsplash.com/photo-1604328727766-a151d1045ab4?auto=format&fit=crop&q=80',
           mediaType: 'image' as const
         },
-        { 
+        {
           text: 'Spread on a baking sheet and roast for 25-30 minutes until golden.',
           mediaUrl: 'https://images.unsplash.com/photo-1592415499556-74fcb9f18667?auto=format&fit=crop&q=80',
           mediaType: 'image' as const
         },
         { text: 'Prepare the tahini dressing by whisking tahini, lemon juice, garlic, water, and salt.' },
-        { 
+        {
           text: 'Assemble bowls with quinoa as the base, topped with roasted vegetables, chickpeas, avocado, and kale.',
           mediaUrl: 'https://images.unsplash.com/photo-1546007600-8c2e5a9b8ea3?auto=format&fit=crop&q=80',
           mediaType: 'image' as const
