@@ -389,7 +389,7 @@
 		position: absolute;
 		top: var(--spacing-md);
 		left: var(--spacing-md);
-		z-index: var(--z-popover);
+		z-index: var(--z-drawer);
 		background: rgba(0, 0, 0, 0.5);
 		border: none;
 		border-radius: var(--border-radius-full);
