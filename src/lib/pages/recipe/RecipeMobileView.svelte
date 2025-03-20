@@ -370,7 +370,7 @@
 					<IngredientsList ingredients={recipe.ingredients} {unitSystem} {getFormattedIngredient} />
 				</section>
 
-				<section class="content-section" bind:this={instructionsSection} id="instructions-section">
+				<section class="content-section" bind:this={instructionsSection}>
 					<h4 class="section-title">Instructions</h4>
 					<div class="instructions-list">
 						{#each recipe.instructions as instruction, i}
@@ -384,7 +384,7 @@
 					</div>
 				</section>
 
-				<section class="content-section" bind:this={commentsSection} id="comments-section">
+				<section class="content-section" bind:this={commentsSection}>
 					<h4 class="section-title">Comments</h4>
 					<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} />
 				</section>

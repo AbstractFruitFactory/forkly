@@ -159,7 +159,6 @@
 	@import '$lib/global.scss';
 
 	.comments-section {
-		padding: var(--spacing-md);
 		background-color: var(--color-neutral-darkest);
 	}
 
