@@ -201,12 +201,6 @@
 </script>
 
 <div class="recipe-mobile-view" data-page="recipe">
-	<button class="back-button" onclick={onBackClick}>
-		<svg width="24" height="24" viewBox="0 0 24 24">
-			<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-		</svg>
-	</button>
-
 	<div class="recipe-image">
 		{#if hasOnlyImages}
 			<div class="slideshow-container">
@@ -393,13 +387,6 @@
 	{#if isCookingMode}
 		<div class="cooking-mode">
 			<div class="cooking-header">
-				<button class="cooking-close-button" onclick={exitCookingMode}>
-					<svg width="24" height="24" viewBox="0 0 24 24">
-						<path
-							d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-						/>
-					</svg>
-				</button>
 				<div class="cooking-progress">
 					<div class="cooking-progress-text">
 						Step {currentStep + 1} of {recipe.instructions.length}
@@ -411,6 +398,11 @@
 						></div>
 					</div>
 				</div>
+				<button class="cooking-close-button" onclick={exitCookingMode}>
+					<svg width="20" height="20" viewBox="0 0 24 24">
+						<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+					</svg>
+				</button>
 			</div>
 
 			<div
@@ -496,39 +488,6 @@
 			height: 100dvh;
 			overflow-y: auto;
 			background: var(--color-neutral-dark);
-		}
-	}
-
-	.back-button {
-		position: absolute;
-		top: var(--spacing-md);
-		left: var(--spacing-md);
-		z-index: var(--z-popover);
-		background: rgba(0, 0, 0, 0.5);
-		border: none;
-		border-radius: var(--border-radius-full);
-		width: 32px;
-		height: 32px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		backdrop-filter: blur(4px);
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-
-		svg {
-			fill: white;
-			width: 20px;
-			height: 20px;
-		}
-
-		&:hover {
-			background: rgba(0, 0, 0, 0.7);
-			transform: scale(1.05);
-		}
-
-		&:active {
-			transform: scale(0.95);
 		}
 	}
 
@@ -835,20 +794,39 @@
 		padding: var(--spacing-md);
 		display: flex;
 		align-items: center;
-		border-bottom: 1px solid var(--color-neutral-dark);
-		background: var(--color-neutral-dark);
+		justify-content: space-between;
+		gap: var(--spacing-md);
+		background: var(--color-neutral-darker);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	.cooking-close-button {
-		background: transparent;
+		background: rgba(0, 0, 0, 0.5);
 		border: none;
-		padding: var(--spacing-xs);
-		margin-right: var(--spacing-md);
+		border-radius: var(--border-radius-full);
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		cursor: pointer;
-	}
+		backdrop-filter: blur(4px);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
-	.cooking-close-button svg {
-		fill: var(--color-neutral-light);
+		svg {
+			fill: white;
+			width: 20px;
+			height: 20px;
+		}
+
+		&:hover {
+			background: rgba(0, 0, 0, 0.7);
+			transform: scale(1.05);
+		}
+
+		&:active {
+			transform: scale(0.95);
+		}
 	}
 
 	.cooking-progress {
@@ -862,8 +840,8 @@
 	}
 
 	.cooking-progress-bar {
-		height: 4px;
-		background: var(--color-neutral);
+		height: 2px;
+		background: rgba(255, 255, 255, 0.2);
 		border-radius: var(--border-radius-full);
 		overflow: hidden;
 	}
