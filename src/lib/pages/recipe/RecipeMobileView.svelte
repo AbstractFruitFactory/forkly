@@ -12,7 +12,6 @@
 	import type { getFormattedIngredient as GetFormattedIngredient } from './utils/recipeUtils'
 	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
-	import InstructionAccordion from '$lib/components/accordion/InstructionAccordion.svelte'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
 	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
@@ -22,6 +21,7 @@
 	import Button from '$lib/components/button/Button.svelte'
 	import { page } from '$app/state'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
+	import RecipeInstruction from '$lib/components/accordion/RecipeInstruction.svelte'
 
 	let {
 		recipe,
@@ -374,11 +374,9 @@
 					<h4 class="section-title">Instructions</h4>
 					<div class="instructions-list">
 						{#each recipe.instructions as instruction, i}
-							<InstructionAccordion
+							<RecipeInstruction
 								{instruction}
 								index={i}
-								isOpen={expandedInstructions.includes(i)}
-								onToggle={toggleInstruction}
 							/>
 						{/each}
 					</div>
