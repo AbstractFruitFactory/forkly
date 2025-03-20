@@ -2,13 +2,6 @@
 	import type { RecipeData } from '$lib/types'
 	import type { NutritionInfo } from '$lib/server/food-api'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import { onMount } from 'svelte'
-	import Apple from 'lucide-svelte/icons/apple'
-	import FileText from 'lucide-svelte/icons/file-text'
-	import MessageSquare from 'lucide-svelte/icons/message-square'
-	import Play from 'lucide-svelte/icons/play'
-	import ChevronLeft from 'lucide-svelte/icons/chevron-left'
-	import ChevronRight from 'lucide-svelte/icons/chevron-right'
 	import type { getFormattedIngredient as GetFormattedIngredient } from './utils/recipeUtils'
 	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
@@ -22,6 +15,7 @@
 	import { page } from '$app/state'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import RecipeInstruction from '$lib/components/accordion/RecipeInstruction.svelte'
+	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
 
 	let {
 		recipe,
@@ -71,37 +65,6 @@
 	let videoLoaded = $state(false)
 	let videoError = $state(false)
 
-	// Video player and slideshow state
-	let videoPlayerVisible = $state(false)
-	let currentSlideIndex = $state(0)
-
-	// Transform recipe instructions with media into format for MediaPlayer
-	const instructionMedia = $state<
-		Array<{ type: 'image' | 'video'; url: string; duration?: number }>
-	>([
-		// Add main recipe image as first slide if it exists
-		...(recipe.imageUrl ? [{ type: 'image' as const, url: recipe.imageUrl }] : []),
-		// Then add instruction media
-		...recipe.instructions
-			.filter(
-				(
-					instruction
-				): instruction is typeof instruction & { mediaUrl: string; mediaType: 'image' | 'video' } =>
-					!!instruction.mediaUrl &&
-					!!instruction.mediaType &&
-					(instruction.mediaType === 'image' || instruction.mediaType === 'video')
-			)
-			.map((instruction) => ({
-				type: instruction.mediaType,
-				url: instruction.mediaUrl,
-				duration: 3000 // Default duration
-			}))
-	])
-
-	// Check if we only have images (including main recipe image)
-	const hasOnlyImages = $derived(instructionMedia.every((media) => media.type === 'image'))
-	const hasVideos = $derived(instructionMedia.some((media) => media.type === 'video'))
-
 	function scrollToSection(section: HTMLElement) {
 		section.scrollIntoView({ behavior: 'smooth' })
 	}
@@ -121,10 +84,6 @@
 
 	function exitCookingMode() {
 		isCookingMode = false
-	}
-
-	function toggleVideoPlayer() {
-		videoPlayerVisible = !videoPlayerVisible
 	}
 
 	function handleCookingVideoError() {
@@ -186,85 +145,21 @@
 		touchStartX = 0
 		touchEndX = 0
 	}
-
-	function nextSlide() {
-		if (currentSlideIndex < instructionMedia.length - 1) {
-			currentSlideIndex = currentSlideIndex + 1
-		}
-	}
-
-	function prevSlide() {
-		if (currentSlideIndex > 0) {
-			currentSlideIndex = currentSlideIndex - 1
-		}
-	}
 </script>
 
 <div class="recipe-mobile-view" data-page="recipe">
+	<button class="back-button" onclick={onBackClick}>
+		<svg width="24" height="24" viewBox="0 0 24 24">
+			<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+		</svg>
+	</button>
+
 	<div class="recipe-image">
-		{#if hasOnlyImages}
-			<div class="slideshow-container">
-				<div class="slides-wrapper" style="transform: translateX(-{currentSlideIndex * 100}%)">
-					{#each instructionMedia as media}
-						<div class="slide">
-							<img src={media.url} alt={recipe.title} />
-						</div>
-					{/each}
-				</div>
-			</div>
-			{#if instructionMedia.length > 1}
-				<div class="slideshow-controls">
-					<button
-						class="slideshow-button prev"
-						onclick={prevSlide}
-						disabled={currentSlideIndex === 0}
-					>
-						<svelte:component this={ChevronLeft} size={24} color="white" />
-					</button>
-					<button
-						class="slideshow-button next"
-						onclick={nextSlide}
-						disabled={currentSlideIndex === instructionMedia.length - 1}
-					>
-						<svelte:component this={ChevronRight} size={24} color="white" />
-					</button>
-				</div>
-				<div class="slideshow-dots">
-					{#each instructionMedia as _, index}
-						<button
-							class="dot {currentSlideIndex === index ? 'active' : ''}"
-							onclick={() => (currentSlideIndex = index)}
-						></button>
-					{/each}
-				</div>
-			{/if}
-		{:else}
-			<div class="slideshow-container">
-				{#if videoPlayerVisible}
-					<div class="video-player-container">
-						<button class="close-button" onclick={toggleVideoPlayer}>
-							<svg width="24" height="24" viewBox="0 0 24 24">
-								<path
-									d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-								/>
-							</svg>
-						</button>
-						<div class="video-player-content">
-							<MediaPlayer {instructionMedia} />
-						</div>
-					</div>
-				{:else}
-					<div class="slide">
-						<img src={instructionMedia[0].url} alt={recipe.title} />
-					</div>
-					{#if hasVideos}
-						<button class="play-button" onclick={toggleVideoPlayer}>
-							<svelte:component this={Play} size={28} color="white" />
-						</button>
-					{/if}
-				{/if}
-			</div>
-		{/if}
+		<RecipeMediaDisplay
+			mainImageUrl={recipe.imageUrl || undefined}
+			instructions={recipe.instructions}
+			aspectRatio="30/10"
+		/>
 	</div>
 
 	<div class="content-container" bind:this={contentContainer}>
@@ -368,10 +263,7 @@
 					<h4 class="section-title">Instructions</h4>
 					<div class="instructions-list">
 						{#each recipe.instructions as instruction, i}
-							<RecipeInstruction
-								{instruction}
-								index={i}
-							/>
+							<RecipeInstruction {instruction} index={i} />
 						{/each}
 					</div>
 				</section>
@@ -400,7 +292,9 @@
 				</div>
 				<button class="cooking-close-button" onclick={exitCookingMode}>
 					<svg width="20" height="20" viewBox="0 0 24 24">
-						<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+						<path
+							d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+						/>
 					</svg>
 				</button>
 			</div>
@@ -491,78 +385,61 @@
 		}
 	}
 
-	.recipe-image {
-		position: relative;
-		width: 100%;
-		height: 30dvh;
-		background: var(--color-neutral-dark);
-		overflow: hidden;
-		margin-bottom: -20px; /* Pull content up */
-	}
-
-	.slideshow-container {
-		width: 100%;
-		height: 100%;
-		overflow: hidden;
-	}
-
-	.slides-wrapper {
-		display: flex;
-		width: 100%;
-		height: 100%;
-		transition: transform 0.3s ease-in-out;
-	}
-
-	.slide {
-		flex: 0 0 100%;
-		width: 100%;
-		height: 100%;
-	}
-
-	.slide img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-
-	.play-button {
+	.back-button {
 		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		background: rgba(0, 0, 0, 0.3);
+		top: var(--spacing-md);
+		left: var(--spacing-md);
+		z-index: var(--z-popover);
+		background: rgba(0, 0, 0, 0.5);
 		border: none;
 		border-radius: var(--border-radius-full);
-		width: 56px;
-		height: 56px;
+		width: 32px;
+		height: 32px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
-		backdrop-filter: blur(2px);
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-		z-index: var(--z-elevated);
-		transition: all var(--transition-fast) var(--ease-in-out);
+		backdrop-filter: blur(4px);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+		svg {
+			fill: white;
+			width: 20px;
+			height: 20px;
+		}
+
+		&:hover {
+			background: rgba(0, 0, 0, 0.7);
+			transform: scale(1.05);
+		}
+
+		&:active {
+			transform: scale(0.95);
+		}
 	}
 
-	.play-button:hover {
-		background: rgba(0, 0, 0, 0.5);
-		transform: translate(-50%, -50%) scale(1.05);
-	}
+	.recipe-image {
+		position: relative;
+		width: 100%;
+		height: 30dvh;
+		background: transparent;
+		overflow: visible;
+		z-index: 1;
 
-	.play-button:active {
-		transform: translate(-50%, -50%) scale(0.95);
+		:global(.recipe-media) {
+			border-top-left-radius: 0;
+			border-top-right-radius: 0;
+		}
 	}
 
 	.content-container {
 		position: relative;
 		width: 100%;
 		background: var(--color-neutral-dark);
-		border-radius: var(--border-radius-3xl) var(--border-radius-3xl) 0 0;
-		box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+		border-radius: 0;
 		margin-top: 0;
-		padding-bottom: calc(120px + env(safe-area-inset-bottom)); // Adjusted for combined height
-		z-index: var(--z-elevated);
+		padding-bottom: calc(120px + env(safe-area-inset-bottom));
+		z-index: 0;
 	}
 
 	.recipe-content {
@@ -574,7 +451,7 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--spacing-md);
-		margin: 0 0 var(--spacing-md); /* Adjust top margin */
+		margin: 0 0 var(--spacing-md);
 	}
 
 	.recipe-header h3 {
@@ -684,7 +561,7 @@
 
 	.content-section {
 		padding: var(--spacing-md) 0;
-		scroll-margin-top: 0; /* Remove top scroll margin since nav is at bottom */
+		scroll-margin-top: 0;
 	}
 
 	.section-title {
@@ -725,57 +602,6 @@
 		align-items: center;
 		gap: var(--spacing-md);
 		padding: var(--spacing-md) 0;
-	}
-
-	.video-player-container {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background: var(--color-neutral-darker);
-		z-index: var(--z-elevated);
-	}
-
-	.video-player-content {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.close-button {
-		position: absolute;
-		top: var(--spacing-md);
-		right: var(--spacing-md);
-		background: rgba(0, 0, 0, 0.5);
-		border: none;
-		border-radius: var(--border-radius-full);
-		width: 32px;
-		height: 32px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		z-index: var(--z-sticky);
-		transition: all var(--transition-fast) var(--ease-in-out);
-		backdrop-filter: blur(4px);
-
-		&:hover {
-			background: rgba(0, 0, 0, 0.7);
-			transform: scale(1.05);
-		}
-
-		&:active {
-			transform: scale(0.95);
-		}
-
-		svg {
-			fill: white;
-			width: 20px;
-			height: 20px;
-		}
 	}
 
 	.cooking-mode {

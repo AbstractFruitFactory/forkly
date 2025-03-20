@@ -15,6 +15,7 @@
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
 	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
+	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
 
 	let {
 		recipe,
@@ -48,11 +49,13 @@
 
 <div class="desktop-view">
 	<div class="recipe-header-section">
-		{#if recipe.imageUrl}
-			<div class="recipe-image">
-				<img src={recipe.imageUrl} alt={recipe.title} />
-			</div>
-		{/if}
+		<div class="recipe-image">
+			<RecipeMediaDisplay
+				mainImageUrl={recipe.imageUrl}
+				instructions={recipe.instructions}
+				aspectRatio="1/1"
+			/>
+		</div>
 
 		<div class="recipe-intro">
 			<div class="recipe-title-row">
@@ -283,10 +286,8 @@
 		overflow: hidden;
 		border-radius: var(--border-radius-md);
 
-		img {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
+		:global(.recipe-media) {
+			border-radius: var(--border-radius-md);
 		}
 
 		@include tablet {
