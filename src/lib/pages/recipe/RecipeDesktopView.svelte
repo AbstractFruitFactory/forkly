@@ -17,6 +17,7 @@
 	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
 	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
 	import RecipeInstruction from '$lib/components/accordion/RecipeInstruction.svelte'
+	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
 
 	let {
 		recipe,
@@ -140,34 +141,8 @@
 				{/if}
 			</div>
 
-			<div class="nutrition-facts">
-				<div class="nutrition-grid">
-					<div class="nutrition-item">
-						<div class="nutrition-circle">
-							<span class="value">{Math.round(nutrition.totalNutrition.calories)}</span>
-						</div>
-						<span class="label">CALORIES</span>
-					</div>
-					<div class="nutrition-item">
-						<div class="nutrition-circle">
-							<span class="value">{Math.round(nutrition.totalNutrition.protein)}g</span>
-						</div>
-						<span class="label">PROTEIN</span>
-					</div>
-					<div class="nutrition-item">
-						<div class="nutrition-circle">
-							<span class="value">{Math.round(nutrition.totalNutrition.carbs)}g</span>
-						</div>
-						<span class="label">CARBS</span>
-					</div>
-					<div class="nutrition-item">
-						<div class="nutrition-circle">
-							<span class="value">{Math.round(nutrition.totalNutrition.fat)}g</span>
-						</div>
-						<span class="label">FAT</span>
-					</div>
-				</div>
-				<p class="nutrition-disclaimer">* Nutrition information is estimated</p>
+			<div class="nutrition-facts-wrapper">
+				<NutritionFacts {nutrition} />
 			</div>
 		</div>
 	</div>
@@ -327,70 +302,8 @@
 		}
 	}
 
-	.nutrition-facts {
+	.nutrition-facts-wrapper {
 		margin-top: var(--spacing-md);
-	}
-
-	.nutrition-grid {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: var(--spacing-md);
-		margin-top: var(--spacing-lg);
-
-		@include small-mobile {
-			grid-template-columns: repeat(2, 1fr);
-			gap: var(--spacing-lg);
-		}
-	}
-
-	.nutrition-item {
-		text-align: center;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-
-		.value {
-			font-size: var(--font-size-lg);
-			font-weight: var(--font-weight-bold);
-			color: var(--color-primary);
-
-			@include small-mobile {
-				font-size: var(--font-size-md);
-			}
-		}
-
-		.label {
-			display: block;
-			font-size: var(--font-size-xs);
-			color: var(--color-neutral-light);
-			margin-top: var(--spacing-xs);
-			letter-spacing: 0.5px;
-		}
-	}
-
-	.nutrition-circle {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 70px;
-		height: 70px;
-		border-radius: 50%;
-		background: var(--color-neutral-dark);
-		margin-bottom: var(--spacing-xs);
-		border: 2px solid var(--color-primary);
-
-		@include small-mobile {
-			width: 60px;
-			height: 60px;
-		}
-	}
-
-	.nutrition-disclaimer {
-		text-align: center;
-		font-size: var(--font-size-xs);
-		color: var(--color-neutral);
-		margin-top: var(--spacing-md);
-		font-style: italic;
 	}
 
 	// Main Content Section
