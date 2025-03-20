@@ -319,12 +319,6 @@
 		}
 	}
 
-	.recipe-sidebar {
-		@include tablet {
-			max-width: 500px;
-		}
-	}
-
 	// Section Headers
 	.section-header {
 		display: flex;

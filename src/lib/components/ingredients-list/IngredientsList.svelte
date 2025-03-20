@@ -44,13 +44,10 @@
 			display: flex;
 			justify-content: space-between;
 			font-size: var(--font-size-sm);
+			max-width: 300px;
 
 			&:last-child {
 				border-bottom: none;
-			}
-
-			@include tablet {
-				font-size: var(--font-size-md);
 			}
 		}
 	}
