@@ -21,16 +21,15 @@
 	}
 </script>
 
-<div class="instruction-item">
-	<div class="step-number">{index + 1}</div>
-
-	<div class="instruction-content">
-		<button
-			class="instruction-header"
-			class:active={isOpen}
-			class:expandable={needsExpansion}
-			onclick={toggleExpand}
-		>
+<div class="instruction-item" class:expanded={isOpen}>
+	<button
+		class="instruction-header"
+		class:active={isOpen}
+		class:expandable={needsExpansion}
+		onclick={toggleExpand}
+	>
+		<div class="step-number">{index + 1}</div>
+		<div class="instruction-content">
 			<div class="instruction-title">
 				{#if needsExpansion && !isOpen}
 					{instruction.text.substring(0, 60)}...
@@ -38,73 +37,65 @@
 					{instruction.text}
 				{/if}
 			</div>
-
-			{#if needsExpansion}
-				<svg class="chevron-icon" class:rotated={isOpen} width="16" height="16" viewBox="0 0 24 24">
-					<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
-				</svg>
-			{/if}
-		</button>
-	</div>
+		</div>
+	</button>
 </div>
 
-<style>
+<style lang="scss">
 	.instruction-item {
+		background: var(--color-neutral-darker);
+		border-radius: var(--border-radius-lg);
+		overflow: hidden;
+		transition: all var(--transition-fast) var(--ease-in-out);
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.03);
+		}
+
+		&.expanded {
+			background: var(--color-neutral-dark);
+		}
+	}
+
+	.instruction-header {
+		width: 100%;
 		display: flex;
-		gap: var(--spacing-md);
-		margin-bottom: var(--spacing-sm);
+		gap: var(--spacing-lg);
+		padding: var(--spacing-md) var(--spacing-lg);
+		background: none;
+		border: none;
+		cursor: pointer;
+		text-align: left;
+		transition: all var(--transition-fast) var(--ease-in-out);
+
+		&:hover {
+			.step-number {
+				opacity: 1;
+				color: var(--color-primary);
+			}
+		}
+
+		&.active {
+			background: rgba(255, 255, 255, 0.02);
+
+			.step-number {
+				opacity: 1;
+				color: var(--color-primary);
+			}
+		}
 	}
 
 	.step-number {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 28px;
-		height: 28px;
-		background: var(--color-primary-dark);
-		color: white;
-		border-radius: var(--border-radius-full);
-		font-weight: var(--font-weight-semibold);
-		flex-shrink: 0;
-		margin-top: var(--spacing-xs);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-neutral-light);
+		opacity: 0.7;
+		min-width: 24px;
+		line-height: 1.7;
+		transition: all var(--transition-fast) var(--ease-in-out);
+		transform: translateY(-4px);
 	}
 
 	.instruction-content {
 		flex: 1;
-		border-radius: var(--border-radius-md);
-		overflow: hidden;
-	}
-
-	.instruction-header {
-		display: flex;
-		gap: var(--spacing-md);
-		width: 100%;
-		padding: var(--spacing-md);
-		background: var(--color-neutral-darker);
-	}
-
-	.instruction-header.expandable {
-		transition: background-color 0.2s ease;
-	}
-
-	.instruction-header.expandable:hover {
-		background: var(--color-neutral-darkest);
-	}
-
-	.instruction-title {
-		flex: 1;
-		color: var(--color-neutral-light);
-		font-weight: var(--font-weight-medium);
-		text-align: left;
-	}
-
-	.chevron-icon {
-		fill: var(--color-neutral-light);
-		transition: transform 0.3s ease;
-		flex-shrink: 0;
-	}
-
-	.chevron-icon.rotated {
-		transform: rotate(180deg);
 	}
 </style>

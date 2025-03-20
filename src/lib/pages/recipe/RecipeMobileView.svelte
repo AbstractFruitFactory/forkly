@@ -75,11 +75,6 @@
 	let videoPlayerVisible = $state(false)
 	let currentSlideIndex = $state(0)
 
-	// Mock data for recipe metadata
-	const cookTime = '30 Min'
-	const difficulty = 'Medium'
-	const servings = '2-3 Cal'
-
 	// Transform recipe instructions with media into format for MediaPlayer
 	const instructionMedia = $state<
 		Array<{ type: 'image' | 'video'; url: string; duration?: number }>
@@ -279,20 +274,26 @@
 	</div>
 
 	<div class="content-container" bind:this={contentContainer}>
-		<div class="sticky-nav">
-			<button class="nav-button" onclick={() => scrollToSection(ingredientsSection)}>
-				<svelte:component this={Apple} class="nav-icon" size={18} />
-				<span>Ingredients</span>
-			</button>
-			<button class="nav-button" onclick={() => scrollToSection(instructionsSection)}>
-				<svelte:component this={FileText} class="nav-icon" size={18} />
-				<span>Instructions</span>
-			</button>
-			<button class="nav-button" onclick={() => scrollToSection(commentsSection)}>
-				<svelte:component this={MessageSquare} class="nav-icon" size={18} />
-				<span>Comments</span>
-			</button>
-		</div>
+		{#if !isCookingMode}
+			<div class="bottom-container">
+				<div class="nav-buttons">
+					<button class="nav-button" onclick={() => scrollToSection(ingredientsSection)}>
+						Ingredients
+					</button>
+					<button class="nav-button" onclick={() => scrollToSection(instructionsSection)}>
+						Instructions
+					</button>
+					<button class="nav-button" onclick={() => scrollToSection(commentsSection)}>
+						Comments
+					</button>
+				</div>
+				<div class="start-cooking-wrapper">
+					<Button variant="primary" size="md" fullWidth onclick={() => startCookingMode()}
+						>Start Cooking</Button
+					>
+				</div>
+			</div>
+		{/if}
 
 		<div class="recipe-content">
 			<div class="recipe-header">
@@ -326,28 +327,40 @@
 				/>
 			</div>
 
-			<div class="recipe-meta">
-				<div class="meta-item">
-					<span class="meta-value">{cookTime}</span>
-					<span class="meta-label">Cook Time</span>
+			{#if nutrition?.totalNutrition}
+				<div class="nutrition-facts">
+					<div class="nutrition-grid">
+						<div class="nutrition-item">
+							<div class="nutrition-circle">
+								<span class="value">{Math.round(nutrition.totalNutrition.calories)}</span>
+							</div>
+							<span class="label">CALORIES</span>
+						</div>
+						<div class="nutrition-item">
+							<div class="nutrition-circle">
+								<span class="value">{Math.round(nutrition.totalNutrition.protein)}g</span>
+							</div>
+							<span class="label">PROTEIN</span>
+						</div>
+						<div class="nutrition-item">
+							<div class="nutrition-circle">
+								<span class="value">{Math.round(nutrition.totalNutrition.carbs)}g</span>
+							</div>
+							<span class="label">CARBS</span>
+						</div>
+						<div class="nutrition-item">
+							<div class="nutrition-circle">
+								<span class="value">{Math.round(nutrition.totalNutrition.fat)}g</span>
+							</div>
+							<span class="label">FAT</span>
+						</div>
+					</div>
+					<p class="nutrition-disclaimer">* Nutrition information is estimated</p>
 				</div>
-				<div class="meta-item">
-					<span class="meta-value">{difficulty}</span>
-					<span class="meta-label">Difficulty</span>
-				</div>
-				<div class="meta-item">
-					<span class="meta-value">{servings}</span>
-					<span class="meta-label">Servings</span>
-				</div>
-			</div>
-
-			<div class="start-cooking-wrapper">
-				<Button variant="primary" size="md" onclick={() => startCookingMode()}>Start Cooking</Button
-				>
-			</div>
+			{/if}
 
 			<div class="section-container">
-				<section class="content-section" bind:this={ingredientsSection} id="ingredients-section">
+				<section class="content-section" bind:this={ingredientsSection}>
 					<div class="section-header">
 						<h4 class="section-title">Ingredients</h4>
 						<div class="unit-toggle-container">
@@ -490,32 +503,44 @@
 
 	.back-button {
 		position: absolute;
-		top: 16px;
-		left: 16px;
-		z-index: var(--z-elevated);
+		top: var(--spacing-md);
+		left: var(--spacing-md);
+		z-index: var(--z-popover);
 		background: rgba(0, 0, 0, 0.5);
 		border: none;
 		border-radius: var(--border-radius-full);
-		width: 40px;
-		height: 40px;
+		width: 32px;
+		height: 32px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
 		backdrop-filter: blur(4px);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-	}
 
-	.back-button svg {
-		fill: white;
+		svg {
+			fill: white;
+			width: 20px;
+			height: 20px;
+		}
+
+		&:hover {
+			background: rgba(0, 0, 0, 0.7);
+			transform: scale(1.05);
+		}
+
+		&:active {
+			transform: scale(0.95);
+		}
 	}
 
 	.recipe-image {
 		position: relative;
 		width: 100%;
-		height: 40dvh;
+		height: 30dvh;
 		background: var(--color-neutral-dark);
 		overflow: hidden;
+		margin-bottom: -20px; /* Pull content up */
 	}
 
 	.slideshow-container {
@@ -559,7 +584,7 @@
 		cursor: pointer;
 		backdrop-filter: blur(2px);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-		z-index: 5;
+		z-index: var(--z-elevated);
 		transition: all var(--transition-fast) var(--ease-in-out);
 	}
 
@@ -578,12 +603,13 @@
 		background: var(--color-neutral-dark);
 		border-radius: var(--border-radius-3xl) var(--border-radius-3xl) 0 0;
 		box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-		margin-top: -25px;
-		padding-bottom: 100px;
+		margin-top: 0;
+		padding-bottom: calc(120px + env(safe-area-inset-bottom)); // Adjusted for combined height
+		z-index: var(--z-elevated);
 	}
 
 	.recipe-content {
-		padding: 0 var(--spacing-lg) var(--spacing-lg);
+		padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-lg);
 	}
 
 	.recipe-header {
@@ -591,7 +617,7 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--spacing-md);
-		margin: var(--spacing-lg) 0 var(--spacing-md);
+		margin: 0 0 var(--spacing-md); /* Adjust top margin */
 	}
 
 	.recipe-header h3 {
@@ -644,53 +670,53 @@
 	}
 
 	.start-cooking-wrapper {
-		margin: var(--spacing-md) 0 var(--spacing-lg) 0;
-		display: flex;
-		justify-content: center;
+		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
-	.sticky-nav {
-		display: flex;
-		position: sticky;
-		top: 0;
+	.bottom-container {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
 		background: var(--color-neutral-dark);
-		border-radius: 0;
-		padding: var(--spacing-md) 0;
-		z-index: 10;
-		box-shadow: none;
-		margin: 0;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		z-index: var(--z-sticky);
+		border-top: 1px solid rgba(255, 255, 255, 0.08);
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+
+	.nav-buttons {
+		display: flex;
 		justify-content: space-around;
+		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
 	.nav-button {
 		flex: 1;
 		background: none;
 		border: none;
-		padding: 0;
+		padding: var(--spacing-sm) var(--spacing-xs);
 		color: var(--color-neutral-light);
 		font-size: var(--font-size-sm);
 		cursor: pointer;
 		transition: all var(--transition-fast) var(--ease-in-out);
 		display: flex;
-		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: var(--spacing-xs);
 		font-weight: var(--font-weight-medium);
-	}
+		border-radius: var(--border-radius-sm);
+		opacity: 0.8;
 
-	.nav-icon {
-		flex-shrink: 0;
-		margin-bottom: var(--spacing-xs);
-	}
+		&:hover {
+			color: white;
+			opacity: 1;
+			background: rgba(255, 255, 255, 0.05);
+		}
 
-	.nav-button:hover {
-		color: white;
-	}
-
-	.nav-button:active {
-		color: var(--color-primary);
+		&:active {
+			color: var(--color-primary);
+			opacity: 1;
+			background: rgba(255, 255, 255, 0.08);
+		}
 	}
 
 	.section-container {
@@ -701,7 +727,7 @@
 
 	.content-section {
 		padding: var(--spacing-md) 0;
-		scroll-margin-top: 80px;
+		scroll-margin-top: 0; /* Remove top scroll margin since nav is at bottom */
 	}
 
 	.section-title {
@@ -717,7 +743,6 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: var(--spacing-lg);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 		padding-bottom: var(--spacing-xs);
 
 		@include mobile {
@@ -743,7 +768,6 @@
 		align-items: center;
 		gap: var(--spacing-md);
 		padding: var(--spacing-md) 0;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	.video-player-container {
@@ -753,7 +777,7 @@
 		width: 100%;
 		height: 100%;
 		background: var(--color-neutral-darker);
-		z-index: 10;
+		z-index: var(--z-elevated);
 	}
 
 	.video-player-content {
@@ -777,8 +801,9 @@
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
-		z-index: 11;
+		z-index: var(--z-sticky);
 		transition: all var(--transition-fast) var(--ease-in-out);
+		backdrop-filter: blur(4px);
 
 		&:hover {
 			background: rgba(0, 0, 0, 0.7);
@@ -803,7 +828,7 @@
 		width: 100%;
 		height: 100dvh;
 		background: var(--color-background);
-		z-index: 1000;
+		z-index: var(--z-modal);
 		display: flex;
 		flex-direction: column;
 	}
@@ -1033,5 +1058,84 @@
 		@include mobile {
 			margin-left: var(--spacing-sm);
 		}
+	}
+
+	.nutrition-facts {
+		margin: var(--spacing-md) 0;
+	}
+
+	.nutrition-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: var(--spacing-xs);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.nutrition-item {
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.nutrition-circle {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		background: var(--color-neutral-dark);
+		border: 2px solid var(--color-primary);
+
+		width: 48px;
+		height: 48px;
+		margin-bottom: var(--spacing-xs);
+		border-width: 1.5px;
+	}
+
+	.value {
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-primary);
+
+		@include mobile {
+			font-size: var(--font-size-sm);
+		}
+	}
+
+	.label {
+		display: block;
+		font-size: var(--font-size-xs);
+		color: var(--color-neutral-light);
+		margin-top: var(--spacing-xs);
+		letter-spacing: 0.5px;
+
+		@include mobile {
+			font-size: calc(var(--font-size-xs) * 0.9);
+			margin-top: calc(var(--spacing-xs) / 2);
+			letter-spacing: 0.3px;
+		}
+	}
+
+	.nutrition-disclaimer {
+		text-align: center;
+		font-size: var(--font-size-xs);
+		color: var(--color-neutral);
+		font-style: italic;
+
+		@include mobile {
+			font-size: calc(var(--font-size-xs) * 0.9);
+			margin-top: var(--spacing-xs);
+		}
+	}
+
+	.debug {
+		margin: var(--spacing-md) 0;
+		padding: var(--spacing-md);
+		background: rgba(0, 0, 0, 0.5);
+		border-radius: var(--border-radius-md);
+		font-family: var(--font-mono);
+		font-size: var(--font-size-sm);
+		color: var(--color-neutral-light);
+		white-space: pre-wrap;
 	}
 </style>

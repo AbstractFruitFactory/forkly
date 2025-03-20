@@ -253,7 +253,6 @@
 	@import '$lib/global.scss';
 
 	.desktop-view {
-		max-width: 1000px;
 		margin: 0 auto;
 		background-color: var(--color-neutral-dark);
 		border-radius: var(--border-radius-lg);
