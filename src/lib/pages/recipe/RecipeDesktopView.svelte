@@ -312,10 +312,20 @@
 		grid-template-columns: 250px 1fr;
 		gap: var(--spacing-xl);
 		margin-top: var(--spacing-xl);
+		position: relative;
 
 		@include tablet {
 			grid-template-columns: 1fr;
 			gap: var(--spacing-xl);
+		}
+	}
+
+	.recipe-sidebar {
+		@include desktop {
+			position: sticky;
+			top: var(--spacing-xl);
+			height: fit-content;
+			align-self: start;
 		}
 	}
 
