@@ -2,6 +2,7 @@
 	import Popover from '$lib/components/popover/Popover.svelte'
 	import { parseTemperature, getConversionText } from '$lib/utils/temperature'
 	import type { TemperatureUnit } from '$lib/utils/temperature'
+	import InstructionVideo from '$lib/components/video-player/InstructionVideo.svelte'
 
 	let { instruction, index } = $props<{
 		instruction: { 
@@ -52,7 +53,7 @@
 							decoding="async"
 						/>
 					{:else if instruction.mediaType === 'video'}
-						<video src={instruction.mediaUrl} controls muted></video>
+						<InstructionVideo src={instruction.mediaUrl} stepNumber={index + 1} />
 					{/if}
 				</div>
 			{/if}
