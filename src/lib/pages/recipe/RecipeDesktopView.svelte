@@ -16,6 +16,7 @@
 	import CommentList from '$lib/components/comment/CommentList.svelte'
 	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
 	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
+	import RecipeInstruction from '$lib/components/accordion/RecipeInstruction.svelte'
 
 	let {
 		recipe,
@@ -190,53 +191,11 @@
 			<div class="section-header">
 				<h3>Instructions</h3>
 			</div>
-			<ol class="instructions-list">
+			<div class="instructions-list">
 				{#each recipe.instructions as instruction, i}
-					<li>
-						<div class="instruction-number">{i + 1}</div>
-						<div class="instruction-content">
-							{#if instruction.mediaUrl}
-								<div class="instruction-media">
-									{#if instruction.mediaType === 'image'}
-										<img
-											src={instruction.mediaUrl}
-											alt={`Step ${i + 1} visual`}
-											loading="lazy"
-											decoding="async"
-										/>
-									{:else if instruction.mediaType === 'video'}
-										<video src={instruction.mediaUrl} controls muted></video>
-									{/if}
-								</div>
-							{/if}
-							<div class="instruction-text">
-								{#each parseTemperature(instruction.text) as part}
-									{#if part.isTemperature && part.value !== undefined && part.unit}
-										<span class="temperature-wrapper">
-											<Popover triggerOn="hover" placement="top">
-												{#snippet trigger()}
-													<span class="temperature">{part.text}</span>
-												{/snippet}
-
-												{#snippet content()}
-													<span class="conversion"
-														>{getConversionText(
-															part.value as number,
-															part.unit as TemperatureUnit
-														)}</span
-													>
-												{/snippet}
-											</Popover>
-										</span>
-									{:else}
-										<span>{part.text}</span>
-									{/if}
-								{/each}
-							</div>
-						</div>
-					</li>
+					<RecipeInstruction {instruction} index={i} />
 				{/each}
-			</ol>
+			</div>
 		</div>
 	</div>
 
@@ -499,104 +458,9 @@
 		padding-left: 0;
 		max-width: 800px;
 		margin: 0;
-
-		li {
-			display: flex;
-			margin-bottom: var(--spacing-xl);
-			padding-bottom: var(--spacing-xl);
-			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-			position: relative;
-
-			&:last-child {
-				border-bottom: none;
-				margin-bottom: 0;
-				padding-bottom: 0;
-			}
-
-			@include small-mobile {
-				margin-bottom: var(--spacing-lg);
-				padding-bottom: var(--spacing-lg);
-			}
-		}
-	}
-
-	.instruction-number {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 36px;
-		height: 36px;
-		background-color: var(--color-primary);
-		color: var(--color-neutral-darkest);
-		border-radius: 50%;
-		font-weight: var(--font-weight-bold);
-		margin-right: var(--spacing-md);
-		flex-shrink: 0;
-		font-size: var(--font-size-lg);
-	}
-
-	.instruction-content {
-		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-md);
-	}
-
-	.instruction-text {
-		line-height: 1.6;
-		font-size: var(--font-size-md);
-		flex: 1;
-
-		:global(span) {
-			display: inline;
-		}
-
-		@include small-mobile {
-			font-size: var(--font-size-base);
-		}
-	}
-
-	// Media Styles
-	.instruction-media {
-		width: 100%;
-		max-width: 450px;
-		border-radius: var(--border-radius-md);
-		overflow: hidden;
-		box-shadow: var(--shadow-md);
-		will-change: transform;
-		content-visibility: auto;
-
-		img,
-		video {
-			width: 100%;
-			display: block;
-			border-radius: var(--border-radius-md);
-			aspect-ratio: 16 / 9;
-			object-fit: cover;
-			will-change: transform;
-		}
-
-		@include small-mobile {
-			max-width: 100%;
-		}
-	}
-
-	// Utility Classes
-	.temperature {
-		text-decoration: underline;
-		text-decoration-style: dotted;
-		cursor: help;
-		display: inline;
-	}
-
-	.conversion {
-		font-size: var(--font-size-sm);
-		white-space: nowrap;
-		display: inline;
-	}
-
-	.temperature-wrapper {
-		display: inline;
+		gap: var(--spacing-lg);
 	}
 
 	// Comments Section
