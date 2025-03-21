@@ -155,11 +155,7 @@
 					<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 				</div>
 			</div>
-			<IngredientsList 
-				ingredients={recipe.ingredients} 
-				{unitSystem} 
-				{getFormattedIngredient} 
-			/>
+			<IngredientsList ingredients={recipe.ingredients} {unitSystem} {getFormattedIngredient} />
 		</div>
 
 		<div class="recipe-main">
@@ -176,12 +172,7 @@
 
 	<div class="comments-section">
 		<div class="comments-content">
-			<CommentList 
-				{comments} 
-				{isLoggedIn} 
-				recipeId={recipe.id}
-				{formError}
-			/>
+			<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} />
 		</div>
 	</div>
 </div>
@@ -195,6 +186,7 @@
 		border-radius: var(--border-radius-lg);
 		box-shadow: var(--shadow-lg);
 		padding: var(--spacing-xl);
+		max-width: 1100px;
 
 		@include mobile {
 			display: none;
