@@ -1,45 +1,9 @@
-<script lang="ts" module>
-	import type { MeasurementUnit } from '$lib/types'
-	import { measurementUnits } from '$lib/types'
+<script lang="ts">
 	import Input from '$lib/components/input/Input.svelte'
 	import Search from '$lib/components/search/Search.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import { UNITS, UNIT_DISPLAY_TEXT } from '$lib/utils/unitConversion'
 	import PillSelector from '$lib/components/pill-selector/PillSelector.svelte'
-
-	// Create a mapping for display text that works with our MeasurementUnit type
-	const measurementUnitDisplayText: Record<MeasurementUnit, string> = {
-		// Weight
-		grams: UNIT_DISPLAY_TEXT.grams,
-		kilograms: UNIT_DISPLAY_TEXT.kilograms,
-		ounces: UNIT_DISPLAY_TEXT.ounces,
-		pounds: UNIT_DISPLAY_TEXT.pounds,
-
-		// Volume
-		milliliters: UNIT_DISPLAY_TEXT.milliliters,
-		liters: UNIT_DISPLAY_TEXT.liters,
-		cups: UNIT_DISPLAY_TEXT.cups,
-		fluid_ounces: UNIT_DISPLAY_TEXT.fluid_ounces,
-		tablespoons: UNIT_DISPLAY_TEXT.tablespoons,
-		teaspoons: UNIT_DISPLAY_TEXT.teaspoons,
-		gallons: UNIT_DISPLAY_TEXT.gallons,
-
-		// Length
-		millimeters: UNIT_DISPLAY_TEXT.millimeters,
-		centimeters: UNIT_DISPLAY_TEXT.centimeters,
-		meters: UNIT_DISPLAY_TEXT.meters,
-		inches: UNIT_DISPLAY_TEXT.inches,
-		feet: UNIT_DISPLAY_TEXT.feet,
-
-		// Other
-		pieces: UNIT_DISPLAY_TEXT.pieces,
-		'to taste': UNIT_DISPLAY_TEXT['to taste'],
-		pinch: UNIT_DISPLAY_TEXT.pinch
-	}
-</script>
-
-<script lang="ts">
 	import { enhance } from '$app/forms'
 	import { browser } from '$app/environment'
 	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
@@ -79,6 +43,26 @@
 
 	const removeIngredient = (index: number) => {
 		if (ingredientCount > 1) {
+			delete inputValues[index]
+			delete suggestions[index]
+			delete isLoading[index]
+			delete showCustomInput[index]
+			delete selectedLookupIngredients[index]
+
+			for (let i = index; i < ingredientCount - 1; i++) {
+				inputValues[i] = inputValues[i + 1]
+				suggestions[i] = suggestions[i + 1]
+				isLoading[i] = isLoading[i + 1]
+				showCustomInput[i] = showCustomInput[i + 1]
+				selectedLookupIngredients[i] = selectedLookupIngredients[i + 1]
+			}
+
+			delete inputValues[ingredientCount - 1]
+			delete suggestions[ingredientCount - 1]
+			delete isLoading[ingredientCount - 1]
+			delete showCustomInput[ingredientCount - 1]
+			delete selectedLookupIngredients[ingredientCount - 1]
+
 			ingredientCount--
 		}
 	}
@@ -89,6 +73,20 @@
 
 	const removeInstruction = (index: number) => {
 		if (instructionCount > 1) {
+			const form = document.querySelector('form')
+			if (form) {
+				for (let i = index; i < instructionCount - 1; i++) {
+					const nextText = form.querySelector(
+						`textarea[name="instructions-${i + 1}-text"]`
+					) as HTMLTextAreaElement
+					const currentText = form.querySelector(
+						`textarea[name="instructions-${i}-text"]`
+					) as HTMLTextAreaElement
+					if (nextText && currentText) {
+						currentText.value = nextText.value
+					}
+				}
+			}
 			instructionCount--
 		}
 	}
@@ -191,19 +189,18 @@
 				{#each Array(ingredientCount) as _, i}
 					<div class="ingredient-group">
 						<div class="quantity-unit-wrapper">
-							<IngredientInput
-								name={`ingredient-${i}`}
-								{unitSystem}
-							/>
+							<IngredientInput name={`ingredient-${i}`} {unitSystem} />
 						</div>
 
 						<div class="ingredient-input">
 							{#if showCustomInput[i] || !browser}
 								<div class="custom-ingredient">
-									<Input actionButton={{
-										text: "Search instead",
-										onClick: () => (showCustomInput[i] = false)
-									}}>
+									<Input
+										actionButton={{
+											text: 'Search instead',
+											onClick: () => (showCustomInput[i] = false)
+										}}
+									>
 										<input
 											name={`ingredient-${i}-name&custom`}
 											placeholder="Enter custom ingredient"
@@ -219,7 +216,7 @@
 										onSearch={(query) => searchIngredients(query, i)}
 										onSelect={(suggestion) => handleSelect(i, suggestion)}
 										actionButton={{
-											text: "Add manually",
+											text: 'Add manually',
 											onClick: () => setCustomIngredientInput(i)
 										}}
 									/>
@@ -227,14 +224,11 @@
 							{/if}
 						</div>
 
-						<button
-							type="button"
-							class="remove-btn"
-							onclick={() => removeIngredient(i)}
-							disabled={ingredientCount === 1}
-						>
-							✕
-						</button>
+						{#if ingredientCount > 1}
+							<button type="button" class="remove-btn" onclick={() => removeIngredient(i)}>
+								✕
+							</button>
+						{/if}
 					</div>
 				{/each}
 				<Button variant="dotted" onclick={addIngredient} size="sm">Add Ingredient</Button>
@@ -247,9 +241,6 @@
 				{#each Array(instructionCount) as _, i}
 					<div class="instruction-group">
 						<div class="instruction-input">
-							<div class="instruction-media">
-								<MediaUpload name={`instructions-${i}-media`} />
-							</div>
 							<div class="instruction-text">
 								<Input>
 									<textarea
@@ -259,15 +250,15 @@
 									></textarea>
 								</Input>
 							</div>
+							<div class="instruction-media">
+								<MediaUpload name={`instructions-${i}-media`} />
+							</div>
 						</div>
-						<button
-							type="button"
-							class="remove-btn"
-							onclick={() => removeInstruction(i)}
-							disabled={instructionCount === 1}
-						>
-							✕
-						</button>
+						{#if instructionCount > 1}
+							<button type="button" class="remove-btn" onclick={() => removeInstruction(i)}>
+								✕
+							</button>
+						{/if}
 					</div>
 				{/each}
 				<Button variant="dotted" onclick={addInstruction} size="sm">Add Instruction</Button>
@@ -286,15 +277,8 @@
 		padding: var(--spacing-lg) var(--spacing-md);
 	}
 
-	h1 {
-		font-size: var(--spacing-xl);
-		margin-bottom: var(--spacing-xl);
-		font-weight: 600;
-		text-align: center;
-	}
-
 	.form-group {
-		margin-bottom: var(--spacing-lg);
+		margin-top: var(--spacing-lg);
 	}
 
 	.ingredients-header {
@@ -385,7 +369,6 @@
 		display: flex;
 		gap: var(--spacing-md);
 		margin-bottom: var(--spacing-lg);
-		align-items: flex-start;
 	}
 
 	.instruction-input {
@@ -393,7 +376,6 @@
 		display: flex;
 		flex-direction: row;
 		gap: var(--spacing-md);
-		align-items: flex-start;
 
 		@media (max-width: 600px) {
 			flex-direction: column;
@@ -406,8 +388,7 @@
 	}
 
 	.instruction-media {
-		width: 300px;
-		flex-shrink: 0;
+		flex-basis: 40%;
 	}
 
 	.instruction-text {

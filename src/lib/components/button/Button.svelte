@@ -153,7 +153,6 @@
 
 		&.dotted {
 			border: var(--border-width-normal) dashed var(--color-neutral);
-			padding: var(--spacing-md) var(--spacing-lg);
 			margin-top: var(--spacing-md);
 			width: 100%;
 

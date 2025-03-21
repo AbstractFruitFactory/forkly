@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
 
-	let { 
+	let {
 		children,
 		actionButton,
 		isLoading
-	}: { 
+	}: {
 		children: Snippet
 		actionButton?: { text: string; onClick: () => void }
 		isLoading?: boolean
@@ -65,6 +65,7 @@
 		position: relative;
 		display: flex;
 		flex-direction: column;
+		height: 100%;
 
 		.right-elements {
 			position: absolute;
@@ -122,7 +123,7 @@
 
 		:global(textarea) {
 			resize: none;
-			height: 10rem;
+			height: 100%;
 			padding: var(--spacing-md);
 			line-height: 1.5;
 		}

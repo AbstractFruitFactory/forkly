@@ -39,7 +39,7 @@
 
 		// Use the utility function to handle the file
 		const result = handleMediaFile(file, { type, maxSize })
-		
+
 		// Update state based on result
 		error = result.error
 		preview = result.preview
@@ -77,85 +77,79 @@
 	})
 </script>
 
-<div class="media-upload">
-	<input
-		type="file"
-		{name}
-		{id}
-		accept={type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : 'image/*,video/*'}
-		onchange={handleFileSelect}
-		class="hidden"
-		bind:this={inputElement}
-		aria-label={`Upload ${type === 'image' ? 'image' : type === 'video' ? 'video' : 'media'}`}
-		aria-describedby={error ? `${id}-error` : undefined}
-	/>
+<input
+	type="file"
+	{name}
+	{id}
+	accept={type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : 'image/*,video/*'}
+	onchange={handleFileSelect}
+	class="hidden"
+	bind:this={inputElement}
+	aria-label={`Upload ${type === 'image' ? 'image' : type === 'video' ? 'video' : 'media'}`}
+	aria-describedby={error ? `${id}-error` : undefined}
+/>
 
-	<button
-		type="button"
-		class="preview-area"
-		class:has-preview={preview}
-		class:drag-over={dragOver}
-		onclick={() => inputElement.click()}
-		ondragover={handleDragOver}
-		ondragleave={handleDragLeave}
-		ondrop={handleDrop}
-	>
-		{#if preview && mediaType === 'image'}
-			<img src={preview} alt={previewAlt} loading="eager" decoding="sync" />
-			<div class="preview-overlay">
-				<span>Change Image</span>
-			</div>
-		{:else if preview && mediaType === 'video'}
-			<video src={preview} controls muted class="video-preview"></video>
-			<div class="preview-overlay">
-				<span>Change Video</span>
-			</div>
-		{:else}
-			<div class="placeholder" aria-hidden="true">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					{#if type === 'video'}
-						<polygon points="23 7 16 12 23 17 23 7"></polygon>
-						<rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-					{:else}
-						<path
-							d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-						/>
-						<circle cx="12" cy="13" r="4" />
-					{/if}
-				</svg>
-				<span>
-					Drag and drop {type === 'image'
-						? 'an image'
-						: type === 'video'
-							? 'a video'
-							: 'an image or video'} here<br />
-					or click to browse
-				</span>
-			</div>
-		{/if}
-	</button>
-
-	{#if error}
-		<p class="error" id="{id}-error" role="alert">
-			<span aria-hidden="true">⚠</span>
-			{error}
-		</p>
+<button
+	type="button"
+	class="preview-area"
+	class:has-preview={preview}
+	class:drag-over={dragOver}
+	onclick={() => inputElement.click()}
+	ondragover={handleDragOver}
+	ondragleave={handleDragLeave}
+	ondrop={handleDrop}
+>
+	{#if preview && mediaType === 'image'}
+		<img src={preview} alt={previewAlt} loading="eager" decoding="sync" />
+		<div class="preview-overlay">
+			<span>Change Image</span>
+		</div>
+	{:else if preview && mediaType === 'video'}
+		<video src={preview} controls muted class="video-preview"></video>
+		<div class="preview-overlay">
+			<span>Change Video</span>
+		</div>
+	{:else}
+		<div class="placeholder" aria-hidden="true">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+			>
+				{#if type === 'video'}
+					<polygon points="23 7 16 12 23 17 23 7"></polygon>
+					<rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+				{:else}
+					<path
+						d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+					/>
+					<circle cx="12" cy="13" r="4" />
+				{/if}
+			</svg>
+			<span>
+				Drag and drop {type === 'image'
+					? 'an image'
+					: type === 'video'
+						? 'a video'
+						: 'an image or video'} here<br />
+				or click to browse
+			</span>
+		</div>
 	{/if}
-</div>
+</button>
+
+{#if error}
+	<p class="error" id="{id}-error" role="alert">
+		<span aria-hidden="true">⚠</span>
+		{error}
+	</p>
+{/if}
 
 <style lang="scss">
-	.media-upload {
-		margin-bottom: var(--spacing-md);
-	}
-
 	.preview-area {
 		position: relative;
 		width: 100%;
@@ -169,6 +163,7 @@
 			border-color var(--transition-fast) var(--ease-in-out),
 			transform var(--transition-fast) var(--ease-in-out);
 		will-change: transform;
+		display: block;
 
 		&::after {
 			content: '';
