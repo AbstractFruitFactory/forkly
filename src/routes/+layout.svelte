@@ -1,107 +1,11 @@
 <script lang="ts">
 	import Header from '$lib/components/header/Header.svelte'
 	import Layout from '$lib/components/layout/Layout.svelte'
-	import SearchPopup from '$lib/components/search/SearchPopup.svelte'
 	import '$lib/global.scss'
 	import type { Snippet } from 'svelte'
 	import type { LayoutData } from './$types'
-	import { goto } from '$app/navigation'
-	import type { DietType } from '$lib/types'
-	import { safeFetch } from '$lib/utils/fetch'
-	import type { IngredientLookupResult } from './api/ingredients/lookup/[query]/+server'
-	import type { RecipesSearchResponse } from './api/recipes/search/+server'
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props()
-
-	let isSearchLoading = $state(false)
-	let searchResults = $state<
-		Array<{ id: string; title: string; imageUrl?: string; cookTime?: number; diets?: DietType[] }>
-	>([])
-	let isResultsLoading = $state(false)
-	let isSearchPopupOpen = $state(false)
-
-	const openSearchPopup = () => (isSearchPopupOpen = true)
-
-	const closeSearchPopup = () => (isSearchPopupOpen = false)
-
-	const handleSearch = async (
-		query: string,
-		filters?: { diets: DietType[]; ingredients: string[] }
-	) => {
-		if (
-			!query.trim() &&
-			(!filters || (filters.diets.length === 0 && filters.ingredients.length === 0))
-		) {
-			searchResults = []
-			return
-		}
-
-		isSearchLoading = true
-		isResultsLoading = true
-
-		let url = `/api/recipes/search?q=${encodeURIComponent(query)}`
-
-		if (filters) {
-			if (filters.diets.length > 0) {
-				url += `&diets=${filters.diets.join(',')}`
-			}
-			if (filters.ingredients.length > 0) {
-				url += `&ingredients=${filters.ingredients.join(',')}`
-			}
-		}
-
-		const response = await safeFetch<RecipesSearchResponse>()(url)
-
-		if (response.isOk()) {
-			const data = response.value
-
-			searchResults = data.results.map((recipe) => ({
-				id: recipe.id,
-				title: recipe.title,
-				imageUrl: recipe.imageUrl ?? undefined,
-				diets: recipe.diets,
-				likes: recipe.likes
-			}))
-		}
-
-		isSearchLoading = false
-		isResultsLoading = false
-	}
-
-	const handleSelectRecipe = (recipe: { name: string }) => {
-		const selectedRecipe = searchResults.find((r) => r.title === recipe.name)
-		if (selectedRecipe) {
-			isSearchPopupOpen = false
-			goto(`/recipe/${selectedRecipe.id}`)
-		}
-	}
-
-	const handleShowAllResults = (
-		query: string,
-		filters?: { diets: DietType[]; ingredients: string[] }
-	) => {
-		let url = `/?search=${encodeURIComponent(query)}`
-
-		if (filters) {
-			if (filters.diets.length > 0) {
-				url += `&diets=${filters.diets.join(',')}`
-			}
-			if (filters.ingredients.length > 0) {
-				url += `&ingredients=${filters.ingredients.join(',')}`
-			}
-		}
-
-		goto(url)
-	}
-
-	const searchIngredients = async (query: string) => {
-		if (!query.trim()) return []
-
-		const result = await safeFetch<IngredientLookupResult>()(`/api/ingredients/lookup/${query}`)
-
-		if (result.isOk()) return result.value
-		return []
-	}
 </script>
 
 <svelte:head>
@@ -120,7 +24,6 @@
 			newRecipeHref="/new"
 			profileHref="/profile"
 			loginHref="/login"
-			onOpenSearch={openSearchPopup}
 		/>
 	{/snippet}
 
@@ -129,25 +32,11 @@
 	{/snippet}
 </Layout>
 
-<SearchPopup
-	isOpen={isSearchPopupOpen}
-	onClose={closeSearchPopup}
-	{isSearchLoading}
-	{searchResults}
-	{isResultsLoading}
-	onSearch={handleSearch}
-	onSelectRecipe={handleSelectRecipe}
-	onShowAllResults={handleShowAllResults}
-	onIngredientSearch={searchIngredients}
-/>
-
 <style lang="scss">
 	@import '$lib/global.scss';
 
-	@include mobile {
-		:global(.recipe-page) {
-			--header-display: none;
-		}
+	:global(.recipe-page) {
+		--header-display: none;
 	}
 
 	:global(.header) {

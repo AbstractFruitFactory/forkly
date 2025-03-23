@@ -1,9 +1,9 @@
 import { json } from '@sveltejs/kit'
-import { searchRecipes } from '$lib/server/db/recipe'
+import { getRecipes, type DetailedRecipe, type RecipeFilter } from '$lib/server/db/recipe'
 import type { DietType } from '$lib/types'
 
 export type RecipesSearchResponse = {
-  results: Awaited<ReturnType<typeof searchRecipes>>
+  results: DetailedRecipe[]
   query: string
   filters: {
     diets: DietType[]
@@ -23,7 +23,15 @@ export const GET = async ({ url }) => {
   const ingredientsParam = url.searchParams.get('ingredients') || ''
   const ingredients = ingredientsParam ? ingredientsParam.split(',') : []
 
-  const results = await searchRecipes(query, diets, ingredients, limit)
+  const filters: RecipeFilter = {
+    query,
+    diets,
+    ingredients,
+    limit,
+    detailed: true
+  }
+
+  const results = await getRecipes(filters)
 
   const response = {
     results,

@@ -1,9 +1,10 @@
-<script lang="ts" module>
+<script lang="ts" context="module">
 	import { defineMeta } from '@storybook/addon-svelte-csf'
 	import Search from './Search.svelte'
+	import SuggestionSearch from './SuggestionSearch.svelte'
 	import type { Component, ComponentProps } from 'svelte'
 
-	const { Story } = defineMeta<Component<ComponentProps<typeof Search>>>({
+	const { Story, stories } = defineMeta<Component<ComponentProps<typeof Search>>>({
 		component: Search,
 		tags: ['autodocs']
 	})
@@ -17,31 +18,40 @@
 	]
 </script>
 
-<Story name="Empty">
+<Story name="Basic Search">
 	<div style="width: 300px; padding: 20px;">
 		<Search
 			placeholder="Search recipes..."
 			isLoading={false}
-			onSearch={(query) => []}
-			onSelect={(suggestion) => console.log('Selected:', suggestion)}
 		/>
 	</div>
 </Story>
 
-<Story name="Loading">
+<Story name="Search with Loading">
 	<div style="width: 300px; padding: 20px;">
 		<Search
 			placeholder="Search recipes..."
 			isLoading={true}
-			onSearch={(query) => []}
-			onSelect={(suggestion) => console.log('Selected:', suggestion)}
 		/>
 	</div>
 </Story>
 
-<Story name="With Suggestions">
+<Story name="Search with Action Button">
 	<div style="width: 300px; padding: 20px;">
 		<Search
+			placeholder="Search recipes..."
+			isLoading={false}
+			actionButton={{
+				text: "Clear",
+				onClick: () => console.log("Cleared")
+			}}
+		/>
+	</div>
+</Story>
+
+<Story name="Basic Suggestion Search">
+	<div style="width: 300px; padding: 20px;">
+		<SuggestionSearch
 			placeholder="Search recipes..."
 			isLoading={false}
 			onSearch={(query) => mockSuggestions}
@@ -50,8 +60,19 @@
 	</div>
 </Story>
 
+<Story name="Suggestion Search with Loading">
+	<div style="width: 300px; padding: 20px;">
+		<SuggestionSearch
+			placeholder="Search recipes..."
+			isLoading={true}
+			onSearch={(query) => mockSuggestions}
+			onSelect={(suggestion) => console.log('Selected:', suggestion)}
+		/>
+	</div>
+</Story>
+
 <Story
-	name="Interactive"
+	name="Interactive Suggestion Search"
 	play={async ({ canvasElement }) => {
 		const input = canvasElement.querySelector('input')
 		if (input) {
@@ -60,7 +81,7 @@
 	}}
 >
 	<div style="width: 300px; padding: 20px;">
-		<Search
+		<SuggestionSearch
 			placeholder="Type to search recipes..."
 			isLoading={false}
 			onSearch={(query) => {

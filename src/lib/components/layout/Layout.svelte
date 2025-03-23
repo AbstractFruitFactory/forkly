@@ -1,9 +1,16 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
 
-	let { header, content } = $props<{
+	let {
+		header,
+		content,
+		sidebar,
+		sidebarOpen = $bindable(false)
+	} = $props<{
 		header: Snippet
 		content: Snippet
+		sidebar?: Snippet
+		sidebarOpen?: boolean
 	}>()
 </script>
 
@@ -12,11 +19,20 @@
 		<div class="header-background"></div>
 		{@render header()}
 	</header>
-	<main class="main">
-		<div class="main-content">
-			{@render content()}
-		</div>
-	</main>
+	<div class="main-layout">
+		{#if sidebar}
+			<div class="sidebar-container">
+				{#if sidebarOpen}
+					{@render sidebar()}
+				{/if}
+			</div>
+		{/if}
+		<main class="main" class:with-sidebar={sidebarOpen}>
+			<div class="main-content">
+				{@render content()}
+			</div>
+		</main>
+	</div>
 </div>
 
 <style lang="scss">
@@ -55,15 +71,32 @@
 		margin-left: calc(-50vw + 50%);
 	}
 
+	.main-layout {
+		display: flex;
+		flex: 1;
+		overflow: hidden;
+	}
+
+	.sidebar-container {
+		position: relative;
+		z-index: var(--z-sticky);
+	}
+
 	.main {
+		position: relative;
 		flex-grow: 1;
 		overflow-y: auto;
 		scrollbar-width: thin;
 		scrollbar-gutter: stable both-edges;
-		padding: var(--spacing-xl);
+		transition: margin-left 0.25s ease-out;
+
+		&.with-sidebar {
+			margin-left: 300px;
+		}
 
 		@include mobile {
 			padding: 0;
+			margin-left: 0 !important;
 		}
 	}
 
@@ -75,6 +108,12 @@
 
 		@include mobile {
 			padding: 0;
+		}
+	}
+
+	@include mobile {
+		.toggle-container {
+			margin-left: 0 !important;
 		}
 	}
 </style>

@@ -84,7 +84,6 @@
 <style lang="scss">
 	.pill-selector {
 		position: relative;
-		margin-bottom: var(--spacing-md);
 	}
 
 	.selector-label {
@@ -98,7 +97,6 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
 	}
 
 	.add-button {
@@ -107,7 +105,7 @@
 		gap: var(--spacing-xs);
 		background-color: rgba(255, 255, 255, 0.1);
 		color: var(--color-primary-light);
-		padding: var(--spacing-xs) var(--spacing-sm);
+		padding: var(--spacing-sm) var(--spacing-md);
 		border-radius: var(--border-radius-full);
 		border: 1px solid var(--color-primary);
 		cursor: pointer;
@@ -144,7 +142,6 @@
 		position: absolute;
 		top: 100%;
 		left: 0;
-		width: 100%;
 		background-color: var(--color-neutral-dark);
 		border-radius: var(--border-radius-md);
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
