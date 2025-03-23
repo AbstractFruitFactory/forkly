@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Input from '$lib/components/input/Input.svelte'
 	import Search from '$lib/components/search/Search.svelte'
+	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import PillSelector from '$lib/components/pill-selector/PillSelector.svelte'
@@ -210,7 +211,7 @@
 								</div>
 							{:else}
 								<div class="custom-ingredient">
-									<Search
+									<SuggestionSearch
 										placeholder="Search for ingredient"
 										isLoading={isLoading[i]}
 										onSearch={(query) => searchIngredients(query, i)}

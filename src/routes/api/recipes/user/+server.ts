@@ -1,18 +1,26 @@
 import { error, json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getUserCreatedRecipes, getRecipesByIds } from '$lib/server/db/recipe'
+import { getRecipes, type RecipeFilter, type DetailedRecipe } from '$lib/server/db/recipe'
 import { getUserBookmarkedRecipeIds } from '$lib/server/db/bookmark'
-import type { Recipe } from '$lib/server/db/schema'
 
 export const GET: RequestHandler = async ({ locals }) => {
   if (!locals.user) error(401, { message: 'Unauthorized' })
 
-  const createdRecipes = await getUserCreatedRecipes(locals.user.id)
+  const createdFilters: RecipeFilter = {
+    userId: locals.user.id,
+    detailed: true
+  }
+  
+  const createdRecipes = await getRecipes(createdFilters)
   const bookmarkedIds = await getUserBookmarkedRecipeIds(locals.user.id)
   
-  let bookmarkedRecipes: Awaited<ReturnType<typeof getRecipesByIds>> = []
+  let bookmarkedRecipes: DetailedRecipe[] = []
   if (bookmarkedIds.length > 0) {
-    bookmarkedRecipes = await getRecipesByIds(bookmarkedIds)
+    const bookmarkedFilters: RecipeFilter = {
+      recipeIds: bookmarkedIds,
+      detailed: true
+    }
+    bookmarkedRecipes = await getRecipes(bookmarkedFilters)
   }
 
   const createdWithType = createdRecipes.map(r => ({

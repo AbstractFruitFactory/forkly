@@ -2,6 +2,7 @@
 	import { onMount, type ComponentProps } from 'svelte'
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import Search from '$lib/components/search/Search.svelte'
+	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import SearchRecipeCard from '$lib/components/search/SearchRecipeCard.svelte'
 	import FilterSelect from '$lib/components/filter/FilterSelect.svelte'
@@ -27,7 +28,7 @@
 			query: string,
 			filters?: { diets: DietType[]; ingredients: string[] }
 		) => void
-		onIngredientSearch?: ComponentProps<typeof Search>['onSearch']
+		onIngredientSearch?: ComponentProps<typeof SuggestionSearch>['onSearch']
 		isSearchLoading?: boolean
 		searchResults?: Array<{
 			id: string
@@ -177,6 +178,11 @@
 		selectedIngredients = []
 		handleSearch(searchQuery)
 	}
+	
+	const handleSearchInput = (value: string) => {
+		searchQuery = value
+		handleSearch(value)
+	}
 </script>
 
 <Popup {isOpen} onClose={handleClose} width="800px">
@@ -185,9 +191,9 @@
 			<Search
 				placeholder="Search for recipes..."
 				isLoading={isSearchLoading}
-				onSearch={handleSearch}
-				onSelect={handleSelectRecipe}
+				bind:value={searchQuery}
 				bind:inputElement={searchInput}
+				onInput={handleSearchInput}
 			/>
 			<div class="filter-toggle">
 				<Button variant="text" size="sm" onclick={toggleFilters}>
@@ -219,7 +225,7 @@
 				<div class="filter-section">
 					<h4>Ingredients</h4>
 					<div class="ingredient-search-container">
-						<Search
+						<SuggestionSearch
 							placeholder="Search for ingredients..."
 							onSearch={onIngredientSearch}
 							onSelect={handleAddIngredient}

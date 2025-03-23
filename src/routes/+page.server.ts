@@ -1,37 +1,18 @@
-import { getHomePageRecipes } from '$lib/server/db/recipe'
+import { getRecipes, type RecipeFilter } from '$lib/server/db/recipe'
+import { toHomePageRecipe } from '$lib/utils/recipe'
 import type { PageServerLoad } from './$types'
-import type { DietType } from '$lib/types'
 
 export const load: PageServerLoad = async ({ url }) => {
-	const [searchQuery, dietsParam, ingredientsParam] = ['search', 'diets', 'ingredients'].map(url.searchParams.get)
+	const filters: RecipeFilter = {
+		detailed: true
+	}
 
-	const diets = dietsParam ? dietsParam.split(',') as DietType[] : []
-	const ingredients = ingredientsParam ? ingredientsParam.split(',') : []
-
-	const recipes = await getHomePageRecipes(diets, ingredients, searchQuery)
+	const recipes = await getRecipes(filters)
 
 	const transformedRecipes = recipes
-		.map((recipe) => ({
-			...recipe,
-			description: recipe.description || undefined,
-			ingredients: recipe.ingredients.length,
-			instructions: recipe.instructions.length,
-			imageUrl: recipe.imageUrl,
-			createdAt: recipe.createdAt.toISOString(),
-			user: recipe.user?.username
-				? {
-					username: recipe.user.username,
-					avatarUrl: recipe.user.avatarUrl
-				}
-				: undefined
-		}))
+		.map(toHomePageRecipe)
 
 	return {
-		recipes: transformedRecipes,
-		searchQuery: searchQuery || undefined,
-		filters: {
-			diets,
-			ingredients
-		}
+		recipes: transformedRecipes
 	}
 }
