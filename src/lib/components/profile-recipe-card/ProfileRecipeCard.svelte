@@ -1,11 +1,9 @@
 <script lang="ts">
 	import type { Recipe as DBRecipe } from '$lib/server/db/schema'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
-	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 
 	type Recipe = DBRecipe & {
 		likes: number
-		bookmarks?: number
 	}
 
 	let { recipe, recipeHref }: { recipe: Recipe; recipeHref?: string } = $props()
@@ -16,7 +14,6 @@
 		<h3>{recipe.title}</h3>
 		<div class="recipe-meta">
 			<LikeButton count={recipe.likes || 0} />
-			<BookmarkButton count={recipe.bookmarks || 0} />
 			<span>📅 {new Date(recipe.createdAt).toLocaleDateString()}</span>
 		</div>
 	</div>

@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
   
   return { 
     recipes: recipesData.created, 
-    bookmarkedRecipes: recipesData.bookmarked, 
+    liked: recipesData.liked, 
     user: locals.user 
   }
 }

@@ -8,7 +8,6 @@
 	import { page } from '$app/state'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import Popover from '$lib/components/popover/Popover.svelte'
-	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
 	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
@@ -79,19 +78,9 @@
 						/>
 					{/snippet}
 
-					{#snippet bookmarkButton()}
-						<BookmarkButton
-							count={recipe.bookmarks}
-							isBookmarked={recipe.isBookmarked}
-							interactive={!!onBookmark}
-							onBookmark={isLoggedIn ? onBookmark : undefined}
-						/>
-					{/snippet}
-
 					{#if isLoggedIn}
 						{@render dislikeButton()}
 						{@render likeButton()}
-						{@render bookmarkButton()}
 					{:else}
 						<Popover type="warning">
 							{#snippet trigger()}
@@ -109,15 +98,6 @@
 
 							{#snippet content()}
 								Login to like recipes!
-							{/snippet}
-						</Popover>
-						<Popover type="warning">
-							{#snippet trigger()}
-								{@render bookmarkButton()}
-							{/snippet}
-
-							{#snippet content()}
-								Login to bookmark recipes!
 							{/snippet}
 						</Popover>
 					{/if}

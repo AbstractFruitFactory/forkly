@@ -34,4 +34,13 @@ export async function removeRecipeLike(recipeId: string, userId: string) {
   await db.delete(recipeLike).where(
     and(eq(recipeLike.recipeId, recipeId), eq(recipeLike.userId, userId))
   )
+}
+
+export async function getUserLikedRecipeIds(userId: string) {
+  const likes = await db
+    .select({ recipeId: recipeLike.recipeId })
+    .from(recipeLike)
+    .where(eq(recipeLike.userId, userId))
+
+  return likes.map(like => like.recipeId)
 } 

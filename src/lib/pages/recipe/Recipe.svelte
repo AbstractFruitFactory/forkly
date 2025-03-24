@@ -14,7 +14,6 @@
 		unitSystem,
 		onUnitChange,
 		isLoggedIn,
-		onBookmark,
 		onBackClick,
 		comments = [],
 		formError
@@ -29,10 +28,9 @@
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
 		isLoggedIn: boolean
-		onBookmark?: () => void
 		onBackClick?: () => void
 		comments?: any[]
-		formError?: string | null
+		formError?: string
 	} = $props()
 </script>
 
@@ -44,7 +42,6 @@
 	{unitSystem}
 	{onUnitChange}
 	{isLoggedIn}
-	{onBookmark}
 	{getFormattedIngredient}
 	{comments}
 	{formError}
@@ -57,7 +54,6 @@
 	{unitSystem}
 	{onUnitChange}
 	{isLoggedIn}
-	{onBookmark}
 	{onBackClick}
 	{comments}
 	{formError}

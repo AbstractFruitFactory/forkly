@@ -1,7 +1,7 @@
 import { error, json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { getRecipes, type RecipeFilter, type DetailedRecipe } from '$lib/server/db/recipe'
-import { getUserBookmarkedRecipeIds } from '$lib/server/db/bookmark'
+import { getUserLikedRecipeIds } from '$lib/server/db/like'
 
 export const GET: RequestHandler = async ({ locals }) => {
   if (!locals.user) error(401, { message: 'Unauthorized' })
@@ -12,15 +12,15 @@ export const GET: RequestHandler = async ({ locals }) => {
   }
   
   const createdRecipes = await getRecipes(createdFilters)
-  const bookmarkedIds = await getUserBookmarkedRecipeIds(locals.user.id)
+  const likedIds = await getUserLikedRecipeIds(locals.user.id)
   
-  let bookmarkedRecipes: DetailedRecipe[] = []
-  if (bookmarkedIds.length > 0) {
-    const bookmarkedFilters: RecipeFilter = {
-      recipeIds: bookmarkedIds,
+  let likedRecipes: DetailedRecipe[] = []
+  if (likedIds.length > 0) {
+    const likedFilters: RecipeFilter = {
+      recipeIds: likedIds,
       detailed: true
     }
-    bookmarkedRecipes = await getRecipes(bookmarkedFilters)
+    likedRecipes = await getRecipes(likedFilters)
   }
 
   const createdWithType = createdRecipes.map(r => ({
@@ -28,13 +28,13 @@ export const GET: RequestHandler = async ({ locals }) => {
     type: 'created'
   }))
 
-  const bookmarkedWithType = bookmarkedRecipes.map(r => ({
+  const likedWithType = likedRecipes.map(r => ({
     ...r,
-    type: 'bookmarked'
+    type: 'liked'
   }))
 
   return json({
     created: createdWithType,
-    bookmarked: bookmarkedWithType
+    liked: likedWithType
   })
 } 

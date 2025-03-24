@@ -3,7 +3,6 @@
 	import List from 'lucide-svelte/icons/list'
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
-	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
 
 	interface Recipe {
@@ -54,7 +53,6 @@
 		{/if}
 		<div class="action-buttons">
 			<LikeButton count={recipe.likes} />
-			<BookmarkButton count={recipe.bookmarks || 0} />
 		</div>
 	</div>
 	<div class="content">

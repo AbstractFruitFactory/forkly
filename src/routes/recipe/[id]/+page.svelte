@@ -6,7 +6,6 @@
 	import { safeFetch } from '$lib/utils/fetch.js'
 	import type { RecipesLikeResponse } from '../../api/recipes/like/+server.js'
 	import type { RecipesDislikeResponse } from '../../api/recipes/dislike/+server.js'
-	import type { RecipesBookmarkResponse } from '../../api/recipes/bookmark/+server.js'
 
 	let { data } = $props()
 
@@ -39,32 +38,15 @@
 		}
 	}
 
-	const handleBookmark = async () => {
-		const response = await safeFetch<RecipesBookmarkResponse>()(`/api/recipes/bookmark`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ id: data.id })
-		})
-
-		if (response.isOk()) {
-			isBookmarked = !isBookmarked
-			bookmarks = isBookmarked ? bookmarks + 1 : bookmarks - 1
-		}
-	}
-
 	let isLiked = $state(data.isLiked)
 	let likes = $state(data.likes)
 	let isDisliked = $state(data.isDisliked)
-	let isBookmarked = $state(data.isBookmarked)
-	let bookmarks = $state(data.bookmarks)
 
 	const ingredients = data.ingredients.map((ingredient) => ({
 		...ingredient,
 		custom: ingredient.custom
 	}))
-
+	
 	const handleUnitChange = (system: UnitSystem) => {
 		if (system === 'metric') {
 			unitPreferenceStore.setMetric()
@@ -72,7 +54,7 @@
 			unitPreferenceStore.setImperial()
 		}
 	}
-
+	
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
@@ -92,12 +74,10 @@
 	<Recipe
 		recipe={{
 			...data,
-			ingredients,
-			likes,
 			isLiked,
+			likes,
 			isDisliked,
-			bookmarks,
-			isBookmarked
+			ingredients
 		}}
 		nutrition={{
 			totalNutrition: {
@@ -108,13 +88,12 @@
 			},
 			hasCustomIngredients: false
 		}}
-		onLike={handleLike}
-		onDislike={handleDislike}
-		onBookmark={handleBookmark}
 		{unitSystem}
 		onUnitChange={handleUnitChange}
-		isLoggedIn={!!data.user}
+		onLike={handleLike}
+		onDislike={handleDislike}
 		onBackClick={() => goto('/')}
+		isLoggedIn={!!data.user}
 		comments={data.comments}
 		formError={page.form?.error}
 	/>

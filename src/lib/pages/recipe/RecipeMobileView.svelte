@@ -8,7 +8,6 @@
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
 	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
-	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
 	import MediaPlayer from '$lib/components/media-player/MediaPlayer.svelte'
 	import Button from '$lib/components/button/Button.svelte'
@@ -208,12 +207,6 @@
 					isLiked={recipe.isLiked}
 					interactive={!!onLike}
 					onLike={isLoggedIn ? onLike : undefined}
-				/>
-				<BookmarkButton
-					count={recipe.bookmarks}
-					isBookmarked={recipe.isBookmarked}
-					interactive={!!onBookmark}
-					{onBookmark}
 				/>
 			</div>
 

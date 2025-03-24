@@ -1,11 +1,10 @@
 <script lang="ts" module>
 	const calculatePopularityScore = (recipe: {
 		dislikes: number
-		bookmarks: number
 		likes: number
 		createdAt: string
 	}): number => {
-		const engagementScore = recipe.bookmarks * 2 + recipe.likes - recipe.dislikes * 1.5
+		const engagementScore = recipe.likes - recipe.dislikes * 1.5
 
 		const ageInDays = (Date.now() - new Date(recipe.createdAt).getTime()) / (1000 * 60 * 60 * 24)
 		const recencyBoost = Math.max(0, 10 - Math.min(10, ageInDays / 30))

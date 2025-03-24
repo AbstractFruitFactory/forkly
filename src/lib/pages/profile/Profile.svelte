@@ -6,19 +6,18 @@
 
 	type Recipe = DBRecipe & {
 		likes: number
-		bookmarks?: number
 	}
 
 	let {
 		user,
 		recipes = [],
-		bookmarkedRecipes = [],
+		likedRecipes = [],
 		recipeHref,
 		onLogout
 	}: {
 		user: Omit<User, 'passwordHash'>
 		recipes: Recipe[]
-		bookmarkedRecipes?: Recipe[]
+		likedRecipes?: Recipe[]
 		recipeHref?: string
 		onLogout?: () => void
 	} = $props()
@@ -26,7 +25,7 @@
 	let userStats = $derived({
 		recipesCreated: recipes.length,
 		totalLikes: recipes.reduce((acc: number, recipe: Recipe) => acc + (recipe.likes || 0), 0),
-		bookmarksCount: bookmarkedRecipes.length
+		likesCount: likedRecipes.length
 	})
 
 	let isEditMode = $state(false)
@@ -34,7 +33,7 @@
 	let editedBio = $state('')
 	let avatarPreview = $state<string | null>(null)
 	let error = $state('')
-	let activeTab = $state<'created' | 'bookmarked'>('created')
+	let activeTab = $state<'created' | 'liked'>('created')
 
 	function toggleEditMode() {
 		if (!isEditMode) {
@@ -46,7 +45,7 @@
 		error = ''
 	}
 
-	function switchTab(tab: 'created' | 'bookmarked') {
+	function switchTab(tab: 'created' | 'liked') {
 		activeTab = tab
 	}
 </script>
@@ -138,10 +137,10 @@
 				</button>
 				<button
 					class="tab-button"
-					class:active={activeTab === 'bookmarked'}
-					onclick={() => switchTab('bookmarked')}
+					class:active={activeTab === 'liked'}
+					onclick={() => switchTab('liked')}
 				>
-					Bookmarked Recipes
+					Liked Recipes
 				</button>
 			</div>
 
@@ -158,15 +157,15 @@
 						<Button href="/new" variant="primary">Create Your First Recipe</Button>
 					</div>
 				{/if}
-			{:else if bookmarkedRecipes.length > 0}
+			{:else if likedRecipes.length > 0}
 				<div class="recipes-grid">
-					{#each bookmarkedRecipes as recipe}
+					{#each likedRecipes as recipe}
 						<ProfileRecipeCard {recipe} {recipeHref} />
 					{/each}
 				</div>
 			{:else}
 				<div class="empty-state">
-					<p>You haven't bookmarked any recipes yet.</p>
+					<p>You haven't liked any recipes yet.</p>
 					<Button href="/" variant="primary">Explore Recipes</Button>
 				</div>
 			{/if}
