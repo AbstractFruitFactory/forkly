@@ -416,7 +416,52 @@ export const seed = async () => {
   ]
 
   console.log('Inserting recipes...')
-  await db.insert(recipe).values(sampleRecipes)
+  
+  // Create a large dataset by duplicating the sample recipes
+  const largeRecipeDataset = [...sampleRecipes] // Include original recipes
+  
+  // We want 1000 recipes total, with 8 originals already added, 
+  // so we need 992 more (124 duplications of each original recipe)
+  const duplicationsNeeded = 124
+  
+  for (let i = 0; i < duplicationsNeeded; i++) {
+    // For each duplication, we add all sample recipes with new IDs
+    sampleRecipes.forEach(recipe => {
+      const newRecipeId = generateId()
+      
+      // Create duplication with a new ID and slightly modified title
+      const recipeClone = {
+        ...recipe,
+        id: newRecipeId,
+        title: `${recipe.title} (copy ${i+1})`
+      }
+      
+      largeRecipeDataset.push(recipeClone)
+      
+      // Also duplicate the nutrition data for this recipe
+      const nutritionData = recipeNutritionData.find(n => n.recipeId === recipe.id)
+      if (nutritionData) {
+        recipeNutritionData.push({
+          ...nutritionData,
+          recipeId: newRecipeId
+        })
+      }
+      
+      // Duplicate the recipe-ingredient relationships
+      const relationships = recipeIngredients.filter(ri => ri.recipeId === recipe.id)
+      relationships.forEach(rel => {
+        recipeIngredients.push({
+          ...rel,
+          recipeId: newRecipeId
+        })
+      })
+    })
+  }
+  
+  console.log(`Generated ${largeRecipeDataset.length} recipes for the database`)
+  
+  // Use the large dataset
+  await db.insert(recipe).values(largeRecipeDataset)
 
   console.log('Inserting ingredients with conflict handling...')
   // Insert ingredients with onConflictDoNothing to handle existing ingredients
