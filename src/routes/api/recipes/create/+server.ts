@@ -2,8 +2,8 @@ import { error, json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { createRecipe } from '$lib/server/db/recipe-create'
 import * as v from 'valibot'
-import type { MeasurementUnit, DietType } from '$lib/types'
-import { measurementUnits, dietTypes } from '$lib/types'
+import type { MeasurementUnit } from '$lib/types'
+import { measurementUnits, isValidTag } from '$lib/types'
 
 const baseIngredientSchema = v.object({
   name: v.string(),
@@ -65,12 +65,12 @@ const createRecipeSchema = v.object({
     }),
     hasCustomIngredients: v.boolean()
   }),
-  diets: v.array(
+  tags: v.array(
     v.pipe(
       v.string(),
-      v.custom<DietType>(
-        (value) => dietTypes.includes(value as DietType),
-        'Invalid diet type'
+      v.custom(
+        (value) => isValidTag(value as string),
+        'Tags must be less than 10 characters'
       )
     )
   ),

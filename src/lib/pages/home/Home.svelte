@@ -1,6 +1,5 @@
 <script lang="ts">
 	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
-	import type { DietType } from '$lib/types'
 	import Button from '$lib/components/button/Button.svelte'
 
 	type Recipe = {
@@ -22,14 +21,14 @@
 	let {
 		recipes,
 		searchQuery,
-		filters = { diets: [], ingredients: [] },
+		filters = { tags: [], ingredients: [] },
 		sortBy = 'popular',
 		onSortChange = (newSortBy: 'popular' | 'newest' | 'easiest') => {}
 	}: {
 		recipes: Recipe[]
 		searchQuery?: string
 		filters?: {
-			diets: DietType[]
+			tags: string[]
 			ingredients: string[]
 		}
 		sortBy?: 'popular' | 'newest' | 'easiest'
@@ -66,17 +65,17 @@
 {/snippet}
 
 <div class="home-container">
-	{#if searchQuery || filters.diets.length > 0 || filters.ingredients.length > 0}
+	{#if searchQuery || filters.tags.length > 0 || filters.ingredients.length > 0}
 		<div class="search-results-header">
 			{@render searchResultsHeader()}
 
-			{#if filters.diets.length > 0 || filters.ingredients.length > 0}
+			{#if filters.tags.length > 0 || filters.ingredients.length > 0}
 				<div class="active-filters">
-					{#if filters.diets.length > 0}
+					{#if filters.tags.length > 0}
 						<div class="filter-group">
-							<span class="filter-label">Diets:</span>
-							{#each filters.diets as diet}
-								<span class="filter-tag">{diet}</span>
+							<span class="filter-label">Tags:</span>
+							{#each filters.tags as tag}
+								<span class="filter-tag">{tag}</span>
 							{/each}
 						</div>
 					{/if}
@@ -103,7 +102,7 @@
 
 	{#if recipes.length === 0}
 		<div class="empty-state">
-			{#if searchQuery || filters.diets.length > 0 || filters.ingredients.length > 0}
+			{#if searchQuery || filters.tags.length > 0 || filters.ingredients.length > 0}
 				<p>
 					No recipes found matching your criteria. Try different search terms or filters, or <a
 						href="/">browse all recipes</a

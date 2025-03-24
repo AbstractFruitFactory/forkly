@@ -2,11 +2,11 @@
 	let {
 		text,
 		onRemove,
-		color
+		color = ''
 	}: {
 		text: string
 		onRemove?: () => void
-		color: string
+		color?: string
 	} = $props()
 </script>
 

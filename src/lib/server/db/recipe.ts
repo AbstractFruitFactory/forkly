@@ -1,14 +1,13 @@
 import { db } from '.'
 import { recipe, recipeLike, recipeDislike, recipeBookmark, recipeIngredient, ingredient, recipeNutrition, user } from './schema'
 import { eq, ilike, desc, sql, inArray, and, count, SQL } from 'drizzle-orm'
-import type { DietType } from '$lib/types'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 
 export type BasicRecipe = {
   id: string
   title: string
   imageUrl?: string
-  diets: DietType[]
+  tags: string[]
   likes: number
 }
 
@@ -18,7 +17,7 @@ export type DetailedRecipe = {
   title: string
   description?: string
   instructions: { text: string; mediaUrl?: string; mediaType?: "image" | "video" }[]
-  diets: DietType[]
+  tags: string[]
   imageUrl?: string
   createdAt: Date | string
   likes: number
@@ -45,7 +44,7 @@ export type DetailedRecipe = {
 
 export type RecipeFilterBase = {
   query?: string
-  diets?: DietType[]
+  tags?: string[]
   ingredients?: string[]
   recipeIds?: string[]
   userId?: string
@@ -61,7 +60,7 @@ export function getRecipes(filters?: BasicRecipeFilter): Promise<BasicRecipe[]>
 export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecipe[] | DetailedRecipe[]> {
   const {
     query = '',
-    diets = [],
+    tags = [],
     ingredients = [],
     recipeIds = [],
     userId,
@@ -70,7 +69,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
   } = filters
 
   // Early return if all filters are empty unless explicitly searching for all recipes
-  if (query.trim() === '' && diets.length === 0 && ingredients.length === 0 && recipeIds.length === 0 && !detailed) {
+  if (query.trim() === '' && tags.length === 0 && ingredients.length === 0 && recipeIds.length === 0 && !detailed) {
     return []
   }
 
@@ -87,9 +86,9 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     }
   }
 
-  // Diet filters
-  if (diets.length > 0) {
-    conditions.push(sql`${recipe.diets} ?| array[${diets.join(',')}]`)
+  // Tags filters
+  if (tags.length > 0) {
+    conditions.push(sql`${recipe.tags} ?| array[${tags.join(',')}]`)
   }
 
   // Recipe IDs filter
@@ -117,7 +116,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         title: recipe.title,
         description: recipe.description,
         instructions: recipe.instructions,
-        diets: recipe.diets,
+        tags: recipe.tags,
         imageUrl: recipe.imageUrl,
         createdAt: recipe.createdAt,
         likes: sql<number>`count(DISTINCT ${recipeLike.userId})::int`,
@@ -196,7 +195,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         id: recipe.id,
         title: recipe.title,
         imageUrl: recipe.imageUrl,
-        diets: recipe.diets,
+        tags: recipe.tags,
         likes: sql<number>`count(${recipeLike.userId})::int`
       })
       .from(recipe)
@@ -248,13 +247,13 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
  */
 export async function searchRecipes(
   query: string,
-  diets: DietType[] = [],
+  tags: string[] = [],
   ingredients: string[] = [],
   limit: number = 5
 ): Promise<BasicRecipe[]> {
   return getRecipes({
     query,
-    diets,
+    tags,
     ingredients,
     limit
   })
@@ -347,19 +346,19 @@ export async function deleteRecipe(recipeId: string, userId: string) {
 /**
  * Get recipes for the home page with filtering options
  * @param searchQuery The search query for recipe titles
- * @param diets Array of diet types to filter by
+ * @param tags Array of tags to filter by
  * @param ingredients Array of ingredients to filter by
  * @returns Filtered recipes for the home page
- * @deprecated Use getRecipes with {query, diets, ingredients, detailed: true} instead
+ * @deprecated Use getRecipes with {query, tags, ingredients, detailed: true} instead
  */
 export async function getHomePageRecipes(
-  diets?: DietType[],
+  tags?: string[],
   ingredients?: string[],
   searchQuery?: string
 ): Promise<DetailedRecipe[]> {
   return getRecipes({
     query: searchQuery,
-    diets,
+    tags,
     ingredients,
     detailed: true
   })
@@ -378,7 +377,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     description: recipe.description,
     instructions: recipe.instructions,
     imageUrl: recipe.imageUrl,
-    diets: recipe.diets
+    tags: recipe.tags
   })
     .from(recipe)
     .where(eq(recipe.id, recipeId))

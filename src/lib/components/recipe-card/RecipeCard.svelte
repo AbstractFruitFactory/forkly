@@ -5,8 +5,6 @@
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
-	import { dietColors } from '$lib/types'
-	import type { DietType } from '$lib/types'
 
 	interface Recipe {
 		id: string
@@ -15,7 +13,7 @@
 		ingredients: number
 		instructions: number
 		imageUrl?: string | null
-		diets?: DietType[]
+		tags?: string[]
 		user?: {
 			username: string
 			avatarUrl?: string | null
@@ -75,10 +73,10 @@
 			</span>
 		</div>
 
-		{#if recipe.diets && recipe.diets.length > 0}
+		{#if recipe.tags && recipe.tags.length > 0}
 			<div class="tags">
-				{#each recipe.diets as diet}
-					<Pill text={diet} color={dietColors[diet as keyof typeof dietColors]} />
+				{#each recipe.tags as tag}
+					<Pill text={tag} />
 				{/each}
 			</div>
 		{/if}

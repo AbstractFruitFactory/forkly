@@ -1,75 +1,156 @@
 <script lang="ts">
 	import { clickOutside } from '$lib/actions/clickOutside'
-	import Pill from '$lib/components/pill/Pill.svelte'
 
 	let {
 		items = [],
 		selectedItems = $bindable([]),
 		name,
-		colorMap = {}
+		colorMap = {},
+		loadItems,
+		label,
+		onSelect = undefined,
+		allowCustomItems = false
 	} = $props<{
 		items: readonly string[] | string[]
 		selectedItems: string[]
 		name: string
+		label?: string
 		colorMap?: Record<string, string>
+		loadItems?: (query: string) => Promise<string[]> | string[]
+		onSelect?: (item: string, selected: boolean) => void
+		allowCustomItems?: boolean
 	}>()
 
 	let isOpen = $state(false)
+	let searchQuery = $state('')
+	let displayItems = $state<string[]>([...items])
+	let debounceTimeout = $state<ReturnType<typeof setTimeout> | null>(null)
+	const DEBOUNCE_DELAY = 300 // milliseconds
 
 	const toggleDropdown = () => {
 		isOpen = !isOpen
+		if (isOpen) {
+			updateDisplayItems(searchQuery)
+		}
 	}
 
 	const closeDropdown = () => {
 		isOpen = false
+		searchQuery = ''
 	}
 
 	const toggleItem = (item: string) => {
-		if (selectedItems.includes(item)) {
+		const isSelected = selectedItems.includes(item)
+		if (isSelected) {
 			selectedItems = selectedItems.filter((i: string) => i !== item)
 		} else {
 			selectedItems = [...selectedItems, item]
 		}
+		
+		// Notify parent component
+		if (onSelect) {
+			onSelect(item, !isSelected)
+		}
 	}
 
-	const removeItem = (item: string) => {
-		selectedItems = selectedItems.filter((i: string) => i !== item)
+	const addCustomItem = () => {
+		if (!searchQuery.trim()) return;
+		
+		// Make sure the item isn't already in the list
+		if (!selectedItems.includes(searchQuery.trim())) {
+			selectedItems = [...selectedItems, searchQuery.trim()];
+			
+			// Notify parent component
+			if (onSelect) {
+				onSelect(searchQuery.trim(), true);
+			}
+		}
+		
+		// Close the dropdown and reset search
+		searchQuery = '';
+		closeDropdown();
 	}
 
 	const isNotSelected = (item: string): boolean => !selectedItems.includes(item)
+
+	const updateDisplayItems = async (query: string) => {
+		if (loadItems) {
+			const result = await loadItems(query)
+			displayItems = result
+		} else {
+			displayItems = [...items]
+		}
+	}
+
+	const handleSearchInput = (event: Event) => {
+		const target = event.target as HTMLInputElement
+		searchQuery = target.value
+
+		// Clear any existing timeout
+		if (debounceTimeout) {
+			clearTimeout(debounceTimeout)
+		}
+
+		// Set a new timeout to update display items
+		debounceTimeout = setTimeout(async () => {
+			await updateDisplayItems(searchQuery)
+			debounceTimeout = null
+		}, DEBOUNCE_DELAY)
+	}
+
+	const handleKeyPress = (event: KeyboardEvent) => {
+		if (event.key === 'Enter' && allowCustomItems && searchQuery.trim()) {
+			event.preventDefault();
+			addCustomItem();
+		}
+	}
+
+	$effect(() => {
+		// Update display items when items prop changes
+		displayItems = [...items]
+	})
 
 	$inspect(colorMap)
 </script>
 
 <div class="pill-selector">
-	<div class="selected-pills">
-		{#each selectedItems as item (item)}
-			<Pill text={item} onRemove={() => removeItem(item)} color={colorMap[item] || undefined} />
-		{/each}
-
-		<button
-			type="button"
-			class="add-button"
-			onclick={toggleDropdown}
-			aria-expanded={isOpen}
-			aria-label="Add item"
-		>
-			<span class="add-icon">+</span>
-			<span class="add-text">Add</span>
-		</button>
-	</div>
+	<button
+		type="button"
+		class="add-button"
+		onclick={toggleDropdown}
+		aria-expanded={isOpen}
+		aria-label="Add item"
+	>
+		<span class="add-text">{label || '+ Add'}</span>
+	</button>
 
 	{#if isOpen}
 		<div class="dropdown" use:clickOutside={{ callback: closeDropdown }}>
+			<div class="search-container">
+				<input
+					type="text"
+					class="search-input"
+					placeholder="Search..."
+					bind:value={searchQuery}
+					oninput={handleSearchInput}
+					onkeypress={handleKeyPress}
+				/>
+			</div>
 			<div class="dropdown-items">
-				{#each items.filter(isNotSelected) as item (item)}
+				{#each displayItems.filter(isNotSelected) as item (item)}
 					<button type="button" class="dropdown-item" onclick={() => toggleItem(item)}>
 						{item}
 					</button>
 				{/each}
 
-				{#if items.filter(isNotSelected).length === 0}
-					<div class="no-items">No more items available</div>
+				{#if allowCustomItems && searchQuery.trim() && !displayItems.includes(searchQuery.trim()) && !selectedItems.includes(searchQuery.trim())}
+					<button type="button" class="dropdown-item custom-item" onclick={addCustomItem}>
+						Create "{searchQuery.trim()}"
+					</button>
+				{/if}
+
+				{#if displayItems.filter(isNotSelected).length === 0 && !(allowCustomItems && searchQuery.trim())}
+					<div class="no-items">No items available</div>
 				{/if}
 			</div>
 		</div>
@@ -91,12 +172,6 @@
 		margin-bottom: var(--spacing-md);
 		font-weight: 500;
 		font-size: var(--spacing-lg);
-	}
-
-	.selected-pills {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-sm);
 	}
 
 	.add-button {
@@ -138,6 +213,26 @@
 		}
 	}
 
+	.search-container {
+		padding: var(--spacing-xs) var(--spacing-sm);
+		border-bottom: 1px solid var(--color-neutral-light);
+	}
+
+	.search-input {
+		width: 100%;
+		padding: var(--spacing-sm);
+		background-color: var(--color-neutral-dark);
+		border: 1px solid var(--color-neutral-light);
+		border-radius: var(--border-radius-sm);
+		color: var(--color-white);
+		font-size: var(--font-size-sm);
+
+		&:focus {
+			outline: none;
+			border-color: var(--color-primary);
+		}
+	}
+
 	.dropdown {
 		position: absolute;
 		top: 100%;
@@ -149,6 +244,7 @@
 		margin-top: var(--spacing-sm);
 		overflow: hidden;
 		border: 1px solid var(--color-neutral-light);
+		min-width: 200px;
 	}
 
 	.dropdown-items {
@@ -177,6 +273,12 @@
 			outline: none;
 			background-color: var(--color-primary);
 		}
+	}
+
+	.custom-item {
+		font-style: italic;
+		color: var(--color-primary-light);
+		border-top: 1px dashed var(--color-neutral-light);
 	}
 
 	.no-items {

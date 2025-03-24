@@ -4,14 +4,12 @@
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
-	import { dietColors } from '$lib/types'
-	import type { DietType } from '$lib/types'
 
 	type Recipe = {
 		id: string
 		title: string
 		imageUrl?: string
-		diets?: DietType[]
+		tags?: string[]
 		likes?: number
 		bookmarks?: number
 	}
@@ -54,15 +52,15 @@
 				<BookmarkButton count={recipe.bookmarks ?? 0} interactive={false} />
 			</div>
 			
-			{#if recipe.diets && recipe.diets.length > 0}
+			{#if recipe.tags && recipe.tags.length > 0}
 				<div class="diet-tags">
-					{#each recipe.diets.slice(0, 2) as diet}
+					{#each recipe.tags.slice(0, 2) as tag}
 						<div class="small-pill">
-							<Pill text={diet} color={dietColors[diet as keyof typeof dietColors]} />
+							<Pill text={tag} />
 						</div>
 					{/each}
-					{#if recipe.diets.length > 2}
-						<span class="more-diets">+{recipe.diets.length - 2}</span>
+					{#if recipe.tags.length > 2}
+						<span class="more-diets">+{recipe.tags.length - 2}</span>
 					{/if}
 				</div>
 			{/if}

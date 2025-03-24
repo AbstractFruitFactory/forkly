@@ -2,7 +2,7 @@ import { db } from '.'
 import { recipe, ingredient, recipeIngredient, recipeNutrition } from './schema'
 import { eq, isNull } from 'drizzle-orm'
 import { generateId } from '$lib/server/id'
-import type { MeasurementUnit, DietType } from '$lib/types'
+import type { MeasurementUnit } from '$lib/types'
 import type { IngredientRecord } from './schema'
 
 type IngredientInput = {
@@ -37,7 +37,7 @@ type RecipeInput = {
   ingredients: IngredientInput[]
   instructions: InstructionInput[]
   nutrition: NutritionInput
-  diets: DietType[]
+  tags: string[]
   imageUrl?: string
 }
 
@@ -50,7 +50,7 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
     title: input.title,
     description: input.description,
     instructions: input.instructions,
-    diets: input.diets || [],
+    tags: input.tags || [],
     imageUrl: input.imageUrl
   }).returning()
 

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Input from '$lib/components/input/Input.svelte'
-	import Search from '$lib/components/search/Search.svelte'
 	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
@@ -9,8 +8,8 @@
 	import { browser } from '$app/environment'
 	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
 	import Button from '$lib/components/button/Button.svelte'
-	import { dietTypes, dietColors } from '$lib/types'
 	import IngredientInput from '$lib/components/ingredient-input/IngredientInput.svelte'
+	import Pill from '$lib/components/pill/Pill.svelte'
 
 	type T = $$Generic<{ name: string; custom: false }>
 	type Ingredient = T | { name: string; custom: true }
@@ -20,13 +19,17 @@
 		onSearchIngredients,
 		onIngredientSelect,
 		unitSystem,
-		onUnitChange
+		onUnitChange,
+		availableTags = [],
+		onSearchTags
 	}: {
 		errors?: { path: string; message: string }[]
 		onSearchIngredients?: (query: string) => Promise<T[]>
 		onIngredientSelect?: (ingredient: T) => Promise<void>
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
+		availableTags?: { name: string; count: number }[]
+		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 	} = $props()
 
 	let ingredientCount = $state(1)
@@ -36,7 +39,7 @@
 	let isLoading = $state<Record<number, boolean>>({})
 	let showCustomInput = $state<Record<number, boolean>>({})
 	let selectedLookupIngredients = $state<Record<number, Ingredient>>({})
-	let selectedDiets = $state<string[]>([])
+	let selectedTags = $state<string[]>([])
 
 	const addIngredient = () => {
 		ingredientCount++
@@ -123,6 +126,28 @@
 		showCustomInput[index] = true
 	}
 
+	// Function to search for tags
+	const searchTags = async (query: string): Promise<string[]> => {
+		if (!onSearchTags) return []
+		
+		const results = await onSearchTags(query)
+		return results.map(tag => tag.name)
+	}
+	
+	// Handle tag selection
+	const handleTagSelect = (tag: string, selected: boolean) => {
+		if (selected && !selectedTags.includes(tag)) {
+			selectedTags = [...selectedTags, tag]
+		} else if (!selected && selectedTags.includes(tag)) {
+			selectedTags = selectedTags.filter(t => t !== tag)
+		}
+	}
+
+	// Handle tag removal
+	const removeTag = (tag: string) => {
+		selectedTags = selectedTags.filter(t => t !== tag)
+	}
+
 	let submitting = $state(false)
 </script>
 
@@ -170,13 +195,26 @@
 		</div>
 
 		<div class="form-group">
-			<label for="diets">Diets</label>
-			<PillSelector
-				items={dietTypes}
-				bind:selectedItems={selectedDiets}
-				name="diets"
-				colorMap={dietColors}
-			/>
+			<label for="tags">Tags</label>
+			<div>
+				<PillSelector
+					items={availableTags.map(tag => tag.name)}
+					bind:selectedItems={selectedTags}
+					name="tags"
+					loadItems={searchTags}
+					onSelect={handleTagSelect}
+					label="+ tag"
+					allowCustomItems={true}
+				/>
+				
+				{#if selectedTags.length > 0}
+					<div class="selected-tags">
+						{#each selectedTags as tag}
+							<Pill text={tag} onRemove={() => removeTag(tag)} />
+						{/each}
+					</div>
+				{/if}
+			</div>
 		</div>
 
 		<div class="form-group">
@@ -305,6 +343,13 @@
 		gap: var(--spacing-md);
 		margin-bottom: var(--spacing-md);
 		align-items: flex-start;
+	}
+
+	.selected-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-sm);
+		margin-top: var(--spacing-sm);
 	}
 
 	.remove-btn {

@@ -35,24 +35,9 @@ export const measurementUnits = [
   'pinch'
 ] as const
 
-export const dietTypes = [
-  'gluten-free',
-  'dairy-free',
-  'nut-free',
-  'vegan',
-  'vegetarian',
-  'pescatarian'
-] as const
-
-export type DietType = typeof dietTypes[number]
-
-export const dietColors: Record<DietType, string> = {
-  'gluten-free': '#E57373',
-  'dairy-free': '#64B5F6',
-  'nut-free': '#FFB74D',
-  'vegan': '#81C784',
-  'vegetarian': '#4DB6AC',
-  'pescatarian': '#7986CB'
+// A tag can be any string less than 10 characters
+export const isValidTag = (tag: string): boolean => {
+  return typeof tag === 'string' && tag.length > 0 && tag.length < 10;
 }
 
 type BaseIngredient = {
@@ -82,7 +67,7 @@ export type RecipeData = {
     mediaType?: 'image' | 'video';
   }[]
   imageUrl?: string | null
-  diets?: DietType[]
+  tags?: string[]
   totalNutrition?: {
     calories: number
     protein: number

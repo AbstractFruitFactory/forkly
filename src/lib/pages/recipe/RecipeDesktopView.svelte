@@ -5,12 +5,9 @@
 	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import type { RecipeData, Ingredient } from '$lib/types'
-	import { dietColors } from '$lib/types'
 	import { page } from '$app/state'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import Popover from '$lib/components/popover/Popover.svelte'
-	import { parseTemperature, getConversionText } from '$lib/utils/temperature'
-	import type { TemperatureUnit } from '$lib/utils/temperature'
 	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
@@ -134,8 +131,8 @@
 			<div class="recipe-tags">
 				{#if recipe.diets && recipe.diets.length > 0}
 					<div class="tags">
-						{#each recipe.diets as diet}
-							<Pill text={diet} color={dietColors[diet as keyof typeof dietColors]} />
+						{#each recipe.tags as tag}
+							<Pill text={tag} />
 						{/each}
 					</div>
 				{/if}

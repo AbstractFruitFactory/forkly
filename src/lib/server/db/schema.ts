@@ -1,5 +1,6 @@
-import type { DietType, MeasurementUnit } from '$lib/types'
+import type { MeasurementUnit } from '$lib/types'
 import { pgTable, text, timestamp, jsonb, integer, primaryKey, foreignKey, real, boolean } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
 export const user = pgTable('user', {
 	id: text('id').primaryKey(),
@@ -36,9 +37,13 @@ export const recipe = pgTable('recipe', {
 		mediaUrl?: string;
 		mediaType?: 'image' | 'video';
 	}[]>().notNull(),
-	diets: jsonb('diets').$type<DietType[]>().default([]).notNull(),
+	tags: jsonb('tags').$type<string[]>().default([]).notNull(),
 	imageUrl: text('image_url'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+	return {
+		tagLengthCheck: sql`json_array_length(jsonb_path_query_array(${table.tags}, '$[*] ? (@.type() == "string" && length(@) < 10)')) = json_array_length(${table.tags})`.as('tags_length_check')
+	}
 })
 
 export const recipeNutrition = pgTable('recipe_nutrition', {

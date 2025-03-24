@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit'
 import type { Actions } from './$types'
-import { type Ingredient, type MeasurementUnit, type DietType } from '$lib/types'
+import type { Ingredient, MeasurementUnit } from '$lib/types'
 import groupBy from 'ramda/src/groupBy'
 import { api } from '$lib/server/food-api'
 import { Ok, Result } from 'ts-results-es'
@@ -30,7 +30,7 @@ const formValidationSchema = v.object({
     v.array(v.any()),
     v.minLength(1, 'At least one instruction is required')
   ),
-  diets: v.array(v.string())
+  tags: v.array(v.string())
 })
 
 type FormFields = {
@@ -42,7 +42,7 @@ type FormFields = {
     mediaUrl?: string
     mediaType?: 'image' | 'video'
   }[]
-  diets: DietType[]
+  tags: string[]
 }
 
 type RecipeApiResponse = {
@@ -94,7 +94,7 @@ const parseIngredients = (formData: FormData): Ingredient[] => {
 }
 
 const parseFormData = (formData: FormData): FormFields => {
-  const diets = formData.getAll('diets').map(value => value.toString()) as DietType[]
+  const tags = formData.getAll('tags').map(value => value.toString())
 
   // Parse instructions
   const instructions: FormFields['instructions'] = []
@@ -118,7 +118,7 @@ const parseFormData = (formData: FormData): FormFields => {
     description: formData.get('description')?.toString() ?? '',
     ingredients: parseIngredients(formData),
     instructions,
-    diets
+    tags
   }
 }
 
@@ -159,7 +159,7 @@ export const actions = {
       description: recipeData.description,
       ingredients: recipeData.ingredients,
       instructions: recipeData.instructions,
-      diets: recipeData.diets
+      tags: recipeData.tags
     })
 
     if (!result.success) {
@@ -280,7 +280,7 @@ export const actions = {
         totalNutrition: nutrition,
         hasCustomIngredients: mappedIngredients.some(ing => ing.custom)
       },
-      diets: recipeData.diets,
+      tags: recipeData.tags,
       imageUrl
     }
 

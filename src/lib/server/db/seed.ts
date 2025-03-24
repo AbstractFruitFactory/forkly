@@ -12,12 +12,15 @@ const client = postgres(process.env.DATABASE_URL as string)
 export const db = drizzle(client)
 
 export const seed = async () => {
-  // Check if we already have recipes
-  const existingRecipes = await db.select().from(recipe).limit(1)
-
-  if (existingRecipes.length > 0) {
-    console.log('Database already seeded, skipping...')
-    return
+  // Force reseed: clean up existing data first
+  console.log('Cleaning up existing data to force reseed...')
+  try {
+    await db.delete(recipeIngredient)
+    await db.delete(recipeNutrition)
+    await db.delete(recipe)
+    await db.delete(ingredient)
+  } catch (error) {
+    console.log('Error cleaning up data:', error)
   }
 
   // Sample recipes data (without ingredients and nutrition)
@@ -36,7 +39,7 @@ export const seed = async () => {
       ],
       imageUrl: 'https://www.allrecipes.com/thmb/vtJaLavws0DJyHAbSbL6WyuuRQk=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/4470536-chef-johns-fresh-salmon-cakes-Chef-John-1x1-1-217fa762bb5c4d098ee1cb0044994758.jpg',
       userId: null,
-      diets: ['pescatarian'] as ("gluten-free" | "dairy-free" | "nut-free" | "vegan" | "vegetarian" | "pescatarian")[]
+      tags: ['pescatarian', 'seafood', 'quick']
     },
     {
       id: generateId(),
@@ -55,7 +58,7 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&q=80',
       userId: null,
-      diets: ['pescatarian'] as ("gluten-free" | "dairy-free" | "nut-free" | "vegan" | "vegetarian" | "pescatarian")[]
+      tags: ['pescatarian', 'healthy', 'grilled']
     },
     {
       id: generateId(),
@@ -70,7 +73,7 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&q=80',
       userId: null,
-      diets: [] as ("gluten-free" | "dairy-free" | "nut-free" | "vegan" | "vegetarian" | "pescatarian")[]
+      tags: ['italian', 'pasta', 'easy']
     },
     {
       id: generateId(),
@@ -99,7 +102,7 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&q=80',
       userId: null,
-      diets: ['vegetarian'] as ("gluten-free" | "dairy-free" | "nut-free" | "vegan" | "vegetarian" | "pescatarian")[]
+      tags: ['vegetarian', 'dessert', 'baking']
     },
     {
       id: generateId(),
@@ -116,7 +119,7 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80',
       userId: null,
-      diets: [] as ("gluten-free" | "dairy-free" | "nut-free" | "vegan" | "vegetarian" | "pescatarian")[]
+      tags: ['salad', 'healthy', 'fresh']
     },
     {
       id: generateId(),
@@ -133,7 +136,7 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80',
       userId: null,
-      diets: [] as ("gluten-free" | "dairy-free" | "nut-free" | "vegan" | "vegetarian" | "pescatarian")[]
+      tags: ['italian', 'cheese', 'dinner']
     },
     {
       id: generateId(),
@@ -151,7 +154,7 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&q=80',
       userId: null,
-      diets: [] as ("gluten-free" | "dairy-free" | "nut-free" | "vegan" | "vegetarian" | "pescatarian")[]
+      tags: ['asian', 'chicken', 'quick']
     },
     {
       id: generateId(),
@@ -181,7 +184,7 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80',
       userId: null,
-      diets: ['vegan', 'gluten-free'] as ("gluten-free" | "dairy-free" | "nut-free" | "vegan" | "vegetarian" | "pescatarian")[]
+      tags: ['vegan', 'gluten-free', 'healthy', 'bowl']
     }
   ]
 

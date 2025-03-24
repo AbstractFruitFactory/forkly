@@ -1,33 +1,12 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
+  "version": "5",
+  "dialect": "pg",
   "entries": [
     {
       "idx": 0,
       "version": "7",
-      "when": 1741177899491,
-      "tag": "0000_sticky_darkhawk",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1742111751033,
-      "tag": "0001_bitter_mongoose",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1742113833023,
-      "tag": "0002_add_image_url_to_comments",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1742326222309,
-      "tag": "0003_classy_supreme_intelligence",
+      "when": 1742767424296,
+      "tag": "0000_milky_cloak",
       "breakpoints": true
     }
   ]
