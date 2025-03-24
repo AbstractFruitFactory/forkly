@@ -86,6 +86,13 @@
 			width: 100%;
 		}
 
+		.content {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: var(--spacing-xs);
+		}
+
 		// Sizes
 		&.sm > .content {
 			padding: var(--spacing-sm) var(--spacing-md);
@@ -118,7 +125,7 @@
 		&.secondary {
 			background: var(--color-secondary);
 			border: var(--border-width-thin) solid var(--color-neutral);
-			
+
 			&:hover:not(:disabled) {
 				background: color-mix(in srgb, var(--color-secondary), black 15%);
 			}
