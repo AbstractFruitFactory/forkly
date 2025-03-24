@@ -71,26 +71,10 @@
 		white-space: nowrap;
 		width: fit-content;
 		min-width: fit-content;
-		&::after {
-			content: '';
-			position: absolute;
-			inset: 0;
-			background: currentColor;
-			opacity: 0;
-			transition: opacity var(--transition-fast) var(--ease-in-out);
-		}
 
 		&:disabled {
 			opacity: 0.6;
 			cursor: not-allowed;
-
-			&::after {
-				display: none;
-			}
-		}
-
-		&:hover:not(:disabled)::after {
-			opacity: 0.1;
 		}
 
 		&:focus-visible {
@@ -122,6 +106,10 @@
 			background: var(--color-primary-dark);
 			font-weight: 600;
 
+			&:hover:not(:disabled) {
+				background: color-mix(in srgb, var(--color-primary-dark), black 15%);
+			}
+
 			&:active:not(:disabled) {
 				transform: translateY(var(--spacing-xs));
 			}
@@ -130,10 +118,9 @@
 		&.secondary {
 			background: var(--color-secondary);
 			border: var(--border-width-thin) solid var(--color-neutral);
-
+			
 			&:hover:not(:disabled) {
-				color: var(--color-primary);
-				border-color: var(--color-primary);
+				background: color-mix(in srgb, var(--color-secondary), black 15%);
 			}
 		}
 
@@ -145,20 +132,16 @@
 			&:hover:not(:disabled) {
 				text-decoration: underline;
 			}
-
-			&::after {
-				display: none;
-			}
 		}
 
 		&.dotted {
 			border: var(--border-width-normal) dashed var(--color-neutral);
-			margin-top: var(--spacing-md);
 			width: 100%;
 
 			&:hover:not(:disabled) {
 				color: var(--color-primary);
 				border-color: var(--color-primary);
+				background: rgba(0, 0, 0, 0.05);
 			}
 		}
 

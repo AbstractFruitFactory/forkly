@@ -2,6 +2,7 @@
 	import Button from '$lib/components/button/Button.svelte'
 	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
 	import { onMount } from 'svelte'
+	import { PlusIcon } from 'lucide-svelte'
 
 	let {
 		loggedIn = false,
@@ -34,7 +35,12 @@
 
 	<div class="right-section">
 		<div class="new-recipe-wrapper">
-			<Button href={newRecipeHref} variant="secondary" size="sm">New Recipe</Button>
+			<Button href={newRecipeHref} variant="secondary" size="sm">
+				<div class="new-recipe-button">
+					<PlusIcon size={16} />
+					New Recipe
+				</div>
+			</Button>
 		</div>
 
 		<nav class="main-nav">
@@ -44,7 +50,7 @@
 					<span class="profile-text">Profile</span>
 				</a>
 			{:else}
-				<Button href={loginHref} variant="secondary" size="sm">Login</Button>
+				<Button href={loginHref} variant="dotted" size="sm">Login</Button>
 			{/if}
 		</nav>
 	</div>
@@ -117,6 +123,12 @@
 		@include mobile {
 			gap: var(--spacing-sm);
 		}
+	}
+
+	.new-recipe-button {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
 	}
 
 	.main-nav {
