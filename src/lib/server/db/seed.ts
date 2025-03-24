@@ -348,8 +348,8 @@ export const seed = async () => {
     { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[42].id, quantity: 2, measurement: 'cups' as MeasurementUnit },
     { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[43].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
     { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[44].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit },
-    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[36].id, quantity: 1, measurement: 'cloves' as MeasurementUnit },
-    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[8].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[8].id, quantity: 1, measurement: 'tbsp' as MeasurementUnit },
+    { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[14].id, quantity: 2, measurement: 'tablespoons' as MeasurementUnit },
     { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[45].id, quantity: 1, measurement: 'teaspoons' as MeasurementUnit },
     { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[46].id, quantity: 0.5, measurement: 'teaspoons' as MeasurementUnit },
     { recipeId: sampleRecipes[7].id, ingredientId: allIngredients[47].id, quantity: 1, measurement: 'tablespoons' as MeasurementUnit }
