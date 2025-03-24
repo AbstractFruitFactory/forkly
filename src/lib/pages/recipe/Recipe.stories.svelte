@@ -34,13 +34,14 @@
 			}
 		],
 		instructions: [
-			'Bring a large pot of salted water to boil and cook spaghetti according to package instructions.',
-			'While pasta cooks, cut pancetta into small cubes and fry until crispy.',
-			'In a bowl, whisk together eggs, grated pecorino romano, and black pepper.',
-			'Drain pasta, reserving some pasta water. While pasta is still very hot, quickly stir in the egg mixture and pancetta.',
-			'Add pasta water as needed to create a creamy sauce. Serve immediately with extra cheese and black pepper.'
+			{ text: 'Bring a large pot of salted water to boil and cook spaghetti according to package instructions.' },
+			{ text: 'While pasta cooks, cut pancetta into small cubes and fry until crispy.' },
+			{ text: 'In a bowl, whisk together eggs, grated pecorino romano, and black pepper.' },
+			{ text: 'Drain pasta, reserving some pasta water. While pasta is still very hot, quickly stir in the egg mixture and pancetta.' },
+			{ text: 'Add pasta water as needed to create a creamy sauce. Serve immediately with extra cheese and black pepper.' }
 		],
 		likes: 42,
+		bookmarks: 24,
 		isLiked: false
 	})
 
@@ -63,41 +64,47 @@
 	const mockOnUnitChange = (system: UnitSystem) => console.log('Unit changed to', system)
 </script>
 
-<Story
-	name="Default"
-	args={{
-		recipe: mockRecipe,
-		nutrition: mockNutrition,
-		unitSystem: mockUnitSystem,
-		onUnitChange: mockOnUnitChange,
-		isLoggedIn: true,
-		onLike: mockOnLike
-	}}
-/>
+<Story name="Default">
+	{#snippet children(args)}
+		<Recipe
+			recipe={mockRecipe}
+			nutrition={mockNutrition}
+			unitSystem={mockUnitSystem}
+			onUnitChange={mockOnUnitChange}
+			isLoggedIn={true}
+			onLike={mockOnLike}
+			{...args}
+		/>
+	{/snippet}
+</Story>
 
-<Story
-	name="Without Description"
-	args={{
-		recipe: {
-			...mockRecipe,
-			description: undefined
-		},
-		nutrition: mockNutrition,
-		unitSystem: mockUnitSystem,
-		onUnitChange: mockOnUnitChange,
-		isLoggedIn: true,
-		onLike: mockOnLike
-	}}
-/>
+<Story name="Without Description">
+	{#snippet children(args)}
+		<Recipe
+			recipe={{
+				...mockRecipe,
+				description: undefined
+			}}
+			nutrition={mockNutrition}
+			unitSystem={mockUnitSystem}
+			onUnitChange={mockOnUnitChange}
+			isLoggedIn={true}
+			onLike={mockOnLike}
+			{...args}
+		/>
+	{/snippet}
+</Story>
 
-<Story
-	name="Without Login"
-	args={{
-		recipe: mockRecipe,
-		nutrition: mockNutrition,
-		unitSystem: mockUnitSystem,
-		onUnitChange: mockOnUnitChange,
-		onLike: mockOnLike,
-		isLoggedIn: false
-	}}
-/>
+<Story name="Without Login">
+	{#snippet children(args)}
+		<Recipe
+			recipe={mockRecipe}
+			nutrition={mockNutrition}
+			unitSystem={mockUnitSystem}
+			onUnitChange={mockOnUnitChange}
+			onLike={mockOnLike}
+			isLoggedIn={false}
+			{...args}
+		/>
+	{/snippet}
+</Story>

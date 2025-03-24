@@ -57,38 +57,52 @@
 </script>
 
 <Story name="Empty">
-	<PillSelector items={dietItems} selectedItems={[]} name="diets" />
+	{#snippet children(args)}
+		<PillSelector items={dietItems} selectedItems={[]} name="diets" {...args} />
+	{/snippet}
 </Story>
 
 <Story name="With Preselected Items">
-	<PillSelector 
-		items={dietItems} 
-		selectedItems={['Vegetarian', 'Gluten-Free']} 
-		name="diets" 
-	/>
+	{#snippet children(args)}
+		<PillSelector 
+			items={dietItems} 
+			selectedItems={['Vegetarian', 'Gluten-Free']} 
+			name="diets" 
+			{...args}
+		/>
+	{/snippet}
 </Story>
 
 <Story name="With Color Map">
-	<PillSelector 
-		items={dietItems} 
-		selectedItems={['Vegetarian', 'Gluten-Free', 'Keto']} 
-		name="diets" 
-		colorMap={dietColorMap} 
-	/>
+	{#snippet children(args)}
+		<PillSelector 
+			items={dietItems} 
+			selectedItems={['Vegetarian', 'Gluten-Free', 'Keto']} 
+			name="diets" 
+			colorMap={dietColorMap} 
+			{...args}
+		/>
+	{/snippet}
 </Story>
 
 <Story name="Different Items">
-	<PillSelector 
-		items={cuisineItems} 
-		selectedItems={['Italian', 'Japanese']} 
-		name="cuisines" 
-	/>
+	{#snippet children(args)}
+		<PillSelector 
+			items={cuisineItems} 
+			selectedItems={['Italian', 'Japanese']} 
+			name="cuisines" 
+			{...args}
+		/>
+	{/snippet}
 </Story>
 
 <Story name="All Items Selected">
-	<PillSelector 
-		items={['Red', 'Green', 'Blue']} 
-		selectedItems={['Red', 'Green', 'Blue']} 
-		name="colors" 
-	/>
+	{#snippet children(args)}
+		<PillSelector 
+			items={['Red', 'Green', 'Blue']} 
+			selectedItems={['Red', 'Green', 'Blue']} 
+			name="colors" 
+			{...args}
+		/>
+	{/snippet}
 </Story> 

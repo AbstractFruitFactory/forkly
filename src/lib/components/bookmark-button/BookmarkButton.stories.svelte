@@ -24,8 +24,8 @@
 </script>
 
 <script lang="ts">
-	let isBookmarked = false
-	let count = 24
+	let isBookmarked = $state(false)
+	let count = $state(24)
 	const handleBookmark = () => {
 		isBookmarked = !isBookmarked
 		count = count + (isBookmarked ? 1 : -1)
@@ -33,25 +33,33 @@
 </script>
 
 <Story name="Static Display">
-	<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
-		<BookmarkButton count={24} />
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
+			<BookmarkButton count={24} {...args} />
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Interactive">
-	<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
-		<BookmarkButton {count} {isBookmarked} interactive onBookmark={handleBookmark} />
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
+			<BookmarkButton count={count} isBookmarked={isBookmarked} interactive onBookmark={handleBookmark} {...args} />
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Zero Bookmarks">
-	<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
-		<BookmarkButton count={0} />
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
+			<BookmarkButton count={0} {...args} />
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Many Bookmarks">
-	<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
-		<BookmarkButton count={9999} />
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
+			<BookmarkButton count={9999} {...args} />
+		</div>
+	{/snippet}
 </Story> 

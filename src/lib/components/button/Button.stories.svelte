@@ -15,29 +15,43 @@
 </Story>
 
 <Story name="Secondary">
-	<Button variant="secondary">Click me</Button>
+	{#snippet children(args)}
+		<Button variant="secondary" {...args}>Click me</Button>
+	{/snippet}
 </Story>
 
 <Story name="Text">
-	<Button variant="text">Click me</Button>
+	{#snippet children(args)}
+		<Button variant="text" {...args}>Click me</Button>
+	{/snippet}
 </Story>
 
 <Story name="Small">
-	<Button size="sm">Click me</Button>
+	{#snippet children(args)}
+		<Button size="sm" {...args}>Click me</Button>
+	{/snippet}
 </Story>
 
 <Story name="Large">
-	<Button size="lg">Click me</Button>
+	{#snippet children(args)}
+		<Button size="lg" {...args}>Click me</Button>
+	{/snippet}
 </Story>
 
 <Story name="Full Width">
-	<Button fullWidth>Click me</Button>
+	{#snippet children(args)}
+		<Button fullWidth {...args}>Click me</Button>
+	{/snippet}
 </Story>
 
 <Story name="Disabled">
-	<Button disabled>Click me</Button>
+	{#snippet children(args)}
+		<Button disabled {...args}>Click me</Button>
+	{/snippet}
 </Story>
 
 <Story name="Loading">
-	<Button loading>Loading...</Button>
+	{#snippet children(args)}
+		<Button loading {...args}>Loading...</Button>
+	{/snippet}
 </Story>

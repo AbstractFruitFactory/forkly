@@ -21,45 +21,54 @@
 </script>
 
 <Story name="Empty">
-	<div style="width: 300px; padding: 20px;">
-		<Autocomplete
-			suggestions={[]}
-			isLoading={false}
-			onSelect={(suggestion) => console.log('Selected:', suggestion)}
-		>
-			<Input>
-				<input type="text" placeholder="Search ingredients..." />
-			</Input>
-		</Autocomplete>
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; padding: 20px;">
+			<Autocomplete
+				suggestions={[]}
+				isLoading={false}
+				onSelect={(suggestion) => console.log('Selected:', suggestion)}
+				{...args}
+			>
+				<Input>
+					<input type="text" placeholder="Search ingredients..." />
+				</Input>
+			</Autocomplete>
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Loading">
-	<div style="width: 300px; padding: 20px;">
-		<Autocomplete
-			suggestions={[]}
-			isLoading={true}
-			onSelect={(suggestion) => console.log('Selected:', suggestion)}
-		>
-			<Input>
-				<input type="text" placeholder="Search ingredients..." value="chi" />
-			</Input>
-		</Autocomplete>
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; padding: 20px;">
+			<Autocomplete
+				suggestions={[]}
+				isLoading={true}
+				onSelect={(suggestion) => console.log('Selected:', suggestion)}
+				{...args}
+			>
+				<Input>
+					<input type="text" placeholder="Search ingredients..." value="chi" />
+				</Input>
+			</Autocomplete>
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="With Suggestions">
-	<div style="width: 300px; padding: 20px;">
-		<Autocomplete
-			suggestions={mockSuggestions}
-			isLoading={false}
-			onSelect={(suggestion) => console.log('Selected:', suggestion)}
-		>
-			<Input>
-				<input type="text" placeholder="Search ingredients..." value="chicken" />
-			</Input>
-		</Autocomplete>
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; padding: 20px;">
+			<Autocomplete
+				suggestions={mockSuggestions}
+				isLoading={false}
+				onSelect={(suggestion) => console.log('Selected:', suggestion)}
+				{...args}
+			>
+				<Input>
+					<input type="text" placeholder="Search ingredients..." value="chicken" />
+				</Input>
+			</Autocomplete>
+		</div>
+	{/snippet}
 </Story>
 
 <Story
@@ -71,15 +80,18 @@
 		}
 	}}
 >
-	<div style="width: 300px; padding: 20px;">
-		<Autocomplete
-			suggestions={mockSuggestions}
-			isLoading={false}
-			onSelect={(suggestion) => console.log('Selected:', suggestion)}
-		>
-			<Input>
-				<input type="text" placeholder="Type 'chicken' to see suggestions..." />
-			</Input>
-		</Autocomplete>
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; padding: 20px;">
+			<Autocomplete
+				suggestions={mockSuggestions}
+				isLoading={false}
+				onSelect={(suggestion) => console.log('Selected:', suggestion)}
+				{...args}
+			>
+				<Input>
+					<input type="text" placeholder="Type 'chicken' to see suggestions..." />
+				</Input>
+			</Autocomplete>
+		</div>
+	{/snippet}
 </Story>

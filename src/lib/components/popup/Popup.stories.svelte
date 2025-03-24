@@ -10,7 +10,7 @@
 </script>
 
 <script lang="ts">
-	let isBasicPopupOpen = false
+	let isBasicPopupOpen = $state(false)
 
 	const toggleBasicPopup = () => {
 		isBasicPopupOpen = !isBasicPopupOpen
@@ -18,12 +18,14 @@
 </script>
 
 <Story name="Default">
-	<div style="padding: 2rem;">
-		<Button onclick={toggleBasicPopup}>Open Basic Popup</Button>
+	{#snippet children(args)}
+		<div style="padding: 2rem;">
+			<Button onclick={toggleBasicPopup}>Open Basic Popup</Button>
 
-		<Popup isOpen={isBasicPopupOpen} onClose={toggleBasicPopup} title="Basic Popup">
-			<p>This is a basic popup with a title and close button.</p>
-			<p>Click outside or press ESC to close.</p>
-		</Popup>
-	</div>
+			<Popup isOpen={isBasicPopupOpen} onClose={toggleBasicPopup} title="Basic Popup" {...args}>
+				<p>This is a basic popup with a title and close button.</p>
+				<p>Click outside or press ESC to close.</p>
+			</Popup>
+		</div>
+	{/snippet}
 </Story>

@@ -11,4 +11,8 @@
 	})
 </script>
 
-<Story name="Default" />
+<Story name="Default">
+	{#snippet children()}
+		<About />
+	{/snippet}
+</Story>

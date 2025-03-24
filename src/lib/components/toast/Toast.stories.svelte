@@ -19,51 +19,65 @@
 </script>
 
 <Story name="Default">
-	<div>
-		<Button onclick={() => defaultToast.trigger()}>Show Default Toast</Button>
-		<Toast bind:this={defaultToast} message="This is a default toast message" />
-	</div>
+	{#snippet children(args)}
+		<div>
+			<Button onclick={() => defaultToast.trigger()}>Show Default Toast</Button>
+			<Toast bind:this={defaultToast} message="This is a default toast message" {...args} />
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Success">
-	<div>
-		<Button onclick={() => successToast.trigger()}>Show Success Toast</Button>
-		<Toast bind:this={successToast} message="Operation completed successfully!" type="success" />
-	</div>
+	{#snippet children(args)}
+		<div>
+			<Button onclick={() => successToast.trigger()}>Show Success Toast</Button>
+			<Toast bind:this={successToast} message="Operation completed successfully!" type="success" {...args} />
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Error">
-	<div>
-		<Button onclick={() => errorToast.trigger()}>Show Error Toast</Button>
-		<Toast bind:this={errorToast} message="An error occurred. Please try again." type="error" />
-	</div>
+	{#snippet children(args)}
+		<div>
+			<Button onclick={() => errorToast.trigger()}>Show Error Toast</Button>
+			<Toast bind:this={errorToast} message="An error occurred. Please try again." type="error" {...args} />
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Warning">
-	<div>
-		<Button onclick={() => warningToast.trigger()}>Show Warning Toast</Button>
-		<Toast
-			bind:this={warningToast}
-			message="Warning: This action cannot be undone."
-			type="warning"
-		/>
-	</div>
+	{#snippet children(args)}
+		<div>
+			<Button onclick={() => warningToast.trigger()}>Show Warning Toast</Button>
+			<Toast
+				bind:this={warningToast}
+				message="Warning: This action cannot be undone."
+				type="warning"
+				{...args}
+			/>
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Info">
-	<div>
-		<Button onclick={() => infoToast.trigger()}>Show Info Toast</Button>
-		<Toast bind:this={infoToast} message="New updates are available." type="info" />
-	</div>
+	{#snippet children(args)}
+		<div>
+			<Button onclick={() => infoToast.trigger()}>Show Info Toast</Button>
+			<Toast bind:this={infoToast} message="New updates are available." type="info" {...args} />
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Top Position">
-	<div>
-		<Button onclick={() => topToast.trigger()}>Show Top Toast</Button>
-		<Toast
-			bind:this={topToast}
-			message="This toast appears at the top of the screen."
-			position="top"
-		/>
-	</div>
+	{#snippet children(args)}
+		<div>
+			<Button onclick={() => topToast.trigger()}>Show Top Toast</Button>
+			<Toast
+				bind:this={topToast}
+				message="This toast appears at the top of the screen."
+				position="top"
+				{...args}
+			/>
+		</div>
+	{/snippet}
 </Story>

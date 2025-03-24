@@ -150,6 +150,31 @@
           <span class="type-meta">3XL</span>
         </div>
       </div>
+
+      <h3 class="type-section-title">Text Flow</h3>
+      <div class="text-flow-showcase">
+        <h2 class="text-2xl">Article Title</h2>
+        <h3 class="text-xl">Section Heading</h3>
+        <p class="text-base">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam eget felis eget urna ultrices finibus. Sed auctor, turpis ac efficitur lacinia, nisi magna tincidunt nisi, sed faucibus eros magna vel lorem. Donec maximus risus augue, id sagittis dui dignissim ut. Mauris in sem sollicitudin, volutpat purus ut, tincidunt lorem. Vestibulum suscipit nisl id enim maximus, at commodo leo maximus.
+        </p>
+        <h4 class="text-lg">Subsection Heading</h4>
+        <p class="text-sm">
+          Fusce non sapien vel metus fermentum vestibulum. Praesent ut tellus ut nulla condimentum fermentum. In hac habitasse platea dictumst. Cras luctus diam nec tellus vestibulum, in imperdiet magna facilisis.
+        </p>
+        <blockquote class="text-base font-serif">
+          "Etiam id scelerisque tellus. Fusce semper tortor id est convallis, vitae pharetra lorem sollicitudin. Nam id erat vehicula, bibendum quam et, cursus ante."
+        </blockquote>
+        <p class="text-base">
+          Suspendisse potenti. Curabitur feugiat tellus in sem finibus, a condimentum eros vestibulum. Nulla facilisi. Maecenas semper sapien in felis tincidunt, vel rhoncus nisi dictum. Donec dapibus purus in dui vehicula, sit amet porttitor magna gravida.
+        </p>
+        <h4 class="text-lg">List Example</h4>
+        <ul class="text-base">
+          <li>First item in the list with some additional text to demonstrate wrapping</li>
+          <li>Second item in the list</li>
+          <li>Third item with a bit more text to show variation</li>
+        </ul>
+      </div>
     </section>
 
     <section class="section-container">
@@ -406,6 +431,38 @@
     font-size: var(--font-size-xl);
     color: var(--color-primary-light);
     margin: var(--spacing-2xl) 0 var(--spacing-lg);
+  }
+
+  .text-flow-showcase {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    background: var(--color-neutral-dark);
+    padding: var(--spacing-xl);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--spacing-xl);
+    
+    h2, h3, h4 {
+      margin-top: var(--spacing-lg);
+      margin-bottom: var(--spacing-xs);
+      color: var(--color-primary-light);
+    }
+    
+    blockquote {
+      margin: var(--spacing-md) 0;
+      padding-left: var(--spacing-lg);
+      border-left: 3px solid var(--color-primary);
+      font-style: italic;
+    }
+    
+    ul {
+      padding-left: var(--spacing-xl);
+      margin: var(--spacing-sm) 0;
+      
+      li {
+        margin-bottom: var(--spacing-sm);
+      }
+    }
   }
 
   .spacing-showcase {

@@ -10,16 +10,21 @@
 </script>
 
 <Story name="Default">
-	<div style="padding: 2rem;">
-		<ShareButton />
-	</div>
+	{#snippet children(args)}
+		<div style="padding: 2rem;">
+			<ShareButton {...args} />
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Custom URL and Title">
-	<div style="padding: 2rem;">
-		<ShareButton
-			url="https://example.com/my-awesome-recipe"
-			title="Check out this delicious recipe!"
-		/>
-	</div>
+	{#snippet children(args)}
+		<div style="padding: 2rem;">
+			<ShareButton
+				url="https://example.com/my-awesome-recipe"
+				title="Check out this delicious recipe!"
+				{...args}
+			/>
+		</div>
+	{/snippet}
 </Story>

@@ -24,8 +24,8 @@
 </script>
 
 <script lang="ts">
-	let isLiked = false
-	let count = 42
+	let isLiked = $state(false)
+	let count = $state(42)
 	const handleLike = () => {
 		isLiked = !isLiked
 		count = count + (isLiked ? 1 : -1)
@@ -33,25 +33,33 @@
 </script>
 
 <Story name="Static Display">
-	<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
-		<LikeButton count={42} />
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
+			<LikeButton count={42} {...args} />
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Interactive">
-	<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
-		<LikeButton {count} {isLiked} interactive onLike={handleLike} />
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
+			<LikeButton count={count} isLiked={isLiked} interactive onLike={handleLike} {...args} />
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Zero Likes">
-	<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
-		<LikeButton count={0} />
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
+			<LikeButton count={0} {...args} />
+		</div>
+	{/snippet}
 </Story>
 
 <Story name="Many Likes">
-	<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
-		<LikeButton count={9999} />
-	</div>
+	{#snippet children(args)}
+		<div style="width: 300px; height: 100px; background: var(--color-neutral-darker); padding: 1rem;">
+			<LikeButton count={9999} {...args} />
+		</div>
+	{/snippet}
 </Story>

@@ -12,49 +12,55 @@
 </script>
 
 <Story name="Default">
-	<div style="padding: 8rem; display: flex; justify-content: center;">
-		<Popover>
+	{#snippet children(args)}
+		<div style="padding: 8rem; display: flex; justify-content: center;">
+			<Popover {...args}>
+				{#snippet content()}
+					This is a default popover
+				{/snippet}
+
+				{#snippet trigger()}
+					<Button>Click me</Button>
+				{/snippet}
+			</Popover>
+		</div>
+	{/snippet}
+</Story>
+
+<Story name="Different Placements">
+	{#snippet children(args)}
+		<div
+			style="padding: 8rem; display: grid; gap: 2rem; grid-template-columns: repeat(4, auto); justify-content: center;"
+		>
+			{#each placements as placement}
+				<Popover placement={placement} {...args}>
+					{#snippet content()}
+						<div style="padding: 0.5rem;">
+							Placed on {placement}
+						</div>
+					{/snippet}
+
+					{#snippet trigger()}
+						<Button>
+							{placement}
+						</Button>
+					{/snippet}
+				</Popover>
+			{/each}
+		</div>
+	{/snippet}
+</Story>
+
+<Story name="Warning">
+	{#snippet children(args)}
+		<Popover type="warning" {...args}>
 			{#snippet content()}
-				This is a default popover
+				This is a warning popover
 			{/snippet}
 
 			{#snippet trigger()}
 				<Button>Click me</Button>
 			{/snippet}
 		</Popover>
-	</div>
-</Story>
-
-<Story name="Different Placements">
-	<div
-		style="padding: 8rem; display: grid; gap: 2rem; grid-template-columns: repeat(4, auto); justify-content: center;"
-	>
-		{#each placements as placement}
-			<Popover {placement}>
-				{#snippet content()}
-					<div style="padding: 0.5rem;">
-						Placed on {placement}
-					</div>
-				{/snippet}
-
-				{#snippet trigger()}
-					<Button>
-						{placement}
-					</Button>
-				{/snippet}
-			</Popover>
-		{/each}
-	</div>
-</Story>
-
-<Story name="Warning">
-	<Popover type="warning">
-		{#snippet content()}
-			This is a warning popover
-		{/snippet}
-
-		{#snippet trigger()}
-			<Button>Click me</Button>
-		{/snippet}
-	</Popover>
+	{/snippet}
 </Story>

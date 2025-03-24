@@ -6,18 +6,21 @@
 	const { Story } = defineMeta<Component<ComponentProps<typeof RecipeCreated>>>({
 		title: 'lib/pages/RecipeCreated',
 		component: RecipeCreated,
-		tags: ['autodocs'],
+		tags: ['!autodocs'],
 		parameters: {
 			layout: 'fullscreen'
 		}
 	})
 </script>
 
-<Story name="Default" args={{ recipeId: 'kR6xPm2bN9' }} />
+<Story name="Default">
+	{#snippet children(args)}
+		<RecipeCreated recipeId="kR6xPm2bN9" {...args} />
+	{/snippet}
+</Story>
 
-<Story 
-	name="Another ID" 
-	args={{ 
-		recipeId: 'Lz7yQn3cP4' 
-	}} 
-/> 
+<Story name="Another ID">
+	{#snippet children(args)}
+		<RecipeCreated recipeId="Lz7yQn3cP4" {...args} />
+	{/snippet}
+</Story> 
