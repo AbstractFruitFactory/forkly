@@ -18,16 +18,16 @@
 		errors,
 		onSearchIngredients,
 		onIngredientSelect,
-		unitSystem,
-		onUnitChange,
+		unitSystem = 'imperial',
+		onUnitChange = (system: UnitSystem) => {},
 		availableTags = [],
 		onSearchTags
 	}: {
 		errors?: { path: string; message: string }[]
 		onSearchIngredients?: (query: string) => Promise<T[]>
 		onIngredientSelect?: (ingredient: T) => Promise<void>
-		unitSystem: UnitSystem
-		onUnitChange: (system: UnitSystem) => void
+		unitSystem?: UnitSystem
+		onUnitChange?: (system: UnitSystem) => void
 		availableTags?: { name: string; count: number }[]
 		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 	} = $props()

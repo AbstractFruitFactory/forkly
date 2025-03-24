@@ -1,6 +1,12 @@
 <script lang="ts" module>
 	import { defineMeta } from '@storybook/addon-svelte-csf'
 	import NewRecipe from './NewRecipe.svelte'
+	import type { UnitSystem } from '$lib/state/unitPreference.svelte.ts'
+
+	const defaultArgs = {
+		unitSystem: 'imperial' as UnitSystem,
+		onUnitChange: (system: UnitSystem) => {}
+	}
 
 	const { Story } = defineMeta({
 		title: 'lib/pages/NewRecipe',
@@ -8,7 +14,8 @@
 		tags: ['!autodocs'],
 		parameters: {
 			layout: 'fullscreen'
-		}
+		},
+		args: defaultArgs
 	})
 </script>
 
