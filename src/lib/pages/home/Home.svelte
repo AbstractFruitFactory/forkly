@@ -1,5 +1,5 @@
 <script lang="ts">
-	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
+	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import Search from '$lib/components/search/Search.svelte'
 	import PillSelector from '$lib/components/pill-selector/PillSelector.svelte'
@@ -150,6 +150,13 @@
 		availableIngredients = ingredients;
 		return ingredients.map(ingredient => ingredient.name);
 	}
+	
+	// Generate empty state message based on search criteria
+	const emptyStateMessage = $derived(
+		searchValue || selectedTags.length > 0 || selectedIngredients.length > 0
+			? 'No recipes found matching your criteria. Try different search terms or filters, or browse all recipes.'
+			: 'No recipes yet! Be the first to create one.'
+	)
 </script>
 
 <svelte:document onkeydown={handleKeyDown} />
@@ -250,25 +257,7 @@
 		{@render searchResultsHeader()}
 	{/if}
 
-	{#if sortedRecipes.length === 0}
-		<div class="empty-state">
-			{#if searchValue || selectedTags.length > 0 || selectedIngredients.length > 0}
-				<p>
-					No recipes found matching your criteria. Try different search terms or filters, or <a
-						href="/">browse all recipes</a
-					>.
-				</p>
-			{:else}
-				<p>No recipes yet! Be the first to <a href="/new">create one</a>.</p>
-			{/if}
-		</div>
-	{:else}
-		<div class="recipe-grid">
-			{#each sortedRecipes as recipe}
-				<RecipeCard {recipe} />
-			{/each}
-		</div>
-	{/if}
+	<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} />
 </div>
 
 <style lang="scss">
@@ -280,25 +269,6 @@
 			box-sizing: border-box;
 			display: flex;
 			flex-direction: column;
-		}
-	}
-
-	.empty-state {
-		text-align: center;
-		padding: var(--spacing-2xl) 0;
-	}
-
-	.recipe-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-		gap: var(--spacing-lg);
-
-		&:last-child {
-			padding-bottom: var(--spacing-lg);
-		}
-
-		@include mobile {
-			overflow-y: auto;
 		}
 	}
 
@@ -375,10 +345,6 @@
 	}
 
 	@media (max-width: 640px) {
-		.recipe-grid {
-			grid-template-columns: 1fr;
-		}
-
 		.active-filters {
 			flex-direction: column;
 			gap: var(--spacing-sm);
