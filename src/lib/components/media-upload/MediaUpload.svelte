@@ -1,4 +1,19 @@
 <script lang="ts">
+	/**
+	 * Media Upload Component
+	 *
+	 * @component
+	 * @example
+	 * ```svelte
+	 * <MediaUpload
+	 *   type="video"
+	 *   maxSize={50}
+	 *   maxDuration={10}
+	 *   name="video-upload"
+	 *   bind:error
+	 * />
+	 * ```
+	 */
 	import { onDestroy } from 'svelte'
 	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
 
@@ -7,7 +22,6 @@
 		id = crypto.randomUUID(),
 		type = 'both',
 		name = 'media',
-		maxSize = type === 'video' ? 50 : 10,
 		aspectRatio = '16/9',
 		previewAlt = 'Media preview'
 	}: {
@@ -15,7 +29,7 @@
 		id?: string
 		type?: 'image' | 'video' | 'both'
 		name?: string
-		maxSize?: number
+		maxDuration?: number
 		aspectRatio?: string
 		previewAlt?: string
 	} = $props()
@@ -25,6 +39,9 @@
 	let dragOver = $state(false)
 	let mediaType = $state<'image' | 'video' | null>(null)
 
+	const MAX_VIDEO_DURATION_SECONDS = 10
+	const MAX_VIDEO_SIZE_MB = 10
+
 	const handleFileSelect = async (event: Event) => {
 		const input = event.target as HTMLInputElement
 		const file = input.files?.[0]
@@ -33,12 +50,16 @@
 		handleFile(file)
 	}
 
-	const handleFile = (file: File) => {
+	const handleFile = async (file: File) => {
 		// Clean up previous preview
 		if (preview) cleanupPreview(preview)
 
 		// Use the utility function to handle the file
-		const result = handleMediaFile(file, { type, maxSize })
+		const result = await handleMediaFile(file, {
+			type,
+			maxSize: MAX_VIDEO_SIZE_MB,
+			maxDuration: MAX_VIDEO_DURATION_SECONDS
+		})
 
 		// Update state based on result
 		error = result.error
@@ -63,12 +84,12 @@
 		dragOver = false
 	}
 
-	const handleDrop = (e: DragEvent) => {
+	const handleDrop = async (e: DragEvent) => {
 		e.preventDefault()
 		dragOver = false
 
 		const file = e.dataTransfer?.files[0]
-		if (file) handleFile(file)
+		if (file) await handleFile(file)
 	}
 
 	onDestroy(() => {
