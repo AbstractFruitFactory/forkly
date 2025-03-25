@@ -209,6 +209,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+
+		:global(svg) {
+			transform: translateX(-1px);
+		}
 	}
 
 	.share-popup-content {

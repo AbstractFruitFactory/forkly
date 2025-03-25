@@ -44,72 +44,70 @@
 
 <style lang="scss">
 	.action-button {
-		background: var(--color-neutral-dark);
+		background: color-mix(in srgb, var(--color-neutral-dark) 90%, white);
 		border: none;
 		border-radius: var(--border-radius-full);
 		padding: var(--spacing-xs) var(--spacing-sm);
-		color: var(--inactive-color);
+		color: #b8b8b8;
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-xs);
+		gap: 6px;
 		width: fit-content;
-		height: 29px;
+		height: 28px;
+		transition: all 0.15s ease;
+		padding: var(--spacing-md);
 
 		&.active {
-			color: var(--active-color);
-			background: var(--active-bg-color);
+			color: var(--active-color, #ff4500);
+			background: rgba(255, 69, 0, 0.15);
 		}
 
 		:global(svg) {
-			transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+			transition: all 0.15s ease;
 			transform-origin: center;
-			fill: transparent;
+			width: 20px;
+			height: 20px;
+			opacity: 0.8;
 		}
 
 		:global(.filled) {
 			fill: currentColor;
+			opacity: 1;
 		}
 	}
 
 	button.action-button {
 		cursor: pointer;
-		transition: all var(--transition-fast) var(--ease-out);
 
 		&:hover {
-			transform: scale(1.05);
+			background: rgba(255, 255, 255, 0.12);
+			color: #ffffff;
 
 			:global(svg) {
-				transform: scale(1.15);
+				opacity: 1;
 			}
 		}
 
-		:global(svg) {
-			transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+		&:active {
+			background: rgba(255, 255, 255, 0.16);
 		}
 
-		&.active :global(svg) {
-			transform: scale(1.1);
-			animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-		}
-	}
+		&.active {
+			:global(svg) {
+				transform: scale(1);
+				animation: none;
+			}
 
-	@keyframes pop {
-		0% {
-			transform: scale(1);
-			fill: transparent;
-		}
-		50% {
-			transform: scale(1.4);
-			fill: currentColor;
-		}
-		100% {
-			transform: scale(1.2);
-			fill: currentColor;
+			&:hover {
+				background: rgba(255, 69, 0, 0.25);
+				color: var(--active-color, #ff4500);
+			}
 		}
 	}
 
 	.count {
-		font-size: var(--font-size-sm);
-		font-weight: 600;
+		font-size: 12px;
+		font-weight: 500;
+		color: inherit;
 	}
 </style>
