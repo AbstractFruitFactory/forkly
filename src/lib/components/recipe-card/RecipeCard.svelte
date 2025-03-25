@@ -18,7 +18,6 @@
 			avatarUrl?: string | null
 		}
 		likes: number
-		bookmarks: number
 	}
 
 	let {

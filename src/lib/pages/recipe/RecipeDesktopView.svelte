@@ -23,7 +23,6 @@
 		unitSystem,
 		onUnitChange,
 		isLoggedIn,
-		onBookmark,
 		getFormattedIngredient,
 		comments = [],
 		formError
@@ -38,7 +37,6 @@
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
 		isLoggedIn: boolean
-		onBookmark?: () => void
 		getFormattedIngredient: (ingredient: Ingredient, unitSystem: UnitSystem) => any
 		comments?: any[]
 		formError?: string | null

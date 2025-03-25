@@ -24,7 +24,6 @@
 		unitSystem,
 		onUnitChange,
 		isLoggedIn,
-		onBookmark,
 		onBackClick,
 		comments,
 		formError,
@@ -41,7 +40,6 @@
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
 		isLoggedIn: boolean
-		onBookmark?: () => void
 		onBackClick?: () => void
 		onLike?: () => void
 		onDislike?: () => void

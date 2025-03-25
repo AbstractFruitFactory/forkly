@@ -3,7 +3,6 @@
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
-	import BookmarkButton from '$lib/components/bookmark-button/BookmarkButton.svelte'
 
 	type Recipe = {
 		id: string
@@ -11,7 +10,6 @@
 		imageUrl?: string
 		tags?: string[]
 		likes?: number
-		bookmarks?: number
 	}
 
 	let {
@@ -49,7 +47,6 @@
 		<div class="details">
 			<div class="action-container">
 				<LikeButton count={recipe.likes ?? 0} interactive={false} />
-				<BookmarkButton count={recipe.bookmarks ?? 0} interactive={false} />
 			</div>
 			
 			{#if recipe.tags && recipe.tags.length > 0}
@@ -219,8 +216,7 @@
 		gap: var(--spacing-xs);
 		filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 		
-		:global(.like-button),
-		:global(.bookmark-button) {
+		:global(.like-button) {
 			background: rgba(0, 0, 0, 0.3);
 			backdrop-filter: blur(4px);
 		}

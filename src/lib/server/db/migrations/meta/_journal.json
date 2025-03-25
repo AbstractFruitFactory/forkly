@@ -8,6 +8,13 @@
       "when": 1742767424296,
       "tag": "0000_milky_cloak",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1742904841431,
+      "tag": "0001_bumpy_supernaut",
+      "breakpoints": true
     }
   ]
 }

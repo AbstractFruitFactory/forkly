@@ -13,7 +13,6 @@
 			avatarUrl?: string | null
 		}
 		likes: number
-		bookmarks: number
 		createdAt: string
 		dislikes?: number
 		tags?: string[]
