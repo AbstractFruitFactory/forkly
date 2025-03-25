@@ -14,6 +14,7 @@
 	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
 	import RecipeInstruction from '$lib/components/accordion/RecipeInstruction.svelte'
 	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
+	import RecipeCreator from '$lib/components/recipe-creator/RecipeCreator.svelte'
 
 	let {
 		recipe,
@@ -104,6 +105,16 @@
 
 			{#if recipe.description}
 				<p class="description">{recipe.description}</p>
+			{/if}
+
+			{#if recipe.userId && recipe.user?.username}
+				<div class="recipe-creator-wrapper">
+					<RecipeCreator 
+						username={recipe.user.username} 
+						userId={recipe.userId}
+						profilePicUrl={recipe.user?.avatarUrl}
+					/>
+				</div>
 			{/if}
 
 			<div class="recipe-tags">
@@ -200,6 +211,7 @@
 	.recipe-intro {
 		display: flex;
 		flex-direction: column;
+		gap: var(--spacing-md);
 
 		h2 {
 			margin-bottom: 0;
@@ -352,5 +364,9 @@
 		margin-top: var(--spacing-xl);
 		padding-top: var(--spacing-xl);
 		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.recipe-creator-wrapper {
+		margin-top: var(--spacing-sm);
 	}
 </style>

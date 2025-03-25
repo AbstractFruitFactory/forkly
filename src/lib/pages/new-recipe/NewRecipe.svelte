@@ -169,7 +169,7 @@
 			}
 		}}
 	>
-		<MediaUpload name="image" type="image" maxSize={5} previewAlt="Recipe preview" />
+		<MediaUpload name="image" type="image" previewAlt="Recipe preview" />
 
 		{#if errors}
 			<div class="error-container">

@@ -1,17 +1,24 @@
 <script lang="ts">
+	const sizeMap = {
+		sm: '32px',
+		lg: '48px'
+	} as const;
+
 	let { 
 		profilePicUrl,
-		size = '32px'
+		size = 'sm'
 	}: { 
 		profilePicUrl?: string,
-		size?: string
+		size?: 'sm' | 'lg'
 	} = $props()
+
+	const pixelSize = sizeMap[size];
 </script>
 
 {#if profilePicUrl}
-	<img src={profilePicUrl} alt="Profile" class="profile-pic" style="width: {size}; height: {size};" />
+	<img src={profilePicUrl} alt="Profile" class="profile-pic" style="width: {pixelSize}; height: {pixelSize};" />
 {:else}
-	<div class="profile-pic-placeholder" style="width: {size}; height: {size};">
+	<div class="profile-pic-placeholder" style="width: {pixelSize}; height: {pixelSize};">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="20"

@@ -75,7 +75,6 @@
 							<MediaUpload
 								name="avatar"
 								type="image"
-								maxSize={5}
 								previewAlt="Profile picture"
 								{error}
 							/>

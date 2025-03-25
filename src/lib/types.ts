@@ -58,6 +58,7 @@ export type Ingredient = CustomIngredient | LookupIngredient
 
 export type RecipeData = {
   id: string
+  userId?: string
   title: string
   description?: string
   ingredients: Ingredient[]
@@ -75,6 +76,11 @@ export type RecipeData = {
     fat: number
   }
   likes: number
+  dislikes: number
   isLiked?: boolean
   isDisliked?: boolean
+  user?: {
+    username?: string
+    avatarUrl?: string
+  }
 }

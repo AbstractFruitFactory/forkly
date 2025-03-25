@@ -41,17 +41,12 @@
 		<div style="padding: 20px; background-color: #1a1a1a; display: flex; gap: 16px; align-items: center;">
 			<ProfilePic
 				profilePicUrl="https://i.pravatar.cc/150?u=user123"
-				size="24px"
+				size="sm"
 				{...args}
 			/>
 			<ProfilePic
 				profilePicUrl="https://i.pravatar.cc/150?u=user123"
-				size="48px"
-				{...args}
-			/>
-			<ProfilePic
-				profilePicUrl="https://i.pravatar.cc/150?u=user123"
-				size="72px"
+				size="lg"
 				{...args}
 			/>
 		</div>
@@ -61,9 +56,8 @@
 <Story name="Different Placeholder Sizes">
 	{#snippet children(args)}
 		<div style="padding: 20px; background-color: #1a1a1a; display: flex; gap: 16px; align-items: center;">
-			<ProfilePic size="24px" {...args} />
-			<ProfilePic size="48px" {...args} />
-			<ProfilePic size="72px" {...args} />
+			<ProfilePic size="sm" {...args} />
+			<ProfilePic size="lg" {...args} />
 		</div>
 	{/snippet}
 </Story> 

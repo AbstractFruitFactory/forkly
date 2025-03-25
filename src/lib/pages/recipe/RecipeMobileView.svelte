@@ -16,6 +16,7 @@
 	import RecipeInstruction from '$lib/components/accordion/RecipeInstruction.svelte'
 	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
 	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
+	import RecipeCreator from '$lib/components/recipe-creator/RecipeCreator.svelte'
 
 	let {
 		recipe,
@@ -185,9 +186,13 @@
 		<div class="recipe-content">
 			<div class="recipe-header">
 				<h3>{recipe.title}</h3>
-				{#if chef?.avatar && chef.avatar !== ''}
-					<div class="author-avatar">
-						<ProfilePic profilePicUrl={chef.avatar} size="32px" />
+				{#if recipe.userId && recipe.user?.username}
+					<div class="recipe-creator-wrapper">
+						<RecipeCreator 
+							username={recipe.user.username} 
+							userId={recipe.userId}
+							profilePicUrl={recipe.user?.avatarUrl}
+						/>
 					</div>
 				{/if}
 			</div>
@@ -412,27 +417,19 @@
 
 	.recipe-header {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--spacing-md);
-		margin: 0 0 var(--spacing-md);
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		margin-bottom: var(--spacing-md);
+
+		h3 {
+			margin: 0;
+			font-size: 1.5rem;
+			line-height: 1.2;
+		}
 	}
 
-	.recipe-header h3 {
-		margin: 0;
-		flex: 1;
-		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-bold);
-		color: white;
-		padding: 0;
-	}
-
-	.author-avatar {
-		flex-shrink: 0;
-		width: 32px;
-		height: 32px;
-		border-radius: var(--border-radius-full);
-		overflow: hidden;
+	.recipe-creator-wrapper {
+		margin-top: var(--spacing-xs);
 	}
 
 	.description {
