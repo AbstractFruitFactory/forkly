@@ -81,7 +81,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
   // Title search
   if (query.trim()) {
     const searchTerms = query.trim().split(/\s+/)
-    
+
     // Handle each term independently with implicit OR logic
     for (const term of searchTerms) {
       conditions.push(ilike(recipe.title, `%${term}%`))
@@ -235,7 +235,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
           recipesWithAllIngredients,
           eq(recipe.id, recipesWithAllIngredients.recipeId)
         )
-      
+
       return nullToUndefined(results)
     }
 
@@ -458,6 +458,100 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     likes: likes.length,
     dislikes: dislikes.length
   }
-  
+
   return nullToUndefined(result)
+}
+
+export type RecipeSimilarityScore = {
+  recipeId: string
+  score: number
+}
+
+const calculateIngredientSimilarity = (ingredients1: DetailedRecipe['ingredients'], ingredients2: DetailedRecipe['ingredients']): number => {
+  if (!ingredients1?.length || !ingredients2?.length) return 0
+
+  const normalized1 = ingredients1.map(i => ({
+    name: i.name.toLowerCase(),
+    quantity: i.quantity
+  }))
+  const normalized2 = ingredients2.map(i => ({
+    name: i.name.toLowerCase(),
+    quantity: i.quantity
+  }))
+
+  let totalSimilarity = 0
+  let totalIngredients = Math.max(normalized1.length, normalized2.length)
+
+  for (const ing1 of normalized1) {
+    const matchingIng = normalized2.find(ing2 => ing2.name === ing1.name)
+    if (matchingIng) {
+      const quantityDiff = Math.abs(ing1.quantity - matchingIng.quantity)
+      const maxQuantity = Math.max(ing1.quantity, matchingIng.quantity)
+      const quantitySimilarity = 1 - (quantityDiff / maxQuantity)
+      totalSimilarity += quantitySimilarity
+    }
+  }
+
+  return totalSimilarity / totalIngredients
+}
+
+const calculateTagSimilarity = (tags1: string[], tags2: string[]): number => {
+  if (!tags1?.length || !tags2?.length) return 0
+
+  const set1 = new Set(tags1.map(t => t.toLowerCase()))
+  const set2 = new Set(tags2.map(t => t.toLowerCase()))
+
+  const intersection = new Set([...set1].filter(x => set2.has(x)))
+  const union = new Set([...set1, ...set2])
+
+  return intersection.size / union.size
+}
+
+const calculateTitleSimilarity = (title1: string, title2: string): number => {
+  if (!title1 || !title2) return 0
+
+  const words1 = new Set(title1.toLowerCase().split(/\s+/))
+  const words2 = new Set(title2.toLowerCase().split(/\s+/))
+
+  const intersection = new Set([...words1].filter(x => words2.has(x)))
+  const union = new Set([...words1, ...words2])
+
+  return intersection.size / union.size
+}
+
+export const getSimilarRecipes = async (recipeId: string, limit: number = 5) => {
+  // Get the target recipe
+  const targetRecipe = await getRecipes({ recipeIds: [recipeId], detailed: true })
+  if (!targetRecipe.length) {
+    return []
+  }
+
+  // Get all other recipes
+  const allRecipes = await getRecipes({ detailed: true })
+  const otherRecipes = allRecipes.filter(r => r.id !== recipeId)
+
+  // Calculate similarity scores
+  const similarityScores: RecipeSimilarityScore[] = otherRecipes.map(recipe => {
+    const ingredientScore = calculateIngredientSimilarity(targetRecipe[0].ingredients, recipe.ingredients)
+    const tagScore = calculateTagSimilarity(targetRecipe[0].tags, recipe.tags)
+    const titleScore = calculateTitleSimilarity(targetRecipe[0].title, recipe.title)
+
+    const totalScore = (
+      ingredientScore * 0.6 +
+      tagScore * 0.3 +
+      titleScore * 0.1
+    )
+
+    return {
+      recipeId: recipe.id,
+      score: totalScore
+    }
+  })
+
+  const topRecipeIds = similarityScores
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(score => score.recipeId)
+
+  return getRecipes({ recipeIds: topRecipeIds })
 } 
