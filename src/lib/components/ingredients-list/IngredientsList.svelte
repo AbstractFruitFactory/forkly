@@ -42,9 +42,8 @@
 			padding: var(--spacing-xs) 0;
 			border-bottom: 2px dotted rgba(255, 255, 255, 0.1);
 			display: flex;
-			justify-content: space-between;
 			font-size: var(--font-size-sm);
-			max-width: 400px;
+			width: 100%;
 
 			&:last-child {
 				border-bottom: none;
