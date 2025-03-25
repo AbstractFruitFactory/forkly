@@ -49,6 +49,7 @@ export type RecipeFilterBase = {
   recipeIds?: string[]
   userId?: string
   limit?: number
+  offset?: number
 }
 
 export type BasicRecipeFilter = RecipeFilterBase & { detailed?: false }
@@ -65,6 +66,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     recipeIds = [],
     userId,
     limit,
+    offset = 0,
     detailed = false
   } = filters
 
@@ -166,6 +168,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         recipeNutrition.fat
       )
       .orderBy(desc(recipe.createdAt))
+      .offset(offset)
 
     // Apply limit if provided
     const limitedQuery = limit ? finalQuery.limit(limit) : finalQuery
@@ -208,6 +211,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     const finalQuery = queryWithWhere
       .groupBy(recipe.id)
       .orderBy(desc(recipe.createdAt))
+      .offset(offset)
 
     // Apply limit if provided
     const limitedQuery = limit ? finalQuery.limit(limit) : finalQuery

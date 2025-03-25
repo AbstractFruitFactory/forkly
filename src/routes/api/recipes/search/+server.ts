@@ -13,6 +13,7 @@ export type RecipesSearchResponse = {
 export const GET = async ({ url }) => {
   const query = url.searchParams.get('q') || ''
   const limit = parseInt(url.searchParams.get('limit') || '5', 10)
+  const offset = parseInt(url.searchParams.get('offset') || '0', 10)
 
   // Parse tags from query params (comma-separated list)
   const tagsParam = url.searchParams.get('tags') || ''
@@ -27,6 +28,7 @@ export const GET = async ({ url }) => {
     tags,
     ingredients,
     limit,
+    offset,
     detailed: true
   }
 
