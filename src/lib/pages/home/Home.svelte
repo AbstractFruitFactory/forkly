@@ -257,7 +257,7 @@
 		{@render searchResultsHeader()}
 	{/if}
 
-	<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} />
+	<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} {isLoading} />
 </div>
 
 <style lang="scss">

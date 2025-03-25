@@ -21,10 +21,12 @@
 
 	let {
 		recipes = [],
-		emptyMessage = 'No recipes found.'
+		emptyMessage = 'No recipes found.',
+		isLoading = false
 	}: {
 		recipes: Recipe[]
 		emptyMessage?: string
+		isLoading?: boolean
 	} = $props()
 </script>
 
@@ -37,12 +39,18 @@
 		{#each recipes as recipe}
 			<RecipeCard {recipe} />
 		{/each}
+
+		{#if isLoading}
+			{#each Array(18) as _}
+				<RecipeCard loading />
+			{/each}
+		{/if}
 	</div>
 {/if}
 
 <style lang="scss">
 	@import '$lib/global.scss';
-	
+
 	.empty-state {
 		text-align: center;
 		padding: var(--spacing-2xl) 0;
@@ -67,4 +75,4 @@
 			grid-template-columns: 1fr;
 		}
 	}
-</style> 
+</style>

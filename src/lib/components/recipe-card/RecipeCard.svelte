@@ -22,16 +22,25 @@
 	}
 
 	let {
-		recipe
+		recipe,
+		loading = false
 	}: {
-		recipe: Recipe
+		recipe?: Recipe
+		loading?: boolean
 	} = $props()
 </script>
 
-<a href="/recipe/{recipe.id}" class="recipe-card" aria-labelledby="recipe-title-{recipe.id}">
+<a
+	href={recipe ? `/recipe/${recipe.id}` : undefined}
+	class="recipe-card"
+	class:skeleton={loading}
+	aria-labelledby={recipe ? `recipe-title-${recipe.id}` : undefined}
+>
 	<div class="header">
-		<div class="image-container" class:no-image={!recipe.imageUrl}>
-			{#if recipe.imageUrl}
+		<div class="image-container" class:no-image={recipe && !recipe.imageUrl}>
+			{#if loading}
+				<div class="gradient-animate"></div>
+			{:else if recipe?.imageUrl}
 				<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
 			{:else}
 				<div class="placeholder">
@@ -39,7 +48,11 @@
 				</div>
 			{/if}
 		</div>
-		{#if recipe.user}
+		{#if loading}
+			<div class="avatar">
+				<div class="gradient-animate"></div>
+			</div>
+		{:else if recipe?.user}
 			<div
 				class="avatar"
 				style="background: {recipe.user.avatarUrl
@@ -52,32 +65,66 @@
 			</div>
 		{/if}
 		<div class="action-buttons">
-			<LikeButton count={recipe.likes} />
+			{#if loading}
+				<div class="like-button">
+					<div class="gradient-animate"></div>
+				</div>
+			{:else if recipe}
+				<LikeButton count={recipe.likes} />
+			{/if}
 		</div>
 	</div>
 	<div class="content">
-		<h2 id="recipe-title-{recipe.id}">{recipe.title}</h2>
-		{#if recipe.description}
+		{#if loading}
+			<div class="title">
+				<div class="gradient-animate"></div>
+			</div>
+		{:else if recipe}
+			<h2 id="recipe-title-{recipe.id}">{recipe.title}</h2>
+		{/if}
+		{#if loading}
+			<div class="description">
+				<div class="gradient-animate"></div>
+			</div>
+		{:else if recipe}
 			<p class="description">{recipe.description}</p>
 		{/if}
 		<div class="meta" aria-label="Recipe details">
 			<span>
 				<List size={16} aria-hidden="true" />
-				<span>{recipe.ingredients} ingredients</span>
+				{#if loading}
+					<span class="text">
+						<div class="gradient-animate"></div>
+					</span>
+				{:else if recipe}
+					<span>{recipe.ingredients} ingredients</span>
+				{/if}
 			</span>
 			<span>
 				<Timer size={16} aria-hidden="true" />
-				<span>{recipe.instructions} steps</span>
+				{#if loading}
+					<span class="text">
+						<div class="gradient-animate"></div>
+					</span>
+				{:else if recipe}
+					<span>{recipe.instructions} steps</span>
+				{/if}
 			</span>
 		</div>
 
-		{#if recipe.tags && recipe.tags.length > 0}
-			<div class="tags">
+		<div class="tags">
+			{#if loading}
+				{#each Array(3) as _}
+					<div class="tag">
+						<div class="gradient-animate"></div>
+					</div>
+				{/each}
+			{:else if recipe?.tags && recipe.tags.length > 0}
 				{#each recipe.tags as tag}
 					<Pill text={tag} />
 				{/each}
-			</div>
-		{/if}
+			{/if}
+		</div>
 	</div>
 </a>
 
@@ -277,5 +324,99 @@
 		flex-wrap: wrap;
 		gap: var(--spacing-xs);
 		margin-top: var(--spacing-md);
+	}
+
+	.skeleton {
+		pointer-events: none;
+	}
+
+	.gradient-animate {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			90deg,
+			rgba(255, 255, 255, 0.05) 0%,
+			rgba(255, 255, 255, 0.1) 25%,
+			rgba(255, 255, 255, 0.15) 50%,
+			rgba(255, 255, 255, 0.1) 75%,
+			rgba(255, 255, 255, 0.05) 100%
+		);
+		background-size: 200% 100%;
+		animation: gradient-shift 1.5s ease-in-out infinite;
+		will-change: background-position;
+	}
+
+	.skeleton .image-container {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
+		background: var(--color-neutral-darker);
+	}
+
+	.skeleton .avatar {
+		position: absolute;
+		bottom: -16px;
+		right: var(--spacing-md);
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		overflow: hidden;
+		background: var(--color-neutral-darker);
+		border: 2px solid var(--color-background);
+		z-index: 2;
+	}
+
+	.skeleton .like-button {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		overflow: hidden;
+		background: var(--color-neutral-darker);
+	}
+
+	.skeleton .title {
+		position: relative;
+		width: 80%;
+		height: 24px;
+		margin-bottom: var(--spacing-md);
+		overflow: hidden;
+		background: var(--color-neutral-darker);
+	}
+
+	.skeleton .description {
+		position: relative;
+		width: 100%;
+		height: 40px;
+		margin-bottom: var(--spacing-lg);
+		overflow: hidden;
+		background: var(--color-neutral-darker);
+	}
+
+	.skeleton .text {
+		position: relative;
+		width: 60px;
+		height: 16px;
+		display: inline-block;
+		overflow: hidden;
+		background: var(--color-neutral-darker);
+	}
+
+	.skeleton .tag {
+		position: relative;
+		width: 80px;
+		height: 24px;
+		border-radius: var(--border-radius-sm);
+		overflow: hidden;
+		background: var(--color-neutral-darker);
+	}
+
+	@keyframes gradient-shift {
+		0% {
+			background-position: 200% 0;
+		}
+		100% {
+			background-position: -200% 0;
+		}
 	}
 </style>
