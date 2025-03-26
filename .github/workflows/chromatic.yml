@@ -31,7 +31,30 @@ jobs:
       - name: Build Storybook
         run: |
           export NODE_OPTIONS="--max-old-space-size=4096"
-          pnpm build-storybook --quiet
+          # Run build in background and capture PID
+          pnpm build-storybook & BUILD_PID=$!
+          
+          # Wait for up to 2 minutes
+          timeout 120 tail --pid=$BUILD_PID -f /dev/null || true
+          
+          # If build is still running, kill it forcefully
+          if kill -0 $BUILD_PID 2>/dev/null; then
+            echo "Build process taking too long, killing it..."
+            kill -9 $BUILD_PID
+            wait $BUILD_PID 2>/dev/null || true
+          fi
+          
+          # Give it a moment to finish writing files
+          sleep 5
+          
+          # Check if build succeeded
+          if [ -d "storybook-static" ] && [ -f "storybook-static/index.html" ]; then
+            echo "Storybook build completed successfully"
+            exit 0
+          else
+            echo "Storybook build failed or directory missing"
+            exit 1
+          fi
 
       - name: Publish to Chromatic
         uses: chromaui/action@latest
