@@ -120,6 +120,8 @@
 			currentStep++
 			videoLoaded = false
 			videoError = false
+		} else {
+			exitCookingMode()
 		}
 	}
 
@@ -334,22 +336,27 @@
 			</div>
 
 			<div class="cooking-navigation">
-				<button class="cooking-nav-button" onclick={prevStep} disabled={currentStep === 0}>
-					<svg width="24" height="24" viewBox="0 0 24 24">
-						<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-					</svg>
-					Previous
-				</button>
-				<button
-					class="cooking-nav-button"
+				{#if currentStep > 0}
+					<Button variant="text" onclick={prevStep} >
+						<svg width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
+							<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+						</svg>
+						Previous
+					</Button>
+				{:else}
+					<div class="cooking-nav-button"></div>
+				{/if}
+				<Button
+					variant={currentStep === recipe.instructions.length - 1 ? "secondary" : "text"}
 					onclick={nextStep}
-					disabled={currentStep === recipe.instructions.length - 1}
 				>
-					Next
-					<svg width="24" height="24" viewBox="0 0 24 24">
-						<path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-					</svg>
-				</button>
+					{currentStep === recipe.instructions.length - 1 ? 'Done' : 'Next'}
+					{#if currentStep < recipe.instructions.length - 1}
+						<svg width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
+							<path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+						</svg>
+					{/if}
+				</Button>
 			</div>
 		</div>
 	{/if}
@@ -718,6 +725,17 @@
 		padding: var(--spacing-md);
 		border-top: 1px solid var(--color-neutral-dark);
 		background: var(--color-neutral-dark);
+		gap: var(--spacing-md);
+
+		:global(.nav-button) {
+			display: flex;
+			align-items: center;
+			gap: var(--spacing-xs);
+		}
+
+		:global(.nav-icon) {
+			fill: currentColor;
+		}
 	}
 
 	.cooking-nav-button {
@@ -737,10 +755,6 @@
 	.cooking-nav-button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
-	}
-
-	.cooking-nav-button svg {
-		fill: currentColor;
 	}
 
 	.video-error,
