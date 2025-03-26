@@ -2,7 +2,7 @@
 	import Button from '$lib/components/button/Button.svelte'
 	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
 	import { onMount } from 'svelte'
-	import { PlusIcon } from 'lucide-svelte'
+	import PlusIcon from 'lucide-svelte/icons/plus'
 
 	let {
 		loggedIn = false,
@@ -44,7 +44,7 @@
 		<nav class="main-nav">
 			{#if loggedIn}
 				<a href={profileHref} class="profile-link">
-					<ProfilePic {profilePicUrl} size="32px" />
+					<ProfilePic {profilePicUrl} size="sm" />
 					<span class="profile-text">Profile</span>
 				</a>
 			{:else}

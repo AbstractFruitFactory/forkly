@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Clock from 'lucide-svelte/icons/clock'
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
