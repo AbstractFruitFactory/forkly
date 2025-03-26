@@ -1,37 +1,36 @@
 <script lang="ts">
 	import type { NutritionInfo } from '$lib/server/food-api'
 
-	let { nutrition } = $props<{
-		nutrition: {
-			totalNutrition: Omit<NutritionInfo, 'servingSize'>
-			hasCustomIngredients: boolean
-		}
-	}>()
+	let {
+		nutrition
+	}: {
+		nutrition: Omit<NutritionInfo, 'servingSize'>
+	} = $props()
 </script>
 
 <div class="nutrition-facts">
 	<div class="nutrition-grid">
 		<div class="nutrition-item">
 			<div class="nutrition-circle">
-				<span class="value">{Math.round(nutrition.totalNutrition.calories)}</span>
+				<span class="value">{Math.round(nutrition.calories)}</span>
 			</div>
 			<span class="label">CALORIES</span>
 		</div>
 		<div class="nutrition-item">
 			<div class="nutrition-circle">
-				<span class="value">{Math.round(nutrition.totalNutrition.protein)}g</span>
+				<span class="value">{Math.round(nutrition.protein)}g</span>
 			</div>
 			<span class="label">PROTEIN</span>
 		</div>
 		<div class="nutrition-item">
 			<div class="nutrition-circle">
-				<span class="value">{Math.round(nutrition.totalNutrition.carbs)}g</span>
+				<span class="value">{Math.round(nutrition.carbs)}g</span>
 			</div>
 			<span class="label">CARBS</span>
 		</div>
 		<div class="nutrition-item">
 			<div class="nutrition-circle">
-				<span class="value">{Math.round(nutrition.totalNutrition.fat)}g</span>
+				<span class="value">{Math.round(nutrition.fat)}g</span>
 			</div>
 			<span class="label">FAT</span>
 		</div>
@@ -118,4 +117,4 @@
 			margin-top: var(--spacing-xs);
 		}
 	}
-</style> 
+</style>

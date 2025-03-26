@@ -55,6 +55,14 @@
 		)
 	)
 
+	// Calculate nutrition per single serving
+	let singleServingNutrition = $derived({
+		calories: nutrition.totalNutrition.calories / recipe.servings,
+		protein: nutrition.totalNutrition.protein / recipe.servings,
+		carbs: nutrition.totalNutrition.carbs / recipe.servings,
+		fat: nutrition.totalNutrition.fat / recipe.servings
+	})
+
 	function handleServingsChange(newServings: number) {
 		currentServings = newServings
 	}
@@ -143,9 +151,12 @@
 				{/if}
 			</div>
 
-			<div class="nutrition-facts-wrapper">
-				<NutritionFacts {nutrition} />
-			</div>
+			{#if singleServingNutrition}
+				<div class="nutrition-facts-wrapper">
+					<div class="nutrition-subtitle">Nutrition facts per serving</div>
+					<NutritionFacts nutrition={singleServingNutrition} />
+				</div>
+			{/if}
 		</div>
 	</div>
 
@@ -301,6 +312,13 @@
 
 	.nutrition-facts-wrapper {
 		margin-top: var(--spacing-md);
+
+		.nutrition-subtitle {
+			font-size: var(--font-size-sm);
+			color: var(--color-neutral-light);
+			margin-bottom: var(--spacing-xs);
+			opacity: 0.8;
+		}
 	}
 
 	.recipe-content {
