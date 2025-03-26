@@ -20,6 +20,7 @@ const baseIngredientSchema = v.object({
 const createRecipeSchema = v.object({
   title: v.pipe(v.string(), v.minLength(1)),
   description: v.optional(v.string()),
+  servings: v.pipe(v.number(), v.minValue(1)),
   ingredients: v.array(
     v.union([
       v.intersect([

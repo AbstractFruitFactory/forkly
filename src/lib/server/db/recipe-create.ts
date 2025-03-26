@@ -34,6 +34,7 @@ type InstructionInput = {
 type RecipeInput = {
   title: string
   description?: string
+  servings: number
   ingredients: IngredientInput[]
   instructions: InstructionInput[]
   nutrition: NutritionInput
@@ -49,6 +50,7 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
     userId,
     title: input.title,
     description: input.description,
+    servings: input.servings,
     instructions: input.instructions,
     tags: input.tags || [],
     imageUrl: input.imageUrl

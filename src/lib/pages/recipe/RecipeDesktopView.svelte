@@ -15,6 +15,11 @@
 	import RecipeInstruction from '$lib/components/accordion/RecipeInstruction.svelte'
 	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
 	import RecipeCreator from '$lib/components/recipe-creator/RecipeCreator.svelte'
+	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
+	import {
+		getFormattedIngredient as formatIngredient,
+		scaleIngredientQuantity
+	} from './utils/recipeUtils'
 
 	let {
 		recipe,
@@ -42,6 +47,17 @@
 		comments?: any[]
 		formError?: string | null
 	}>()
+
+	let currentServings = $state(recipe.servings)
+	let scaledIngredients = $derived(
+		recipe.ingredients.map((ingredient: Ingredient) =>
+			scaleIngredientQuantity(ingredient, currentServings, recipe.servings)
+		)
+	)
+
+	function handleServingsChange(newServings: number) {
+		currentServings = newServings
+	}
 </script>
 
 <div class="desktop-view">
@@ -109,8 +125,8 @@
 
 			{#if recipe.userId && recipe.user?.username}
 				<div class="recipe-creator-wrapper">
-					<RecipeCreator 
-						username={recipe.user.username} 
+					<RecipeCreator
+						username={recipe.user.username}
 						userId={recipe.userId}
 						profilePicUrl={recipe.user?.avatarUrl}
 					/>
@@ -141,7 +157,10 @@
 					<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 				</div>
 			</div>
-			<IngredientsList ingredients={recipe.ingredients} {unitSystem} {getFormattedIngredient} />
+			<IngredientsList ingredients={scaledIngredients} {unitSystem} {getFormattedIngredient} />
+			<div class="servings-control">
+				<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
+			</div>
 		</div>
 
 		<div class="recipe-main">
@@ -179,7 +198,6 @@
 		}
 	}
 
-	// Original styles (now applied to desktop view)
 	.recipe-header-section {
 		display: grid;
 		grid-template-columns: minmax(250px, 40%) 1fr;
@@ -285,7 +303,6 @@
 		margin-top: var(--spacing-md);
 	}
 
-	// Main Content Section
 	.recipe-content {
 		display: grid;
 		grid-template-columns: 250px 1fr;
@@ -308,13 +325,11 @@
 		}
 	}
 
-	// Section Headers
 	.section-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: var(--spacing-lg);
-		padding-bottom: var(--spacing-xs);
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
 		h3 {
@@ -349,7 +364,12 @@
 		}
 	}
 
-	// Instructions List
+	.servings-control {
+		margin-bottom: var(--spacing-lg);
+		padding-bottom: var(--spacing-lg);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
 	.instructions-list {
 		padding-left: 0;
 		max-width: 800px;
@@ -359,7 +379,6 @@
 		gap: var(--spacing-lg);
 	}
 
-	// Comments Section
 	.comments-section {
 		margin-top: var(--spacing-xl);
 		padding-top: var(--spacing-xl);

@@ -23,6 +23,7 @@ export type DetailedRecipe = {
   likes: number
   dislikes: number
   bookmarks: number
+  servings: number
   ingredients: Array<{
     id: string
     name: string
@@ -121,6 +122,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         tags: recipe.tags,
         imageUrl: recipe.imageUrl,
         createdAt: recipe.createdAt,
+        servings: recipe.servings,
         likes: sql<number>`count(DISTINCT ${recipeLike.userId})::int`,
         dislikes: sql<number>`count(DISTINCT ${recipeDislike.userId})::int`,
         ingredients: sql<Array<{ id: string, name: string, quantity: number, measurement: string, custom?: boolean }>>`json_agg(
@@ -379,7 +381,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     description: recipe.description,
     instructions: recipe.instructions,
     imageUrl: recipe.imageUrl,
-    tags: recipe.tags
+    tags: recipe.tags,
+    servings: recipe.servings
   })
     .from(recipe)
     .where(eq(recipe.id, recipeId))

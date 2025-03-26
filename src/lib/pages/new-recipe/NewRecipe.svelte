@@ -34,6 +34,7 @@
 
 	let ingredientCount = $state(1)
 	let instructionCount = $state(1)
+	let servings = $state(1)
 	let inputValues = $state<Record<number, string>>({})
 	let suggestions = $state<Record<number, T[]>>({})
 	let isLoading = $state<Record<number, boolean>>({})
@@ -162,6 +163,7 @@
 					formData.append(`ingredient-${index}-lookupdata`, JSON.stringify(ingredient))
 				}
 			})
+			formData.append('servings', servings.toString())
 
 			return async ({ update }) => {
 				submitting = false
@@ -191,6 +193,21 @@
 			<Input>
 				<textarea id="description" name="description" placeholder="Describe your recipe" rows="3"
 				></textarea>
+			</Input>
+		</div>
+
+		<div class="form-group">
+			<label for="servings">Servings</label>
+			<Input>
+				<input 
+					id="servings" 
+					name="servings" 
+					type="number" 
+					min="1" 
+					required 
+					placeholder="Number of servings" 
+					bind:value={servings}
+				/>
 			</Input>
 		</div>
 

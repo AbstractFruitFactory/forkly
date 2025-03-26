@@ -1,15 +1,16 @@
 <script lang="ts">
-	import type { RecipeData } from '$lib/types'
+	import type { RecipeData, Ingredient } from '$lib/types'
 	import type { NutritionInfo } from '$lib/server/food-api'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import type { getFormattedIngredient as GetFormattedIngredient } from './utils/recipeUtils'
+	import {
+		getFormattedIngredient as formatIngredient,
+		scaleIngredientQuantity
+	} from './utils/recipeUtils'
 	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
 	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
-	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
-	import MediaPlayer from '$lib/components/media-player/MediaPlayer.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import { page } from '$app/state'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
@@ -17,6 +18,7 @@
 	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
 	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
 	import RecipeCreator from '$lib/components/recipe-creator/RecipeCreator.svelte'
+	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 
 	let {
 		recipe,
@@ -37,7 +39,7 @@
 			totalNutrition: Omit<NutritionInfo, 'servingSize'>
 			hasCustomIngredients: boolean
 		}
-		getFormattedIngredient: typeof GetFormattedIngredient
+		getFormattedIngredient: typeof formatIngredient
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
 		isLoggedIn: boolean
@@ -48,6 +50,17 @@
 		formError?: string
 		chef?: { name: string; title: string; avatar: string }
 	} = $props()
+
+	let currentServings = $state(recipe.servings)
+	let scaledIngredients = $derived(
+		recipe.ingredients.map((ingredient: Ingredient) =>
+			scaleIngredientQuantity(ingredient, currentServings, recipe.servings)
+		)
+	)
+
+	function handleServingsChange(newServings: number) {
+		currentServings = newServings
+	}
 
 	// Section references for scrolling
 	let ingredientsSection: HTMLElement
@@ -66,14 +79,6 @@
 
 	function scrollToSection(section: HTMLElement) {
 		section.scrollIntoView({ behavior: 'smooth' })
-	}
-
-	function toggleInstruction(index: number) {
-		if (expandedInstructions.includes(index)) {
-			expandedInstructions = expandedInstructions.filter((i) => i !== index)
-		} else {
-			expandedInstructions = [...expandedInstructions, index]
-		}
 	}
 
 	function startCookingMode() {
@@ -188,8 +193,8 @@
 				<h3>{recipe.title}</h3>
 				{#if recipe.userId && recipe.user?.username}
 					<div class="recipe-creator-wrapper">
-						<RecipeCreator 
-							username={recipe.user.username} 
+						<RecipeCreator
+							username={recipe.user.username}
 							userId={recipe.userId}
 							profilePicUrl={recipe.user?.avatarUrl}
 						/>
@@ -219,13 +224,15 @@
 
 			<div class="section-container">
 				<section class="content-section" bind:this={ingredientsSection}>
-					<div class="section-header">
+					<div class="ingredients-title-row">
 						<h4 class="section-title">Ingredients</h4>
-						<div class="unit-toggle-container">
-							<UnitToggle state={unitSystem} onSelect={onUnitChange} />
-						</div>
+
+						<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 					</div>
-					<IngredientsList ingredients={recipe.ingredients} {unitSystem} {getFormattedIngredient} />
+					<IngredientsList ingredients={scaledIngredients} {unitSystem} {getFormattedIngredient} />
+					<div class="servings-control">
+						<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
+					</div>
 				</section>
 
 				<section class="content-section" bind:this={instructionsSection}>
@@ -428,6 +435,12 @@
 		}
 	}
 
+	.ingredients-title-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
 	.recipe-creator-wrapper {
 		margin-top: var(--spacing-xs);
 	}
@@ -529,8 +542,20 @@
 		font-size: var(--font-size-lg);
 		font-weight: var(--font-weight-semibold);
 		margin-bottom: var(--spacing-md);
-		color: white;
+		color: var(--color-primary);
 		padding-bottom: var(--spacing-xs);
+		position: relative;
+		width: fit-content;
+
+		&::after {
+			content: '';
+			position: absolute;
+			bottom: 0px;
+			left: 0;
+			width: 100%;
+			height: 2px;
+			background-color: var(--color-primary);
+		}
 	}
 
 	.section-header {
@@ -815,12 +840,10 @@
 		}
 	}
 
-	.unit-toggle-container {
-		margin-left: var(--spacing-md);
-
-		@include mobile {
-			margin-left: var(--spacing-sm);
-		}
+	.unit-toggle-wrapper {
+		margin-bottom: var(--spacing-lg);
+		display: flex;
+		justify-content: flex-end;
 	}
 
 	.debug {

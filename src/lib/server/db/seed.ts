@@ -39,7 +39,8 @@ export const seed = async () => {
       ],
       imageUrl: 'https://www.allrecipes.com/thmb/vtJaLavws0DJyHAbSbL6WyuuRQk=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/4470536-chef-johns-fresh-salmon-cakes-Chef-John-1x1-1-217fa762bb5c4d098ee1cb0044994758.jpg',
       userId: null,
-      tags: ['pescatarian', 'seafood', 'quick']
+      tags: ['pescatarian', 'seafood', 'quick'],
+      servings: 4
     },
     {
       id: generateId(),
@@ -58,7 +59,8 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&q=80',
       userId: null,
-      tags: ['pescatarian', 'healthy', 'grilled']
+      tags: ['pescatarian', 'healthy', 'grilled'],
+      servings: 2
     },
     {
       id: generateId(),
@@ -73,7 +75,8 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&q=80',
       userId: null,
-      tags: ['italian', 'pasta', 'easy']
+      tags: ['italian', 'pasta', 'easy'],
+      servings: 4
     },
     {
       id: generateId(),
@@ -102,7 +105,8 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&q=80',
       userId: null,
-      tags: ['vegetarian', 'dessert', 'baking']
+      tags: ['vegetarian', 'dessert', 'baking'],
+      servings: 24
     },
     {
       id: generateId(),
@@ -119,7 +123,8 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80',
       userId: null,
-      tags: ['salad', 'healthy', 'fresh']
+      tags: ['salad', 'healthy', 'fresh'],
+      servings: 4
     },
     {
       id: generateId(),
@@ -136,7 +141,8 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80',
       userId: null,
-      tags: ['italian', 'cheese', 'dinner']
+      tags: ['italian', 'cheese', 'dinner'],
+      servings: 4
     },
     {
       id: generateId(),
@@ -154,7 +160,8 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&q=80',
       userId: null,
-      tags: ['asian', 'chicken', 'quick']
+      tags: ['asian', 'chicken', 'quick'],
+      servings: 4
     },
     {
       id: generateId(),
@@ -184,7 +191,8 @@ export const seed = async () => {
       ],
       imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80',
       userId: null,
-      tags: ['vegan', 'gluten-free', 'healthy', 'bowl']
+      tags: ['vegan', 'gluten-free', 'healthy', 'bowl'],
+      servings: 2
     }
   ]
 

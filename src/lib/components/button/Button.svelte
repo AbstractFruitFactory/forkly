@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
 
-	type Variant = 'primary' | 'secondary' | 'text' | 'dotted'
-	type Size = 'sm' | 'md' | 'lg'
+	type Variant = 'primary' | 'secondary' | 'text' | 'dotted' | 'border'
+	type Size = 'xs' | 'sm' | 'md' | 'lg'
 
 	let {
 		variant = 'primary',
@@ -37,6 +37,8 @@
 	class:secondary={variant === 'secondary'}
 	class:text={variant === 'text'}
 	class:dotted={variant === 'dotted'}
+	class:border={variant === 'border'}
+	class:xs={size === 'xs'}
 	class:sm={size === 'sm'}
 	class:md={size === 'md'}
 	class:lg={size === 'lg'}
@@ -94,6 +96,11 @@
 		}
 
 		// Sizes
+		&.xs > .content {
+			padding: var(--spacing-xs) var(--spacing-sm);
+			font-size: var(--font-size-xs);
+		}
+
 		&.sm > .content {
 			padding: var(--spacing-sm) var(--spacing-md);
 			font-size: var(--font-size-sm);
@@ -148,6 +155,14 @@
 			&:hover:not(:disabled) {
 				color: var(--color-primary);
 				border-color: var(--color-primary);
+				background: rgba(0, 0, 0, 0.05);
+			}
+		}
+
+		&.border {
+			border: var(--border-width-normal) solid var(--color-neutral);
+
+			&:hover:not(:disabled) {
 				background: rgba(0, 0, 0, 0.05);
 			}
 		}

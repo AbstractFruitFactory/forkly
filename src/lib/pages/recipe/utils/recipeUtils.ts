@@ -8,6 +8,16 @@ import {
 } from '$lib/utils/unitConversion'
 
 /**
+ * Scales an ingredient's quantity based on serving size changes
+ */
+export const scaleIngredientQuantity = (ingredient: Ingredient, currentServings: number, originalServings: number) => {
+  return {
+    ...ingredient,
+    quantity: ingredient.quantity * (currentServings / originalServings)
+  }
+}
+
+/**
  * Formats an ingredient with the appropriate unit system
  */
 export const getFormattedIngredient = (ingredient: Ingredient, unitSystem: UnitSystem) => {

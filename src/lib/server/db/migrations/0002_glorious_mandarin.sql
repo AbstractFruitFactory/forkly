@@ -1,0 +1,1 @@
+ALTER TABLE "recipe" ADD COLUMN "servings" integer DEFAULT 1 NOT NULL;

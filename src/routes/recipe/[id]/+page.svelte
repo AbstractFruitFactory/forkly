@@ -6,6 +6,7 @@
 	import { safeFetch } from '$lib/utils/fetch.js'
 	import type { RecipesLikeResponse } from '../../api/recipes/like/+server.js'
 	import type { RecipesDislikeResponse } from '../../api/recipes/dislike/+server.js'
+	import type { RecipeData } from '$lib/types'
 
 	let { data } = $props()
 
@@ -56,6 +57,18 @@
 	}
 	
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
+
+	const recipeData: RecipeData = {
+		...data,
+		isLiked,
+		likes,
+		isDisliked,
+		ingredients,
+		user: data.user ? {
+			username: data.user.username,
+			avatarUrl: data.user.avatarUrl || undefined
+		} : undefined
+	}
 </script>
 
 <svelte:head>
@@ -72,20 +85,9 @@
 
 <div class="recipe-page" data-page="recipe">
 	<Recipe
-		recipe={{
-			...data,
-			isLiked,
-			likes,
-			isDisliked,
-			ingredients
-		}}
+		recipe={recipeData}
 		nutrition={{
-			totalNutrition: {
-				calories: data.nutrition.calories,
-				protein: data.nutrition.protein,
-				carbs: data.nutrition.carbs,
-				fat: data.nutrition.fat
-			},
+			totalNutrition: data.nutrition,
 			hasCustomIngredients: false
 		}}
 		{unitSystem}

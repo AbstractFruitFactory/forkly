@@ -61,6 +61,7 @@ export type RecipeData = {
   userId?: string
   title: string
   description?: string
+  servings: number
   ingredients: Ingredient[]
   instructions: {
     text: string;

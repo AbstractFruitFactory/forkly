@@ -15,6 +15,13 @@
       "when": 1742904841431,
       "tag": "0001_bumpy_supernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1742982089782,
+      "tag": "0002_glorious_mandarin",
+      "breakpoints": true
     }
   ]
 }
