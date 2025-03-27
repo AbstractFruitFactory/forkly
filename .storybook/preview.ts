@@ -1,4 +1,5 @@
 import type { Preview } from '@storybook/svelte'
+import { themes } from '@storybook/theming'
 import '../src/lib/global.scss'
 import './storybook-global.scss'
 
@@ -17,6 +18,9 @@ const preview: Preview = {
         { name: 'light', value: '#ffffff' },
       ],
     },
+    docs: {
+      theme: themes.dark,
+    }
   },
 }
 
