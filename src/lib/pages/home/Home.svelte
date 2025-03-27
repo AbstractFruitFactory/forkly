@@ -2,9 +2,9 @@
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import Search from '$lib/components/search/Search.svelte'
-	import PillSelector from '$lib/components/pill-selector/PillSelector.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import { onMount } from 'svelte'
+	import FilterSelector from '$lib/components/filter-selector/FilterSelector.svelte'
 
 	type Recipe = {
 		id: string
@@ -123,7 +123,6 @@
 		return engagementScore + recencyBoost
 	}
 
-	// Get sorted recipes
 	const sortedRecipes = $derived(
 		[...recipes].sort((a, b) => {
 			switch (sortBy) {
@@ -140,18 +139,17 @@
 	)
 
 	const loadTags = async (query: string): Promise<string[]> => {
-		const tags = await searchTags(query);
-		availableTags = tags;
-		return tags.map(formatTagWithCount);
+		const tags = await searchTags(query)
+		availableTags = tags
+		return tags.map(formatTagWithCount)
 	}
 
 	const loadIngredients = async (query: string): Promise<string[]> => {
-		const ingredients = await searchIngredients(query);
-		availableIngredients = ingredients;
-		return ingredients.map(ingredient => ingredient.name);
+		const ingredients = await searchIngredients(query)
+		availableIngredients = ingredients
+		return ingredients.map((ingredient) => ingredient.name)
 	}
-	
-	// Generate empty state message based on search criteria
+
 	const emptyStateMessage = $derived(
 		searchValue || selectedTags.length > 0 || selectedIngredients.length > 0
 			? 'No recipes found matching your criteria. Try different search terms or filters, or browse all recipes.'
@@ -207,22 +205,22 @@
 			</div>
 
 			<div class="pill-selectors">
-				<PillSelector
+				<FilterSelector
 					items={availableTags.map(formatTagWithCount)}
 					bind:selectedItems={selectedTags}
 					name="tags"
 					loadItems={loadTags}
 					onSelect={handleTagSelect}
-					label="+ tag"
+					label="include tag"
 				/>
 
-				<PillSelector
+				<FilterSelector
 					items={availableIngredients.map((i) => i.name)}
 					bind:selectedItems={selectedIngredients}
 					name="ingredients"
 					loadItems={loadIngredients}
 					onSelect={handleIngredientSelect}
-					label="+ ingredient"
+					label="include ingredient"
 				/>
 			</div>
 		</div>

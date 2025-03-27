@@ -3,13 +3,13 @@
 	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import PillSelector from '$lib/components/pill-selector/PillSelector.svelte'
 	import { enhance } from '$app/forms'
 	import { browser } from '$app/environment'
 	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import IngredientInput from '$lib/components/ingredient-input/IngredientInput.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
+	import FilterSelector from '$lib/components/filter-selector/FilterSelector.svelte'
 
 	type T = $$Generic<{ name: string; custom: false }>
 	type Ingredient = T | { name: string; custom: true }
@@ -130,23 +130,23 @@
 	// Function to search for tags
 	const searchTags = async (query: string): Promise<string[]> => {
 		if (!onSearchTags) return []
-		
+
 		const results = await onSearchTags(query)
-		return results.map(tag => tag.name)
+		return results.map((tag) => tag.name)
 	}
-	
+
 	// Handle tag selection
 	const handleTagSelect = (tag: string, selected: boolean) => {
 		if (selected && !selectedTags.includes(tag)) {
 			selectedTags = [...selectedTags, tag]
 		} else if (!selected && selectedTags.includes(tag)) {
-			selectedTags = selectedTags.filter(t => t !== tag)
+			selectedTags = selectedTags.filter((t) => t !== tag)
 		}
 	}
 
 	// Handle tag removal
 	const removeTag = (tag: string) => {
-		selectedTags = selectedTags.filter(t => t !== tag)
+		selectedTags = selectedTags.filter((t) => t !== tag)
 	}
 
 	let submitting = $state(false)
@@ -199,13 +199,13 @@
 		<div class="form-group">
 			<label for="servings">Servings</label>
 			<Input>
-				<input 
-					id="servings" 
-					name="servings" 
-					type="number" 
-					min="1" 
-					required 
-					placeholder="Number of servings" 
+				<input
+					id="servings"
+					name="servings"
+					type="number"
+					min="1"
+					required
+					placeholder="Number of servings"
 					bind:value={servings}
 				/>
 			</Input>
@@ -214,16 +214,16 @@
 		<div class="form-group">
 			<label for="tags">Tags</label>
 			<div>
-				<PillSelector
-					items={availableTags.map(tag => tag.name)}
+				<FilterSelector
+					items={availableTags.map((tag) => tag.name)}
 					bind:selectedItems={selectedTags}
 					name="tags"
 					loadItems={searchTags}
 					onSelect={handleTagSelect}
-					label="+ tag"
+					label="search for tag"
 					allowCustomItems={true}
 				/>
-				
+
 				{#if selectedTags.length > 0}
 					<div class="selected-tags">
 						{#each selectedTags as tag}

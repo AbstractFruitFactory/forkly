@@ -46,29 +46,25 @@
 		} else {
 			selectedItems = [...selectedItems, item]
 		}
-		
-		// Notify parent component
+
 		if (onSelect) {
 			onSelect(item, !isSelected)
 		}
 	}
 
 	const addCustomItem = () => {
-		if (!searchQuery.trim()) return;
-		
-		// Make sure the item isn't already in the list
+		if (!searchQuery.trim()) return
+
 		if (!selectedItems.includes(searchQuery.trim())) {
-			selectedItems = [...selectedItems, searchQuery.trim()];
-			
-			// Notify parent component
+			selectedItems = [...selectedItems, searchQuery.trim()]
+
 			if (onSelect) {
-				onSelect(searchQuery.trim(), true);
+				onSelect(searchQuery.trim(), true)
 			}
 		}
-		
-		// Close the dropdown and reset search
-		searchQuery = '';
-		closeDropdown();
+
+		searchQuery = ''
+		closeDropdown()
 	}
 
 	const isNotSelected = (item: string): boolean => !selectedItems.includes(item)
@@ -86,12 +82,10 @@
 		const target = event.target as HTMLInputElement
 		searchQuery = target.value
 
-		// Clear any existing timeout
 		if (debounceTimeout) {
 			clearTimeout(debounceTimeout)
 		}
 
-		// Set a new timeout to update display items
 		debounceTimeout = setTimeout(async () => {
 			await updateDisplayItems(searchQuery)
 			debounceTimeout = null
@@ -100,20 +94,19 @@
 
 	const handleKeyPress = (event: KeyboardEvent) => {
 		if (event.key === 'Enter' && allowCustomItems && searchQuery.trim()) {
-			event.preventDefault();
-			addCustomItem();
+			event.preventDefault()
+			addCustomItem()
 		}
 	}
 
 	$effect(() => {
-		// Update display items when items prop changes
 		displayItems = [...items]
 	})
 
 	$inspect(colorMap)
 </script>
 
-<div class="pill-selector">
+<div class="filter-selector">
 	<button
 		type="button"
 		class="add-button"
@@ -156,14 +149,13 @@
 		</div>
 	{/if}
 
-	<!-- Hidden inputs to submit the selected values -->
 	{#each selectedItems as item (item)}
 		<input type="hidden" {name} value={item} />
 	{/each}
 </div>
 
 <style lang="scss">
-	.pill-selector {
+	.filter-selector {
 		position: relative;
 	}
 
@@ -178,16 +170,16 @@
 		display: inline-flex;
 		align-items: center;
 		gap: var(--spacing-xs);
-		background-color: rgba(255, 255, 255, 0.1);
-		color: var(--color-primary-light);
+		background-color: var(--color-neutral-dark);
+		color: var(--color-white);
 		padding: var(--spacing-sm) var(--spacing-md);
-		border-radius: var(--border-radius-full);
-		border: 1px solid var(--color-primary);
+		border-radius: var(--border-radius-md);
+		border: 1px solid var(--color-neutral-light);
 		cursor: pointer;
 		font-size: var(--font-size-sm);
 		font-weight: 500;
 		transition: all 0.2s ease;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
 		.add-icon {
 			font-size: 1.2em;
@@ -200,11 +192,12 @@
 			line-height: 1;
 			display: flex;
 			align-items: center;
+			color: var(--color-neutral-light);
 		}
 
 		&:hover {
-			background-color: var(--color-primary-dark);
-			transform: translateY(-1px);
+			border-color: var(--color-primary);
+			background: var(--color-neutral-darker);
 		}
 
 		&:focus {
