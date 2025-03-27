@@ -40,11 +40,11 @@
 			<circle cx="11" cy="11" r="8" />
 			<line x1="21" y1="21" x2="16.65" y2="16.65" />
 		</svg>
-		<Input {actionButton} {isLoading}>
+		<Input bind:value {actionButton} {isLoading}>
 			<input
 				type="search"
 				{placeholder}
-				value={value}
+				{value}
 				oninput={handleInput}
 				aria-label="Search"
 				bind:this={inputElement}
@@ -73,6 +73,32 @@
 		z-index: 1;
 	}
 
+	.clear-button {
+		position: absolute;
+		right: calc(var(--spacing-xl) * 2 + var(--spacing-xs));
+		background: none;
+		border: none;
+		padding: var(--spacing-xs);
+		cursor: pointer;
+		color: var(--color-neutral);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 2;
+		transition: all 0.2s ease;
+		opacity: 0.7;
+
+		&:hover {
+			color: var(--color-text);
+			opacity: 1;
+			background: var(--color-background-hover);
+		}
+
+		&:active {
+			transform: scale(0.95);
+		}
+	}
+
 	.loading-spinner {
 		position: absolute;
 		right: calc(var(--spacing-xl) * 2 + var(--spacing-xs));
@@ -84,11 +110,11 @@
 		animation: spin 1s linear infinite;
 		pointer-events: none;
 		z-index: 2;
+		opacity: 0.7;
 	}
 
 	:global(.search-input-container input) {
 		padding-left: calc(var(--spacing-xl) + var(--spacing-xs)) !important;
-		padding-right: calc(var(--spacing-xl) * 2 + var(--spacing-xs)) !important;
 	}
 
 	@keyframes spin {

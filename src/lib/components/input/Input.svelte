@@ -1,25 +1,46 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
+	import Clear from '../icons/Clear.svelte'
 
 	let {
 		children,
 		actionButton,
-		isLoading
+		isLoading,
+		value = $bindable('')
 	}: {
 		children: Snippet
 		actionButton?: { text: string; onClick: () => void }
 		isLoading?: boolean
+		value?: string
 	} = $props()
+
+	const showClear = $derived(value !== '')
+
+	const onClear = () => {
+		value = ''
+	}
 </script>
 
-<div class="input-wrapper">
+<div
+	class="input-wrapper"
+	style:--padding-right={actionButton
+		? 'calc(var(--spacing-xl) * 3 + var(--spacing-xs) * 2)'
+		: isLoading
+		? 'calc(var(--spacing-xl) + var(--spacing-xs) + 16px + var(--spacing-xs))'
+		: 'calc(var(--spacing-xl) + var(--spacing-xs))'}
+>
 	{@render children()}
 	<div class="right-elements">
+		{#if showClear}
+			<button class="clear-button" onclick={onClear} aria-label="Clear input">
+				<Clear />
+			</button>
+		{/if}
 		{#if isLoading}
-			<div class="loading-spinner" />
+			<div class="loading-spinner"></div>
 		{/if}
 		{#if actionButton}
-			<button class="action-button" type="button" on:click={actionButton.onClick}>
+			<button class="action-button" type="button" onclick={actionButton.onClick}>
 				{actionButton.text}
 			</button>
 		{/if}
@@ -74,8 +95,31 @@
 			transform: translateY(-50%);
 			display: flex;
 			align-items: center;
-			gap: var(--spacing-md);
+			gap: var(--spacing-xs);
 			z-index: 2;
+		}
+
+		.clear-button {
+			background: none;
+			border: none;
+			padding: var(--spacing-xs);
+			cursor: pointer;
+			color: var(--color-neutral);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: all 0.2s ease;
+			opacity: 0.7;
+
+			&:hover {
+				color: var(--color-text);
+				opacity: 1;
+				background: var(--color-background-hover);
+			}
+
+			&:active {
+				transform: scale(0.95);
+			}
 		}
 
 		.loading-spinner {
@@ -105,6 +149,7 @@
 		:global(select),
 		:global(textarea) {
 			@include input-base;
+			padding-right: var(--padding-right);
 		}
 
 		:global(select) {

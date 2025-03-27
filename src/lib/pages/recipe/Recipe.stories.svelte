@@ -3,8 +3,14 @@
 	import Recipe from './Recipe.svelte'
 	import type { MeasurementUnit } from '$lib/types'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+	import type { Component, ComponentProps } from 'svelte'
 
-	const { Story } = defineMeta({
+	type StoryProps = ComponentProps<typeof Recipe> & {
+		hasUser: boolean
+		hasImage: boolean
+	}
+
+	const { Story } = defineMeta<Component<StoryProps>>({
 		component: Recipe,
 		parameters: {
 			layout: 'fullscreen',
@@ -34,6 +40,7 @@
 		title: 'Classic Spaghetti Carbonara',
 		description:
 			'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
+		servings: 4,
 		ingredients: [
 			{ quantity: 400, measurement: 'grams' as MeasurementUnit, name: 'spaghetti', custom: false },
 			{ quantity: 4, measurement: 'pieces' as MeasurementUnit, name: 'large eggs', custom: false },
@@ -123,7 +130,7 @@
 			nutrition={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
-			isLoggedIn={args.hasUser}
+			isLoggedIn={!!args.hasUser}
 			onLike={mockOnLike}
 		/>
 	{/snippet}
