@@ -300,9 +300,12 @@
 		gap: var(--spacing-xs);
 	}
 
-	/* Search Container Styles */
 	.search-container {
 		margin: var(--spacing-lg) 0;
+
+		@include tablet {
+			margin: var(--spacing-lg);
+		}
 	}
 
 	.search-content {
@@ -318,6 +321,11 @@
 		gap: var(--spacing-md);
 		align-items: center;
 		width: 100%;
+
+		@include tablet {
+			gap: var(--spacing-sm);
+			justify-content: center;
+		}
 	}
 
 	.search-bar {
