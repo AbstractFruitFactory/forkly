@@ -142,7 +142,7 @@
 					</button>
 				{/if}
 
-				{#if displayItems.filter(isNotSelected).length === 0 && !(allowCustomItems && searchQuery.trim())}
+				{#if searchQuery && displayItems.filter(isNotSelected).length === 0 && !(allowCustomItems && searchQuery.trim())}
 					<div class="no-items">No items available</div>
 				{/if}
 			</div>
