@@ -47,6 +47,7 @@ export type RecipeFilterBase = {
   query?: string
   tags?: string[]
   ingredients?: string[]
+  excludedIngredients?: string[]
   recipeIds?: string[]
   userId?: string
   limit?: number
@@ -64,6 +65,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     query = '',
     tags = [],
     ingredients = [],
+    excludedIngredients = [],
     recipeIds = [],
     userId,
     limit,
@@ -72,7 +74,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
   } = filters
 
   // Early return if all filters are empty unless explicitly searching for all recipes
-  if (query.trim() === '' && tags.length === 0 && ingredients.length === 0 && recipeIds.length === 0 && !detailed) {
+  if (query.trim() === '' && tags.length === 0 && ingredients.length === 0 && excludedIngredients.length === 0 && recipeIds.length === 0 && !detailed) {
     return []
   }
 
@@ -103,6 +105,31 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
   // User ID filter (for created recipes)
   if (userId) {
     conditions.push(eq(recipe.userId, userId))
+  }
+
+  // Ingredient filtering using raw SQL subquery
+  if (ingredients.length > 0) {
+    const ingredientsList = ingredients.map(ing => `'${ing}'`).join(',');
+    conditions.push(sql`${recipe.id} IN (
+      SELECT ri.recipe_id 
+      FROM recipe_ingredient ri
+      JOIN ingredient i ON ri.ingredient_id = i.id
+      WHERE i.name IN (${sql.raw(ingredientsList)})
+      GROUP BY ri.recipe_id
+      HAVING COUNT(DISTINCT i.name) = ${ingredients.length}
+    )`)
+  }
+
+  // Excluded ingredient filtering using raw SQL subquery
+  if (excludedIngredients.length > 0) {
+    const excludedList = excludedIngredients.map(ing => `'${ing}'`).join(',');
+    conditions.push(sql`${recipe.id} NOT IN (
+      SELECT ri.recipe_id 
+      FROM recipe_ingredient ri
+      JOIN ingredient i ON ri.ingredient_id = i.id
+      WHERE i.name IN (${sql.raw(excludedList)})
+      GROUP BY ri.recipe_id
+    )`)
   }
 
   // Create the final where condition
@@ -175,20 +202,6 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     // Apply limit if provided
     const limitedQuery = limit ? finalQuery.limit(limit) : finalQuery
 
-    // Handle ingredient filtering for detailed queries
-    if (ingredients.length > 0) {
-      const recipes = await limitedQuery
-
-      return nullToUndefined(recipes.filter(r => {
-        if (!r.ingredients) return false
-
-        const recipeIngredientNames = r.ingredients.map(i => i.name.toLowerCase())
-        return ingredients.every(ingredient =>
-          recipeIngredientNames.some(name => name.includes(ingredient.toLowerCase()))
-        )
-      }))
-    }
-
     const results = await limitedQuery
     return nullToUndefined(results)
   } else {
@@ -217,29 +230,6 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
 
     // Apply limit if provided
     const limitedQuery = limit ? finalQuery.limit(limit) : finalQuery
-
-    // Handle ingredient filtering
-    if (ingredients.length > 0) {
-      const recipesWithAllIngredients = db
-        .select({
-          recipeId: recipeIngredient.recipeId,
-          ingredientCount: count()
-        })
-        .from(recipeIngredient)
-        .innerJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
-        .where(inArray(ingredient.name, ingredients))
-        .groupBy(recipeIngredient.recipeId)
-        .having(eq(count(), ingredients.length))
-        .as('recipes_with_all_ingredients')
-
-      const results = await limitedQuery
-        .innerJoin(
-          recipesWithAllIngredients,
-          eq(recipe.id, recipesWithAllIngredients.recipeId)
-        )
-
-      return nullToUndefined(results)
-    }
 
     const results = await limitedQuery
     return nullToUndefined(results)

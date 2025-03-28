@@ -7,6 +7,7 @@ export type RecipesSearchResponse = {
   filters: {
     tags: string[]
     ingredients: string[]
+    excludedIngredients: string[]
   }
 }
 
@@ -23,10 +24,15 @@ export const GET = async ({ url }) => {
   const ingredientsParam = url.searchParams.get('ingredients') || ''
   const ingredients = ingredientsParam ? ingredientsParam.split(',') : []
 
+  // Parse excluded ingredients from query params (comma-separated list)
+  const excludedIngredientsParam = url.searchParams.get('excludedIngredients') || ''
+  const excludedIngredients = excludedIngredientsParam ? excludedIngredientsParam.split(',') : []
+
   const filters: RecipeFilter = {
     query,
     tags,
     ingredients,
+    excludedIngredients,
     limit,
     offset,
     detailed: true
@@ -39,7 +45,8 @@ export const GET = async ({ url }) => {
     query,
     filters: {
       tags,
-      ingredients
+      ingredients,
+      excludedIngredients
     }
   } satisfies RecipesSearchResponse
 

@@ -16,7 +16,8 @@
 	let searchResults = $state<ReturnType<typeof toHomePageRecipe>[] | null>(null)
 	let activeFilters = $state({
 		tags: [] as string[],
-		ingredients: [] as string[]
+		ingredients: [] as string[],
+		excludedIngredients: [] as string[]
 	})
 	let sortParam = $state<'popular' | 'newest' | 'easiest'>('popular')
 
@@ -33,11 +34,14 @@
 
 	const handleSearch = async (
 		query: string,
-		filters?: { tags: string[]; ingredients: string[] }
+		filters?: { tags: string[]; ingredients: string[]; excludedIngredients: string[] }
 	) => {
 		if (
 			!query.trim() &&
-			(!filters || (filters.tags.length === 0 && filters.ingredients.length === 0))
+			(!filters ||
+				(filters.tags.length === 0 &&
+					filters.ingredients.length === 0 &&
+					filters.excludedIngredients.length === 0))
 		) {
 			searchResults = null
 			pagination = {
@@ -66,6 +70,9 @@
 			}
 			if (filters.ingredients.length > 0) {
 				url += `&ingredients=${filters.ingredients.join(',')}`
+			}
+			if (filters.excludedIngredients.length > 0) {
+				url += `&excludedIngredients=${filters.excludedIngredients.join(',')}`
 			}
 		}
 
@@ -96,9 +103,14 @@
 		return response.isOk() ? response.value.tags : []
 	}
 
-	const handleFiltersChange = (filters: { tags: string[]; ingredients: string[] }) => {
+	const handleFiltersChange = (filters: { tags: string[]; ingredients: string[]; excludedIngredients: string[] }) => {
 		activeFilters = filters
-		if (filters.tags.length === 0 && filters.ingredients.length === 0 && !searchValue.trim()) {
+		if (
+			filters.tags.length === 0 &&
+			filters.ingredients.length === 0 &&
+			filters.excludedIngredients.length === 0 &&
+			!searchValue.trim()
+		) {
 			searchResults = null
 			pagination = {
 				offset: 0,
@@ -116,7 +128,8 @@
 		if (
 			!query.trim() &&
 			activeFilters.tags.length === 0 &&
-			activeFilters.ingredients.length === 0
+			activeFilters.ingredients.length === 0 &&
+			activeFilters.excludedIngredients.length === 0
 		) {
 			searchResults = null
 			pagination = {
@@ -136,7 +149,10 @@
 
 	const displayedRecipes = $derived(
 		searchResults &&
-			(searchValue.trim() || activeFilters.tags.length > 0 || activeFilters.ingredients.length > 0)
+			(searchValue.trim() ||
+				activeFilters.tags.length > 0 ||
+				activeFilters.ingredients.length > 0 ||
+				activeFilters.excludedIngredients.length > 0)
 			? searchResults
 			: recipes
 	)
@@ -156,6 +172,9 @@
 		}
 		if (activeFilters.ingredients.length > 0) {
 			url.searchParams.set('ingredients', activeFilters.ingredients.join(','))
+		}
+		if (activeFilters.excludedIngredients.length > 0) {
+			url.searchParams.set('excludedIngredients', activeFilters.excludedIngredients.join(','))
 		}
 
 		try {

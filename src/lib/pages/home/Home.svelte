@@ -27,7 +27,11 @@
 		recipes,
 		isLoading = false,
 		onSearchChange = (query: string) => {},
-		onFiltersChange = (filters: { tags: string[]; ingredients: string[] }) => {},
+		onFiltersChange = (filters: {
+			tags: string[]
+			ingredients: string[]
+			excludedIngredients: string[]
+		}) => {},
 		onSortChange = (sortBy: 'popular' | 'newest' | 'easiest') => {},
 		searchTags = (query: string) => Promise.resolve<{ name: string; count: number }[]>([]),
 		searchIngredients = (query: string) => Promise.resolve<{ id: string; name: string }[]>([])
@@ -35,7 +39,11 @@
 		recipes: Recipe[]
 		isLoading?: boolean
 		onSearchChange?: (query: string) => void
-		onFiltersChange?: (filters: { tags: string[]; ingredients: string[] }) => void
+		onFiltersChange?: (filters: {
+			tags: string[]
+			ingredients: string[]
+			excludedIngredients: string[]
+		}) => void
 		onSortChange?: (sortBy: 'popular' | 'newest' | 'easiest') => void
 		searchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 		searchIngredients?: (query: string) => Promise<{ id: string; name: string }[]>
@@ -44,6 +52,7 @@
 	let searchValue = $state('')
 	let selectedTags = $state<string[]>([])
 	let selectedIngredients = $state<string[]>([])
+	let excludedIngredients = $state<string[]>([])
 	let sortBy = $state<'popular' | 'newest' | 'easiest'>('popular')
 	let isMac = $state(false)
 	let searchInput: HTMLInputElement
@@ -90,6 +99,16 @@
 		notifyFiltersChanged()
 	}
 
+	const handleExcludedIngredientSelect = (ingredient: string, selected: boolean) => {
+		if (selected && !excludedIngredients.includes(ingredient)) {
+			excludedIngredients = [...excludedIngredients, ingredient]
+		} else if (!selected && excludedIngredients.includes(ingredient)) {
+			excludedIngredients = excludedIngredients.filter((i) => i !== ingredient)
+		}
+
+		notifyFiltersChanged()
+	}
+
 	const removeTag = (tag: string) => {
 		selectedTags = selectedTags.filter((t) => t !== tag)
 		notifyFiltersChanged()
@@ -97,6 +116,11 @@
 
 	const removeIngredient = (ingredient: string) => {
 		selectedIngredients = selectedIngredients.filter((i) => i !== ingredient)
+		notifyFiltersChanged()
+	}
+
+	const removeExcludedIngredient = (ingredient: string) => {
+		excludedIngredients = excludedIngredients.filter((i) => i !== ingredient)
 		notifyFiltersChanged()
 	}
 
@@ -108,7 +132,8 @@
 	const notifyFiltersChanged = () => {
 		onFiltersChange({
 			tags: selectedTags.map(extractTagName),
-			ingredients: selectedIngredients
+			ingredients: selectedIngredients,
+			excludedIngredients
 		})
 	}
 
@@ -151,41 +176,16 @@
 	}
 
 	const emptyStateMessage = $derived(
-		searchValue || selectedTags.length > 0 || selectedIngredients.length > 0
+		searchValue ||
+			selectedTags.length > 0 ||
+			selectedIngredients.length > 0 ||
+			excludedIngredients.length > 0
 			? 'No recipes found matching your criteria. Try different search terms or filters, or browse all recipes.'
 			: 'No recipes yet! Be the first to create one.'
 	)
 </script>
 
 <svelte:document onkeydown={handleKeyDown} />
-
-{#snippet searchResultsHeader()}
-	<div class="header-content">
-		<div class="sort-controls">
-			<Button
-				variant={sortBy === 'popular' ? 'primary' : 'text'}
-				size="sm"
-				onclick={() => handleSortClick('popular')}
-			>
-				Popular
-			</Button>
-			<Button
-				variant={sortBy === 'newest' ? 'primary' : 'text'}
-				size="sm"
-				onclick={() => handleSortClick('newest')}
-			>
-				Newest
-			</Button>
-			<Button
-				variant={sortBy === 'easiest' ? 'primary' : 'text'}
-				size="sm"
-				onclick={() => handleSortClick('easiest')}
-			>
-				Easiest
-			</Button>
-		</div>
-	</div>
-{/snippet}
 
 <div class="search-container">
 	<div class="search-content">
@@ -222,10 +222,19 @@
 					onSelect={handleIngredientSelect}
 					label="include ingredient"
 				/>
+
+				<FilterSelector
+					items={availableIngredients.map((i) => i.name)}
+					bind:selectedItems={excludedIngredients}
+					name="excluded-ingredients"
+					loadItems={loadIngredients}
+					onSelect={handleExcludedIngredientSelect}
+					label="exclude ingredient"
+				/>
 			</div>
 		</div>
 
-		{#if selectedTags.length > 0 || selectedIngredients.length > 0}
+		{#if selectedTags.length > 0 || selectedIngredients.length > 0 || excludedIngredients.length > 0}
 			<div class="selected-filters-container">
 				<div class="selected-pills">
 					{#each selectedTags as tag (tag)}
@@ -235,6 +244,10 @@
 					{#each selectedIngredients as ingredient (ingredient)}
 						<Pill text={ingredient} onRemove={() => removeIngredient(ingredient)} />
 					{/each}
+
+					{#each excludedIngredients as ingredient (ingredient)}
+						<Pill text={`-${ingredient}`} onRemove={() => removeExcludedIngredient(ingredient)} />
+					{/each}
 				</div>
 			</div>
 		{/if}
@@ -242,19 +255,31 @@
 </div>
 
 <div class="home-container">
-	{#if searchValue || selectedTags.length > 0 || selectedIngredients.length > 0}
-		<div class="search-results-header">
-			{@render searchResultsHeader()}
-
-			<p class="results-count">
-				{sortedRecipes.length}
-				{sortedRecipes.length === 1 ? 'recipe' : 'recipes'} found
-			</p>
+	<div class="header-content">
+		<div class="sort-controls">
+			<Button
+				variant={sortBy === 'popular' ? 'primary' : 'text'}
+				size="sm"
+				onclick={() => handleSortClick('popular')}
+			>
+				Popular
+			</Button>
+			<Button
+				variant={sortBy === 'newest' ? 'primary' : 'text'}
+				size="sm"
+				onclick={() => handleSortClick('newest')}
+			>
+				Newest
+			</Button>
+			<Button
+				variant={sortBy === 'easiest' ? 'primary' : 'text'}
+				size="sm"
+				onclick={() => handleSortClick('easiest')}
+			>
+				Easiest
+			</Button>
 		</div>
-	{:else}
-		{@render searchResultsHeader()}
-	{/if}
-
+	</div>
 	<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} {isLoading} />
 </div>
 
