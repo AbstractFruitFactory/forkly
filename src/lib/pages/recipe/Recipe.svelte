@@ -38,11 +38,9 @@
 	{recipe}
 	{nutrition}
 	{onLike}
-	{onDislike}
 	{unitSystem}
 	{onUnitChange}
 	{isLoggedIn}
-	{getFormattedIngredient}
 	{comments}
 	{formError}
 />

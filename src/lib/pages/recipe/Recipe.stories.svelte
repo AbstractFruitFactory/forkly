@@ -39,7 +39,7 @@
 		id: 'recipe-123',
 		title: 'Classic Spaghetti Carbonara',
 		description:
-			'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
+			'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper. Lorem ipsum dolor sit amet consectetur. Et enim nisi ac dui venenatis vitae egestas sit. Viverra vehicula odio quis convallis. Et libero mauris tincidunt volutpat ut ut posuere rhoncus. Condimentum risus egestas ultricies fermentum ullamcorper id varius dignissim feugiat.',
 		servings: 4,
 		ingredients: [
 			{ quantity: 400, measurement: 'grams' as MeasurementUnit, name: 'spaghetti', custom: false },
@@ -96,7 +96,9 @@
 			username: 'ChefEmma',
 			avatarUrl:
 				'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80'
-		}
+		},
+		tags: ['Vegan', 'Dinner', 'Sheet Pan'],
+		createdAt: '2024-01-01'
 	})
 
 	const mockNutrition = {

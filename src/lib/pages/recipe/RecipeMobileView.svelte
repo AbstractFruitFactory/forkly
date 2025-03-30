@@ -242,7 +242,7 @@
 
 						<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 					</div>
-					<IngredientsList ingredients={scaledIngredients} {unitSystem} {getFormattedIngredient} />
+					<IngredientsList ingredients={scaledIngredients} {unitSystem} />
 					<div class="servings-control">
 						<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
 					</div>
@@ -337,7 +337,7 @@
 
 			<div class="cooking-navigation">
 				{#if currentStep > 0}
-					<Button variant="text" onclick={prevStep} >
+					<Button variant="text" onclick={prevStep}>
 						<svg width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
 							<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
 						</svg>
@@ -347,7 +347,7 @@
 					<div class="cooking-nav-button"></div>
 				{/if}
 				<Button
-					variant={currentStep === recipe.instructions.length - 1 ? "secondary" : "text"}
+					variant={currentStep === recipe.instructions.length - 1 ? 'secondary' : 'text'}
 					onclick={nextStep}
 				>
 					{currentStep === recipe.instructions.length - 1 ? 'Done' : 'Next'}

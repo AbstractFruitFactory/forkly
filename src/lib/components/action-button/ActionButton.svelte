@@ -2,25 +2,19 @@
 	import type { ComponentType } from 'svelte'
 
 	let {
-		count = 0,
 		isActive = false,
 		interactive = false,
 		onAction,
 		icon,
 		activeLabel = 'Remove',
-		inactiveLabel = 'Add',
-		countLabel = 'items',
-		showCount = true
+		inactiveLabel = 'Add'
 	}: {
-		count: number
 		isActive?: boolean
 		interactive?: boolean
 		onAction?: () => void
 		icon: ComponentType
 		activeLabel?: string
 		inactiveLabel?: string
-		countLabel?: string
-		showCount?: boolean
 	} = $props()
 </script>
 
@@ -30,32 +24,26 @@
 	class="action-button"
 	class:active={isActive}
 	onclick={interactive ? onAction : undefined}
-	aria-label={interactive
-		? isActive
-			? `${activeLabel}`
-			: `${inactiveLabel}`
-		: `${count} ${countLabel}`}
 >
 	<svelte:component this={icon} size={20} class={isActive ? 'filled' : ''} />
-	{#if showCount}
-		<span class="count">{count}</span>
+	{#if activeLabel || inactiveLabel}
+		<span class="label">{isActive ? activeLabel : inactiveLabel}</span>
 	{/if}
 </svelte:element>
 
 <style lang="scss">
 	.action-button {
 		background: color-mix(in srgb, var(--color-neutral-dark) 90%, white);
-		border: none;
+		border: 1px solid rgba(255, 255, 255, 0.15);
 		border-radius: var(--border-radius-full);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		color: #b8b8b8;
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: 4px;
 		width: fit-content;
-		height: 28px;
+		height: 24px;
 		transition: all 0.15s ease;
-		padding: var(--spacing-md);
 
 		&.active {
 			color: var(--active-color, #ff4500);
@@ -65,8 +53,8 @@
 		:global(svg) {
 			transition: all 0.15s ease;
 			transform-origin: center;
-			width: 20px;
-			height: 20px;
+			width: 16px;
+			height: 16px;
 			opacity: 0.8;
 		}
 
@@ -106,8 +94,13 @@
 	}
 
 	.count {
-		font-size: 12px;
+		font-size: 11px;
 		font-weight: 500;
 		color: inherit;
+	}
+	
+	.label {
+		font-size: 12px;
+		font-weight: 400;
 	}
 </style>

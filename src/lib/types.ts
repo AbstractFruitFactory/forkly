@@ -76,6 +76,7 @@ export type RecipeData = {
     carbs: number
     fat: number
   }
+  createdAt: string
   likes: number
   dislikes: number
   isLiked?: boolean

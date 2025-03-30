@@ -1,12 +1,15 @@
 <script lang="ts">
 	import type { Ingredient } from '$lib/types'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+	import { getFormattedIngredient } from '$lib/pages/recipe/utils/recipeUtils'
 
-	let { ingredients, unitSystem, getFormattedIngredient } = $props<{
+	let {
+		ingredients,
+		unitSystem
+	}: {
 		ingredients: Ingredient[]
 		unitSystem: UnitSystem
-		getFormattedIngredient: (ingredient: Ingredient, unitSystem: UnitSystem) => any
-	}>()
+	} = $props()
 </script>
 
 <ul class="ingredients-list">

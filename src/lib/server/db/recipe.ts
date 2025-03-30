@@ -372,7 +372,9 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     instructions: recipe.instructions,
     imageUrl: recipe.imageUrl,
     tags: recipe.tags,
-    servings: recipe.servings
+    servings: recipe.servings,
+    createdAt: recipe.createdAt,
+    userId: recipe.userId
   })
     .from(recipe)
     .where(eq(recipe.id, recipeId))

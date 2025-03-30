@@ -13,17 +13,26 @@
 		interactive?: boolean
 		onLike?: () => void
 	} = $props()
+
+	const formatLikes = (count: number): string => {
+		if (count >= 10000) {
+			return (count / 1000).toFixed(0) + 'K'
+		} else if (count >= 1000) {
+			return (count / 1000).toFixed(2) + 'K'
+		}
+		return count.toString()
+	}
+
+	const displayedCount = $derived(formatLikes(count))
 </script>
 
 <ActionButton
-	{count}
 	isActive={isLiked}
 	{interactive}
 	onAction={onLike}
 	icon={Heart}
-	activeLabel="Unlike recipe"
-	inactiveLabel="Like recipe"
-	countLabel="likes"
+	activeLabel={displayedCount}
+	inactiveLabel={displayedCount}
 	--active-color="var(--color-primary)"
 	--active-bg-color="var(--color-primary-dark)"
 />

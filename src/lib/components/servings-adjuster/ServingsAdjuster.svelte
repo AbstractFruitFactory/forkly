@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Minus from 'lucide-svelte/icons/minus'
 	import Plus from 'lucide-svelte/icons/plus'
-	import Button from '$lib/components/button/Button.svelte'
 
 	let { servings, onServingsChange } = $props<{
 		servings: number
@@ -19,57 +18,56 @@
 	}
 </script>
 
-<div class="servings-adjuster">
-	<div class="servings-info">
-		<span class="label">Servings</span>
-		<span class="count">{servings}</span>
-	</div>
-	<div class="controls">
-		<Button variant="border" size="xs" onclick={decrement} disabled={servings <= 1}>
-			<Minus size={16} />
-		</Button>
-		<Button variant="border" size="xs" onclick={increment}>
-			<Plus size={16} />
-		</Button>
-	</div>
+<div class="servings-pill">
+	<button class="adjust-button" onclick={decrement} disabled={servings <= 1}>
+		<Minus size={14} />
+	</button>
+	<span class="servings-text">Serves {servings}</span>
+	<button class="adjust-button" onclick={increment}>
+		<Plus size={14} />
+	</button>
 </div>
 
 <style lang="scss">
 	@import '$lib/global.scss';
 
-	.servings-adjuster {
+	.servings-pill {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-md);
-		width: 100%;
-		padding: var(--spacing-md) 0;
-		background: var(--color-neutral-darker);
-		border-radius: var(--border-radius-md);
-		margin-top: var(--spacing-md);
+		justify-content: space-between;
+		padding: var(--spacing-xs) var(--spacing-md);
+		border: 1px solid var(--color-neutral);
+		border-radius: var(--border-radius-full);
+		background-color: var(--color-background);
+		width: fit-content;
 
-		.servings-info {
+		.adjust-button {
+			border: 2px solid var(--color-neutral-light);
+			cursor: pointer;
+			color: var(--color-text-secondary);
 			display: flex;
 			align-items: center;
-			gap: var(--spacing-sm);
+			justify-content: center;
+			border-radius: 50%;
+			width: 16px;
+			height: 16px;
 
-			.label {
-				color: var(--color-neutral-light);
-				font-size: var(--font-size-sm);
-				text-transform: uppercase;
+			&:hover:not(:disabled) {
+				background-color: var(--color-background-hover);
 			}
 
-			.count {
-				font-weight: var(--font-weight-medium);
-				color: white;
-				min-width: 2ch;
-				text-align: center;
+			&:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
 			}
 		}
 
-		.controls {
-			display: flex;
-			align-items: center;
-			gap: var(--spacing-xs);
+		.servings-text {
+			font-size: var(--font-size-sm);
+			font-weight: var(--font-weight-bold);
+			color: var(--color-text-secondary);
+			padding: 0 var(--spacing-sm);
+			white-space: nowrap;
 		}
 	}
 </style>

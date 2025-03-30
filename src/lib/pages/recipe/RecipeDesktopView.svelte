@@ -1,135 +1,106 @@
 <script lang="ts">
-	import type { NutritionInfo } from '$lib/server/food-api'
-	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
-	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
-	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
-	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import type { RecipeData, Ingredient } from '$lib/types'
-	import { page } from '$app/state'
-	import Pill from '$lib/components/pill/Pill.svelte'
-	import Popover from '$lib/components/popover/Popover.svelte'
-	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
-	import CommentList from '$lib/components/comment/CommentList.svelte'
-	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
+	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
-	import RecipeInstruction from '$lib/components/accordion/RecipeInstruction.svelte'
-	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
+	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
+	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import RecipeCreator from '$lib/components/recipe-creator/RecipeCreator.svelte'
+	import Pill from '$lib/components/pill/Pill.svelte'
+	import SaveButton from '$lib/components/save-button/SaveButton.svelte'
+	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
+	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
+	import RecipeInstruction from '$lib/components/accordion/RecipeInstruction.svelte'
+	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
+	import CommentList from '$lib/components/comment/CommentList.svelte'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
-	import {
-		getFormattedIngredient as formatIngredient,
-		scaleIngredientQuantity
-	} from './utils/recipeUtils'
+	import { scaleIngredientQuantity } from './utils/recipeUtils'
+	import { page } from '$app/state'
 
 	let {
 		recipe,
-		nutrition,
+		isLoggedIn,
 		onLike,
-		onDislike,
+		isSaved,
+		onSave,
+		nutrition,
 		unitSystem,
 		onUnitChange,
-		isLoggedIn,
-		getFormattedIngredient,
 		comments = [],
 		formError
-	} = $props<{
+	}: {
 		recipe: RecipeData
-		nutrition: {
-			totalNutrition: Omit<NutritionInfo, 'servingSize'>
-			hasCustomIngredients: boolean
-		}
+		isLoggedIn: boolean
 		onLike?: () => void
-		onDislike?: () => void
+		isSaved: boolean
+		onSave?: () => void
+		nutrition?: {
+			totalNutrition: {
+				calories: number
+				protein: number
+				carbs: number
+				fat: number
+			}
+		}
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
-		isLoggedIn: boolean
-		getFormattedIngredient: (ingredient: Ingredient, unitSystem: UnitSystem) => any
 		comments?: any[]
 		formError?: string | null
-	}>()
+	} = $props()
 
+	// Serving size state
 	let currentServings = $state(recipe.servings)
-	let scaledIngredients = $derived(
-		recipe.ingredients.map((ingredient: Ingredient) =>
+	
+	// Scale ingredients based on serving size
+	const scaledIngredients = $derived(
+		recipe.ingredients?.map((ingredient: Ingredient) =>
 			scaleIngredientQuantity(ingredient, currentServings, recipe.servings)
-		)
+		) || []
 	)
 
-	// Calculate nutrition per single serving
-	let singleServingNutrition = $derived({
-		calories: nutrition.totalNutrition.calories / recipe.servings,
-		protein: nutrition.totalNutrition.protein / recipe.servings,
-		carbs: nutrition.totalNutrition.carbs / recipe.servings,
-		fat: nutrition.totalNutrition.fat / recipe.servings
-	})
+	// Create per-serving nutrition data if total nutrition is available
+	const servingNutrition = $derived(
+		nutrition?.totalNutrition && recipe.servings > 0
+			? {
+					calories: nutrition.totalNutrition.calories / recipe.servings,
+					protein: nutrition.totalNutrition.protein / recipe.servings,
+					carbs: nutrition.totalNutrition.carbs / recipe.servings,
+					fat: nutrition.totalNutrition.fat / recipe.servings
+				}
+			: undefined
+	)
 
+	let isDescriptionExpanded = $state(false)
+
+	const MAX_DESCRIPTION_LENGTH = 300
+
+	const shouldTruncateDescription = $derived(
+		recipe?.description && recipe.description.length > MAX_DESCRIPTION_LENGTH
+	)
+
+	const truncatedDescription = $derived(
+		shouldTruncateDescription && recipe?.description
+			? recipe.description.slice(0, MAX_DESCRIPTION_LENGTH) + '...'
+			: recipe?.description || ''
+	)
+	
+	// Function to handle servings adjustment
 	function handleServingsChange(newServings: number) {
 		currentServings = newServings
 	}
 </script>
 
-<div class="desktop-view">
-	<div class="recipe-header-section">
-		<div class="recipe-image">
-			<RecipeMediaDisplay
-				mainImageUrl={recipe.imageUrl}
-				instructions={recipe.instructions}
-				aspectRatio="1/1"
-			/>
-		</div>
-
-		<div class="recipe-intro">
-			<div class="recipe-title-row">
-				<h2>{recipe.title}</h2>
-				<div class="recipe-actions">
-					<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
-
-					{#snippet likeButton()}
-						<LikeButton
-							count={recipe.likes}
-							isLiked={recipe.isLiked}
-							interactive={!!onLike}
-							onLike={isLoggedIn ? onLike : undefined}
-						/>
-					{/snippet}
-
-					{#snippet dislikeButton()}
-						<DislikeButton
-							isDisliked={recipe.isDisliked}
-							interactive={!!onDislike}
-							onDislike={isLoggedIn ? onDislike : undefined}
-						/>
-					{/snippet}
-
-					{#if isLoggedIn}
-						{@render dislikeButton()}
-						{@render likeButton()}
-					{:else}
-						<Popover type="warning">
-							{#snippet trigger()}
-								{@render dislikeButton()}
-							{/snippet}
-
-							{#snippet content()}
-								Login to dislike recipes!
-							{/snippet}
-						</Popover>
-						<Popover type="warning">
-							{#snippet trigger()}
-								{@render likeButton()}
-							{/snippet}
-
-							{#snippet content()}
-								Login to like recipes!
-							{/snippet}
-						</Popover>
-					{/if}
+<div class="recipe-desktop-view-new">
+	<div class="recipe-info">
+		<div class="info-section">
+			{#if recipe.tags && recipe.tags.length > 0}
+				<div class="tags">
+					{#each recipe.tags as tag}
+						<Pill text={tag} />
+					{/each}
 				</div>
-			</div>
-
-			{#if recipe.description}
-				<p class="description">{recipe.description}</p>
 			{/if}
+
+			<h1>{recipe.title}</h1>
 
 			{#if recipe.userId && recipe.user?.username}
 				<div class="recipe-creator-wrapper">
@@ -138,272 +109,366 @@
 						userId={recipe.userId}
 						profilePicUrl={recipe.user?.avatarUrl}
 					/>
+
+					<span class="published-date"
+						>Published {new Date(recipe.createdAt).toLocaleDateString('en-US', {
+							month: 'long',
+							day: 'numeric',
+							year: 'numeric'
+						})}</span
+					>
 				</div>
 			{/if}
+		</div>
 
-			<div class="recipe-tags">
-				{#if recipe.diets && recipe.diets.length > 0}
-					<div class="tags">
-						{#each recipe.tags as tag}
-							<Pill text={tag} />
-						{/each}
+		<div class="actions-section">
+			<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
+			<LikeButton
+				count={recipe.likes}
+				isLiked={recipe.isLiked}
+				interactive={!!(isLoggedIn && onLike)}
+				onLike={isLoggedIn ? onLike : undefined}
+			/>
+			<SaveButton {isSaved} interactive={!!isLoggedIn} onSave={isLoggedIn ? onSave : undefined} />
+		</div>
+	</div>
+
+	<div class="media">
+		<div class="recipe-media-container">
+			{#if recipe.imageUrl}
+				<RecipeMediaDisplay
+					mainImageUrl={recipe.imageUrl}
+					instructions={recipe.instructions}
+					aspectRatio="auto"
+				/>
+			{:else}
+				<div class="image-placeholder">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="currentColor"
+						aria-hidden="true"
+						><path
+							fill-rule="evenodd"
+							d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06l4.47-4.47a.75.75 0 011.06 0l3.97 3.97 3.97-3.97a.75.75 0 011.06 0l4.47 4.47V6a.75.75 0 00-.75-.75H3.75A.75.75 0 003 6v10.06zM11.25 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+							clip-rule="evenodd"
+						></path></svg
+					>
+				</div>
+			{/if}
+		</div>
+	</div>
+
+	{#if servingNutrition}
+		<div class="nutrition-facts">
+			<NutritionFacts nutrition={servingNutrition} />
+
+			{#if recipe.ingredients && recipe.ingredients.length > 0}
+				<h2 class="ingredients-header">
+					Ingredients
+					<div class="unit-toggle-wrapper">
+						<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 					</div>
-				{/if}
-			</div>
+				</h2>
 
-			{#if singleServingNutrition}
-				<div class="nutrition-facts-wrapper">
-					<div class="nutrition-subtitle">Nutrition facts per serving</div>
-					<NutritionFacts nutrition={singleServingNutrition} />
+				<IngredientsList ingredients={scaledIngredients} {unitSystem} />
+				
+				<div class="servings-control">
+					<ServingsAdjuster 
+						servings={currentServings} 
+						onServingsChange={handleServingsChange} 
+					/>
 				</div>
 			{/if}
 		</div>
-	</div>
 
-	<div class="recipe-content">
-		<div class="recipe-sidebar">
-			<div class="section-header">
-				<h3>Ingredients</h3>
-				<div class="unit-toggle-container">
-					<UnitToggle state={unitSystem} onSelect={onUnitChange} />
+		<div class="description">
+			{#if recipe?.description}
+				<div class="description-content">
+					<p>{isDescriptionExpanded ? recipe.description : truncatedDescription}</p>
+					{#if shouldTruncateDescription}
+						{#if isDescriptionExpanded}
+							<button class="view-more-button" onclick={() => (isDescriptionExpanded = false)}>
+								<span class="view-more-button-text">- VIEW LESS</span>
+							</button>
+						{:else}
+							<button class="view-more-button" onclick={() => (isDescriptionExpanded = true)}>
+								<span class="view-more-button-text">+ VIEW MORE</span>
+							</button>
+						{/if}
+					{/if}
 				</div>
-			</div>
-			<IngredientsList ingredients={scaledIngredients} {unitSystem} {getFormattedIngredient} />
-			<div class="servings-control">
-				<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
-			</div>
+			{/if}
+
+			{#if recipe.instructions && recipe.instructions.length > 0}
+				<h2>Instructions</h2>
+				<div class="instructions-list">
+					{#each recipe.instructions as instruction, index}
+						<RecipeInstruction {instruction} {index} />
+					{/each}
+				</div>
+			{/if}
 		</div>
 
-		<div class="recipe-main">
-			<div class="section-header">
-				<h3>Instructions</h3>
-			</div>
-			<div class="instructions-list">
-				{#each recipe.instructions as instruction, i}
-					<RecipeInstruction {instruction} index={i} />
-				{/each}
+		<div class="comments-section">
+			<h2>Comments</h2>
+			<div class="comments-content">
+				<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} />
 			</div>
 		</div>
-	</div>
-
-	<div class="comments-section">
-		<div class="comments-content">
-			<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} />
-		</div>
-	</div>
+	{/if}
 </div>
 
 <style lang="scss">
 	@import '$lib/global.scss';
 
-	.desktop-view {
-		margin: 0 auto;
-		background-color: var(--color-neutral-dark);
-		border-radius: var(--border-radius-lg);
-		box-shadow: var(--shadow-lg);
-		padding: var(--spacing-xl);
-		max-width: 1100px;
-
-		@include mobile {
-			display: none;
-		}
-	}
-
-	.recipe-header-section {
+	.recipe-desktop-view-new {
 		display: grid;
-		grid-template-columns: minmax(250px, 40%) 1fr;
+		grid-template-areas:
+			'recipe-text media'
+			'nutrition   description'
+			'comments    comments';
+		grid-template-columns: 1fr 1.8fr;
+		grid-template-rows: auto auto auto;
 		gap: var(--spacing-xl);
-		margin-bottom: var(--spacing-xl);
-
-		@include tablet {
-			grid-template-columns: 1fr;
-		}
+		max-width: 1100px;
+		margin: var(--spacing-xl) auto;
 	}
 
-	.recipe-image {
-		position: relative;
-		aspect-ratio: 1 / 1;
+	.recipe-info {
+		grid-area: recipe-text;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: var(--spacing-lg);
+		padding-right: var(--spacing-xl);
+	}
+
+	.media {
+		grid-area: media;
 		width: 100%;
+		aspect-ratio: 16 / 9;
 		overflow: hidden;
 		border-radius: var(--border-radius-md);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		max-height: 500px;
+	}
 
-		:global(.recipe-media) {
-			border-radius: var(--border-radius-md);
-		}
+	.nutrition-facts {
+		grid-area: nutrition;
+		padding-right: var(--spacing-xl);
+	}
 
-		@include tablet {
-			max-width: 400px;
-			margin: 0 auto var(--spacing-md) auto;
+	.description {
+		grid-area: description;
+		padding: var(--spacing-md) 0;
+	}
+
+	.comments-section {
+		grid-area: comments;
+		margin-top: var(--spacing-xl);
+		padding-top: var(--spacing-xl);
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+		h2 {
+			margin-bottom: var(--spacing-md);
 		}
 	}
 
-	.recipe-intro {
+	.info-section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
+		height: 100%;
+		justify-content: center;
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs);
+	}
+
+	.recipe-creator-wrapper {
+		margin-top: var(--spacing-xs);
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+
+		.published-date {
+			font-size: var(--font-size-sm);
+			color: var(--color-text-secondary);
+			margin-top: var(--spacing-xs);
+		}
+	}
+
+	.actions-section {
+		display: flex;
+		align-items: center;
+		justify-self: flex-end;
+		gap: var(--spacing-sm);
+		padding-top: var(--spacing-lg);
+	}
+
+	.btn {
+		border: 1px solid var(--color-border);
+		background-color: transparent;
+		color: var(--color-text-secondary);
+		font-size: var(--font-size-sm);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		border-radius: var(--border-radius-full);
+		transition: background-color 0.2s ease;
+
+		svg {
+			margin-right: var(--spacing-xxs);
+		}
+
+		&:hover:not(:disabled) {
+			background-color: var(--color-background-hover);
+		}
+
+		&:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+	}
+
+	.recipe-media-container {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: var(--border-radius-md);
+	}
+
+	.image-placeholder {
+		background-color: var(--color-neutral);
+		border-radius: var(--border-radius-md);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--color-border);
+		width: 100%;
+		height: 100%;
+
+		svg {
+			width: 40%;
+			height: 40%;
+		}
+	}
+
+	.nutrition-facts-container {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
-
-		h2 {
-			margin-bottom: 0;
-			color: var(--color-neutral-lightest);
-			flex: 1;
-
-			@include small-mobile {
-				font-size: var(--font-size-xl);
-			}
-		}
-
-		h3 {
-			margin-bottom: 0;
-			color: var(--color-primary);
-			position: relative;
-			width: fit-content;
-
-			&::after {
-				content: '';
-				position: absolute;
-				bottom: -5px;
-				left: 0;
-				width: 100%;
-				height: 2px;
-				background-color: var(--color-primary);
-			}
-		}
-
-		.description {
-			font-size: var(--font-size-md);
-			line-height: 1.6;
-			margin: 0 0 var(--spacing-md) 0;
-			color: var(--color-neutral-light);
-		}
 	}
 
-	.recipe-title-row {
+	.ingredients-header {
 		display: flex;
 		justify-content: space-between;
-		align-items: flex-start;
-		gap: var(--spacing-md);
-		margin-bottom: var(--spacing-sm);
-
-		@include small-mobile {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-	}
-
-	.recipe-actions {
-		display: flex;
 		align-items: center;
-		gap: var(--spacing-sm);
+		margin-top: var(--spacing-lg);
+	}
 
-		@include small-mobile {
-			margin-top: var(--spacing-sm);
+	.unit-toggle-wrapper {
+		margin-left: var(--spacing-md);
+	}
+
+	.description-content {
+		position: relative;
+		margin-bottom: var(--spacing-lg);
+
+		p {
+			font-size: var(--font-size-lg);
+			margin-bottom: 0;
 		}
 	}
 
-	.recipe-tags {
-		margin-bottom: var(--spacing-md);
-
-		.tags {
-			display: flex;
-			flex-wrap: wrap;
-			gap: var(--spacing-xs);
-		}
+	.instructions-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
 	}
 
-	.nutrition-facts-wrapper {
+	.view-more-button {
+		cursor: pointer;
 		margin-top: var(--spacing-md);
 
-		.nutrition-subtitle {
+		&:hover {
+			text-decoration: underline;
+		}
+
+		.view-more-button-text {
 			font-size: var(--font-size-sm);
-			color: var(--color-neutral-light);
-			margin-bottom: var(--spacing-xs);
-			opacity: 0.8;
-		}
-	}
-
-	.recipe-content {
-		display: grid;
-		grid-template-columns: 250px 1fr;
-		gap: var(--spacing-xl);
-		margin-top: var(--spacing-xl);
-		position: relative;
-
-		@include tablet {
-			grid-template-columns: 1fr;
-			gap: var(--spacing-xl);
-		}
-	}
-
-	.recipe-sidebar {
-		@include desktop {
-			position: sticky;
-			top: var(--spacing-xl);
-			height: fit-content;
-			align-self: start;
-		}
-	}
-
-	.section-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: var(--spacing-lg);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-		h3 {
-			margin-bottom: 0;
+			font-weight: var(--font-weight-bold);
 			color: var(--color-primary);
-			position: relative;
-			width: fit-content;
-
-			&::after {
-				content: '';
-				position: absolute;
-				bottom: -5px;
-				left: 0;
-				width: 100%;
-				height: 2px;
-				background-color: var(--color-primary);
-			}
-		}
-
-		@include small-mobile {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: var(--spacing-sm);
 		}
 	}
 
-	.unit-toggle-container {
-		margin-left: var(--spacing-md);
+	h1,
+	h2 {
+		font-family: var(--font-serif);
+	}
 
-		@include small-mobile {
-			margin-left: 0;
+	@include tablet {
+		.recipe-desktop-view-new {
+			grid-template-areas:
+				'image image'
+				'recipe-text recipe-text'
+				'nutrition description'
+				'comments comments';
+			grid-template-columns: 1fr 1fr;
+			grid-template-rows: auto auto auto auto;
+			gap: var(--spacing-lg);
+			max-width: 95%;
+			margin: var(--spacing-lg);
+		}
+
+		.recipe-info {
+			border-right: none;
+			padding-right: 0;
+			justify-content: flex-start;
+		}
+
+		.nutrition-facts {
+			border-right: 1px solid var(--color-neutral);
+			padding-right: var(--spacing-md);
+		}
+
+		.media {
+			max-height: 400px;
+		}
+	}
+
+	@include mobile {
+		.recipe-desktop-view-new {
+			grid-template-areas:
+				'image'
+				'recipe-text'
+				'nutrition'
+				'description'
+				'comments';
+			grid-template-columns: 1fr;
+			grid-template-rows: auto auto auto auto auto;
+			margin: var(--spacing-md);
+		}
+
+		.nutrition-facts {
+			border-right: none;
+			padding-right: 0;
+		}
+
+		.description-content {
+			padding-left: 0;
+			padding-top: var(--spacing-md);
+			border-top: 1px solid var(--color-border);
 		}
 	}
 
 	.servings-control {
-		margin-bottom: var(--spacing-lg);
-		padding-bottom: var(--spacing-lg);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
-	.instructions-list {
-		padding-left: 0;
-		max-width: 800px;
-		margin: 0;
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-lg);
-	}
-
-	.comments-section {
-		margin-top: var(--spacing-xl);
-		padding-top: var(--spacing-xl);
+		margin-top: var(--spacing-lg);
+		padding-top: var(--spacing-md);
 		border-top: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
-	.recipe-creator-wrapper {
-		margin-top: var(--spacing-sm);
 	}
 </style>

@@ -29,16 +29,16 @@
 			onSelect('imperial')
 		}}
 	>
-		Imperial
+		US
 	</button>
 </div>
 
 <style lang="scss">
 	.unit-toggle {
 		display: flex;
-		border-radius: var(--border-radius);
+		border-radius: var(--border-radius-full);
 		overflow: hidden;
-		border: 1px solid var(--color-border);
+		border: 1px solid var(--color-neutral);
 		width: fit-content;
 	}
 
