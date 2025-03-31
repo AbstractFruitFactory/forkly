@@ -20,6 +20,7 @@
 <style lang="scss">
 	.recipe-creator {
 		display: flex;
+		width: fit-content;
 		align-items: center;
 		gap: 0.5rem;
 		text-decoration: none;
