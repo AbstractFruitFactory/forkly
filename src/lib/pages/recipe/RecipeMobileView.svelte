@@ -10,6 +10,7 @@
 	import CommentList from '$lib/components/comment/CommentList.svelte'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import DislikeButton from '$lib/components/dislike-button/DislikeButton.svelte'
+	import SaveButton from '$lib/components/save-button/SaveButton.svelte'
 	import ShareButton from '$lib/components/share-button/ShareButton.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import { page } from '$app/state'
@@ -32,6 +33,7 @@
 		formError,
 		onLike,
 		onDislike,
+		onSave,
 		chef = { name: 'Emma Brown', title: 'Professional Chef', avatar: '' }
 	}: {
 		recipe: RecipeData
@@ -46,6 +48,7 @@
 		onBackClick?: () => void
 		onLike?: () => void
 		onDislike?: () => void
+		onSave?: () => void
 		comments: any[]
 		formError?: string
 		chef?: { name: string; title: string; avatar: string }
@@ -214,18 +217,16 @@
 			<p class="description">{recipe.description}</p>
 
 			<div class="action-buttons">
+				{#if isLoggedIn}
+					<LikeButton count={recipe.likes} isLiked={recipe.isLiked} interactive onLike={onLike} />
+					<DislikeButton isDisliked={recipe.isDisliked} interactive onDislike={onDislike} />
+					<SaveButton isSaved={recipe.isSaved} interactive onSave={onSave} />
+				{:else}
+					<LikeButton count={recipe.likes} />
+					<DislikeButton />
+					<SaveButton />
+				{/if}
 				<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
-				<DislikeButton
-					isDisliked={recipe.isDisliked}
-					interactive={!!onDislike}
-					onDislike={isLoggedIn ? onDislike : undefined}
-				/>
-				<LikeButton
-					count={recipe.likes}
-					isLiked={recipe.isLiked}
-					interactive={!!onLike}
-					onLike={isLoggedIn ? onLike : undefined}
-				/>
 			</div>
 
 			{#if singleServingNutrition}

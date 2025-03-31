@@ -1,12 +1,21 @@
 <script lang="ts">
-	import type { Snippet } from "svelte"
+	import type { Snippet } from 'svelte'
 
-	let { text, onClick, children }: { text?: string; onClick?: () => void; children: Snippet } =
-		$props()
+	let {
+		text,
+		onClick,
+		isActive = false,
+		children
+	}: {
+		text?: string
+		onClick?: () => void
+		isActive?: boolean
+		children: Snippet
+	} = $props()
 </script>
 
 <div class="action-button-container">
-	<button class="action-button" onclick={onClick}>
+	<button class="action-button" class:active={isActive} onclick={onClick}>
 		{@render children()}
 	</button>
 	{#if text}
@@ -21,6 +30,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		gap: var(--spacing-xs);
 	}
 
 	.action-button {

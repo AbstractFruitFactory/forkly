@@ -79,8 +79,9 @@ export type RecipeData = {
   createdAt: string
   likes: number
   dislikes: number
-  isLiked?: boolean
-  isDisliked?: boolean
+  isLiked: boolean
+  isDisliked: boolean
+  isSaved: boolean
   user?: {
     username?: string
     avatarUrl?: string

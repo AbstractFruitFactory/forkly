@@ -6,47 +6,40 @@
 	import { safeFetch } from '$lib/utils/fetch.js'
 	import type { RecipesLikeResponse } from '../../api/recipes/like/+server.js'
 	import type { RecipesDislikeResponse } from '../../api/recipes/dislike/+server.js'
+	import type { RecipesSaveResponse } from '../../api/recipes/save/+server.js'
 	import type { RecipeData } from '$lib/types'
 
 	let { data } = $props()
 
 	const handleLike = async () => {
-		const response = await safeFetch<RecipesLikeResponse>()(`/api/recipes/like`, {
+		await safeFetch<RecipesLikeResponse>()(`/api/recipes/like`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({ id: data.id })
 		})
-
-		if (response.isOk()) {
-			isLiked = !isLiked
-			likes = isLiked ? likes + 1 : likes - 1
-		}
 	}
 
 	const handleDislike = async () => {
-		const response = await safeFetch<RecipesDislikeResponse>()(`/api/recipes/dislike`, {
+		await safeFetch<RecipesDislikeResponse>()(`/api/recipes/dislike`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({ id: data.id })
 		})
-
-		if (response.isOk()) {
-			isDisliked = !isDisliked
-		}
 	}
 
-	let isLiked = $state(data.isLiked)
-	let likes = $state(data.likes)
-	let isDisliked = $state(data.isDisliked)
-
-	const ingredients = data.ingredients.map((ingredient) => ({
-		...ingredient,
-		custom: ingredient.custom
-	}))
+	const handleSave = async () => {
+		await safeFetch<RecipesSaveResponse>()(`/api/recipes/save`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ id: data.id })
+		})
+	}
 	
 	const handleUnitChange = (system: UnitSystem) => {
 		if (system === 'metric') {
@@ -58,12 +51,20 @@
 	
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 
+	// Ensure createdAt is a string
+	const createdAtStr = typeof data.createdAt === 'string' 
+		? data.createdAt 
+		: data.createdAt instanceof Date 
+		? data.createdAt.toISOString() 
+		: new Date().toISOString()
+
 	const recipeData: RecipeData = {
 		...data,
-		isLiked,
-		likes,
-		isDisliked,
-		ingredients,
+		createdAt: createdAtStr,
+		ingredients: data.ingredients.map((ingredient) => ({
+			...ingredient,
+			custom: ingredient.custom
+		})),
 		user: data.user ? {
 			username: data.user.username,
 			avatarUrl: data.user.avatarUrl || undefined
@@ -94,6 +95,7 @@
 		onUnitChange={handleUnitChange}
 		onLike={handleLike}
 		onDislike={handleDislike}
+		onSave={handleSave}
 		onBackClick={() => goto('/')}
 		isLoggedIn={!!data.user}
 		comments={data.comments}

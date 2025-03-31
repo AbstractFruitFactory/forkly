@@ -11,6 +11,7 @@
 		nutrition,
 		onLike,
 		onDislike,
+		onSave,
 		unitSystem,
 		onUnitChange,
 		isLoggedIn,
@@ -25,6 +26,7 @@
 		}
 		onLike?: () => void
 		onDislike?: () => void
+		onSave?: () => void
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
 		isLoggedIn: boolean
@@ -32,12 +34,30 @@
 		comments?: any[]
 		formError?: string
 	} = $props()
+
+	let isLiked = $state(recipe.isLiked)
+	let isSaved = $state(recipe.isSaved)
+
+	function handleLike() {
+		if (!isLoggedIn || !onLike) return
+		isLiked = !isLiked
+		onLike()
+	}
+
+	function handleSave() {
+		if (!isLoggedIn || !onSave) return
+		isSaved = !isSaved
+		onSave()
+	}
 </script>
 
 <RecipeDesktopView
 	{recipe}
 	{nutrition}
-	{onLike}
+	onLike={handleLike}
+	onSave={handleSave}
+	{isLiked}
+	{isSaved}
 	{unitSystem}
 	{onUnitChange}
 	{isLoggedIn}
@@ -53,6 +73,9 @@
 	{onUnitChange}
 	{isLoggedIn}
 	{onBackClick}
+	onLike={handleLike}
+	{onDislike}
+	onSave={handleSave}
 	{comments}
 	{formError}
 />

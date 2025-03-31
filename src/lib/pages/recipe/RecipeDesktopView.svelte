@@ -10,10 +10,9 @@
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import { scaleIngredientQuantity } from './utils/recipeUtils'
-	import FloatingActionButton from '$lib/components/floating-action-button/FloatingActionButton.svelte'
-	import Heart from 'lucide-svelte/icons/heart'
-	import Bookmark from 'lucide-svelte/icons/bookmark'
-	import Share2 from 'lucide-svelte/icons/share-2'
+	import FloatingLikeButton from '$lib/components/floating-action-button/FloatingLikeButton.svelte'
+	import FloatingSaveButton from '$lib/components/floating-action-button/FloatingSaveButton.svelte'
+	import FloatingShareButton from '$lib/components/floating-action-button/FloatingShareButton.svelte'
 	import SharePopup from '$lib/components/share-button/SharePopup.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
 
@@ -21,6 +20,7 @@
 		recipe,
 		isLoggedIn,
 		onLike,
+		isLiked = false,
 		isSaved,
 		onSave,
 		nutrition,
@@ -32,6 +32,7 @@
 		recipe: RecipeData
 		isLoggedIn: boolean
 		onLike?: () => void
+		isLiked?: boolean
 		isSaved: boolean
 		onSave?: () => void
 		nutrition?: {
@@ -107,15 +108,9 @@
 <div class="recipe-desktop-view-new">
 	<div class="sidebar">
 		<div class="action-buttons">
-			<FloatingActionButton text="Like" onClick={onLike}>
-				<Heart />
-			</FloatingActionButton>
-			<FloatingActionButton text="Save" onClick={onSave}>
-				<Bookmark />
-			</FloatingActionButton>
-			<FloatingActionButton text="Share" onClick={toggleSharePopup}>
-				<Share2 />
-			</FloatingActionButton>
+			<FloatingLikeButton isActive={isLiked} onClick={onLike} />
+			<FloatingSaveButton isActive={isSaved} onClick={onSave} />
+			<FloatingShareButton onClick={toggleSharePopup} />
 		</div>
 	</div>
 

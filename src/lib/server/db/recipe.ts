@@ -1,5 +1,5 @@
 import { db } from '.'
-import { recipe, recipeLike, recipeDislike, recipeIngredient, ingredient, recipeNutrition, user } from './schema'
+import { recipe, recipeLike, recipeDislike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
 import { eq, ilike, desc, sql, inArray, and, count, SQL } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 
@@ -406,6 +406,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
 
   let isLiked = false
   let isDisliked = false
+  let isSaved = false
   if (userId) {
     const likes = await db
       .select()
@@ -424,6 +425,15 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
         eq(recipeDislike.userId, userId)
       ))
     isDisliked = dislikes.length > 0
+
+    const bookmarks = await db
+      .select()
+      .from(recipeBookmark)
+      .where(and(
+        eq(recipeBookmark.recipeId, recipeId),
+        eq(recipeBookmark.userId, userId)
+      ))
+    isSaved = bookmarks.length > 0
   }
 
   const likes = await db
@@ -450,6 +460,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     nutrition,
     isLiked,
     isDisliked,
+    isSaved,
     likes: likes.length,
     dislikes: dislikes.length
   }
