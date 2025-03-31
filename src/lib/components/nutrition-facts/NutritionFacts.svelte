@@ -43,13 +43,12 @@
 	const proteinDash = circumference * adjustedProteinProportion
 
 	// Calculate offsets (each offset needs to account for previous segment + gap)
-	const carbsOffset = 0
 	const fatOffset = carbsDash + gapPixels
 	const proteinOffset = fatOffset + fatDash + gapPixels
 </script>
 
 <div class="nutrition-section">
-	<h3>Nutrition Per Serving</h3>
+	<h4>Nutrition Per Serving</h4>
 
 	<div class="nutrition-data">
 		<div class="calories-and-macros">
@@ -122,14 +121,6 @@
 
 <style lang="scss">
 	@import '$lib/global.scss';
-
-	h3 {
-		font-size: var(--font-size-md);
-		margin-bottom: var(--spacing-sm);
-		font-weight: var(--font-weight-bold);
-		color: var(--color-text-primary);
-	}
-
 	.nutrition-section {
 		display: flex;
 		flex-direction: column;

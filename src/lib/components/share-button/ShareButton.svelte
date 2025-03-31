@@ -2,8 +2,8 @@
 	import { scale } from 'svelte/transition'
 	import Share from 'lucide-svelte/icons/share-2'
 	import ActionButton from '$lib/components/action-button/ActionButton.svelte'
-	import Popup from '../popup/Popup.svelte'
 	import Toast from '../toast/Toast.svelte'
+	import SharePopup from './SharePopup.svelte'
 
 	let {
 		url,
@@ -13,63 +13,23 @@
 		title?: string
 	} = $props()
 
-	const shareOptions = [
-		{
-			name: 'Copy Link',
-			icon: 'link',
-			action: () => {
-				navigator.clipboard.writeText(url || window.location.href)
-				toast.trigger()
-			}
-		},
-		{
-			name: 'Twitter',
-			icon: 'twitter',
-			action: () => {
-				const shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
-					url || window.location.href
-				)}&text=${encodeURIComponent(title || document.title)}`
-				window.open(shareUrl, '_blank')
-			}
-		},
-		{
-			name: 'Facebook',
-			icon: 'facebook',
-			action: () => {
-				const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-					url || window.location.href
-				)}`
-				window.open(shareUrl, '_blank')
-			}
-		},
-		{
-			name: 'Email',
-			icon: 'mail',
-			action: () => {
-				const shareUrl = `mailto:?subject=${encodeURIComponent(
-					title || document.title
-				)}&body=${encodeURIComponent(url || window.location.href)}`
-				window.location.href = shareUrl
-			}
-		}
-	]
-
 	let isPopupOpen = $state(false)
-	let copyAnimationActive = $state(false)
 	let toast: Toast
 
 	const togglePopup = () => {
 		isPopupOpen = !isPopupOpen
 	}
+
+	const handleLinkCopied = () => {
+		toast.trigger()
+	}
 </script>
 
 <div class="share-wrapper">
 	<ActionButton
-		count={0}
 		onAction={togglePopup}
 		icon={Share}
 		inactiveLabel="Share"
-		showCount={false}
 		interactive={true}
 		--inactive-color="var(--color-text)"
 	/>
@@ -77,131 +37,13 @@
 	<Toast bind:this={toast} message="Link copied to clipboard!" type="success" />
 </div>
 
-<Popup isOpen={isPopupOpen} onClose={togglePopup} title="Share" width="350px">
-	<div class="share-popup-content">
-		{#if url || title}
-			<div class="share-item-preview">
-				<h4 class="share-item-title">{title || document.title}</h4>
-				<p class="share-item-url">{url || window.location.href}</p>
-			</div>
-		{/if}
-
-		<div class="share-options">
-			{#each shareOptions as option, i}
-				<button
-					class="share-option"
-					onclick={() => {
-						option.action()
-						if (option.name === 'Copy Link') {
-							copyAnimationActive = true
-							setTimeout(() => {
-								copyAnimationActive = false
-							}, 1500)
-						}
-					}}
-				>
-					<div class="share-option-icon">
-						{#if option.icon === 'link'}
-							<div class="icon-container">
-								{#if copyAnimationActive}
-									<div
-										class="success-animation"
-										transition:scale|local={{ start: 0.8, duration: 300 }}
-									>
-										<svg class="success-circle-outline" viewBox="0 0 52 52">
-											<circle
-												cx="26"
-												cy="26"
-												r="25"
-												fill="none"
-												stroke="#22c55e"
-												stroke-width="2"
-											/>
-										</svg>
-										<svg class="success-checkmark" viewBox="0 0 52 52">
-											<path
-												class="checkmark-path"
-												fill="none"
-												stroke="#22c55e"
-												stroke-width="3"
-												d="M14.1 27.2l7.1 7.2 16.7-16.8"
-											/>
-										</svg>
-									</div>
-								{:else}
-									<svg
-										transition:scale|local={{ start: 0.8, duration: 300 }}
-										xmlns="http://www.w3.org/2000/svg"
-										width="20"
-										height="20"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										class="link-icon"
-									>
-										<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-										<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-									</svg>
-								{/if}
-							</div>
-						{:else if option.icon === 'twitter'}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="20"
-								height="20"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<path
-									d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"
-								/>
-							</svg>
-						{:else if option.icon === 'facebook'}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="20"
-								height="20"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-							</svg>
-						{:else if option.icon === 'mail'}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="20"
-								height="20"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<path
-									d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-								/>
-								<polyline points="22,6 12,13 2,6" />
-							</svg>
-						{/if}
-					</div>
-					<span>{option.name}</span>
-				</button>
-			{/each}
-		</div>
-	</div>
-</Popup>
+<SharePopup 
+	isOpen={isPopupOpen} 
+	onClose={togglePopup} 
+	{url} 
+	{title} 
+	onLinkCopied={handleLinkCopied} 
+/>
 
 <style lang="scss">
 	.share-wrapper {

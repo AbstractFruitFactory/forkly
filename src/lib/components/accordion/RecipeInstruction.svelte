@@ -5,11 +5,11 @@
 	import InstructionVideo from '$lib/components/video-player/InstructionVideo.svelte'
 
 	let { instruction, index } = $props<{
-		instruction: { 
-			text: string; 
-			mediaUrl?: string;
-			mediaType?: 'image' | 'video';
-			[key: string]: any 
+		instruction: {
+			text: string
+			mediaUrl?: string
+			mediaType?: 'image' | 'video'
+			[key: string]: any
 		}
 		index: number
 	}>()
@@ -17,7 +17,6 @@
 
 <div class="instruction-item">
 	<div class="instruction-header">
-		<div class="step-number">{index + 1}</div>
 		<div class="instruction-content">
 			<div class="instruction-text">
 				{#each parseTemperature(instruction.text) as part}
@@ -30,10 +29,7 @@
 
 								{#snippet content()}
 									<span class="conversion">
-										{getConversionText(
-											part.value as number,
-											part.unit as TemperatureUnit
-										)}
+										{getConversionText(part.value as number, part.unit as TemperatureUnit)}
 									</span>
 								{/snippet}
 							</Popover>
@@ -69,6 +65,19 @@
 		border-radius: var(--border-radius-lg);
 		overflow: hidden;
 		transition: all var(--transition-fast) var(--ease-in-out);
+		position: relative;
+
+		&::before {
+			content: '';
+			position: absolute;
+			left: 0;
+			top: 0;
+			bottom: 0;
+			width: 4px;
+			background: var(--color-primary);
+			border-top-left-radius: var(--border-radius-lg);
+			border-bottom-left-radius: var(--border-radius-lg);
+		}
 
 		&:hover {
 			background: rgba(255, 255, 255, 0.03);
@@ -94,12 +103,19 @@
 	.instruction-content {
 		flex: 1;
 		display: grid;
-		grid-template-columns: 1fr 300px;
+		grid-template-columns: 1fr;
 		gap: 0;
 		align-items: stretch;
+		padding: 0 0 0 var(--spacing-lg);
+
+		&:has(.instruction-media) {
+			grid-template-columns: 1fr 250px;
+		}
 
 		@include tablet {
-			grid-template-columns: 1fr 250px;
+			&:has(.instruction-media) {
+				grid-template-columns: 1fr 250px;
+			}
 		}
 
 		@include mobile {
@@ -112,7 +128,7 @@
 	.instruction-text {
 		line-height: 1.6;
 		font-size: var(--font-size-md);
-		padding: var(--spacing-md) var(--spacing-xl) var(--spacing-md) 0;
+		padding: var(--spacing-md) var(--spacing-lg) var(--spacing-md) 0;
 
 		:global(span) {
 			display: inline;
