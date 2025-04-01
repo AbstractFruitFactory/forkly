@@ -10,6 +10,7 @@
 	import IngredientInput from '$lib/components/ingredient-input/IngredientInput.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import FilterSelector from '$lib/components/filter-selector/FilterSelector.svelte'
+	import { fly } from 'svelte/transition'
 
 	type T = $$Generic<{ name: string; custom: false }>
 	type Ingredient = T | { name: string; custom: true }
@@ -32,6 +33,7 @@
 		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 	} = $props()
 
+	let currentStep = $state(1)
 	let ingredientCount = $state(1)
 	let instructionCount = $state(1)
 	let servings = $state(1)
@@ -41,6 +43,20 @@
 	let showCustomInput = $state<Record<number, boolean>>({})
 	let selectedLookupIngredients = $state<Record<number, Ingredient>>({})
 	let selectedTags = $state<string[]>([])
+
+	const TOTAL_STEPS = 3
+
+	const nextStep = () => {
+		if (currentStep < TOTAL_STEPS) {
+			currentStep++
+		}
+	}
+
+	const previousStep = () => {
+		if (currentStep > 1) {
+			currentStep--
+		}
+	}
 
 	const addIngredient = () => {
 		ingredientCount++
@@ -127,7 +143,6 @@
 		showCustomInput[index] = true
 	}
 
-	// Function to search for tags
 	const searchTags = async (query: string): Promise<string[]> => {
 		if (!onSearchTags) return []
 
@@ -135,7 +150,6 @@
 		return results.map((tag) => tag.name)
 	}
 
-	// Handle tag selection
 	const handleTagSelect = (tag: string, selected: boolean) => {
 		if (selected && !selectedTags.includes(tag)) {
 			selectedTags = [...selectedTags, tag]
@@ -144,7 +158,6 @@
 		}
 	}
 
-	// Handle tag removal
 	const removeTag = (tag: string) => {
 		selectedTags = selectedTags.filter((t) => t !== tag)
 	}
@@ -153,6 +166,21 @@
 </script>
 
 <div class="container">
+	<div class="progress-bar">
+		<div class="progress" style="width: {((currentStep - 1) / (TOTAL_STEPS - 1) * 100)}%" />
+		<div class="steps">
+			{#each Array(TOTAL_STEPS) as _, i}
+				<div
+					class="step"
+					class:active={currentStep === i + 1}
+					class:completed={currentStep > i + 1}
+				>
+					<div class="dot"></div>
+				</div>
+			{/each}
+		</div>
+	</div>
+
 	<form
 		method="POST"
 		enctype="multipart/form-data"
@@ -171,8 +199,6 @@
 			}
 		}}
 	>
-		<MediaUpload name="image" type="image" previewAlt="Recipe preview" />
-
 		{#if errors}
 			<div class="error-container">
 				{#each errors as error}
@@ -181,147 +207,188 @@
 			</div>
 		{/if}
 
-		<div class="form-group">
-			<label for="title">Title</label>
-			<Input>
-				<input id="title" name="title" type="text" required placeholder="Enter recipe title" />
-			</Input>
-		</div>
+		<div 
+			class="step-content card"
+			class:hidden={currentStep !== 1}
+			in:fly={{ x: 200, delay: 200, duration: 200 }}
+			out:fly={{ x: -200, duration: 200 }}
+		>
+			<h2>Basic Information</h2>
+			<MediaUpload name="image" type="image" previewAlt="Recipe preview" />
 
-		<div class="form-group">
-			<label for="description">Description</label>
-			<Input>
-				<textarea id="description" name="description" placeholder="Describe your recipe" rows="3"
-				></textarea>
-			</Input>
-		</div>
-
-		<div class="form-group">
-			<label for="servings">Servings</label>
-			<Input>
-				<input
-					id="servings"
-					name="servings"
-					type="number"
-					min="1"
-					required
-					placeholder="Number of servings"
-					bind:value={servings}
-				/>
-			</Input>
-		</div>
-
-		<div class="form-group">
-			<label for="tags">Tags</label>
-			<div>
-				<FilterSelector
-					items={availableTags.map((tag) => tag.name)}
-					bind:selectedItems={selectedTags}
-					name="tags"
-					loadItems={searchTags}
-					onSelect={handleTagSelect}
-					label="search for tag"
-					allowCustomItems={true}
-				/>
-
-				{#if selectedTags.length > 0}
-					<div class="selected-tags">
-						{#each selectedTags as tag}
-							<Pill text={tag} onRemove={() => removeTag(tag)} />
-						{/each}
-					</div>
-				{/if}
+			<div class="form-group">
+				<label for="title">Title</label>
+				<Input>
+					<input id="title" name="title" type="text" required placeholder="Enter recipe title" />
+				</Input>
 			</div>
-		</div>
 
-		<div class="form-group">
-			<div class="ingredients-header">
-				<label for="ingredients">Ingredients</label>
-				<div class="unit-toggle-container">
-					<UnitToggle state={unitSystem} onSelect={onUnitChange} />
+			<div class="form-group">
+				<label for="description">Description</label>
+				<Input>
+					<textarea
+						id="description"
+						name="description"
+						placeholder="Describe your recipe"
+						rows="3"
+					></textarea>
+				</Input>
+			</div>
+
+			<div class="form-group">
+				<label for="tags">Tags</label>
+				<div>
+					<FilterSelector
+						items={availableTags.map((tag) => tag.name)}
+						bind:selectedItems={selectedTags}
+						name="tags"
+						loadItems={searchTags}
+						onSelect={handleTagSelect}
+						label="search for tag"
+						allowCustomItems={true}
+					/>
+
+					{#if selectedTags.length > 0}
+						<div class="selected-tags">
+							{#each selectedTags as tag}
+								<Pill text={tag} onRemove={() => removeTag(tag)} />
+							{/each}
+						</div>
+					{/if}
 				</div>
 			</div>
-			<div id="ingredients">
-				{#each Array(ingredientCount) as _, i}
-					<div class="ingredient-group">
-						<div class="quantity-unit-wrapper">
-							<IngredientInput name={`ingredient-${i}`} {unitSystem} />
-						</div>
 
-						<div class="ingredient-input">
-							{#if showCustomInput[i] || !browser}
-								<div class="custom-ingredient">
-									<Input
-										actionButton={{
-											text: 'Search instead',
-											onClick: () => (showCustomInput[i] = false)
-										}}
-									>
-										<input
-											name={`ingredient-${i}-name&custom`}
-											placeholder="Enter custom ingredient"
-											value={inputValues[i] ?? ''}
+			<div class="navigation-buttons">
+				<div></div>
+				<Button variant="primary" onclick={nextStep}>Next</Button>
+			</div>
+		</div>
+
+		<div 
+			class="step-content card"
+			class:hidden={currentStep !== 2}
+			in:fly={{ x: 200, delay: 200, duration: 200 }}
+			out:fly={{ x: -200, duration: 200 }}
+		>
+			<h2>Ingredients & Servings</h2>
+			<div class="form-group">
+				<label for="servings">Servings</label>
+				<Input>
+					<input
+						id="servings"
+						name="servings"
+						type="number"
+						min="1"
+						required
+						placeholder="Number of servings"
+						bind:value={servings}
+					/>
+				</Input>
+			</div>
+
+			<div class="form-group">
+				<div class="ingredients-header">
+					<label for="ingredients">Ingredients</label>
+					<div class="unit-toggle-container">
+						<UnitToggle state={unitSystem} onSelect={onUnitChange} />
+					</div>
+				</div>
+				<div id="ingredients">
+					{#each Array(ingredientCount) as _, i}
+						<div class="ingredient-group">
+							<div class="quantity-unit-wrapper">
+								<IngredientInput name={`ingredient-${i}`} {unitSystem} />
+							</div>
+
+							<div class="ingredient-input">
+								{#if showCustomInput[i] || !browser}
+									<div class="custom-ingredient">
+										<Input
+											actionButton={{
+												text: 'Search instead',
+												onClick: () => (showCustomInput[i] = false)
+											}}
+										>
+											<input
+												name={`ingredient-${i}-name&custom`}
+												placeholder="Enter custom ingredient"
+												value={inputValues[i] ?? ''}
+											/>
+										</Input>
+									</div>
+								{:else}
+									<div class="custom-ingredient">
+										<SuggestionSearch
+											placeholder="Search for ingredient"
+											isLoading={isLoading[i]}
+											onSearch={(query) => searchIngredients(query, i)}
+											onSelect={(suggestion) => handleSelect(i, suggestion)}
+											actionButton={{
+												text: 'Add manually',
+												onClick: () => setCustomIngredientInput(i)
+											}}
 										/>
-									</Input>
-								</div>
-							{:else}
-								<div class="custom-ingredient">
-									<SuggestionSearch
-										placeholder="Search for ingredient"
-										isLoading={isLoading[i]}
-										onSearch={(query) => searchIngredients(query, i)}
-										onSelect={(suggestion) => handleSelect(i, suggestion)}
-										actionButton={{
-											text: 'Add manually',
-											onClick: () => setCustomIngredientInput(i)
-										}}
-									/>
-								</div>
+									</div>
+								{/if}
+							</div>
+
+							{#if ingredientCount > 1}
+								<button type="button" class="remove-btn" onclick={() => removeIngredient(i)}>
+									✕
+								</button>
 							{/if}
 						</div>
+					{/each}
+					<Button variant="dotted" onclick={addIngredient} size="sm">Add Ingredient</Button>
+				</div>
+			</div>
 
-						{#if ingredientCount > 1}
-							<button type="button" class="remove-btn" onclick={() => removeIngredient(i)}>
-								✕
-							</button>
-						{/if}
-					</div>
-				{/each}
-				<Button variant="dotted" onclick={addIngredient} size="sm">Add Ingredient</Button>
+			<div class="navigation-buttons">
+				<Button variant="secondary" onclick={previousStep}>Previous</Button>
+				<Button variant="primary" onclick={nextStep}>Next</Button>
 			</div>
 		</div>
 
-		<div class="form-group">
-			<label for="instructions">Instructions</label>
-			<div id="instructions">
-				{#each Array(instructionCount) as _, i}
-					<div class="instruction-group">
-						<div class="instruction-input">
-							<div class="instruction-text">
-								<Input>
-									<textarea
-										name={`instructions-${i}-text`}
-										placeholder="Enter instruction step"
-										rows="2"
-									></textarea>
-								</Input>
+		<div 
+			class="step-content card"
+			class:hidden={currentStep !== 3}
+			in:fly={{ x: 200, delay: 200, duration: 200 }}
+			out:fly={{ x: -200, duration: 200 }}
+		>
+			<h2>Instructions</h2>
+			<div class="form-group">
+				<div id="instructions">
+					{#each Array(instructionCount) as _, i}
+						<div class="instruction-group">
+							<div class="instruction-input">
+								<div class="instruction-text">
+									<Input>
+										<textarea
+											name={`instructions-${i}-text`}
+											placeholder="Enter instruction step"
+											rows="2"
+										></textarea>
+									</Input>
+								</div>
+								<div class="instruction-media">
+									<MediaUpload name={`instructions-${i}-media`} />
+								</div>
 							</div>
-							<div class="instruction-media">
-								<MediaUpload name={`instructions-${i}-media`} />
-							</div>
+							{#if instructionCount > 1}
+								<button type="button" class="remove-btn" onclick={() => removeInstruction(i)}>
+									✕
+								</button>
+							{/if}
 						</div>
-						{#if instructionCount > 1}
-							<button type="button" class="remove-btn" onclick={() => removeInstruction(i)}>
-								✕
-							</button>
-						{/if}
-					</div>
-				{/each}
-				<Button variant="dotted" onclick={addInstruction} size="sm">Add Instruction</Button>
+					{/each}
+					<Button variant="dotted" onclick={addInstruction} size="sm">Add Instruction</Button>
+				</div>
 			</div>
-		</div>
-		<div style:margin-top="2rem">
-			<Button loading={submitting} fullWidth type="submit" variant="primary">Create Recipe</Button>
+
+			<div class="navigation-buttons">
+				<Button variant="secondary" onclick={previousStep}>Previous</Button>
+				<Button loading={submitting} type="submit" variant="primary">Create Recipe</Button>
+			</div>
 		</div>
 	</form>
 </div>
@@ -331,6 +398,101 @@
 		max-width: 800px;
 		margin: 0 auto;
 		padding: var(--spacing-lg) var(--spacing-md);
+	}
+
+	.progress-bar {
+		position: relative;
+		height: 4px;
+		background-color: var(--color-neutral-darker);
+		border-radius: 2px;
+		margin-bottom: var(--spacing-xl);
+
+		.progress {
+			position: absolute;
+			height: 100%;
+			background-color: var(--color-primary);
+			border-radius: 2px;
+			transition: width 0.3s ease;
+		}
+
+		.steps {
+			position: absolute;
+			top: 50%;
+			width: 100%;
+			display: flex;
+			justify-content: space-between;
+			transform: translateY(-50%);
+		}
+
+		.step {
+			width: 24px;
+			height: 24px;
+			background-color: var(--color-neutral-darker);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: all 0.3s ease;
+			z-index: 1;
+
+			.dot {
+				width: 8px;
+				height: 8px;
+				background-color: var(--color-text);
+				border-radius: 50%;
+				transition: all 0.3s ease;
+			}
+
+			&.active {
+				background-color: var(--color-primary);
+				
+				.dot {
+					background-color: var(--color-white);
+					width: 10px;
+					height: 10px;
+				}
+			}
+
+			&.completed {
+				background-color: var(--color-primary);
+
+				.dot {
+					background-color: var(--color-white);
+				}
+			}
+		}
+	}
+
+	.step-content {
+		margin-bottom: var(--spacing-xl);
+
+		h2 {
+			margin-bottom: var(--spacing-lg);
+			font-size: var(--font-size-xl);
+			font-weight: 600;
+		}
+	}
+
+	.card {
+		background: var(--color-neutral-dark);
+		border-radius: var(--border-radius-lg);
+		padding: var(--spacing-xl);
+		box-shadow:
+			0 4px 6px -1px rgba(0, 0, 0, 0.1),
+			0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	}
+
+	.navigation-buttons {
+		display: flex;
+		justify-content: space-between;
+		gap: var(--spacing-md);
+		margin-top: var(--spacing-xl);
+		padding-top: var(--spacing-lg);
+		border-top: 1px solid var(--color-neutral-darker);
+
+		:global(button) {
+			min-width: 120px;
+		}
 	}
 
 	.form-group {
@@ -355,13 +517,6 @@
 		font-size: var(--spacing-lg);
 	}
 
-	.input-group {
-		display: flex;
-		gap: var(--spacing-md);
-		margin-bottom: var(--spacing-md);
-		align-items: flex-start;
-	}
-
 	.selected-tags {
 		display: flex;
 		flex-wrap: wrap;
@@ -382,11 +537,11 @@
 		align-items: center;
 		justify-content: center;
 		margin-top: var(--spacing-xs);
-	}
 
-	.remove-btn:hover {
-		color: var(--color-error);
-		background-color: var(--color-error-dark);
+		&:hover {
+			color: var(--color-error);
+			background-color: var(--color-error-dark);
+		}
 	}
 
 	.ingredient-group {
@@ -458,29 +613,6 @@
 		flex: 1;
 	}
 
-	.quantity-input {
-		width: 100px !important;
-	}
-
-	.ingredient-input {
-		position: relative;
-		width: 100%;
-	}
-
-	.custom-ingredient {
-		width: 100%;
-		height: 100%;
-
-		:global(.search),
-		:global(.input-wrapper) {
-			width: 100%;
-		}
-	}
-
-	.text-button {
-		display: none;
-	}
-
 	.error-container {
 		background-color: var(--color-error-dark);
 		border-radius: var(--border-radius);
@@ -504,31 +636,17 @@
 			margin-left: 0;
 			margin-top: var(--spacing-sm);
 		}
+
+		.navigation-buttons {
+			flex-direction: column;
+
+			:global(button) {
+				width: 100%;
+			}
+		}
 	}
 
-	.checkbox-group {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-md);
-		margin-bottom: var(--spacing-md);
-	}
-
-	.checkbox-item {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-		background-color: var(--color-neutral-darker);
-		padding: var(--spacing-sm) var(--spacing-md);
-		border-radius: var(--border-radius-md);
-	}
-
-	.checkbox-item input[type='checkbox'] {
-		accent-color: var(--color-primary);
-	}
-
-	.checkbox-item label {
-		margin-bottom: 0;
-		font-size: var(--font-size-md);
-		font-weight: normal;
+	.hidden {
+		display: none;
 	}
 </style>
