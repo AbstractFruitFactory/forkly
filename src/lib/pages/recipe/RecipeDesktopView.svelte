@@ -18,6 +18,7 @@
 	import { onMount } from 'svelte'
 	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
 	import Button from '$lib/components/button/Button.svelte'
+	import { fly } from 'svelte/transition'
 
 	let {
 		recipe,
@@ -148,14 +149,22 @@
 
 <div class="recipe-desktop-view-new">
 	<div class="sidebar">
-		<div class="action-buttons">
+		<div
+			class="action-buttons"
+			in:fly={{ x: -50, duration: 300, delay: 300 }}
+			out:fly={{ x: -50, duration: 300 }}
+		>
 			{@render actionButtons()}
 		</div>
 	</div>
 
 	<div class="main-content">
 		<div class="content-grid">
-			<div class="left-column card">
+			<div
+				class="left-column card"
+				in:fly={{ x: -50, duration: 300, delay: 300 }}
+				out:fly={{ x: -50, duration: 300 }}
+			>
 				<div class="recipe-info">
 					{#if recipe.tags && recipe.tags.length > 0}
 						<div class="tags-and-action-buttons">
@@ -225,7 +234,11 @@
 				</div>
 			</div>
 
-			<div class="right-column">
+			<div
+				class="right-column"
+				in:fly={{ y: 50, duration: 300, delay: 300 }}
+				out:fly={{ x: -50, duration: 300 }}
+			>
 				<div class="recipe-media card">
 					{#if recipe.imageUrl}
 						<RecipeMediaDisplay

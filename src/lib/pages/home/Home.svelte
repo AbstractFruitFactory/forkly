@@ -5,6 +5,7 @@
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import { onMount } from 'svelte'
 	import FilterSelector from '$lib/components/filter-selector/FilterSelector.svelte'
+	import { fly } from 'svelte/transition'
 
 	type Recipe = {
 		id: string
@@ -187,7 +188,7 @@
 
 <svelte:document onkeydown={handleKeyDown} />
 
-<div class="search-container">
+<div class="search-container" in:fly={{ x: -50, duration: 300, delay: 300 }} out:fly={{ x: -50, duration: 300 }}>
 	<div class="search-content">
 		<div class="top-row">
 			<div class="search-bar">
@@ -256,7 +257,7 @@
 
 <div class="home-container">
 	<div class="header-content">
-		<div class="sort-controls">
+		<div class="sort-controls" in:fly={{ x: -50, duration: 300, delay: 300 }} out:fly={{ x: -50, duration: 300 }}>
 			<Button
 				variant={sortBy === 'popular' ? 'primary' : 'text'}
 				size="sm"

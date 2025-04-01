@@ -1,5 +1,6 @@
 <script lang="ts">
 	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
+	import { fly } from 'svelte/transition'
 
 	type Recipe = {
 		id: string
@@ -29,23 +30,25 @@
 	} = $props()
 </script>
 
-{#if recipes.length === 0}
-	<div class="empty-state">
-		<p>{emptyMessage}</p>
-	</div>
-{:else}
-	<div class="recipe-grid">
-		{#each recipes as recipe}
-			<RecipeCard {recipe} />
-		{/each}
-
-		{#if isLoading}
-			{#each Array(18) as _}
-				<RecipeCard loading />
+<div in:fly={{ y: 50, duration: 300, delay: 300 }} out:fly={{ y: 50, duration: 300 }}>
+	{#if recipes.length === 0}
+		<div class="empty-state">
+			<p>{emptyMessage}</p>
+		</div>
+	{:else}
+		<div class="recipe-grid">
+			{#each recipes as recipe, i}
+				<RecipeCard {recipe} />
 			{/each}
-		{/if}
-	</div>
-{/if}
+
+			{#if isLoading}
+				{#each Array(18) as _, i}
+					<RecipeCard loading />
+				{/each}
+			{/if}
+		</div>
+	{/if}
+</div>
 
 <style lang="scss">
 	@import '$lib/global.scss';
