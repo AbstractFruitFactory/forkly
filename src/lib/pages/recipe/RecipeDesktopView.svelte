@@ -151,7 +151,7 @@
 	<div class="sidebar">
 		<div
 			class="action-buttons"
-			in:fly={{ x: -50, duration: 300, delay: 300 }}
+			in:fly={{ x: -50, duration: 300, delay: 500 }}
 			out:fly={{ x: -50, duration: 300 }}
 		>
 			{@render actionButtons()}
