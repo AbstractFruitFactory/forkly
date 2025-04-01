@@ -8,13 +8,7 @@ import { measurementUnits, isValidTag } from '$lib/types'
 const baseIngredientSchema = v.object({
   name: v.string(),
   quantity: v.number(),
-  measurement: v.pipe(
-    v.string(),
-    v.custom<MeasurementUnit>(
-      (value) => measurementUnits.includes(value as MeasurementUnit),
-      'Invalid measurement unit'
-    )
-  )
+  measurement: v.string()
 })
 
 const createRecipeSchema = v.object({

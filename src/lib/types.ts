@@ -1,4 +1,4 @@
-export type MeasurementUnit = typeof measurementUnits[number]
+export type MeasurementUnit = string
 
 export const measurementUnits = [
   // Weight measurements
@@ -34,6 +34,8 @@ export const measurementUnits = [
   'to taste',
   'pinch'
 ] as const
+
+export const defaultMeasurementUnits = measurementUnits
 
 // A tag can be any string less than 10 characters
 export const isValidTag = (tag: string): boolean => {

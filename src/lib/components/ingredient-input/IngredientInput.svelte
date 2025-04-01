@@ -6,13 +6,13 @@
 
 	let {
 		value = $bindable(''),
-		unit = $bindable<MeasurementUnit>(),
+		unit = $bindable(''),
 		unitSystem = 'imperial',
 		name,
 		placeholder = 'Amount'
 	}: {
 		value?: string
-		unit?: MeasurementUnit
+		unit?: string
 		unitSystem?: UnitSystem
 		name: string
 		placeholder?: string
@@ -69,12 +69,19 @@
 				{value}
 				oninput={handleInput}
 			/>
-			<select name="{name}-measurement" bind:value={unit}>
-				<option value="">Unit</option>
-				{#each getUnits(unitSystem) as unit}
-					<option value={unit}>{UNIT_DISPLAY_TEXT[unit]}</option>
+			<input
+				type="text"
+				list="{name}-units"
+				name="{name}-measurement"
+				placeholder="Unit"
+				bind:value={unit}
+				class="unit-input"
+			/>
+			<datalist id="{name}-units">
+				{#each getUnits(unitSystem) as unitOption}
+					<option value={unitOption}>{UNIT_DISPLAY_TEXT[unitOption]}</option>
 				{/each}
-			</select>
+			</datalist>
 		</div>
 	</Input>
 </div>
@@ -95,37 +102,23 @@
 			padding-right: 80px;
 		}
 
-		select {
+		.unit-input {
 			position: absolute;
-			cursor: pointer;
 			right: 0;
 			top: 0;
 			bottom: 0;
 			width: 80px;
 			border: none;
 			border-left: var(--border-width-thin) solid var(--color-neutral);
-			background-color: var(--color-neutral-dark);
-			padding-right: var(--spacing-xl);
+			background-color: var(--color-neutral-darker);
+			padding-right: var(--spacing-sm);
 			padding-left: var(--spacing-sm);
 			font-size: var(--font-size-sm);
 			color: var(--color-neutral-light);
-			cursor: pointer;
 			z-index: 1;
-			appearance: none;
-			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-			background-repeat: no-repeat;
-			background-position: right var(--spacing-sm) center;
-			background-size: var(--spacing-sm);
-			background-color: var(--color-neutral-darker);
 
 			&:focus {
 				box-shadow: none;
-			}
-
-			option {
-				cursor: pointer;
-				background-color: var(--color-neutral-dark);
-				color: var(--color-neutral-light);
 			}
 		}
 	}

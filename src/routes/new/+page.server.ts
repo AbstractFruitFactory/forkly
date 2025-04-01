@@ -23,8 +23,7 @@ const formValidationSchema = v.object({
     v.transform(input => input ?? '')
   ),
   servings: v.pipe(
-    v.string(),
-    v.transform(input => parseInt(input) || 1),
+    v.number(),
     v.minValue(1, 'Servings must be at least 1')
   ),
   ingredients: v.pipe(
@@ -164,7 +163,7 @@ export const actions = {
     const result = v.safeParse(formValidationSchema, {
       title: recipeData.title,
       description: recipeData.description,
-      servings: recipeData.servings,
+      servings: Number(recipeData.servings) || 1,
       ingredients: recipeData.ingredients,
       instructions: recipeData.instructions,
       tags: recipeData.tags

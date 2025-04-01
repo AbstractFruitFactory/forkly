@@ -1,4 +1,5 @@
 import type { MeasurementUnit } from '$lib/types'
+import { measurementUnits } from '$lib/types'
 
 export const UNITS = {
   weight: {
@@ -83,6 +84,11 @@ export const convertMeasurement = (
   fromUnit: MeasurementUnit,
   toSystem: 'metric' | 'imperial'
 ): { quantity: number; unit: MeasurementUnit } => {
+  // If the unit is not in our known units, return it as-is
+  if (!measurementUnits.includes(fromUnit as any)) {
+    return { quantity, unit: fromUnit }
+  }
+
   if (UNITS.other.includes(fromUnit as string)) {
     return { quantity, unit: fromUnit }
   }
@@ -199,7 +205,10 @@ export const chooseBestUnit = (quantity: number, unit: MeasurementUnit): { quant
 export const formatMeasurement = (quantity: number, unit: MeasurementUnit): string => {
   const { quantity: adjustedQuantity, unit: adjustedUnit } = chooseBestUnit(quantity, unit)
 
-  const displayUnit = UNIT_DISPLAY_TEXT[adjustedUnit] || adjustedUnit
+  // For custom units, use the unit as is
+  const displayUnit = measurementUnits.includes(adjustedUnit as any) 
+    ? UNIT_DISPLAY_TEXT[adjustedUnit as keyof typeof UNIT_DISPLAY_TEXT] 
+    : adjustedUnit
 
   let formattedQuantity: string
 
