@@ -16,6 +16,8 @@
 	import SharePopup from '$lib/components/share-button/SharePopup.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
 	import { onMount } from 'svelte'
+	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
+	import Button from '$lib/components/button/Button.svelte'
 
 	let {
 		recipe,
@@ -52,6 +54,7 @@
 
 	// Serving size state
 	let currentServings = $state(recipe.servings)
+	let isCookingMode = $state(false)
 
 	// Scale ingredients based on serving size
 	const scaledIngredients = $derived(
@@ -127,6 +130,14 @@
 	onMount(() => {
 		document.querySelector('.main')?.addEventListener('scroll', checkOverlap)
 	})
+
+	function startCookingMode() {
+		isCookingMode = true
+	}
+
+	function exitCookingMode() {
+		isCookingMode = false
+	}
 </script>
 
 {#snippet actionButtons()}
@@ -189,7 +200,7 @@
 					{#if recipe.ingredients && recipe.ingredients.length > 0}
 						<div class="ingredients-section" bind:this={ingredientsSection}>
 							<div class="ingredients-header">
-								<h2 style:margin-bottom="0">Ingredients</h2>
+								<h3 style:margin-bottom="0">Ingredients</h3>
 								<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 							</div>
 							<IngredientsList ingredients={scaledIngredients} {unitSystem} />
@@ -241,13 +252,18 @@
 				</div>
 
 				{#if recipe.instructions && recipe.instructions.length > 0}
-					<div class="instructions-list">
-						{#each recipe.instructions as instruction, index}
-							<div class="instruction-wrapper">
-								<span class="step-number">{index + 1}</span>
-								<RecipeInstruction {instruction} {index} />
-							</div>
-						{/each}
+					<div class="instructions-section">
+						<div class="instructions-header">
+							<Button variant="primary" fullWidth onclick={startCookingMode}>Start Cooking</Button>
+						</div>
+						<div class="instructions-list">
+							{#each recipe.instructions as instruction, index}
+								<div class="instruction-wrapper">
+									<span class="step-number">{index + 1}</span>
+									<RecipeInstruction {instruction} {index} />
+								</div>
+							{/each}
+						</div>
 					</div>
 				{/if}
 			</div>
@@ -259,6 +275,8 @@
 		</div>
 	</div>
 </div>
+
+<CookingMode {recipe} onClose={exitCookingMode} isOpen={isCookingMode} />
 
 <SharePopup
 	isOpen={isSharePopupOpen}
@@ -366,10 +384,6 @@
 		margin-top: var(--spacing-xl);
 		padding-top: var(--spacing-xl);
 		border-top: 1px solid rgba(255, 255, 255, 0.1);
-
-		h2 {
-			margin-bottom: var(--spacing-md);
-		}
 	}
 
 	.recipe-info {
@@ -407,13 +421,13 @@
 	.ingredients-section {
 		border-top: var(--border-width-thin) solid var(--color-neutral);
 		padding-top: var(--spacing-lg);
-		margin-top: var(--spacing-lg);
 		top: 0;
 		z-index: 10;
 		background: var(--color-neutral-dark);
 
 		@include desktop {
 			position: sticky;
+			top: -1px;
 		}
 	}
 
@@ -428,7 +442,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-xl);
-		padding-top: var(--spacing-xl);
 
 		@include tablet {
 			grid-area: instructions;
@@ -473,28 +486,7 @@
 	h1 {
 		font-family: var(--font-serif);
 		font-size: var(--font-size-3xl);
-		font-weight: 600;
-		letter-spacing: -0.01em;
-		margin-bottom: var(--spacing-lg);
-		line-height: 1.2;
-		color: var(--color-text);
-
-		@include mobile {
-			font-size: var(--font-size-xl);
-		}
-	}
-
-	h2 {
-		font-family: 'DM Sans', sans-serif;
-		font-size: var(--font-size-xl);
-		font-weight: 500;
-		letter-spacing: -0.02em;
-		margin-bottom: var(--spacing-md);
-		line-height: 1.3;
-
-		@include mobile {
-			font-size: var(--font-size-md);
-		}
+		font-weight: var(--font-weight-semibold);
 	}
 
 	.image-placeholder {
@@ -555,5 +547,12 @@
 			max-width: 280px;
 			margin: 0 auto;
 		}
+	}
+
+	.instructions-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-lg);
 	}
 </style>

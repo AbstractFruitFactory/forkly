@@ -4,7 +4,7 @@
 	import { quintOut } from 'svelte/easing'
 
 	let {
-		isOpen = false,
+		isOpen = $bindable(false),
 		title,
 		showCloseButton = true,
 		closeOnClickOutside = true,
@@ -164,7 +164,6 @@
 
 		@include mobile {
 			padding: var(--spacing-md);
-			
 		}
 	}
 </style>
