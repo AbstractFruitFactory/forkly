@@ -109,7 +109,11 @@
 		padding: 0 0 0 var(--spacing-lg);
 
 		&:has(.instruction-media) {
-			grid-template-columns: 1fr 250px;
+			grid-template-columns: 1fr 200px;
+
+			@media (max-width: 1200px) {
+				grid-template-columns: 1fr;
+			}
 		}
 
 		@include tablet {
@@ -130,8 +134,9 @@
 		font-size: var(--font-size-md);
 		padding: var(--spacing-md) var(--spacing-lg) var(--spacing-md) 0;
 
-		:global(span) {
+		span {
 			display: inline;
+			word-break: break-word;
 		}
 
 		@include mobile {
@@ -142,7 +147,6 @@
 	.instruction-media {
 		border-radius: 0;
 		overflow: hidden;
-		box-shadow: var(--shadow-md);
 		will-change: transform;
 		content-visibility: auto;
 		height: 100%;
@@ -161,6 +165,10 @@
 
 		:global(.video-container) {
 			border-radius: 0;
+		}
+
+		@media (max-width: 1200px) {
+			display: none;
 		}
 	}
 
