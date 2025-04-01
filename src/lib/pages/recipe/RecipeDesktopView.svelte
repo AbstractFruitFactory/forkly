@@ -15,6 +15,7 @@
 	import FloatingShareButton from '$lib/components/floating-action-button/FloatingShareButton.svelte'
 	import SharePopup from '$lib/components/share-button/SharePopup.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
+	import { onMount } from 'svelte'
 
 	let {
 		recipe,
@@ -74,6 +75,7 @@
 	let isDescriptionExpanded = $state(false)
 	let isSharePopupOpen = $state(false)
 	let shareUrl = $state('')
+	let nutritionOpacity = $state(1)
 
 	const MAX_DESCRIPTION_LENGTH = 300
 
@@ -103,6 +105,28 @@
 	function toggleSharePopup() {
 		isSharePopupOpen = !isSharePopupOpen
 	}
+
+	let ingredientsSection: HTMLElement
+	let nutritionFacts: HTMLElement
+
+	const checkOverlap = () => {
+		const ingredientsRect = ingredientsSection.getBoundingClientRect()
+		const nutritionRect = nutritionFacts.getBoundingClientRect()
+
+		if (ingredientsRect.bottom > nutritionRect.top && ingredientsRect.top < nutritionRect.bottom) {
+			const overlapAmount = Math.min(
+				(ingredientsRect.bottom - nutritionRect.top) / nutritionRect.height,
+				1.0
+			)
+			nutritionOpacity = Math.max(0, 1 - overlapAmount * 2)
+		} else {
+			nutritionOpacity = 1
+		}
+	}
+
+	onMount(() => {
+		document.querySelector('.main')?.addEventListener('scroll', checkOverlap)
+	})
 </script>
 
 {#snippet actionButtons()}
@@ -163,7 +187,7 @@
 					{/if}
 
 					{#if recipe.ingredients && recipe.ingredients.length > 0}
-						<div class="ingredients-section">
+						<div class="ingredients-section" bind:this={ingredientsSection}>
 							<div class="ingredients-header">
 								<h2 style:margin-bottom="0">Ingredients</h2>
 								<UnitToggle state={unitSystem} onSelect={onUnitChange} />
@@ -179,7 +203,11 @@
 					{/if}
 
 					{#if servingNutrition}
-						<div class="nutrition-facts">
+						<div
+							class="nutrition-facts"
+							bind:this={nutritionFacts}
+							style="opacity: {nutritionOpacity}; transition: opacity 0.2s ease-out;"
+						>
 							<NutritionFacts nutrition={servingNutrition} />
 						</div>
 					{/if}
@@ -381,7 +409,7 @@
 		padding-top: var(--spacing-lg);
 		margin-top: var(--spacing-lg);
 		top: 0;
-		z-index: var(--z-sticky);
+		z-index: 10;
 		background: var(--color-neutral-dark);
 
 		@include desktop {
@@ -404,8 +432,7 @@
 
 		@include tablet {
 			grid-area: instructions;
-
-		}	
+		}
 	}
 
 	.instruction-wrapper {
@@ -521,6 +548,8 @@
 		align-items: center;
 		padding: var(--spacing-xl) 0;
 		margin: var(--spacing-md) 0;
+		position: relative;
+		z-index: 1;
 
 		:global(.nutrition-chart) {
 			max-width: 280px;
