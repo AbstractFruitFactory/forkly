@@ -463,7 +463,7 @@
 
 	.instruction-wrapper {
 		display: grid;
-		grid-template-columns: auto 1fr;
+		grid-template-columns: 20px 1fr;
 		gap: var(--spacing-md);
 		align-items: flex-start;
 	}
@@ -472,7 +472,7 @@
 		font-size: var(--font-size-xl);
 		font-weight: 500;
 		color: var(--color-primary);
-		text-align: right;
+		text-align: left;
 		padding-top: var(--spacing-xs);
 
 		@include tablet {
