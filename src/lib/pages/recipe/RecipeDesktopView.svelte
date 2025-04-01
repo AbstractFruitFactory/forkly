@@ -130,6 +130,10 @@
 
 	onMount(() => {
 		document.querySelector('.main')?.addEventListener('scroll', checkOverlap)
+
+		return () => {
+			document.querySelector('.main')?.removeEventListener('scroll', checkOverlap)
+		}
 	})
 
 	function startCookingMode() {

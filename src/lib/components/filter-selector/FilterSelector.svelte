@@ -102,8 +102,6 @@
 	$effect(() => {
 		displayItems = [...items]
 	})
-
-	$inspect(colorMap)
 </script>
 
 <div class="filter-selector">
