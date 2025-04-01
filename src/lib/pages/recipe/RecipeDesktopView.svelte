@@ -105,12 +105,16 @@
 	}
 </script>
 
+{#snippet actionButtons()}
+	<FloatingLikeButton isActive={isLiked} onClick={onLike} />
+	<FloatingSaveButton isActive={isSaved} onClick={onSave} />
+	<FloatingShareButton onClick={toggleSharePopup} />
+{/snippet}
+
 <div class="recipe-desktop-view-new">
 	<div class="sidebar">
 		<div class="action-buttons">
-			<FloatingLikeButton isActive={isLiked} onClick={onLike} />
-			<FloatingSaveButton isActive={isSaved} onClick={onSave} />
-			<FloatingShareButton onClick={toggleSharePopup} />
+			{@render actionButtons()}
 		</div>
 	</div>
 
@@ -119,10 +123,16 @@
 			<div class="left-column card">
 				<div class="recipe-info">
 					{#if recipe.tags && recipe.tags.length > 0}
-						<div class="tags">
-							{#each recipe.tags as tag}
-								<Pill text={tag} />
-							{/each}
+						<div class="tags-and-action-buttons">
+							<div class="tags">
+								{#each recipe.tags as tag}
+									<Pill text={tag} />
+								{/each}
+							</div>
+
+							<div class="action-buttons-tablet">
+								{@render actionButtons()}
+							</div>
 						</div>
 					{/if}
 
@@ -232,28 +242,39 @@
 <style lang="scss">
 	@import '$lib/global.scss';
 
-	:global(body) {
-		font-family:
-			'DM Sans',
-			-apple-system,
-			BlinkMacSystemFont,
-			sans-serif;
-	}
-
 	.recipe-desktop-view-new {
 		display: grid;
 		grid-template-columns: 80px 1fr;
 		gap: var(--spacing-xl);
 		max-width: 1200px;
-		margin: var(--spacing-xl) auto;
 		padding: 0 var(--spacing-xl);
 		background: var(--color-background);
+
+		@include tablet {
+			grid-template-columns: 1fr;
+			padding: var(--spacing-lg);
+		}
+
+		@include mobile {
+			padding: var(--spacing-md);
+		}
 	}
 
 	.content-grid {
 		display: grid;
 		grid-template-columns: minmax(300px, 1fr) minmax(400px, 1.5fr);
 		gap: var(--spacing-lg);
+
+		@include tablet {
+			display: grid;
+			grid-template-areas:
+				'image'
+				'info'
+				'instructions';
+			grid-template-columns: 1fr;
+			grid-template-rows: auto auto auto;
+			gap: var(--spacing-lg);
+		}
 	}
 
 	.card {
@@ -262,17 +283,30 @@
 		border-radius: var(--border-radius-lg);
 		padding: var(--spacing-lg);
 		box-shadow: var(--shadow-md);
+
+		@include mobile {
+			padding: var(--spacing-md);
+		}
 	}
 
 	.left-column {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-xl);
+
+		@include tablet {
+			grid-area: info;
+		}
 	}
 
 	.right-column {
 		display: flex;
 		flex-direction: column;
+		gap: var(--spacing-lg);
+
+		@include tablet {
+			display: contents;
+		}
 
 		.recipe-media {
 			padding: 0;
@@ -280,6 +314,16 @@
 			height: 400px;
 			width: 100%;
 			border-radius: var(--border-radius-lg);
+
+			@include tablet {
+				grid-area: image;
+				height: 300px;
+				margin-bottom: var(--spacing-md);
+			}
+
+			@include mobile {
+				height: 250px;
+			}
 
 			:global(img) {
 				width: 100%;
@@ -309,21 +353,20 @@
 	.tags {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--spacing-xs);
+		gap: var(--spacing-sm);
 		margin-bottom: var(--spacing-sm);
+	}
+
+	.tags-and-action-buttons {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
 	}
 
 	.recipe-creator-wrapper {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
-
-		.published-date {
-			font-family: 'DM Sans', sans-serif;
-			font-size: var(--font-size-sm);
-			font-weight: 400;
-			color: var(--color-neutral-light);
-		}
 	}
 
 	.ingredients-header {
@@ -337,19 +380,19 @@
 		border-top: var(--border-width-thin) solid var(--color-neutral);
 		padding-top: var(--spacing-lg);
 		margin-top: var(--spacing-lg);
-		position: sticky;
 		top: 0;
 		z-index: var(--z-sticky);
 		background: var(--color-neutral-dark);
+
+		@include desktop {
+			position: sticky;
+		}
 	}
 
 	.description-content {
 		p {
-			font-family: 'DM Sans', sans-serif;
 			font-size: var(--font-size-md);
-			line-height: 1.6;
 			color: var(--color-neutral-light);
-			font-weight: 400;
 		}
 	}
 
@@ -358,6 +401,11 @@
 		flex-direction: column;
 		gap: var(--spacing-xl);
 		padding-top: var(--spacing-xl);
+
+		@include tablet {
+			grid-area: instructions;
+
+		}	
 	}
 
 	.instruction-wrapper {
@@ -368,16 +416,18 @@
 	}
 
 	.step-number {
-		font-family: 'DM Sans', sans-serif;
 		font-size: var(--font-size-xl);
 		font-weight: 500;
 		color: var(--color-primary);
 		text-align: right;
 		padding-top: var(--spacing-xs);
+
+		@include tablet {
+			font-size: var(--font-size-lg);
+		}
 	}
 
 	.view-more-button {
-		font-family: 'DM Sans', sans-serif;
 		font-size: var(--font-size-sm);
 		font-weight: 500;
 		cursor: pointer;
@@ -394,13 +444,17 @@
 	}
 
 	h1 {
-		font-family: 'Fraunces', serif;
+		font-family: var(--font-serif);
 		font-size: var(--font-size-3xl);
 		font-weight: 600;
 		letter-spacing: -0.01em;
 		margin-bottom: var(--spacing-lg);
 		line-height: 1.2;
 		color: var(--color-text);
+
+		@include mobile {
+			font-size: var(--font-size-xl);
+		}
 	}
 
 	h2 {
@@ -410,6 +464,10 @@
 		letter-spacing: -0.02em;
 		margin-bottom: var(--spacing-md);
 		line-height: 1.3;
+
+		@include mobile {
+			font-size: var(--font-size-md);
+		}
 	}
 
 	.image-placeholder {
@@ -431,48 +489,29 @@
 		position: sticky;
 		top: var(--spacing-xl);
 		height: fit-content;
+
+		@include tablet {
+			display: none;
+		}
 	}
 
 	.action-buttons {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xl);
-		align-items: center;
+		display: none;
+
+		@include desktop {
+			display: flex;
+			flex-direction: column;
+			gap: var(--spacing-xl);
+			align-items: center;
+		}
 	}
 
-	@include tablet {
-		.recipe-desktop-view-new {
-			grid-template-columns: 1fr;
-			padding: var(--spacing-lg);
-		}
+	.action-buttons-tablet {
+		display: flex;
+		gap: var(--spacing-md);
 
-		.content-grid {
-			grid-template-columns: 1fr;
-			gap: var(--spacing-lg);
-		}
-
-		.sidebar {
-			position: static;
-			margin-bottom: var(--spacing-xl);
-
-			.action-buttons {
-				flex-direction: row;
-				justify-content: center;
-				gap: var(--spacing-xl);
-			}
-		}
-
-		.instruction-wrapper {
-			grid-template-columns: 32px 1fr;
-			gap: var(--spacing-sm);
-		}
-
-		.step-number {
-			font-size: var(--font-size-lg);
-		}
-
-		.recipe-media {
-			height: 300px;
+		@include desktop {
+			display: none;
 		}
 	}
 
@@ -486,28 +525,6 @@
 		:global(.nutrition-chart) {
 			max-width: 280px;
 			margin: 0 auto;
-		}
-	}
-
-	@include mobile {
-		.recipe-desktop-view-new {
-			padding: var(--spacing-md);
-		}
-
-		.card {
-			padding: var(--spacing-md);
-		}
-
-		h1 {
-			font-size: var(--font-size-xl);
-		}
-
-		h2 {
-			font-size: var(--font-size-md);
-		}
-
-		.recipe-media {
-			height: 250px;
 		}
 	}
 </style>

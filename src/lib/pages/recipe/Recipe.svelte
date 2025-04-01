@@ -51,31 +51,51 @@
 	}
 </script>
 
-<RecipeDesktopView
-	{recipe}
-	{nutrition}
-	onLike={handleLike}
-	onSave={handleSave}
-	{isLiked}
-	{isSaved}
-	{unitSystem}
-	{onUnitChange}
-	{isLoggedIn}
-	{comments}
-	{formError}
-/>
+<div class="recipe-desktop-view">
+	<RecipeDesktopView
+		{recipe}
+		{nutrition}
+		onLike={handleLike}
+		onSave={handleSave}
+		{isLiked}
+		{isSaved}
+		{unitSystem}
+		{onUnitChange}
+		{isLoggedIn}
+		{comments}
+		{formError}
+	/>
+</div>
 
-<RecipeMobileView
-	{recipe}
-	{nutrition}
-	{getFormattedIngredient}
-	{unitSystem}
-	{onUnitChange}
-	{isLoggedIn}
-	{onBackClick}
-	onLike={handleLike}
-	{onDislike}
-	onSave={handleSave}
-	{comments}
-	{formError}
-/>
+<div class="recipe-mobile-view">
+	<RecipeMobileView
+		{recipe}
+		{nutrition}
+		{getFormattedIngredient}
+		{unitSystem}
+		{onUnitChange}
+		{isLoggedIn}
+		{onBackClick}
+		onLike={handleLike}
+		{onDislike}
+		onSave={handleSave}
+		{comments}
+		{formError}
+	/>
+</div>
+
+<style lang="scss">
+	@import '$lib/global.scss';
+
+	.recipe-desktop-view {
+		@include mobile {
+			display: none;
+		}
+	}
+
+	.recipe-mobile-view {
+		@include desktop {
+			display: none;
+		}
+	}
+</style>
