@@ -285,7 +285,7 @@
 				{/if}
 			</div>
 		</div>
-		<div class="comments-section">
+		<div class="comments-section" in:fly={{ y: 50, duration: 300, delay: 300 }} out:fly={{ y: 50, duration: 300 }}>
 			<div class="comments-content">
 				<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} />
 			</div>
