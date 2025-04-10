@@ -9,6 +9,7 @@
 	import IngredientFilter from '$lib/components/ingredient-filter/IngredientFilter.svelte'
 	import TagFilter from '$lib/components/tag-filter/TagFilter.svelte'
 	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
+	import ScrollToTop from '$lib/components/scroll-to-top/ScrollToTop.svelte'
 
 	type Recipe = {
 		id: string
@@ -62,6 +63,8 @@
 	let searchInput: HTMLInputElement
 	let availableTags = $state<{ name: string; count: number }[]>([])
 	let availableIngredients = $state<{ id: string; name: string }[]>([])
+	let showScrollToTop = $state(false)
+	let observer: IntersectionObserver
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -72,6 +75,24 @@
 
 	onMount(() => {
 		isMac = navigator.userAgent.toLowerCase().includes('mac')
+
+		observer = new IntersectionObserver(
+			(entries) => {
+				showScrollToTop = !entries[0].isIntersecting
+			},
+			{
+				threshold: 0
+			}
+		)
+
+		const searchContainer = document.querySelector('.search-container')
+		if (searchContainer) {
+			observer.observe(searchContainer)
+		}
+
+		return () => {
+			observer?.disconnect()
+		}
 	})
 
 	const handleSearch = (query: string) => {
@@ -154,7 +175,11 @@
 
 <h1 class="home-title">Explore Recipes</h1>
 
-<div class="search-container" in:fly={{ x: -50, duration: 300, delay: 300 }} out:fly={{ x: -50, duration: 300 }}>
+<div
+	class="search-container"
+	in:fly={{ x: -50, duration: 300, delay: 300 }}
+	out:fly={{ x: -50, duration: 300 }}
+>
 	<div class="search-content">
 		<Search
 			placeholder="Search recipes..."
@@ -211,7 +236,16 @@
 			/>
 		</div>
 	</div>
-	<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} {isLoading} />
+
+	<div class="recipe-grid">
+		<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} {isLoading} />
+
+		{#if showScrollToTop}
+			<div class="scroll-to-top">
+				<ScrollToTop />
+			</div>
+		{/if}
+	</div>
 </div>
 
 <style lang="scss">
@@ -223,6 +257,8 @@
 	}
 
 	.home-container {
+		position: relative;
+
 		@include mobile {
 			padding: var(--spacing-lg);
 			padding-bottom: 0;
@@ -314,6 +350,22 @@
 		.sort-controls {
 			width: 100%;
 			justify-content: space-between;
+		}
+	}
+
+	.recipe-grid {
+		position: relative;
+
+	}
+
+	.scroll-to-top {
+		display: none;
+
+		@include desktop {
+			display: block;
+			position: fixed;
+			top: 100px;
+			transform: translateX(-100px);
 		}
 	}
 

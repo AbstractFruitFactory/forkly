@@ -39,7 +39,6 @@
 	@import '$lib/global.scss';
 
 	.layout {
-		height: 100dvh;
 		display: flex;
 		flex-direction: column;
 	}
@@ -85,7 +84,6 @@
 	.main {
 		position: relative;
 		flex-grow: 1;
-		overflow-y: auto;
 		scrollbar-width: thin;
 		scrollbar-gutter: stable both-edges;
 		transition: margin-left 0.25s ease-out;
