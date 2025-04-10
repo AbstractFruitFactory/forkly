@@ -173,13 +173,12 @@
 
 <svelte:document onkeydown={handleKeyDown} />
 
-<h1 class="home-title">Explore Recipes</h1>
-
 <div
 	class="search-container"
 	in:fly={{ x: -50, duration: 300, delay: 300 }}
 	out:fly={{ x: -50, duration: 300 }}
 >
+	<h1 class="home-title">Explore Recipes</h1>
 	<div class="search-content">
 		<Search
 			placeholder="Search recipes..."
@@ -355,7 +354,6 @@
 
 	.recipe-grid {
 		position: relative;
-
 	}
 
 	.scroll-to-top {
