@@ -79,14 +79,14 @@
 				<div class="gradient-animate"></div>
 			</div>
 		{:else if recipe}
-			<h2 id="recipe-title-{recipe.id}">{recipe.title}</h2>
+			<h4 id="recipe-title-{recipe.id}">{recipe.title}</h4>
 		{/if}
 		{#if loading}
 			<div class="description">
 				<div class="gradient-animate"></div>
 			</div>
 		{:else if recipe}
-			<p class="description">{recipe.description}</p>
+			<p class="description dotted-overflow">{recipe.description}</p>
 		{/if}
 		<div class="meta" aria-label="Recipe details">
 			<span>
@@ -130,7 +130,8 @@
 <style lang="scss">
 	.recipe-card {
 		display: block;
-		min-height: 300px;
+		height: 360px;
+		max-width: 280px;
 		border-radius: var(--border-radius-lg);
 		background: var(--color-neutral-dark);
 		border: 1px solid rgba(255, 255, 255, 0.1);
@@ -191,7 +192,7 @@
 	.image-container {
 		position: relative;
 		width: 100%;
-		aspect-ratio: 16 / 9;
+		height: 180px; /* Fixed height for image */
 		overflow: hidden;
 		background: var(--color-neutral-darker, rgba(0, 0, 0, 0.2));
 
@@ -258,26 +259,23 @@
 	}
 
 	.content {
-		padding: var(--spacing-lg);
+		padding: var(--spacing-md);
+		display: grid;
+		grid-template-rows: auto 1fr auto auto;
+		height: 180px; /* Fixed height for content */
+		gap: var(--spacing-sm);
 	}
 
-	h2 {
-		margin: 0 0 var(--spacing-md);
-		font-size: var(--font-size-xl);
+	h4 {
+		margin: 0;
 		font-weight: 600;
-		letter-spacing: -0.01em;
-		line-height: 1.3;
 		color: var(--color-neutral-light);
 	}
 
 	.description {
-		margin: 0 0 var(--spacing-lg);
+		margin: 0;
 		overflow: hidden;
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
 		color: var(--color-neutral-light);
-		line-height: 1.5;
 		opacity: 0.8;
 		font-size: var(--font-size-sm);
 	}
@@ -305,16 +303,16 @@
 
 	@media (max-width: 600px) {
 		.content {
-			padding: var(--spacing-md);
+			padding: var(--spacing-sm);
 		}
 
 		h2 {
-			font-size: var(--font-size-lg);
+			font-size: var(--font-size-md);
 		}
 
 		.meta {
 			font-size: var(--font-size-xs);
-			gap: var(--spacing-md);
+			gap: var(--spacing-sm);
 		}
 	}
 
@@ -322,7 +320,6 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--spacing-xs);
-		margin-top: var(--spacing-md);
 	}
 
 	.skeleton {

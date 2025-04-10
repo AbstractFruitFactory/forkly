@@ -262,6 +262,11 @@ a {
   opacity: 0.5;
 }
 
+.dotted-overflow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

@@ -49,9 +49,9 @@
 		top: 0;
 		z-index: var(--z-sticky);
 		width: 100%;
-		max-width: 1400px;
+		max-width: 1200px;
 		margin: 0 auto;
-		padding: 0 var(--spacing-xl);
+		padding: 0 var(--spacing-2xl);
 
 		@include mobile {
 			padding: 0 var(--spacing-md);
@@ -102,9 +102,9 @@
 
 	.main-content {
 		flex-grow: 1;
-		max-width: 1400px;
+		max-width: 1200px;
 		margin: 0 auto;
-		padding: var(--spacing-xl);
+		padding: var(--spacing-xl) var(--spacing-2xl);
 
 		@include mobile {
 			padding: 0;

@@ -268,6 +268,7 @@
 
 	.search-container {
 		margin: var(--spacing-lg) 0;
+		margin-bottom: var(--spacing-3xl);
 
 		@include tablet {
 			margin: var(--spacing-lg);
