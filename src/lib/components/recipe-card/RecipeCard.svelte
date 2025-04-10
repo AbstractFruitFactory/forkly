@@ -131,6 +131,7 @@
 	.recipe-card {
 		display: block;
 		height: 360px;
+		width: 100%;
 		max-width: 280px;
 		border-radius: var(--border-radius-lg);
 		background: var(--color-neutral-dark);

@@ -62,6 +62,8 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 		gap: var(--spacing-lg);
+		justify-content: center;
+		place-items: center;
 
 		&:last-child {
 			padding-bottom: var(--spacing-lg);
