@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fly, scale } from 'svelte/transition'
+
 	let {
 		text,
 		onRemove,
@@ -10,7 +12,13 @@
 	} = $props()
 </script>
 
-<div class="pill" style:--pill-color={color} style:--pill-color-dark={color + '99'}>
+<div
+	class="pill"
+	style:--pill-color={color}
+	style:--pill-color-dark={color + '99'}
+	in:fly={{ y: 20, duration: 100 }}
+	out:scale={{ duration: 250 }}
+>
 	<span class="pill-content">
 		<span class="pill-text">
 			{text}

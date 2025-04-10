@@ -154,11 +154,7 @@
 
 <h1 class="home-title">Explore Recipes</h1>
 
-<div
-	class="search-container"
-	in:fly={{ x: -50, duration: 300, delay: 300 }}
-	out:fly={{ x: -50, duration: 300 }}
->
+<div class="search-container" in:fly={{ x: -50, duration: 300, delay: 300 }} out:fly={{ x: -50, duration: 300 }}>
 	<div class="search-content">
 		<Search
 			placeholder="Search recipes..."
@@ -183,24 +179,22 @@
 			/>
 		</div>
 	</div>
+</div>
 
-	{#if selectedTags.length > 0 || selectedIngredients.length > 0 || excludedIngredients.length > 0}
-		<div class="selected-filters-container">
-			<div class="selected-pills">
-				{#each selectedTags as tag (tag.label)}
-					<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
-				{/each}
+<div class="selected-filters-container">
+	<div class="selected-pills">
+		{#each selectedTags as tag (tag.label)}
+			<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
+		{/each}
 
-				{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
-					<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
-				{/each}
+		{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
+			<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
+		{/each}
 
-				{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
-					<Pill text={`-${ingredient.label}`} onRemove={() => removeIngredient(ingredient.label)} />
-				{/each}
-			</div>
-		</div>
-	{/if}
+		{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
+			<Pill text={`-${ingredient.label}`} onRemove={() => removeIngredient(ingredient.label)} />
+		{/each}
+	</div>
 </div>
 
 <div class="home-container">
@@ -268,7 +262,6 @@
 
 	.search-container {
 		margin: var(--spacing-lg) 0;
-		margin-bottom: var(--spacing-3xl);
 
 		@include tablet {
 			margin: var(--spacing-lg);
@@ -291,7 +284,10 @@
 
 	.selected-filters-container {
 		width: 100%;
-		margin-top: var(--spacing-xs);
+		margin: var(--spacing-lg) 0;
+		min-height: 40px;
+		display: flex;
+		justify-content: center;
 	}
 
 	.selected-pills {
@@ -299,6 +295,8 @@
 		flex-wrap: wrap;
 		gap: var(--spacing-sm);
 		align-items: center;
+		justify-content: center;
+		max-width: 800px;
 	}
 
 	@media (max-width: 640px) {
