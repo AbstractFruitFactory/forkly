@@ -6,12 +6,14 @@
 		children,
 		actionButton,
 		isLoading,
-		value = $bindable('')
+		value = $bindable(''),
+		roundedCorners = false
 	}: {
 		children: Snippet
 		actionButton?: { text: string; onClick: () => void }
 		isLoading?: boolean
 		value?: string
+		roundedCorners?: boolean
 	} = $props()
 
 	const showClear = $derived(value !== '')
@@ -23,11 +25,12 @@
 
 <div
 	class="input-wrapper"
+	style:--rounded-corners={roundedCorners ? 'var(--border-radius-full)' : undefined}
 	style:--padding-right={actionButton
 		? 'calc(var(--spacing-xl) * 3 + var(--spacing-xs) * 2)'
 		: isLoading
-		? 'calc(var(--spacing-xl) + var(--spacing-xs) + 16px + var(--spacing-xs))'
-		: 'calc(var(--spacing-xl) + var(--spacing-xs))'}
+			? 'calc(var(--spacing-xl) + var(--spacing-xs) + 16px + var(--spacing-xs))'
+			: 'calc(var(--spacing-xl) + var(--spacing-xs))'}
 >
 	{@render children()}
 	<div class="right-elements">
@@ -53,7 +56,7 @@
 		height: 37px;
 		padding: 0 var(--spacing-lg);
 		border: var(--border-width-thin) solid var(--color-neutral);
-		border-radius: var(--border-radius-md);
+		border-radius: var(--rounded-corners, var(--border-radius-md));
 		font-family: var(--font-sans);
 		font-size: var(--font-size-sm);
 		color: var(--color-neutral-light);
@@ -87,7 +90,7 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-
+		width: 100%;
 		.right-elements {
 			position: absolute;
 			right: var(--spacing-md);
@@ -139,6 +142,8 @@
 			cursor: pointer;
 			font-size: var(--font-size-sm);
 			padding: var(--spacing-xs) var(--spacing-sm);
+			background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
+			border-radius: var(--border-radius-sm);
 
 			&:hover {
 				color: var(--color-primary-dark);
@@ -146,24 +151,9 @@
 		}
 
 		:global(input),
-		:global(select),
 		:global(textarea) {
 			@include input-base;
 			padding-right: var(--padding-right);
-		}
-
-		:global(select) {
-			cursor: pointer;
-			appearance: none;
-			padding-right: var(--spacing-xl);
-			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-			background-repeat: no-repeat;
-			background-position: right var(--spacing-md) center;
-			background-size: var(--spacing-md);
-
-			&:focus {
-				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-			}
 		}
 
 		:global(textarea) {

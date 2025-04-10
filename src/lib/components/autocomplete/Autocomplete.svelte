@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, type Snippet } from 'svelte'
+	import { type ComponentProps, type Snippet } from 'svelte'
 	import Input from '../input/Input.svelte'
 
 	type T = $$Generic<{ name: string }>
@@ -9,12 +9,13 @@
 		suggestions = [],
 		children,
 		onSelect,
+		...props
 	}: {
 		isLoading?: boolean
 		suggestions?: T[]
 		children: Snippet
 		onSelect: (suggestion: T) => void
-	} = $props()
+	} & ComponentProps<typeof Input> = $props()
 
 	const handleSelect = (suggestion: T) => {
 		onSelect(suggestion)
@@ -22,7 +23,7 @@
 </script>
 
 <div class="autocomplete-wrapper">
-	<Input>
+	<Input {...props}>
 		{@render children()}
 	</Input>
 

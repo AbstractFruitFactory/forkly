@@ -24,6 +24,7 @@
 	})
 
 	let value = $state('')
+	let textareaValue = $state('')
 </script>
 
 <Story name="Default">
@@ -40,6 +41,29 @@
 				bind:value
 			>
 				<input type="text" placeholder="Enter text..." bind:value />
+			</Input>
+		</div>
+	{/snippet}
+</Story>
+
+<Story name="Textarea">
+	{#snippet children(args)}
+		<div style="width: 300px; padding: 20px;">
+			<Input
+				{...args}
+				actionButton={args.actionButtonText
+					? {
+							text: args.actionButtonText,
+							onClick: () => {}
+						}
+					: undefined}
+				value={textareaValue}
+			>
+				<textarea 
+					bind:value={textareaValue}
+					placeholder="Enter your message..."
+					rows="4"
+				></textarea>
 			</Input>
 		</div>
 	{/snippet}

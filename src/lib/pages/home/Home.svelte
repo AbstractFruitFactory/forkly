@@ -6,6 +6,9 @@
 	import { onMount } from 'svelte'
 	import FilterSelector from '$lib/components/filter-selector/FilterSelector.svelte'
 	import { fly } from 'svelte/transition'
+	import IngredientFilter from '$lib/components/ingredient-filter/IngredientFilter.svelte'
+	import TagFilter from '$lib/components/tag-filter/TagFilter.svelte'
+	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 
 	type Recipe = {
 		id: string
@@ -51,8 +54,8 @@
 	} = $props()
 
 	let searchValue = $state('')
-	let selectedTags = $state<string[]>([])
-	let selectedIngredients = $state<string[]>([])
+	let selectedTags = $state<{ label: string; selected?: boolean }[]>([])
+	let selectedIngredients = $state<{ label: string; include: boolean }[]>([])
 	let excludedIngredients = $state<string[]>([])
 	let sortBy = $state<'popular' | 'newest' | 'easiest'>('popular')
 	let isMac = $state(false)
@@ -76,65 +79,26 @@
 		onSearchChange(query)
 	}
 
-	const extractTagName = (formattedTag: string) => formattedTag.split(' (')[0]
-
-	const formatTagWithCount = (tag: { name: string; count: number }) => `${tag.name} (${tag.count})`
-
-	const handleTagSelect = (tag: string, selected: boolean) => {
-		if (selected && !selectedTags.includes(tag)) {
-			selectedTags = [...selectedTags, tag]
-		} else if (!selected && selectedTags.includes(tag)) {
-			selectedTags = selectedTags.filter((t) => t !== tag)
-		}
-
-		notifyFiltersChanged()
-	}
-
-	const handleIngredientSelect = (ingredient: string, selected: boolean) => {
-		if (selected && !selectedIngredients.includes(ingredient)) {
-			selectedIngredients = [...selectedIngredients, ingredient]
-		} else if (!selected && selectedIngredients.includes(ingredient)) {
-			selectedIngredients = selectedIngredients.filter((i) => i !== ingredient)
-		}
-
-		notifyFiltersChanged()
-	}
-
-	const handleExcludedIngredientSelect = (ingredient: string, selected: boolean) => {
-		if (selected && !excludedIngredients.includes(ingredient)) {
-			excludedIngredients = [...excludedIngredients, ingredient]
-		} else if (!selected && excludedIngredients.includes(ingredient)) {
-			excludedIngredients = excludedIngredients.filter((i) => i !== ingredient)
-		}
-
-		notifyFiltersChanged()
-	}
-
 	const removeTag = (tag: string) => {
-		selectedTags = selectedTags.filter((t) => t !== tag)
+		selectedTags = selectedTags.filter((t) => t.label !== tag)
 		notifyFiltersChanged()
 	}
 
 	const removeIngredient = (ingredient: string) => {
-		selectedIngredients = selectedIngredients.filter((i) => i !== ingredient)
+		selectedIngredients = selectedIngredients.filter((i) => i.label !== ingredient)
 		notifyFiltersChanged()
 	}
 
-	const removeExcludedIngredient = (ingredient: string) => {
-		excludedIngredients = excludedIngredients.filter((i) => i !== ingredient)
-		notifyFiltersChanged()
-	}
-
-	const handleSortClick = (newSortBy: 'popular' | 'newest' | 'easiest') => {
-		sortBy = newSortBy
-		onSortChange(newSortBy)
+	const handleSortClick = (newSortBy: string) => {
+		sortBy = newSortBy as 'popular' | 'newest' | 'easiest'
+		onSortChange(sortBy)
 	}
 
 	const notifyFiltersChanged = () => {
 		onFiltersChange({
-			tags: selectedTags.map(extractTagName),
-			ingredients: selectedIngredients,
-			excludedIngredients
+			tags: selectedTags.map((t) => t.label),
+			ingredients: selectedIngredients.filter((i) => i.include).map((i) => i.label),
+			excludedIngredients: selectedIngredients.filter((i) => !i.include).map((i) => i.label)
 		})
 	}
 
@@ -167,7 +131,7 @@
 	const loadTags = async (query: string): Promise<string[]> => {
 		const tags = await searchTags(query)
 		availableTags = tags
-		return tags.map(formatTagWithCount)
+		return tags.map((tag) => tag.name)
 	}
 
 	const loadIngredients = async (query: string): Promise<string[]> => {
@@ -188,97 +152,69 @@
 
 <svelte:document onkeydown={handleKeyDown} />
 
-<div class="search-container" in:fly={{ x: -50, duration: 300, delay: 300 }} out:fly={{ x: -50, duration: 300 }}>
+<h1 class="home-title">Explore Recipes</h1>
+
+<div
+	class="search-container"
+	in:fly={{ x: -50, duration: 300, delay: 300 }}
+	out:fly={{ x: -50, duration: 300 }}
+>
 	<div class="search-content">
-		<div class="top-row">
-			<div class="search-bar">
-				<Search
-					placeholder="Search recipes..."
-					onInput={(query) => handleSearch(query)}
-					bind:value={searchValue}
-					bind:inputElement={searchInput}
-					{isLoading}
-					actionButton={{
-						text: isMac ? '⌘+K' : 'Ctrl+K',
-						onClick: () => searchInput?.focus()
-					}}
-				/>
-			</div>
+		<Search
+			placeholder="Search recipes..."
+			onInput={(query) => handleSearch(query)}
+			bind:value={searchValue}
+			bind:inputElement={searchInput}
+			{isLoading}
+			actionButton={{
+				text: isMac ? '⌘+K' : 'Ctrl+K',
+				onClick: () => searchInput?.focus()
+			}}
+			roundedCorners
+		/>
 
-			<div class="pill-selectors">
-				<FilterSelector
-					items={availableTags.map(formatTagWithCount)}
-					bind:selectedItems={selectedTags}
-					name="tags"
-					loadItems={loadTags}
-					onSelect={handleTagSelect}
-					label="include tag"
-				/>
+		<div class="pill-selectors">
+			<TagFilter onSearch={loadTags} bind:selected={selectedTags} onSelect={notifyFiltersChanged} />
 
-				<FilterSelector
-					items={availableIngredients.map((i) => i.name)}
-					bind:selectedItems={selectedIngredients}
-					name="ingredients"
-					loadItems={loadIngredients}
-					onSelect={handleIngredientSelect}
-					label="include ingredient"
-				/>
+			<IngredientFilter
+				onSearch={loadIngredients}
+				bind:selected={selectedIngredients}
+				onSelect={notifyFiltersChanged}
+			/>
+		</div>
+	</div>
 
-				<FilterSelector
-					items={availableIngredients.map((i) => i.name)}
-					bind:selectedItems={excludedIngredients}
-					name="excluded-ingredients"
-					loadItems={loadIngredients}
-					onSelect={handleExcludedIngredientSelect}
-					label="exclude ingredient"
-				/>
+	{#if selectedTags.length > 0 || selectedIngredients.length > 0 || excludedIngredients.length > 0}
+		<div class="selected-filters-container">
+			<div class="selected-pills">
+				{#each selectedTags as tag (tag.label)}
+					<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
+				{/each}
+
+				{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
+					<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
+				{/each}
+
+				{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
+					<Pill text={`-${ingredient.label}`} onRemove={() => removeIngredient(ingredient.label)} />
+				{/each}
 			</div>
 		</div>
-
-		{#if selectedTags.length > 0 || selectedIngredients.length > 0 || excludedIngredients.length > 0}
-			<div class="selected-filters-container">
-				<div class="selected-pills">
-					{#each selectedTags as tag (tag)}
-						<Pill text={tag} onRemove={() => removeTag(tag)} />
-					{/each}
-
-					{#each selectedIngredients as ingredient (ingredient)}
-						<Pill text={ingredient} onRemove={() => removeIngredient(ingredient)} />
-					{/each}
-
-					{#each excludedIngredients as ingredient (ingredient)}
-						<Pill text={`-${ingredient}`} onRemove={() => removeExcludedIngredient(ingredient)} />
-					{/each}
-				</div>
-			</div>
-		{/if}
-	</div>
+	{/if}
 </div>
 
 <div class="home-container">
 	<div class="header-content">
-		<div class="sort-controls" in:fly={{ x: -50, duration: 300, delay: 300 }} out:fly={{ x: -50, duration: 300 }}>
-			<Button
-				variant={sortBy === 'popular' ? 'primary' : 'text'}
-				size="sm"
-				onclick={() => handleSortClick('popular')}
-			>
-				Popular
-			</Button>
-			<Button
-				variant={sortBy === 'newest' ? 'primary' : 'text'}
-				size="sm"
-				onclick={() => handleSortClick('newest')}
-			>
-				Newest
-			</Button>
-			<Button
-				variant={sortBy === 'easiest' ? 'primary' : 'text'}
-				size="sm"
-				onclick={() => handleSortClick('easiest')}
-			>
-				Easiest
-			</Button>
+		<div
+			class="sort-controls"
+			in:fly={{ x: -50, duration: 300, delay: 300 }}
+			out:fly={{ x: -50, duration: 300 }}
+		>
+			<TabSelect
+				options={['Popular', 'Newest', 'Easiest']}
+				selected={sortBy}
+				onSelect={(option) => handleSortClick(option.toLowerCase())}
+			/>
 		</div>
 	</div>
 	<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} {isLoading} />
@@ -286,6 +222,12 @@
 
 <style lang="scss">
 	@import '$lib/global.scss';
+
+	.home-title {
+		text-align: center;
+		margin: var(--spacing-lg) 0;
+	}
+
 	.home-container {
 		@include mobile {
 			padding: var(--spacing-lg);
@@ -302,9 +244,8 @@
 
 	.header-content {
 		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: var(--spacing-lg);
+		justify-content: center;
+		margin-bottom: var(--spacing-sm);
 	}
 
 	.search-results-header h1 {
@@ -322,8 +263,7 @@
 	}
 
 	.sort-controls {
-		display: flex;
-		gap: var(--spacing-xs);
+		margin: var(--spacing-sm) 0;
 	}
 
 	.search-container {
@@ -337,25 +277,9 @@
 	.search-content {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-md);
-		width: 100%;
-	}
-
-	.top-row {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-md);
 		align-items: center;
+		gap: var(--spacing-md);
 		width: 100%;
-
-		@include tablet {
-			gap: var(--spacing-sm);
-			justify-content: center;
-		}
-	}
-
-	.search-bar {
-		min-width: 200px;
 	}
 
 	.pill-selectors {
@@ -394,9 +318,9 @@
 		}
 	}
 
-	:global(.input-wrapper .action-button) {
+	:global(.search-content .input-wrapper .action-button) {
 		background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05)) !important;
-		border-radius: var(--border-radius-sm) !important;
+		border-radius: var(--border-radius-full) !important;
 		color: var(--color-neutral) !important;
 		font-family: monospace !important;
 		font-size: var(--font-size-xs) !important;

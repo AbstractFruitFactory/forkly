@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { ComponentProps } from 'svelte'
 	import Input from '../input/Input.svelte'
 
 	let {
@@ -7,7 +8,8 @@
 		inputElement = $bindable(),
 		value = $bindable(''),
 		onInput = $bindable((newValue: string) => {}),
-		actionButton
+		actionButton,
+		...inputProps
 	}: {
 		placeholder?: string
 		isLoading?: boolean
@@ -15,7 +17,7 @@
 		value?: string
 		onInput?: (value: string) => void
 		actionButton?: { text: string; onClick: () => void }
-	} = $props()
+	} & Omit<ComponentProps<typeof Input>, 'children' | 'value'> = $props()
 
 	const handleInput = (e: Event) => {
 		value = (e.target as HTMLInputElement).value
@@ -40,7 +42,7 @@
 			<circle cx="11" cy="11" r="8" />
 			<line x1="21" y1="21" x2="16.65" y2="16.65" />
 		</svg>
-		<Input bind:value {actionButton} {isLoading}>
+		<Input bind:value {actionButton} {isLoading} {...inputProps}>
 			<input
 				type="search"
 				{placeholder}
@@ -55,8 +57,10 @@
 
 <style lang="scss">
 	.search-wrapper {
-		width: 100%;
 		position: relative;
+		
+		max-width: 500px;
+		width: 100%;
 	}
 
 	.search-input-container {

@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { clickOutside } from '$lib/actions/clickOutside'
+	import Dropdown from '../dropdown/Dropdown.svelte'
 
 	let {
 		items = [],
 		selectedItems = $bindable([]),
 		name,
-		colorMap = {},
 		loadItems,
 		label,
 		onSelect = undefined,
@@ -15,7 +14,6 @@
 		selectedItems: string[]
 		name: string
 		label?: string
-		colorMap?: Record<string, string>
 		loadItems?: (query: string) => Promise<string[]> | string[]
 		onSelect?: (item: string, selected: boolean) => void
 		allowCustomItems?: boolean
@@ -25,6 +23,7 @@
 	let searchQuery = $state('')
 	let displayItems = $state<string[]>([...items])
 	let debounceTimeout = $state<ReturnType<typeof setTimeout> | null>(null)
+	let isLoading = $state(false)
 	const DEBOUNCE_DELAY = 300 // milliseconds
 
 	const toggleDropdown = () => {
@@ -34,53 +33,35 @@
 		}
 	}
 
-	const closeDropdown = () => {
-		isOpen = false
-		searchQuery = ''
-	}
-
-	const toggleItem = (item: string) => {
-		const isSelected = selectedItems.includes(item)
-		if (isSelected) {
-			selectedItems = selectedItems.filter((i: string) => i !== item)
-		} else {
+	const handleSelect = (item: string) => {
+		if (!selectedItems.includes(item)) {
 			selectedItems = [...selectedItems, item]
-		}
-
-		if (onSelect) {
-			onSelect(item, !isSelected)
-		}
-	}
-
-	const addCustomItem = () => {
-		if (!searchQuery.trim()) return
-
-		if (!selectedItems.includes(searchQuery.trim())) {
-			selectedItems = [...selectedItems, searchQuery.trim()]
-
 			if (onSelect) {
-				onSelect(searchQuery.trim(), true)
+				onSelect(item, true)
 			}
 		}
-
 		searchQuery = ''
-		closeDropdown()
 	}
 
-	const isNotSelected = (item: string): boolean => !selectedItems.includes(item)
+	const handleCustomItemSelect = () => {
+		if (!searchQuery.trim() || !allowCustomItems) return
+		handleSelect(searchQuery.trim())
+	}
 
 	const updateDisplayItems = async (query: string) => {
 		if (loadItems) {
 			const result = await loadItems(query)
-			displayItems = result
+			displayItems = result.filter((item: string) => !selectedItems.includes(item))
 		} else {
-			displayItems = [...items]
+			displayItems = items.filter((item: string) => !selectedItems.includes(item))
 		}
+		isLoading = false
 	}
 
 	const handleSearchInput = (event: Event) => {
 		const target = event.target as HTMLInputElement
 		searchQuery = target.value
+		isLoading = true
 
 		if (debounceTimeout) {
 			clearTimeout(debounceTimeout)
@@ -92,15 +73,8 @@
 		}, DEBOUNCE_DELAY)
 	}
 
-	const handleKeyPress = (event: KeyboardEvent) => {
-		if (event.key === 'Enter' && allowCustomItems && searchQuery.trim()) {
-			event.preventDefault()
-			addCustomItem()
-		}
-	}
-
 	$effect(() => {
-		displayItems = [...items]
+		displayItems = items.filter((item: string) => !selectedItems.includes(item))
 	})
 </script>
 
@@ -115,8 +89,8 @@
 		<span class="add-text">{label || '+ Add'}</span>
 	</button>
 
-	{#if isOpen}
-		<div class="dropdown" use:clickOutside={{ callback: closeDropdown }}>
+	<div class="dropdown-container">
+		<Dropdown bind:isOpen>
 			<div class="search-container">
 				<input
 					type="text"
@@ -124,28 +98,31 @@
 					placeholder="Search..."
 					bind:value={searchQuery}
 					oninput={handleSearchInput}
-					onkeypress={handleKeyPress}
 				/>
 			</div>
 			<div class="dropdown-items">
-				{#each displayItems.filter(isNotSelected) as item (item)}
-					<button type="button" class="dropdown-item" onclick={() => toggleItem(item)}>
+				{#if isLoading && displayItems.length === 0}
+					<div class="search-helper-text">Loading...</div>
+				{:else if !isLoading && displayItems.length === 0}
+					<div class="search-helper-text">
+						{searchQuery ? 'No items available' : 'Type to search'}
+					</div>
+				{/if}
+
+				{#each displayItems as item}
+					<button type="button" class="dropdown-item" onclick={() => handleSelect(item)}>
 						{item}
 					</button>
 				{/each}
 
-				{#if allowCustomItems && searchQuery.trim() && !displayItems.includes(searchQuery.trim()) && !selectedItems.includes(searchQuery.trim())}
-					<button type="button" class="dropdown-item custom-item" onclick={addCustomItem}>
+				{#if allowCustomItems && searchQuery.trim() && !displayItems.includes(searchQuery.trim())}
+					<button type="button" class="dropdown-item custom-item" onclick={handleCustomItemSelect}>
 						Create "{searchQuery.trim()}"
 					</button>
 				{/if}
-
-				{#if searchQuery && displayItems.filter(isNotSelected).length === 0 && !(allowCustomItems && searchQuery.trim())}
-					<div class="no-items">No items available</div>
-				{/if}
 			</div>
-		</div>
-	{/if}
+		</Dropdown>
+	</div>
 
 	{#each selectedItems as item (item)}
 		<input type="hidden" {name} value={item} />
@@ -157,11 +134,8 @@
 		position: relative;
 	}
 
-	.selector-label {
-		display: block;
-		margin-bottom: var(--spacing-md);
-		font-weight: 500;
-		font-size: var(--spacing-lg);
+	.dropdown-container {
+		position: relative;
 	}
 
 	.add-button {
@@ -178,13 +152,6 @@
 		font-weight: 500;
 		transition: all 0.2s ease;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-		.add-icon {
-			font-size: 1.2em;
-			line-height: 1;
-			display: flex;
-			align-items: center;
-		}
 
 		.add-text {
 			line-height: 1;
@@ -206,36 +173,20 @@
 
 	.search-container {
 		padding: var(--spacing-xs) var(--spacing-sm);
-		border-bottom: 1px solid var(--color-neutral-light);
+		border-bottom: 1px solid var(--color-neutral);
 	}
 
 	.search-input {
 		width: 100%;
 		padding: var(--spacing-sm);
 		background-color: var(--color-neutral-dark);
-		border: 1px solid var(--color-neutral-light);
-		border-radius: var(--border-radius-sm);
+		border: none;
 		color: var(--color-white);
 		font-size: var(--font-size-sm);
 
 		&:focus {
 			outline: none;
-			border-color: var(--color-primary);
 		}
-	}
-
-	.dropdown {
-		position: absolute;
-		top: 100%;
-		left: 0;
-		background-color: var(--color-neutral-dark);
-		border-radius: var(--border-radius-md);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-		z-index: 10;
-		margin-top: var(--spacing-sm);
-		overflow: hidden;
-		border: 1px solid var(--color-neutral-light);
-		min-width: 200px;
 	}
 
 	.dropdown-items {
@@ -272,10 +223,10 @@
 		border-top: 1px dashed var(--color-neutral-light);
 	}
 
-	.no-items {
-		padding: var(--spacing-md);
+	.search-helper-text {
+		padding: var(--spacing-xs) var(--spacing-md);
 		color: var(--color-neutral-lightest);
+		font-size: var(--font-size-sm);
 		text-align: center;
-		font-style: italic;
 	}
 </style>
