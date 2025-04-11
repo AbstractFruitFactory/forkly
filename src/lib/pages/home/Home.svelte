@@ -1,17 +1,5 @@
-<script lang="ts">
-	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
-	import Button from '$lib/components/button/Button.svelte'
-	import Search from '$lib/components/search/Search.svelte'
-	import Pill from '$lib/components/pill/Pill.svelte'
-	import { onMount } from 'svelte'
-	import { fly } from 'svelte/transition'
-	import IngredientFilter from '$lib/components/ingredient-filter/IngredientFilter.svelte'
-	import TagFilter from '$lib/components/tag-filter/TagFilter.svelte'
-	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
-	import ScrollToTop from '$lib/components/scroll-to-top/ScrollToTop.svelte'
-	import Drawer from '$lib/components/drawer/Drawer.svelte'
-
-	type Recipe = {
+<script module lang="ts">
+	export type Recipe = {
 		id: string
 		title: string
 		description?: string
@@ -27,6 +15,21 @@
 		createdAt: string
 		dislikes?: number
 	}
+</script>
+
+<script lang="ts">
+	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
+	import RecipeCarousel from '$lib/components/recipe-carousel/RecipeCarousel.svelte'
+	import Button from '$lib/components/button/Button.svelte'
+	import Search from '$lib/components/search/Search.svelte'
+	import Pill from '$lib/components/pill/Pill.svelte'
+	import { onMount } from 'svelte'
+	import { fly } from 'svelte/transition'
+	import IngredientFilter from '$lib/components/ingredient-filter/IngredientFilter.svelte'
+	import TagFilter from '$lib/components/tag-filter/TagFilter.svelte'
+	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
+	import ScrollToTop from '$lib/components/scroll-to-top/ScrollToTop.svelte'
+	import Drawer from '$lib/components/drawer/Drawer.svelte'
 
 	let {
 		recipes,
@@ -39,7 +42,8 @@
 		}) => {},
 		onSortChange = (sortBy: 'popular' | 'newest' | 'easiest') => {},
 		searchTags = (query: string) => Promise.resolve<{ name: string; count: number }[]>([]),
-		searchIngredients = (query: string) => Promise.resolve<{ id: string; name: string }[]>([])
+		searchIngredients = (query: string) => Promise.resolve<{ id: string; name: string }[]>([]),
+		loadMore = () => Promise.resolve()
 	}: {
 		recipes: Recipe[]
 		isLoading?: boolean
@@ -52,6 +56,7 @@
 		onSortChange?: (sortBy: 'popular' | 'newest' | 'easiest') => void
 		searchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 		searchIngredients?: (query: string) => Promise<{ id: string; name: string }[]>
+		loadMore?: () => Promise<void>
 	} = $props()
 
 	let searchValue = $state('')
@@ -66,6 +71,7 @@
 	let showScrollToTop = $state(false)
 	let observer: IntersectionObserver
 	let showFiltersDrawer = $state(false)
+	let isMobile = $state(false)
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -74,8 +80,14 @@
 		}
 	}
 
+	const checkMobile = () => {
+		isMobile = window.innerWidth <= 768
+	}
+
 	onMount(() => {
 		isMac = navigator.userAgent.toLowerCase().includes('mac')
+		checkMobile()
+		window.addEventListener('resize', checkMobile)
 
 		observer = new IntersectionObserver(
 			(entries) => {
@@ -93,6 +105,7 @@
 
 		return () => {
 			observer?.disconnect()
+			window.removeEventListener('resize', checkMobile)
 		}
 	})
 
@@ -265,7 +278,19 @@
 	</div>
 
 	<div class="recipe-grid">
-		<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} {isLoading} />
+		<div class="desktop-view">
+			<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} {isLoading} {loadMore} />
+		</div>
+
+		<div class="mobile-view">
+			{#if sortedRecipes.length > 0}
+				<div class="carousel-container">
+					<RecipeCarousel recipes={sortedRecipes} {loadMore} />
+				</div>
+			{:else}
+				<div class="empty-state">{emptyStateMessage}</div>
+			{/if}
+		</div>
 
 		{#if showScrollToTop}
 			<div class="scroll-to-top">
@@ -289,13 +314,10 @@
 
 	.home-container {
 		position: relative;
+		overflow: visible;
 
 		@include mobile {
-			padding: var(--spacing-lg);
-			padding-bottom: 0;
-			box-sizing: border-box;
-			display: flex;
-			flex-direction: column;
+			padding: var(--spacing-lg) 0;
 		}
 	}
 
@@ -307,6 +329,10 @@
 		display: flex;
 		justify-content: center;
 		margin-bottom: var(--spacing-sm);
+
+		@include mobile {
+			display: none;
+		}
 	}
 
 	.search-results-header h1 {
@@ -389,6 +415,22 @@
 		position: relative;
 	}
 
+	.desktop-view {
+		display: block;
+
+		@include mobile {
+			display: none;
+		}
+	}
+
+	.mobile-view {
+		display: none;
+
+		@include mobile {
+			display: block;
+		}
+	}
+
 	.scroll-to-top {
 		display: none;
 
@@ -442,5 +484,86 @@
 		flex-direction: column;
 		gap: var(--spacing-lg);
 		padding: var(--spacing-md) 0;
+	}
+
+	.carousel-container {
+		width: 100%;
+		height: 400px;
+		margin: 0;
+		width: 100vw;
+		position: relative;
+		left: 50%;
+		right: 50%;
+		margin-left: -50vw;
+		margin-right: -50vw;
+	}
+
+	.recipe-card {
+		background-color: var(--color-neutral-darker);
+		border-radius: var(--border-radius);
+		overflow: hidden;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.recipe-image {
+		width: 100%;
+		height: 200px;
+		object-fit: cover;
+	}
+
+	.recipe-image-placeholder {
+		width: 100%;
+		height: 200px;
+		background-color: var(--color-neutral);
+	}
+
+	.recipe-content {
+		padding: var(--spacing-md);
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+	.recipe-title {
+		margin: 0;
+		font-size: var(--font-size-lg);
+		color: var(--color-neutral-light);
+	}
+
+	.recipe-description {
+		margin: 0;
+		font-size: var(--font-size-sm);
+		color: var(--color-neutral);
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.recipe-stats {
+		display: flex;
+		gap: var(--spacing-md);
+		margin-top: auto;
+	}
+
+	.stat {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		color: var(--color-neutral);
+		font-size: var(--font-size-sm);
+
+		svg {
+			color: var(--color-primary);
+		}
+	}
+
+	.empty-state {
+		text-align: center;
+		color: var(--color-neutral);
+		padding: var(--spacing-xl);
 	}
 </style>

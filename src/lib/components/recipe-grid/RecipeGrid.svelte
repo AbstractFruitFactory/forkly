@@ -1,6 +1,7 @@
 <script lang="ts">
 	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
 	import { fly } from 'svelte/transition'
+	import { onMount } from 'svelte'
 
 	type Recipe = {
 		id: string
@@ -22,12 +23,40 @@
 	let {
 		recipes = [],
 		emptyMessage = 'No recipes found.',
-		isLoading = false
+		isLoading = false,
+		loadMore
 	}: {
 		recipes: Recipe[]
 		emptyMessage?: string
 		isLoading?: boolean
+		loadMore?: () => Promise<void>
 	} = $props()
+
+	let loadMoreTrigger: HTMLElement
+	let observer: IntersectionObserver
+
+	onMount(() => {
+		if (!loadMore) return
+
+		observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && !isLoading) {
+					loadMore()
+				}
+			},
+			{ threshold: 0.5, rootMargin: '100px' }
+		)
+
+		if (loadMoreTrigger) {
+			observer.observe(loadMoreTrigger)
+		}
+
+		return () => {
+			if (loadMoreTrigger) {
+				observer.unobserve(loadMoreTrigger)
+			}
+		}
+	})
 </script>
 
 <div in:fly={{ y: 50, duration: 300, delay: 300 }} out:fly={{ y: 50, duration: 300 }}>
@@ -47,6 +76,10 @@
 				{/each}
 			{/if}
 		</div>
+
+		{#if loadMore}
+			<div bind:this={loadMoreTrigger} class="load-more-trigger"></div>
+		{/if}
 	{/if}
 </div>
 
@@ -72,6 +105,11 @@
 		@include mobile {
 			overflow-y: auto;
 		}
+	}
+
+	.load-more-trigger {
+		height: 1px;
+		width: 100%;
 	}
 
 	@media (max-width: 640px) {

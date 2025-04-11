@@ -6,7 +6,6 @@
 	import type { TagSearchResponse } from './api/tags/+server.js'
 	import { nullToUndefined } from '$lib/utils/nullToUndefined.js'
 	import { toHomePageRecipe } from '$lib/utils/recipe'
-	import { onMount } from 'svelte'
 
 	let { data } = $props()
 
@@ -28,9 +27,6 @@
 		hasMore: true,
 		isLoading: false
 	})
-
-	let observer: IntersectionObserver
-	let loadMoreTrigger: HTMLElement
 
 	const handleSearch = async (
 		query: string,
@@ -200,27 +196,6 @@
 			pagination.isLoading = false
 		}
 	}
-
-	onMount(() => {
-		observer = new IntersectionObserver(
-			(entries) => {
-				if (entries[0].isIntersecting && !pagination.isLoading && pagination.hasMore) {
-					loadMore()
-				}
-			},
-			{ threshold: 0.5, rootMargin: '100px' }
-		)
-
-		if (loadMoreTrigger) {
-			observer.observe(loadMoreTrigger)
-		}
-
-		return () => {
-			if (loadMoreTrigger) {
-				observer.unobserve(loadMoreTrigger)
-			}
-		}
-	})
 </script>
 
 <svelte:head>
@@ -235,8 +210,5 @@
 	onSortChange={handleSortChange}
 	{searchTags}
 	{searchIngredients}
+	{loadMore}
 />
-
-{#if pagination.hasMore}
-	<div bind:this={loadMoreTrigger} class="load-more-trigger"></div>
-{/if}
