@@ -4,12 +4,12 @@
 	import Search from '$lib/components/search/Search.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import { onMount } from 'svelte'
-	import FilterSelector from '$lib/components/filter-selector/FilterSelector.svelte'
 	import { fly } from 'svelte/transition'
 	import IngredientFilter from '$lib/components/ingredient-filter/IngredientFilter.svelte'
 	import TagFilter from '$lib/components/tag-filter/TagFilter.svelte'
 	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 	import ScrollToTop from '$lib/components/scroll-to-top/ScrollToTop.svelte'
+	import Drawer from '$lib/components/drawer/Drawer.svelte'
 
 	type Recipe = {
 		id: string
@@ -65,6 +65,7 @@
 	let availableIngredients = $state<{ id: string; name: string }[]>([])
 	let showScrollToTop = $state(false)
 	let observer: IntersectionObserver
+	let showFiltersDrawer = $state(false)
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -193,7 +194,7 @@
 			roundedCorners
 		/>
 
-		<div class="pill-selectors">
+		<div class="desktop-filters">
 			<TagFilter onSearch={loadTags} bind:selected={selectedTags} onSelect={notifyFiltersChanged} />
 
 			<IngredientFilter
@@ -202,10 +203,16 @@
 				onSelect={notifyFiltersChanged}
 			/>
 		</div>
+
+		<div class="mobile-filters-button">
+			<Button variant="primary" size="sm" fullWidth onclick={() => (showFiltersDrawer = true)}>
+				Filters
+			</Button>
+		</div>
 	</div>
 </div>
 
-<div class="selected-filters-container">
+{#snippet filterPills()}
 	<div class="selected-pills">
 		{#each selectedTags as tag (tag.label)}
 			<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
@@ -219,6 +226,27 @@
 			<Pill text={`-${ingredient.label}`} onRemove={() => removeIngredient(ingredient.label)} />
 		{/each}
 	</div>
+{/snippet}
+
+<Drawer bind:isOpen={showFiltersDrawer} title="Filters">
+	<div class="mobile-filters">
+		<div class="selected-filters">
+			<h4 class="selected-filters-title">Selected Filters</h4>
+			{@render filterPills()}
+		</div>
+
+		<TagFilter onSearch={loadTags} bind:selected={selectedTags} onSelect={notifyFiltersChanged} />
+
+		<IngredientFilter
+			onSearch={loadIngredients}
+			bind:selected={selectedIngredients}
+			onSelect={notifyFiltersChanged}
+		/>
+	</div>
+</Drawer>
+
+<div class="selected-filters-container">
+	{@render filterPills()}
 </div>
 
 <div class="home-container">
@@ -253,6 +281,10 @@
 	.home-title {
 		text-align: center;
 		margin: var(--spacing-lg) 0;
+
+		@include mobile {
+			display: none;
+		}
 	}
 
 	.home-container {
@@ -301,6 +333,10 @@
 		@include tablet {
 			margin: var(--spacing-lg);
 		}
+
+		@include mobile {
+			margin: 0;
+		}
 	}
 
 	.search-content {
@@ -323,32 +359,29 @@
 		min-height: 40px;
 		display: flex;
 		justify-content: center;
+
+		@include mobile {
+			display: none;
+		}
 	}
 
-	.selected-pills {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-sm);
-		align-items: center;
-		justify-content: center;
-		max-width: 800px;
-	}
+	.selected-filters {
+		margin-bottom: var(--spacing-lg);
+		padding-bottom: var(--spacing-lg);
+		border-bottom: 1px solid var(--color-neutral);
 
-	@media (max-width: 640px) {
-		.active-filters {
-			flex-direction: column;
+		.selected-filters-title {
+			margin: 0 0 var(--spacing-sm) 0;
+			font-size: var(--font-size-md);
+			font-weight: 500;
+			color: var(--color-neutral-light);
+		}
+
+		.selected-pills {
+			display: flex;
+			flex-wrap: wrap;
 			gap: var(--spacing-sm);
-		}
-
-		.header-content {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: var(--spacing-md);
-		}
-
-		.sort-controls {
-			width: 100%;
-			justify-content: space-between;
+			align-items: center;
 		}
 	}
 
@@ -378,5 +411,36 @@
 		&:hover {
 			color: var(--color-neutral) !important;
 		}
+
+		@include mobile;
+		@include tablet {
+			display: none;
+		}
+	}
+
+	.desktop-filters {
+		display: flex;
+		gap: var(--spacing-sm);
+		align-items: center;
+
+		@include mobile {
+			display: none;
+		}
+	}
+
+	.mobile-filters-button {
+		display: none;
+
+		@include mobile {
+			display: block;
+			width: 100%;
+		}
+	}
+
+	.mobile-filters {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
+		padding: var(--spacing-md) 0;
 	}
 </style>

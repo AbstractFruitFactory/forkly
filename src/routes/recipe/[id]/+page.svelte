@@ -72,18 +72,6 @@
 	}
 </script>
 
-<svelte:head>
-	<style lang="scss">
-		@import '$lib/global.scss';
-
-		@include mobile {
-			.header {
-				display: none !important;
-			}
-		}
-	</style>
-</svelte:head>
-
 <div class="recipe-page" data-page="recipe">
 	<Recipe
 		recipe={recipeData}

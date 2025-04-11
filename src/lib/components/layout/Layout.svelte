@@ -5,12 +5,14 @@
 		header,
 		content,
 		sidebar,
-		sidebarOpen = $bindable(false)
+		sidebarOpen = $bindable(false),
+		bottomNav
 	} = $props<{
 		header: Snippet
 		content: Snippet
 		sidebar?: Snippet
 		sidebarOpen?: boolean
+		bottomNav?: Snippet
 	}>()
 </script>
 
@@ -33,6 +35,9 @@
 			</div>
 		</main>
 	</div>
+	{#if bottomNav}
+		{@render bottomNav()}
+	{/if}
 </div>
 
 <style lang="scss">
@@ -41,6 +46,12 @@
 	.layout {
 		display: flex;
 		flex-direction: column;
+		min-height: 100vh;
+		padding-bottom: calc(60px + env(safe-area-inset-bottom));
+
+		@include desktop {
+			padding-bottom: 0;
+		}
 	}
 
 	.header {
@@ -53,7 +64,7 @@
 		padding: 0 var(--spacing-2xl);
 
 		@include mobile {
-			padding: 0 var(--spacing-md);
+			display: none;
 		}
 	}
 
@@ -105,7 +116,7 @@
 		padding: var(--spacing-xl) var(--spacing-2xl);
 
 		@include mobile {
-			padding: 0;
+			padding: var(--spacing-md);
 		}
 	}
 
