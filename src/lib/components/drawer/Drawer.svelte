@@ -30,37 +30,36 @@
 <svelte:document onmousedown={handleClickOutside} onkeydown={handleKeydown} />
 
 {#if isOpen}
-	<div class="drawer-overlay" transition:fade={{ duration: 200 }}>
-		<div class="drawer-container" bind:this={drawer} transition:slide={{ duration: 300 }}>
-			{#if title}
-				<div class="drawer-header">
-					<div>
-						{#if title}
-							<h3 class="drawer-title">{title}</h3>
-						{/if}
-					</div>
-
-					<button class="drawer-close" onclick={() => (isOpen = false)} aria-label="Close drawer">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<line x1="18" y1="6" x2="6" y2="18" />
-							<line x1="6" y1="6" x2="18" y2="18" />
-						</svg>
-					</button>
+	<div class="drawer-overlay" transition:fade={{ duration: 200 }} />
+	<div class="drawer-container" bind:this={drawer} transition:slide={{ duration: 300 }}>
+		{#if title}
+			<div class="drawer-header">
+				<div>
+					{#if title}
+						<h3 class="drawer-title">{title}</h3>
+					{/if}
 				</div>
-			{/if}
-			<div class="drawer-content">
-				{@render children()}
+
+				<button class="drawer-close" onclick={() => (isOpen = false)} aria-label="Close drawer">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="20"
+						height="20"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<line x1="18" y1="6" x2="6" y2="18" />
+						<line x1="6" y1="6" x2="18" y2="18" />
+					</svg>
+				</button>
 			</div>
+		{/if}
+		<div class="drawer-content">
+			{@render children()}
 		</div>
 	</div>
 {/if}
@@ -75,18 +74,14 @@
 		right: 0;
 		bottom: 0;
 		background-color: rgba(0, 0, 0, 0.8);
-		display: flex;
-		align-items: flex-end;
-		justify-content: center;
 		z-index: var(--z-modal);
-		padding: var(--spacing-md);
-
-		@include mobile {
-			padding: 0;
-		}
 	}
 
 	.drawer-container {
+		position: fixed;
+		bottom: 0;
+		left: 50%;
+		transform: translateX(-50%);
 		background-color: var(--color-background);
 		border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
 		box-shadow: var(--shadow-lg);
@@ -96,11 +91,14 @@
 		display: flex;
 		flex-direction: column;
 		height: 80dvh;
+		z-index: calc(var(--z-modal) + 1);
+		padding: var(--spacing-md);
 
 		@include mobile {
 			width: 100vw;
 			border-radius: 0;
 			box-shadow: none;
+			padding: 0;
 		}
 	}
 
