@@ -46,8 +46,7 @@
 	.layout {
 		display: flex;
 		flex-direction: column;
-		min-height: 100vh;
-		padding-bottom: calc(60px + env(safe-area-inset-bottom));
+		height: 100dvh;
 
 		@include desktop {
 			padding-bottom: 0;
