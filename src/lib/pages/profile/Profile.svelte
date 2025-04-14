@@ -11,13 +11,13 @@
 	let {
 		user,
 		recipes = [],
-		likedRecipes = [],
+		savedRecipes = [],
 		recipeHref,
 		onLogout
 	}: {
 		user: Omit<User, 'passwordHash'>
 		recipes: Recipe[]
-		likedRecipes?: Recipe[]
+		savedRecipes?: Recipe[]
 		recipeHref?: string
 		onLogout?: () => void
 	} = $props()
@@ -25,7 +25,7 @@
 	let userStats = $derived({
 		recipesCreated: recipes.length,
 		totalLikes: recipes.reduce((acc: number, recipe: Recipe) => acc + (recipe.likes || 0), 0),
-		likesCount: likedRecipes.length
+		savedCount: savedRecipes.length
 	})
 
 	let isEditMode = $state(false)
@@ -33,7 +33,7 @@
 	let editedBio = $state('')
 	let avatarPreview = $state<string | null>(null)
 	let error = $state('')
-	let activeTab = $state<'created' | 'liked'>('created')
+	let activeTab = $state<'created' | 'saved'>('created')
 
 	function toggleEditMode() {
 		if (!isEditMode) {
@@ -45,7 +45,7 @@
 		error = ''
 	}
 
-	function switchTab(tab: 'created' | 'liked') {
+	function switchTab(tab: 'created' | 'saved') {
 		activeTab = tab
 	}
 </script>
@@ -119,8 +119,8 @@
 					<span class="stat-label">Recipes</span>
 				</div>
 				<div class="stat-card">
-					<span class="stat-value">{userStats.totalLikes}</span>
-					<span class="stat-label">Total Likes</span>
+					<span class="stat-value">{userStats.savedCount}</span>
+					<span class="stat-label">Saved Recipes</span>
 				</div>
 			</div>
 		</div>
@@ -136,10 +136,10 @@
 				</button>
 				<button
 					class="tab-button"
-					class:active={activeTab === 'liked'}
-					onclick={() => switchTab('liked')}
+					class:active={activeTab === 'saved'}
+					onclick={() => switchTab('saved')}
 				>
-					Liked Recipes
+					Saved Recipes
 				</button>
 			</div>
 
@@ -156,15 +156,15 @@
 						<Button href="/new" variant="primary">Create Your First Recipe</Button>
 					</div>
 				{/if}
-			{:else if likedRecipes.length > 0}
+			{:else if savedRecipes.length > 0}
 				<div class="recipes-grid">
-					{#each likedRecipes as recipe}
+					{#each savedRecipes as recipe}
 						<ProfileRecipeCard {recipe} {recipeHref} />
 					{/each}
 				</div>
 			{:else}
 				<div class="empty-state">
-					<p>You haven't liked any recipes yet.</p>
+					<p>You haven't saved any recipes yet.</p>
 					<Button href="/" variant="primary">Explore Recipes</Button>
 				</div>
 			{/if}

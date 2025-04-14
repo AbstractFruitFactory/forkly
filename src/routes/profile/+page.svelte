@@ -21,7 +21,7 @@
 <Profile
 	user={form?.user ?? data.user}
 	recipes={data.recipes}
-	likedRecipes={data.liked}
+	savedRecipes={data.saved}
 	recipeHref="/recipe"
 	onLogout={handleLogout}
 />

@@ -1,6 +1,8 @@
 import { error, fail } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 import { getUserByUsername, updateUserProfile } from '$lib/server/db/user'
+import { getSavedRecipesByUser } from '$lib/server/db/save'
+import { getRecipes, type DetailedRecipe } from '$lib/server/db/recipe'
 import * as v from 'valibot'
 import { deleteImage } from '$lib/server/cloudinary'
 
@@ -23,9 +25,19 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 
   const recipesData = await recipesResponse.json()
   
+  // Get saved recipes
+  const savedRecipeIds = await getSavedRecipesByUser(locals.user.id)
+  let savedRecipes: DetailedRecipe[] = []
+  if (savedRecipeIds.length > 0) {
+    savedRecipes = await getRecipes({
+      recipeIds: savedRecipeIds,
+      detailed: true
+    })
+  }
+  
   return { 
     recipes: recipesData.created, 
-    liked: recipesData.liked, 
+    saved: savedRecipes, 
     user: locals.user 
   }
 }
