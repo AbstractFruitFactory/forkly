@@ -11,14 +11,14 @@
 	let { data } = $props()
 
 	let recipes = $derived(data.recipes)
-	let searchValue = $state(data.initialState.search)
+	let searchValue = $derived(data.initialState.search)
 	let isLoading = $state(false)
-	let activeFilters = $state({
+	let activeFilters = $derived({
 		tags: data.initialState.tags,
 		ingredients: data.initialState.ingredients,
 		excludedIngredients: data.initialState.excludedIngredients
 	})
-	let sortParam = $state<'popular' | 'newest' | 'easiest'>(data.initialState.sort)
+	let sortParam = $derived(data.initialState.sort)
 
 	// Pagination state
 	let pagination = $state({

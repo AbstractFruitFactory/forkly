@@ -45,9 +45,9 @@
 		searchIngredients = (query: string) => Promise.resolve<{ id: string; name: string }[]>([]),
 		loadMore = () => Promise.resolve(),
 		initialSearch = '',
-		initialTags = [] as string[],
-		initialIngredients = [] as { label: string; include: boolean }[],
-		initialSort = 'popular' as 'popular' | 'newest' | 'easiest'
+		initialTags = [],
+		initialIngredients = [],
+		initialSort = 'popular'
 	}: {
 		recipes: Recipe[]
 		isLoading?: boolean
@@ -67,10 +67,10 @@
 		initialSort?: 'popular' | 'newest' | 'easiest'
 	} = $props()
 
-	let searchValue = $state(initialSearch)
-	let selectedTags = $state<{ label: string; selected?: boolean }[]>(initialTags.map(tag => ({ label: tag, selected: true })))
-	let selectedIngredients = $state<{ label: string; include: boolean }[]>(initialIngredients)
-	let sortBy = $state<'popular' | 'newest' | 'easiest'>(initialSort)
+	let searchValue = $derived(initialSearch)
+	let selectedTags = $derived(initialTags.map(tag => ({ label: tag, selected: true })))
+	let selectedIngredients = $derived(initialIngredients)
+	let sortBy = $derived(initialSort)
 	let isMac = $state(false)
 	let searchInput: HTMLInputElement
 	let availableTags = $state<{ name: string; count: number }[]>([])
