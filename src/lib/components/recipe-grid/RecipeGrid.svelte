@@ -66,12 +66,12 @@
 		</div>
 	{:else}
 		<div class="recipe-grid">
-			{#each recipes as recipe, i}
+			{#each recipes as recipe (recipe.id)}
 				<RecipeCard {recipe} />
 			{/each}
 
 			{#if isLoading}
-				{#each Array(18) as _, i}
+				{#each Array(18) as _}
 					<RecipeCard loading />
 				{/each}
 			{/if}

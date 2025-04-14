@@ -83,7 +83,6 @@
 	.main-layout {
 		display: flex;
 		flex: 1;
-		overflow: hidden;
 	}
 
 	.sidebar-container {
