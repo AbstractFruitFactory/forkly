@@ -13,7 +13,7 @@
 		})
 
 		if (response.ok) {
-			goto('/')
+			goto('/', { invalidateAll: true })
 		}
 	}
 </script>
