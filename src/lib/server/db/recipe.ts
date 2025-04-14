@@ -51,7 +51,7 @@ export type RecipeFilterBase = {
   recipeIds?: string[]
   userId?: string
   limit?: number
-  offset?: number
+  page?: number
 }
 
 export type BasicRecipeFilter = RecipeFilterBase & { detailed?: false }
@@ -68,8 +68,8 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     excludedIngredients = [],
     recipeIds = [],
     userId,
-    limit,
-    offset = 0,
+    limit = 18,
+    page = 0,
     detailed = false
   } = filters
 
@@ -189,6 +189,14 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     const finalQuery = queryWithWhere
       .groupBy(
         recipe.id,
+        recipe.userId,
+        recipe.title,
+        recipe.description,
+        recipe.instructions,
+        recipe.tags,
+        recipe.imageUrl,
+        recipe.createdAt,
+        recipe.servings,
         user.username,
         user.avatarUrl,
         recipeNutrition.calories,
@@ -196,13 +204,16 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         recipeNutrition.carbs,
         recipeNutrition.fat
       )
-      .orderBy(desc(recipe.createdAt))
-      .offset(offset)
+      .orderBy(desc(recipe.createdAt), desc(recipe.id))
+      .offset(page * limit)
 
     // Apply limit if provided
     const limitedQuery = limit ? finalQuery.limit(limit) : finalQuery
 
     const results = await limitedQuery
+    console.log('Query params:', { page, limit, tags })
+    console.log('Results count:', results.length)
+    console.log('Recipe IDs:', results.map(r => r.id))
     return nullToUndefined(results)
   } else {
     // Basic query with limited fields
@@ -225,13 +236,16 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     // Complete query with groupBy, orderBy, and limit
     const finalQuery = queryWithWhere
       .groupBy(recipe.id)
-      .orderBy(desc(recipe.createdAt))
-      .offset(offset)
+      .orderBy(desc(recipe.createdAt), desc(recipe.id))
+      .offset(page * limit)
 
     // Apply limit if provided
     const limitedQuery = limit ? finalQuery.limit(limit) : finalQuery
 
     const results = await limitedQuery
+    console.log('Query params:', { page, limit, tags })
+    console.log('Results count:', results.length)
+    console.log('Recipe IDs:', results.map(r => r.id))
     return nullToUndefined(results)
   }
 }

@@ -43,7 +43,11 @@
 		onSortChange = (sortBy: 'popular' | 'newest' | 'easiest') => {},
 		searchTags = (query: string) => Promise.resolve<{ name: string; count: number }[]>([]),
 		searchIngredients = (query: string) => Promise.resolve<{ id: string; name: string }[]>([]),
-		loadMore = () => Promise.resolve()
+		loadMore = () => Promise.resolve(),
+		initialSearch = '',
+		initialTags = [] as string[],
+		initialIngredients = [] as { label: string; include: boolean }[],
+		initialSort = 'popular' as 'popular' | 'newest' | 'easiest'
 	}: {
 		recipes: Recipe[]
 		isLoading?: boolean
@@ -57,13 +61,16 @@
 		searchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 		searchIngredients?: (query: string) => Promise<{ id: string; name: string }[]>
 		loadMore?: () => Promise<void>
+		initialSearch?: string
+		initialTags?: string[]
+		initialIngredients?: { label: string; include: boolean }[]
+		initialSort?: 'popular' | 'newest' | 'easiest'
 	} = $props()
 
-	let searchValue = $state('')
-	let selectedTags = $state<{ label: string; selected?: boolean }[]>([])
-	let selectedIngredients = $state<{ label: string; include: boolean }[]>([])
-	let excludedIngredients = $state<string[]>([])
-	let sortBy = $state<'popular' | 'newest' | 'easiest'>('popular')
+	let searchValue = $state(initialSearch)
+	let selectedTags = $state<{ label: string; selected?: boolean }[]>(initialTags.map(tag => ({ label: tag, selected: true })))
+	let selectedIngredients = $state<{ label: string; include: boolean }[]>(initialIngredients)
+	let sortBy = $state<'popular' | 'newest' | 'easiest'>(initialSort)
 	let isMac = $state(false)
 	let searchInput: HTMLInputElement
 	let availableTags = $state<{ name: string; count: number }[]>([])
@@ -178,8 +185,7 @@
 	const emptyStateMessage = $derived(
 		searchValue ||
 			selectedTags.length > 0 ||
-			selectedIngredients.length > 0 ||
-			excludedIngredients.length > 0
+			selectedIngredients.length > 0
 			? 'No recipes found matching your criteria. Try different search terms or filters, or browse all recipes.'
 			: 'No recipes yet! Be the first to create one.'
 	)

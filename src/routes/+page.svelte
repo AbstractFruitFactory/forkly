@@ -1,93 +1,79 @@
 <script lang="ts">
 	import Home from '$lib/pages/home/Home.svelte'
-	import { safeFetch } from '$lib/utils/fetch.js'
-	import type { RecipesSearchResponse } from './api/recipes/search/+server.js'
-	import type { IngredientLookupResult } from './api/ingredients/lookup/[query]/+server.js'
-	import type { TagSearchResponse } from './api/tags/+server.js'
-	import { nullToUndefined } from '$lib/utils/nullToUndefined.js'
+	import { goto } from '$app/navigation'
+	import { page } from '$app/state'
+	import { safeFetch } from '$lib/utils/fetch'
+	import type { IngredientLookupResult } from './api/ingredients/lookup/[query]/+server'
+	import type { TagSearchResponse } from './api/tags/+server'
+	import type { RecipesSearchResponse } from './api/recipes/search/+server'
 	import { toHomePageRecipe } from '$lib/utils/recipe'
 
 	let { data } = $props()
 
-	let recipes = $state(data.recipes)
-	let searchValue = $state('')
+	let recipes = $derived(data.recipes)
+	let searchValue = $state(data.initialState.search)
 	let isLoading = $state(false)
-	let searchResults = $state<ReturnType<typeof toHomePageRecipe>[] | null>(null)
 	let activeFilters = $state({
-		tags: [] as string[],
-		ingredients: [] as string[],
-		excludedIngredients: [] as string[]
+		tags: data.initialState.tags,
+		ingredients: data.initialState.ingredients,
+		excludedIngredients: data.initialState.excludedIngredients
 	})
-	let sortParam = $state<'popular' | 'newest' | 'easiest'>('popular')
+	let sortParam = $state<'popular' | 'newest' | 'easiest'>(data.initialState.sort)
 
 	// Pagination state
 	let pagination = $state({
-		offset: 0,
+		page: 0,
 		limit: 18,
 		hasMore: true,
 		isLoading: false
 	})
 
+	const updateUrl = (params: Record<string, string>) => {
+		const url = new URL(page.url)
+		Object.entries(params).forEach(([key, value]) => {
+			if (value === '') {
+				url.searchParams.delete(key)
+			} else {
+				url.searchParams.set(key, value)
+			}
+		})
+		goto(url.toString(), { keepFocus: true })
+	}
+
 	const handleSearch = async (
 		query: string,
 		filters?: { tags: string[]; ingredients: string[]; excludedIngredients: string[] }
 	) => {
-		if (
-			!query.trim() &&
-			(!filters ||
-				(filters.tags.length === 0 &&
-					filters.ingredients.length === 0 &&
-					filters.excludedIngredients.length === 0))
-		) {
-			searchResults = null
-			pagination = {
-				offset: 0,
-				limit: 18,
-				hasMore: true,
-				isLoading: false
-			}
-			return
+		const params: Record<string, string> = {
+			q: query,
+			limit: pagination.limit.toString(),
+			page: '0'
 		}
-
-		isLoading = true
-		pagination = {
-			offset: 0,
-			limit: 18,
-			hasMore: true,
-			isLoading: false
-		}
-
-		let url = `/api/recipes/search?q=${encodeURIComponent(query)}`
-		url += `&limit=${pagination.limit}&offset=0`
 
 		if (filters) {
 			if (filters.tags.length > 0) {
-				url += `&tags=${filters.tags.join(',')}`
+				params.tags = filters.tags.join(',')
+			} else {
+				params.tags = ''
 			}
 			if (filters.ingredients.length > 0) {
-				url += `&ingredients=${filters.ingredients.join(',')}`
+				params.ingredients = filters.ingredients.join(',')
+			} else {
+				params.ingredients = ''
 			}
 			if (filters.excludedIngredients.length > 0) {
-				url += `&excludedIngredients=${filters.excludedIngredients.join(',')}`
+				params.excludedIngredients = filters.excludedIngredients.join(',')
+			} else {
+				params.excludedIngredients = ''
 			}
 		}
 
-		const response = await safeFetch<RecipesSearchResponse>()(url)
-
-		if (response.isOk()) {
-			const data = response.value
-			searchResults = nullToUndefined(data.results).map(toHomePageRecipe)
-			pagination.hasMore = data.results.length === pagination.limit
-		}
-
-		isLoading = false
+		updateUrl(params)
 	}
 
 	const searchIngredients = async (query: string): Promise<{ id: string; name: string }[]> => {
 		if (!query.trim()) return []
-
 		const result = await safeFetch<IngredientLookupResult>()(`/api/ingredients/lookup/${query}`)
-
 		return result.isOk() ? result.value : []
 	}
 
@@ -95,105 +81,65 @@
 		const response = await safeFetch<TagSearchResponse>()(
 			`/api/tags?q=${encodeURIComponent(query)}`
 		)
-
 		return response.isOk() ? response.value.tags : []
 	}
 
-	const handleFiltersChange = (filters: { tags: string[]; ingredients: string[]; excludedIngredients: string[] }) => {
+	const handleFiltersChange = (filters: {
+		tags: string[]
+		ingredients: string[]
+		excludedIngredients: string[]
+	}) => {
 		activeFilters = filters
-		if (
-			filters.tags.length === 0 &&
-			filters.ingredients.length === 0 &&
-			filters.excludedIngredients.length === 0 &&
-			!searchValue.trim()
-		) {
-			searchResults = null
-			pagination = {
-				offset: 0,
-				limit: 18,
-				hasMore: true,
-				isLoading: false
-			}
-		} else {
-			handleSearch(searchValue, filters)
-		}
+		handleSearch(searchValue, filters)
 	}
 
 	const handleSearchChange = (query: string) => {
 		searchValue = query
-		if (
-			!query.trim() &&
-			activeFilters.tags.length === 0 &&
-			activeFilters.ingredients.length === 0 &&
-			activeFilters.excludedIngredients.length === 0
-		) {
-			searchResults = null
-			pagination = {
-				offset: 0,
-				limit: 18,
-				hasMore: true,
-				isLoading: false
-			}
-		} else {
-			handleSearch(query, activeFilters)
-		}
+		handleSearch(query, activeFilters)
 	}
 
 	const handleSortChange = (sortBy: 'popular' | 'newest' | 'easiest') => {
 		sortParam = sortBy
+		updateUrl({ sort: sortBy })
 	}
 
-	const displayedRecipes = $derived(
-		searchResults &&
-			(searchValue.trim() ||
-				activeFilters.tags.length > 0 ||
-				activeFilters.ingredients.length > 0 ||
-				activeFilters.excludedIngredients.length > 0)
-			? searchResults
-			: recipes
-	)
-
-	async function loadMore() {
+	const loadMore = async () => {
 		if (pagination.isLoading || !pagination.hasMore) return
 
 		pagination.isLoading = true
 
 		const url = new URL('/api/recipes/search', window.location.origin)
+		
+		// Preserve all current query parameters
+		const currentParams = new URLSearchParams(page.url.search)
+		currentParams.forEach((value, key) => {
+			url.searchParams.set(key, value)
+		})
+		
+		// Update pagination parameters
 		url.searchParams.set('limit', pagination.limit.toString())
-		url.searchParams.set('offset', (pagination.offset + pagination.limit).toString())
-		url.searchParams.set('q', searchValue)
+		url.searchParams.set('page', (pagination.page + 1).toString())
 
-		if (activeFilters.tags.length > 0) {
-			url.searchParams.set('tags', activeFilters.tags.join(','))
-		}
-		if (activeFilters.ingredients.length > 0) {
-			url.searchParams.set('ingredients', activeFilters.ingredients.join(','))
-		}
-		if (activeFilters.excludedIngredients.length > 0) {
-			url.searchParams.set('excludedIngredients', activeFilters.excludedIngredients.join(','))
-		}
+		const response = await safeFetch<RecipesSearchResponse>()(url.toString())
+		let newData: RecipesSearchResponse
 
-		try {
-			const response = await fetch(url.toString())
-			const newData = await response.json()
-
-			const newRecipes = newData.results.map(toHomePageRecipe)
-
-			if (searchResults) {
-				searchResults = [...searchResults, ...newRecipes]
-			} else {
-				recipes = [...recipes, ...newRecipes]
-			}
-
-			pagination = {
-				...pagination,
-				hasMore: newRecipes.length === pagination.limit,
-				offset: pagination.offset + pagination.limit,
-				isLoading: false
-			}
-		} catch (error) {
-			console.error('Failed to load more recipes:', error)
+		if (response.isOk()) {
+			newData = response.value
+		} else {
 			pagination.isLoading = false
+			console.error('Failed to load more recipes:', response.error)
+			return
+		}
+
+		const newRecipes = newData.results.map(toHomePageRecipe)
+
+		recipes = [...recipes, ...newRecipes]
+
+		pagination = {
+			...pagination,
+			hasMore: newRecipes.length === pagination.limit,
+			page: pagination.page + 1,
+			isLoading: false
 		}
 	}
 </script>
@@ -203,12 +149,19 @@
 </svelte:head>
 
 <Home
-	recipes={displayedRecipes}
-	isLoading={pagination.isLoading}
+	{recipes}
+	{isLoading}
 	onSearchChange={handleSearchChange}
 	onFiltersChange={handleFiltersChange}
 	onSortChange={handleSortChange}
 	{searchTags}
 	{searchIngredients}
 	{loadMore}
+	initialSearch={searchValue}
+	initialTags={activeFilters.tags}
+	initialIngredients={[
+		...activeFilters.ingredients.map(label => ({ label, include: true })),
+		...activeFilters.excludedIngredients.map(label => ({ label, include: false }))
+	]}
+	initialSort={sortParam}
 />
