@@ -2,9 +2,10 @@
 	import ArrowUp from 'lucide-svelte/icons/arrow-up'
 	import FloatingActionButton from '../floating-action-button/FloatingActionButton.svelte'
 	import { fly } from 'svelte/transition'
-
+	import { scrollStore } from '$lib/state/scroll.svelte'
+	
 	const scrollToTop = () => {
-		window.scrollTo({ top: 0, behavior: 'smooth' })
+		scrollStore.scrollToTop()
 	}
 </script>
 

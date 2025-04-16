@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte'
+	import { onMount, type Snippet } from 'svelte'
+	import { scrollStore } from '$lib/state/scroll.svelte'
 
 	let {
 		header,
@@ -14,6 +15,12 @@
 		sidebarOpen?: boolean
 		bottomNav?: Snippet
 	}>()
+
+	let mainElement: HTMLElement
+
+	onMount(() => {
+		scrollStore.setScrollContainer(mainElement)
+	})
 </script>
 
 <div class="layout">
@@ -29,7 +36,7 @@
 				{/if}
 			</div>
 		{/if}
-		<main class="main" class:with-sidebar={sidebarOpen}>
+		<main class="main" class:with-sidebar={sidebarOpen} bind:this={mainElement}>
 			<div class="main-content">
 				{@render content()}
 			</div>
@@ -47,6 +54,7 @@
 		display: flex;
 		flex-direction: column;
 		height: 100dvh;
+		overflow: hidden;
 
 		@include desktop {
 			padding-bottom: 0;
@@ -83,6 +91,7 @@
 	.main-layout {
 		display: flex;
 		flex: 1;
+		overflow: hidden;
 	}
 
 	.sidebar-container {
@@ -93,6 +102,7 @@
 	.main {
 		position: relative;
 		flex-grow: 1;
+		overflow-y: auto;
 		scrollbar-width: thin;
 		scrollbar-gutter: stable both-edges;
 		transition: margin-left 0.25s ease-out;
