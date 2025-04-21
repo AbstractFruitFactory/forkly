@@ -17,10 +17,6 @@
 	{#snippet content()}
 		{@render children()}
 	{/snippet}
-
-	{#snippet bottomNav()}
-		<BottomNav loggedIn={!!data.user} newRecipeHref="/new" profileHref="/profile" loginHref="/login" />
-	{/snippet}
 </Layout>
 
 <style lang="scss">

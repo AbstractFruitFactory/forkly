@@ -558,10 +558,12 @@
 		bottom: 0;
 		left: 0;
 		right: 0;
-		background: var(--color-neutral-dark);
+		background: rgba(53, 47, 52, 0.8);
 		z-index: var(--z-sticky);
 		border-top: 1px solid rgba(255, 255, 255, 0.08);
 		padding-bottom: env(safe-area-inset-bottom);
+		margin: var(--spacing-sm);
+		border-radius: var(--border-radius-lg);
 	}
 
 	.nav-buttons {
@@ -575,16 +577,14 @@
 		background: none;
 		border: none;
 		padding: var(--spacing-sm) var(--spacing-xs);
-		color: var(--color-neutral-light);
 		font-size: var(--font-size-sm);
 		cursor: pointer;
 		transition: all var(--transition-fast) var(--ease-in-out);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-weight: var(--font-weight-medium);
+		font-weight: var(--font-weight-bold);
 		border-radius: var(--border-radius-sm);
-		opacity: 0.8;
 
 		&:hover {
 			color: white;
