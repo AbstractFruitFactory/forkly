@@ -64,6 +64,7 @@
 		cursor: pointer;
 		font-size: var(--font-size-sm);
 		z-index: 2;
+
 	}
 
 	.background {
