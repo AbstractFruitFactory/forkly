@@ -20,11 +20,11 @@
 
 <div class="servings-pill">
 	<button class="adjust-button" onclick={decrement} disabled={servings <= 1}>
-		<Minus size={14} />
+		<Minus size={22} />
 	</button>
 	<span class="servings-text">Serves {servings}</span>
 	<button class="adjust-button" onclick={increment}>
-		<Plus size={14} />
+		<Plus size={22} />
 	</button>
 </div>
 
@@ -35,22 +35,16 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: var(--spacing-xs) var(--spacing-md);
-		border: 1px solid var(--color-neutral);
+		padding: var(--spacing-sm) var(--spacing-md);
 		border-radius: var(--border-radius-full);
-		background-color: var(--color-background);
-		width: fit-content;
+		background-color: var(--color-neutral-dark);
 
 		.adjust-button {
-			border: 2px solid var(--color-neutral-light);
 			cursor: pointer;
 			color: var(--color-text-secondary);
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			border-radius: 50%;
-			width: 16px;
-			height: 16px;
 
 			&:hover:not(:disabled) {
 				background-color: var(--color-background-hover);
@@ -64,7 +58,6 @@
 
 		.servings-text {
 			font-size: var(--font-size-sm);
-			font-weight: var(--font-weight-bold);
 			color: var(--color-text-secondary);
 			padding: 0 var(--spacing-sm);
 			white-space: nowrap;

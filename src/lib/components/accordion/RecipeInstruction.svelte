@@ -19,6 +19,7 @@
 	<div class="instruction-header">
 		<div class="instruction-content">
 			<div class="instruction-text">
+				<h5 class="step-number">Step {index + 1}</h5>
 				{#each parseTemperature(instruction.text) as part}
 					{#if part.isTemperature && part.value !== undefined && part.unit}
 						<span class="temperature-wrapper">
@@ -61,7 +62,7 @@
 	@import '$lib/global.scss';
 
 	.instruction-item {
-		background: var(--color-neutral-dark);
+		background: var(--color-neutral-2);
 		border-radius: var(--border-radius-lg);
 		overflow: hidden;
 		transition: all var(--transition-fast) var(--ease-in-out);
@@ -93,20 +94,13 @@
 		text-align: left;
 	}
 
-	.step-number {
-		font-weight: var(--font-weight-bold);
-		color: var(--color-primary);
-		min-width: var(--spacing-lg);
-		padding: var(--spacing-md) 0 var(--spacing-md) var(--spacing-lg);
-	}
-
 	.instruction-content {
 		flex: 1;
 		display: grid;
 		grid-template-columns: 1fr;
 		gap: 0;
 		align-items: stretch;
-		padding: 0 0 0 var(--spacing-lg);
+		padding-left: var(--spacing-lg);
 
 		&:has(.instruction-media) {
 			grid-template-columns: 1fr 200px;
@@ -138,10 +132,10 @@
 			display: inline;
 			word-break: break-word;
 		}
+	}
 
-		@include mobile {
-			padding: var(--spacing-md) var(--spacing-lg);
-		}
+	.step-number {
+		font-weight: var(--font-weight-bold);
 	}
 
 	.instruction-media {

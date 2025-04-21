@@ -28,7 +28,7 @@
 	const circumference = 2 * Math.PI * radius
 
 	// Add gap between segments (in percentage of the total circumference)
-	const gapSize = 0.02 // 2% gap
+	const gapSize = 0.03 // 2% gap
 	const totalGapSize = gapSize * 3 // 3 gaps (one between each segment)
 
 	// Adjust proportions to account for gaps
@@ -45,11 +45,16 @@
 	// Calculate offsets (each offset needs to account for previous segment + gap)
 	const fatOffset = carbsDash + gapPixels
 	const proteinOffset = fatOffset + fatDash + gapPixels
+
+	// Ensure gaps are visible by adjusting offsets
+	const adjustedCarbsDash = carbsDash - gapPixels
+	const adjustedFatDash = fatDash - gapPixels
+	const adjustedProteinDash = proteinDash - gapPixels
+
+	// Update stroke-dasharray with adjusted values
 </script>
 
 <div class="nutrition-section">
-	<h4>Nutrition Per Serving</h4>
-
 	<div class="nutrition-data">
 		<div class="calories-and-macros">
 			<div class="calories-circle">
@@ -60,8 +65,9 @@
 						cx="45"
 						cy="45"
 						r={radius}
-						stroke-width="12"
-						stroke-dasharray="{carbsDash} {circumference - carbsDash}"
+						stroke-width="10"
+						stroke-linecap="round"
+						stroke-dasharray="{adjustedCarbsDash} {circumference - adjustedCarbsDash}"
 						stroke-dashoffset="0"
 						transform="rotate(-90 45 45)"
 					/>
@@ -72,8 +78,9 @@
 						cx="45"
 						cy="45"
 						r={radius}
-						stroke-width="12"
-						stroke-dasharray="{fatDash} {circumference - fatDash}"
+						stroke-width="10"
+						stroke-linecap="round"
+						stroke-dasharray="{adjustedFatDash} {circumference - adjustedFatDash}"
 						stroke-dashoffset={-fatOffset}
 						transform="rotate(-90 45 45)"
 					/>
@@ -84,8 +91,9 @@
 						cx="45"
 						cy="45"
 						r={radius}
-						stroke-width="12"
-						stroke-dasharray="{proteinDash} {circumference - proteinDash}"
+						stroke-width="10"
+						stroke-linecap="round"
+						stroke-dasharray="{adjustedProteinDash} {circumference - adjustedProteinDash}"
 						stroke-dashoffset={-proteinOffset}
 						transform="rotate(-90 45 45)"
 					/>
@@ -96,25 +104,17 @@
 				</div>
 			</div>
 
-			<div class="macros">
+			{#snippet macro(color: string, label: string, value: number, percent: number)}
 				<div class="macro-column">
-					<div class="macro-percent carbs-color">{carbsPercent}%</div>
-					<div class="macro-value">{Math.round(nutrition.carbs)} g</div>
-					<div class="macro-label">Carbs</div>
+					<div class="macro-label">{label}</div>
+					<div class="macro-value">{value} g</div>
+					<div class={color}>{percent}%</div>
 				</div>
+			{/snippet}
 
-				<div class="macro-column">
-					<div class="macro-percent fat-color">{fatPercent}%</div>
-					<div class="macro-value">{Math.round(nutrition.fat)} g</div>
-					<div class="macro-label">Fat</div>
-				</div>
-
-				<div class="macro-column">
-					<div class="macro-percent protein-color">{proteinPercent}%</div>
-					<div class="macro-value">{Math.round(nutrition.protein)} g</div>
-					<div class="macro-label">Protein</div>
-				</div>
-			</div>
+			{@render macro('carbs-color', 'Carbs', Math.round(nutrition.carbs), carbsPercent)}
+			{@render macro('fat-color', 'Fat', Math.round(nutrition.fat), fatPercent)}
+			{@render macro('protein-color', 'Protein', Math.round(nutrition.protein), proteinPercent)}
 		</div>
 	</div>
 </div>
@@ -127,15 +127,10 @@
 		gap: var(--spacing-md);
 	}
 
-	.nutrition-data {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
-	}
-
 	.calories-and-macros {
 		display: flex;
 		align-items: center;
+		justify-content: space-around;
 		gap: var(--spacing-lg);
 	}
 
@@ -151,18 +146,18 @@
 	}
 
 	.carbs-color {
-		stroke: #39b54a;
-		color: #39b54a;
+		stroke: #C8A0FF;
+		color: #C8A0FF;
 	}
 
 	.fat-color {
-		stroke: #ed1c24;
-		color: #ed1c24;
+		stroke: #FF9B61;
+		color: #FF9B61;
 	}
 
 	.protein-color {
-		stroke: #9e1f63;
-		color: #9e1f63;
+		stroke: #ff595f;
+		color: #ff595f;
 	}
 
 	.calories-text {
@@ -180,8 +175,6 @@
 	}
 
 	.calories-unit {
-		font-size: 0.75rem;
-		color: var(--color-text-secondary);
 		margin-top: -2px;
 	}
 
@@ -200,18 +193,12 @@
 		text-wrap: nowrap;
 	}
 
-	.macro-percent {
-		font-weight: var(--font-weight-bold);
-		font-size: var(--font-size-sm);
-	}
-
 	.macro-value {
-		font-weight: var(--font-weight-medium);
 		font-weight: var(--font-weight-bold);
+		font-size: var(--font-size-lg);
 	}
 
 	.macro-label {
-		font-size: 0.85rem;
-		color: var(--color-text-secondary);
+		text-transform: uppercase;
 	}
 </style>

@@ -16,10 +16,14 @@
 	import { page } from '$app/state'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import RecipeInstruction from '$lib/components/accordion/RecipeInstruction.svelte'
-	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
 	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
 	import RecipeCreator from '$lib/components/recipe-creator/RecipeCreator.svelte'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
+	import Pill from '$lib/components/pill/Pill.svelte'
+	import FloatingLikeButton from '$lib/components/floating-action-button/FloatingLikeButton.svelte'
+	import FloatingSaveButton from '$lib/components/floating-action-button/FloatingSaveButton.svelte'
+	import FloatingShareButton from '$lib/components/floating-action-button/FloatingShareButton.svelte'
+	import RecipeInstructions from '$lib/components/accordion/RecipeInstructions.svelte'
 
 	let {
 		recipe,
@@ -32,7 +36,6 @@
 		comments,
 		formError,
 		onLike,
-		onDislike,
 		onSave,
 		chef = { name: 'Emma Brown', title: 'Professional Chef', avatar: '' }
 	}: {
@@ -47,7 +50,6 @@
 		isLoggedIn: boolean
 		onBackClick?: () => void
 		onLike?: () => void
-		onDislike?: () => void
 		onSave?: () => void
 		comments: any[]
 		formError?: string
@@ -79,14 +81,22 @@
 	let commentsSection: HTMLElement
 	let contentContainer: HTMLElement
 
-	// Track expanded instruction steps
-	let expandedInstructions = $state<number[]>([])
-
 	// Cooking mode state
 	let isCookingMode = $state(false)
 	let currentStep = $state(0)
 	let videoLoaded = $state(false)
 	let videoError = $state(false)
+
+	let isDescriptionExpanded = $state(false)
+	const MAX_DESCRIPTION_LENGTH = 150
+	const shouldTruncateDescription = $derived(
+		recipe?.description && recipe.description.length > MAX_DESCRIPTION_LENGTH
+	)
+	const truncatedDescription = $derived(
+		shouldTruncateDescription && recipe?.description
+			? recipe.description.slice(0, MAX_DESCRIPTION_LENGTH) + '...'
+			: recipe?.description || ''
+	)
 
 	function scrollToSection(section: HTMLElement) {
 		section.scrollIntoView({ behavior: 'smooth' })
@@ -172,12 +182,16 @@
 	</button>
 
 	<div class="recipe-image">
-		<RecipeMediaDisplay
-			mainImageUrl={recipe.imageUrl || undefined}
-			instructions={recipe.instructions}
-			aspectRatio="30/10"
-		/>
+		<img src={recipe.imageUrl} alt={recipe.title} />
 	</div>
+
+	{#if recipe.tags && recipe.tags.length > 0}
+		<div class="tags">
+			{#each recipe.tags as tag}
+				<Pill text={tag} />
+			{/each}
+		</div>
+	{/if}
 
 	<div class="content-container" bind:this={contentContainer}>
 		{#if !isCookingMode}
@@ -193,17 +207,26 @@
 						Comments
 					</button>
 				</div>
-				<div class="start-cooking-wrapper">
-					<Button variant="primary" size="md" fullWidth onclick={() => startCookingMode()}
-						>Start Cooking</Button
-					>
-				</div>
 			</div>
 		{/if}
 
 		<div class="recipe-content">
-			<div class="recipe-header">
-				<h3>{recipe.title}</h3>
+			<h1 class="recipe-title">{recipe.title}</h1>
+
+			<div class="action-buttons">
+				{#if isLoggedIn}
+					<FloatingLikeButton isActive={recipe.isLiked} onClick={onLike} />
+
+					<FloatingSaveButton isActive={recipe.isSaved} onClick={onSave} />
+				{:else}
+					<FloatingLikeButton />
+
+					<FloatingSaveButton />
+				{/if}
+				<FloatingShareButton />
+			</div>
+
+			<div class="description card">
 				{#if recipe.userId && recipe.user?.username}
 					<div class="recipe-creator-wrapper">
 						<RecipeCreator
@@ -213,53 +236,62 @@
 						/>
 					</div>
 				{/if}
-			</div>
-			<p class="description">{recipe.description}</p>
 
-			<div class="action-buttons">
-				{#if isLoggedIn}
-					<LikeButton count={recipe.likes} isLiked={recipe.isLiked} interactive onLike={onLike} />
-					<DislikeButton isDisliked={recipe.isDisliked} interactive onDislike={onDislike} />
-					<SaveButton isSaved={recipe.isSaved} interactive onSave={onSave} />
-				{:else}
-					<LikeButton count={recipe.likes} />
-					<DislikeButton />
-					<SaveButton />
+				<div class="divider"></div>
+
+				<p>{isDescriptionExpanded ? recipe.description : truncatedDescription}</p>
+
+				<div class="divider" style:margin="0 calc(var(--spacing-lg) * -1)"></div>
+
+				{#if shouldTruncateDescription}
+					<button
+						class="view-more"
+						onclick={() => (isDescriptionExpanded = !isDescriptionExpanded)}
+					>
+						{isDescriptionExpanded ? '- View less' : '+ View more'}
+					</button>
 				{/if}
-				<ShareButton url={`${page.url.origin}/recipe/${recipe.id}`} title={recipe.title} />
 			</div>
 
 			{#if singleServingNutrition}
-				<div class="nutrition-facts-wrapper">
-					<div class="nutrition-subtitle">Nutrition facts per serving</div>
-					<NutritionFacts nutrition={singleServingNutrition} />
+				<div>
+					<h3>Nutrition Per Serving</h3>
+					<div class="card">
+						<NutritionFacts nutrition={singleServingNutrition} />
+					</div>
 				</div>
 			{/if}
 
 			<div class="section-container">
 				<section class="content-section" bind:this={ingredientsSection}>
 					<div class="ingredients-title-row">
-						<h4 class="section-title">Ingredients</h4>
-
+						<h3>Ingredients</h3>
 						<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 					</div>
-					<IngredientsList ingredients={scaledIngredients} {unitSystem} />
-					<div class="servings-control">
-						<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
+
+					<div class="card">
+						<IngredientsList
+							ingredients={scaledIngredients}
+							{unitSystem}
+							{currentServings}
+							onServingsChange={handleServingsChange}
+						/>
 					</div>
 				</section>
 
 				<section class="content-section" bind:this={instructionsSection}>
-					<h4 class="section-title">Instructions</h4>
-					<div class="instructions-list">
-						{#each recipe.instructions as instruction, i}
-							<RecipeInstruction {instruction} index={i} />
-						{/each}
+					<h3>Instructions</h3>
+					<Button variant="primary" size="md" fullWidth onclick={() => startCookingMode()}
+						>Step by Step Mode</Button
+					>
+
+					<div style:margin-top="var(--spacing-md)">
+						<RecipeInstructions instructions={recipe.instructions} />
 					</div>
 				</section>
 
 				<section class="content-section" bind:this={commentsSection}>
-					<h4 class="section-title">Comments</h4>
+					<h3>Comments</h3>
 					<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} />
 				</section>
 			</div>
@@ -365,6 +397,14 @@
 
 <style lang="scss">
 	@import '$lib/global.scss';
+
+	h1 {
+		font-family: var(--font-serif);
+		font-size: var(--font-size-3xl);
+		font-weight: var(--font-weight-semibold);
+		margin-bottom: var(--spacing-md);
+	}
+
 	.recipe-mobile-view {
 		display: none;
 
@@ -416,15 +456,30 @@
 	.recipe-image {
 		position: relative;
 		width: 100%;
-		height: 30dvh;
+		height: auto;
+		max-height: 80dvh;
 		background: transparent;
-		overflow: visible;
 		z-index: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 
-		:global(.recipe-media) {
-			border-top-left-radius: 0;
-			border-top-right-radius: 0;
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			border-bottom-left-radius: var(--border-radius-xl);
+			border-bottom-right-radius: var(--border-radius-xl);
 		}
+	}
+
+	.recipe-title {
+		text-align: center;
+	}
+
+	.action-buttons {
+		display: flex;
+		justify-content: center;
 	}
 
 	.content-container {
@@ -439,6 +494,9 @@
 
 	.recipe-content {
 		padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-lg);
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
 	}
 
 	.recipe-header {
@@ -446,18 +504,14 @@
 		flex-direction: column;
 		gap: var(--spacing-sm);
 		margin-bottom: var(--spacing-md);
-
-		h3 {
-			margin: 0;
-			font-size: 1.5rem;
-			line-height: 1.2;
-		}
+		justify-content: center;
+		text-align: center;
 	}
 
 	.ingredients-title-row {
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
+		align-items: flex-start;
 	}
 
 	.recipe-creator-wrapper {
@@ -465,10 +519,9 @@
 	}
 
 	.description {
-		font-size: var(--font-size-md);
-		color: rgba(255, 255, 255, 0.7);
-		line-height: 1.5;
-		margin: 0 0 var(--spacing-md) 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
 	}
 
 	.recipe-meta {
@@ -557,26 +610,6 @@
 		scroll-margin-top: 0;
 	}
 
-	.section-title {
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-semibold);
-		margin-bottom: var(--spacing-md);
-		color: var(--color-primary);
-		padding-bottom: var(--spacing-xs);
-		position: relative;
-		width: fit-content;
-
-		&::after {
-			content: '';
-			position: absolute;
-			bottom: 0px;
-			left: 0;
-			width: 100%;
-			height: 2px;
-			background-color: var(--color-primary);
-		}
-	}
-
 	.section-header {
 		display: flex;
 		justify-content: space-between;
@@ -589,24 +622,12 @@
 			align-items: center;
 			gap: var(--spacing-sm);
 		}
-
-		.section-title {
-			margin-bottom: 0;
-			padding-bottom: 0;
-		}
-	}
-
-	.instructions-list {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-sm);
 	}
 
 	.action-buttons {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-md) 0;
+		gap: var(--spacing-xl);
 	}
 
 	.cooking-mode {
@@ -883,14 +904,37 @@
 		white-space: pre-wrap;
 	}
 
-	.nutrition-facts-wrapper {
-		margin-top: var(--spacing-md);
+	.tags {
+		display: flex;
+		justify-content: center;
+		flex-wrap: wrap;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-md) var(--spacing-lg);
+		padding-bottom: 0;
+	}
 
-		.nutrition-subtitle {
-			font-size: var(--font-size-sm);
-			color: var(--color-neutral-light);
-			margin-bottom: var(--spacing-xs);
-			opacity: 0.8;
+	.recipe-meta {
+		padding: var(--spacing-lg);
+		padding-bottom: var(--spacing-md);
+	}
+
+	.divider {
+		height: 2px;
+		background: var(--color-neutral-light);
+		opacity: 0.1;
+	}
+
+	.view-more {
+		background: none;
+		border: none;
+		color: var(--color-neutral-light);
+		font-size: var(--font-size-md);
+		padding-top: var(--spacing-sm);
+		cursor: pointer;
+		font-weight: var(--font-weight-bold);
+
+		&:hover {
+			color: var(--color-text);
 		}
 	}
 </style>

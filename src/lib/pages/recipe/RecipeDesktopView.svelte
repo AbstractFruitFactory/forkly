@@ -19,6 +19,7 @@
 	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import { fly } from 'svelte/transition'
+	import RecipeInstructions from '$lib/components/accordion/RecipeInstructions.svelte'
 
 	let {
 		recipe,
@@ -216,13 +217,12 @@
 								<h3 style:margin-bottom="0">Ingredients</h3>
 								<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 							</div>
-							<IngredientsList ingredients={scaledIngredients} {unitSystem} />
-							<div class="servings-control">
-								<ServingsAdjuster
-									servings={currentServings}
-									onServingsChange={handleServingsChange}
-								/>
-							</div>
+							<IngredientsList
+								ingredients={scaledIngredients}
+								{unitSystem}
+								{currentServings}
+								onServingsChange={handleServingsChange}
+							/>
 						</div>
 					{/if}
 
@@ -270,22 +270,23 @@
 
 				{#if recipe.instructions && recipe.instructions.length > 0}
 					<div class="instructions-section">
-						<div class="instructions-header">
-							<Button variant="primary" fullWidth onclick={startCookingMode}>Start Cooking</Button>
-						</div>
-						<div class="instructions-list">
-							{#each recipe.instructions as instruction, index}
-								<div class="instruction-wrapper">
-									<span class="step-number">{index + 1}</span>
-									<RecipeInstruction {instruction} {index} />
-								</div>
-							{/each}
+						<h3>Instructions</h3>
+						<Button variant="primary" fullWidth onclick={startCookingMode}>
+							Step by Step Mode
+						</Button>
+
+						<div style:margin-top="var(--spacing-lg)">
+							<RecipeInstructions instructions={recipe.instructions} />
 						</div>
 					</div>
 				{/if}
 			</div>
 		</div>
-		<div class="comments-section" in:fly={{ y: 50, duration: 300, delay: 300 }} out:fly={{ y: 50, duration: 300 }}>
+		<div
+			class="comments-section"
+			in:fly={{ y: 50, duration: 300, delay: 300 }}
+			out:fly={{ y: 50, duration: 300 }}
+		>
 			<div class="comments-content">
 				<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} />
 			</div>

@@ -2,13 +2,18 @@
 	import type { Ingredient } from '$lib/types'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import { getFormattedIngredient } from '$lib/pages/recipe/utils/recipeUtils'
+	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 
 	let {
 		ingredients,
-		unitSystem
+		unitSystem,
+		currentServings,
+		onServingsChange
 	}: {
 		ingredients: Ingredient[]
 		unitSystem: UnitSystem
+		currentServings: number
+		onServingsChange: (newServings: number) => void
 	} = $props()
 </script>
 
@@ -33,16 +38,16 @@
 	{/each}
 </ul>
 
+<ServingsAdjuster servings={currentServings} {onServingsChange} />
+
 <style lang="scss">
 	@import '$lib/global.scss';
 
 	.ingredients-list {
-		margin: 0;
-		padding: 0;
-
+		margin-bottom: var(--spacing-md);
 		li {
 			list-style: none;
-			padding: var(--spacing-xs) 0;
+			padding: var(--spacing-md) 0;
 			border-bottom: 2px dotted rgba(255, 255, 255, 0.1);
 			display: flex;
 			font-size: var(--font-size-sm);
@@ -57,7 +62,7 @@
 	.measurement {
 		margin-right: var(--spacing-sm);
 		font-weight: var(--font-weight-semibold);
-		color: var(--color-primary);
+
 		min-width: 50px;
 
 		@include tablet {

@@ -45,6 +45,7 @@ $breakpoint-xl: 1280px;
 
   // Neutral colors
   --color-neutral: #767880;
+  --color-neutral-2: #323645;
   --color-neutral-dark: #252835;
   --color-neutral-light: #9ca3af;
 
@@ -280,6 +281,12 @@ button {
   border: none;
   cursor: pointer;
   user-select: none;
+}
+
+.card {
+  background: var(--color-neutral-2);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
 }
 
 /* Custom Scrollbar Styles */

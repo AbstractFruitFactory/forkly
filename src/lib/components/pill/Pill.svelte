@@ -46,7 +46,7 @@
 		padding: var(--spacing-xs) var(--spacing-sm);
 		border-radius: var(--border-radius-full);
 		transition: all 0.2s ease;
-		border: 1px solid var(--pill-color, var(--color-primary));
+		border: 2px solid var(--pill-color, #3B404E);
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 		color: white;
 	}
