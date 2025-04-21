@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { crossfade } from 'svelte/transition'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+
+	const [send, receive] = crossfade({})
 
 	let {
 		state = 'imperial',
@@ -11,26 +14,37 @@
 </script>
 
 <div class="unit-toggle">
-	<button
-		class="toggle-button metric"
-		class:active={state === 'metric'}
-		onclick={() => {
-			state = 'metric'
-			onSelect('metric')
-		}}
-	>
-		Metric
-	</button>
-	<button
-		class="toggle-button imperial"
-		class:active={state === 'imperial'}
-		onclick={() => {
-			state = 'imperial'
-			onSelect('imperial')
-		}}
-	>
-		US
-	</button>
+	<div style:position="relative">
+		{#if state === 'metric'}
+			<div in:receive={{ key: 0 }} out:send={{ key: 0 }} class="background"></div>
+		{/if}
+		<button
+			class="toggle-button metric"
+			class:active={state === 'metric'}
+			onclick={() => {
+				state = 'metric'
+				onSelect('metric')
+			}}
+		>
+			Metric
+		</button>
+	</div>
+
+	<div style:position="relative">
+		{#if state === 'imperial'}
+			<div in:receive={{ key: 0 }} out:send={{ key: 0 }} class="background"></div>
+		{/if}
+		<button
+			class="toggle-button imperial"
+			class:active={state === 'imperial'}
+			onclick={() => {
+				state = 'imperial'
+				onSelect('imperial')
+			}}
+		>
+			US
+		</button>
+	</div>
 </div>
 
 <style lang="scss">
@@ -38,29 +52,28 @@
 		display: flex;
 		border-radius: var(--border-radius-full);
 		overflow: hidden;
-		border: 1px solid var(--color-neutral);
 		width: fit-content;
+		background-color: var(--color-neutral-2);
 	}
 
 	.toggle-button {
-		padding: var(--spacing-xs) var(--spacing-md);
+		position: relative;
+		padding: var(--spacing-sm) var(--spacing-md);
 		background: none;
 		border: none;
 		cursor: pointer;
-		font-size: 0.9rem;
-		transition: all var(--transition-fast) var(--ease-in-out);
+		font-size: var(--font-size-sm);
+		z-index: 2;
+	}
 
-		&:hover {
-			background-color: var(--color-bg-hover);
-		}
-
-		&.active {
-			background-color: var(--color-primary-dark);
-			color: white;
-
-			&:hover {
-				background-color: var(--color-primary-dark);
-			}
-		}
+	.background {
+		background-color: var(--color-primary-dark);
+		border-radius: var(--border-radius-full);
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 1;
 	}
 </style>
