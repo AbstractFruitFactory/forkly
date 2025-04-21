@@ -235,15 +235,13 @@
 							profilePicUrl={recipe.user?.avatarUrl}
 						/>
 					</div>
+					<div class="divider"></div>
 				{/if}
-
-				<div class="divider"></div>
 
 				<p>{isDescriptionExpanded ? recipe.description : truncatedDescription}</p>
 
-				<div class="divider" style:margin="0 calc(var(--spacing-lg) * -1)"></div>
-
 				{#if shouldTruncateDescription}
+					<div class="divider" style:margin="0 calc(var(--spacing-lg) * -1)"></div>
 					<button
 						class="view-more"
 						onclick={() => (isDescriptionExpanded = !isDescriptionExpanded)}
