@@ -54,83 +54,81 @@
 	// Update stroke-dasharray with adjusted values
 </script>
 
-<div class="nutrition-section">
-	<div class="nutrition-data">
-		<div class="calories-and-macros">
-			<div class="calories-circle">
-				<svg width="90" height="90" viewBox="0 0 90 90">
-					<!-- Carbs segment (green) -->
-					<circle
-						class="circle-segment carbs-color"
-						cx="45"
-						cy="45"
-						r={radius}
-						stroke-width="10"
-						stroke-linecap="round"
-						stroke-dasharray="{adjustedCarbsDash} {circumference - adjustedCarbsDash}"
-						stroke-dashoffset="0"
-						transform="rotate(-90 45 45)"
-					/>
+<div class="nutrition-data">
+	<div class="calories-circle">
+		<svg width="90" height="90" viewBox="0 0 90 90">
+			<!-- Carbs segment (green) -->
+			<circle
+				class="circle-segment carbs-color"
+				cx="45"
+				cy="45"
+				r={radius}
+				stroke-width="10"
+				stroke-linecap="round"
+				stroke-dasharray="{adjustedCarbsDash} {circumference - adjustedCarbsDash}"
+				stroke-dashoffset="0"
+				transform="rotate(-90 45 45)"
+			/>
 
-					<!-- Fat segment (red) -->
-					<circle
-						class="circle-segment fat-color"
-						cx="45"
-						cy="45"
-						r={radius}
-						stroke-width="10"
-						stroke-linecap="round"
-						stroke-dasharray="{adjustedFatDash} {circumference - adjustedFatDash}"
-						stroke-dashoffset={-fatOffset}
-						transform="rotate(-90 45 45)"
-					/>
+			<!-- Fat segment (red) -->
+			<circle
+				class="circle-segment fat-color"
+				cx="45"
+				cy="45"
+				r={radius}
+				stroke-width="10"
+				stroke-linecap="round"
+				stroke-dasharray="{adjustedFatDash} {circumference - adjustedFatDash}"
+				stroke-dashoffset={-fatOffset}
+				transform="rotate(-90 45 45)"
+			/>
 
-					<!-- Protein segment (purple) -->
-					<circle
-						class="circle-segment protein-color"
-						cx="45"
-						cy="45"
-						r={radius}
-						stroke-width="10"
-						stroke-linecap="round"
-						stroke-dasharray="{adjustedProteinDash} {circumference - adjustedProteinDash}"
-						stroke-dashoffset={-proteinOffset}
-						transform="rotate(-90 45 45)"
-					/>
-				</svg>
-				<div class="calories-text">
-					<div class="calories-value">{Math.round(nutrition.calories)}</div>
-					<div class="calories-unit">cal</div>
-				</div>
-			</div>
-
-			{#snippet macro(color: string, label: string, value: number, percent: number)}
-				<div class="macro-column">
-					<div class="macro-label">{label}</div>
-					<div class="macro-value">{value} g</div>
-					<div class={color}>{percent}%</div>
-				</div>
-			{/snippet}
-
-			{@render macro('carbs-color', 'Carbs', Math.round(nutrition.carbs), carbsPercent)}
-			{@render macro('fat-color', 'Fat', Math.round(nutrition.fat), fatPercent)}
-			{@render macro('protein-color', 'Protein', Math.round(nutrition.protein), proteinPercent)}
+			<!-- Protein segment (purple) -->
+			<circle
+				class="circle-segment protein-color"
+				cx="45"
+				cy="45"
+				r={radius}
+				stroke-width="10"
+				stroke-linecap="round"
+				stroke-dasharray="{adjustedProteinDash} {circumference - adjustedProteinDash}"
+				stroke-dashoffset={-proteinOffset}
+				transform="rotate(-90 45 45)"
+			/>
+		</svg>
+		<div class="calories-text">
+			<div class="calories-value">{Math.round(nutrition.calories)}</div>
+			<div class="calories-unit">cal</div>
 		</div>
+	</div>
+
+	{#snippet macro(color: string, label: string, value: number, percent: number)}
+		<div class="macro-column">
+			<div class="macro-label {color}">{label}</div>
+			<div class="macro-value">{value} g</div>
+			<div class="percent {color}">{percent}%</div>
+		</div>
+	{/snippet}
+	<div class="calories-and-macros">
+		{@render macro('carbs-color', 'Carbs', Math.round(nutrition.carbs), carbsPercent)}
+		{@render macro('fat-color', 'Fat', Math.round(nutrition.fat), fatPercent)}
+		{@render macro('protein-color', 'Protein', Math.round(nutrition.protein), proteinPercent)}
 	</div>
 </div>
 
 <style lang="scss">
 	@import '$lib/global.scss';
-	.nutrition-section {
+
+	.nutrition-data {
 		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
+		align-items: center;
+		gap: var(--spacing-lg);
+		justify-content: center;
 	}
 
 	.calories-and-macros {
 		display: flex;
 		align-items: center;
-		justify-content: space-around;
 		gap: var(--spacing-lg);
 	}
 
@@ -146,13 +144,13 @@
 	}
 
 	.carbs-color {
-		stroke: #C8A0FF;
-		color: #C8A0FF;
+		stroke: #c8a0ff;
+		color: #c8a0ff;
 	}
 
 	.fat-color {
-		stroke: #FF9B61;
-		color: #FF9B61;
+		stroke: #ff9b61;
+		color: #ff9b61;
 	}
 
 	.protein-color {
@@ -200,5 +198,40 @@
 
 	.macro-label {
 		text-transform: uppercase;
+		color: inherit !important;
+	}
+
+	@media (max-width: 400px) {
+		.percent {
+			display: none;
+		}
+
+		.calories-and-macros {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: var(--spacing-xs);
+		}
+
+		.macro-column {
+			flex-direction: row;
+			gap: var(--spacing-xs);
+		}
+
+		.macro-label {
+			&.carbs-color {
+				color: #c8a0ff !important;
+			}
+			&.fat-color {
+				color: #ff9b61 !important;
+			}
+			&.protein-color {
+				color: #ff595f !important;
+			}
+		}
+
+		.macro-label::after {
+			content: ':';
+			margin-right: var(--spacing-xs);
+		}
 	}
 </style>
