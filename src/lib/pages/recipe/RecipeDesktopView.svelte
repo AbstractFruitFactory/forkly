@@ -20,6 +20,7 @@
 	import Button from '$lib/components/button/Button.svelte'
 	import { fly } from 'svelte/transition'
 	import RecipeInstructions from '$lib/components/accordion/RecipeInstructions.svelte'
+	import Description from '$lib/components/Description.svelte'
 
 	let {
 		recipe,
@@ -187,29 +188,12 @@
 
 					<h1 style:margin-bottom="0">{recipe.title}</h1>
 
-					{#if recipe.userId && recipe.user?.username}
-						<RecipeCreator
-							username={recipe.user.username}
-							userId={recipe.userId}
-							profilePicUrl={recipe.user?.avatarUrl}
-						/>
-					{/if}
-
-					{#if recipe?.description}
-						<div class="description-content">
-							<p>{isDescriptionExpanded ? recipe.description : truncatedDescription}</p>
-							{#if shouldTruncateDescription}
-								<button
-									class="view-more-button"
-									onclick={() => (isDescriptionExpanded = !isDescriptionExpanded)}
-								>
-									<span class="view-more-button-text">
-										{isDescriptionExpanded ? '- VIEW LESS' : '+ VIEW MORE'}
-									</span>
-								</button>
-							{/if}
-						</div>
-					{/if}
+					<Description
+						description={recipe.description || ''}
+						username={recipe.user?.username}
+						userId={recipe.userId}
+						profilePicUrl={recipe.user?.avatarUrl}
+					/>
 
 					{#if recipe.ingredients && recipe.ingredients.length > 0}
 						<div class="ingredients-section" bind:this={ingredientsSection}>

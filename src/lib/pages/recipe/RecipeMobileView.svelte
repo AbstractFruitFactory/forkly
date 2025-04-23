@@ -24,6 +24,7 @@
 	import FloatingSaveButton from '$lib/components/floating-action-button/FloatingSaveButton.svelte'
 	import FloatingShareButton from '$lib/components/floating-action-button/FloatingShareButton.svelte'
 	import RecipeInstructions from '$lib/components/accordion/RecipeInstructions.svelte'
+	import Description from '$lib/components/Description.svelte'
 
 	let {
 		recipe,
@@ -86,17 +87,6 @@
 	let currentStep = $state(0)
 	let videoLoaded = $state(false)
 	let videoError = $state(false)
-
-	let isDescriptionExpanded = $state(false)
-	const MAX_DESCRIPTION_LENGTH = 150
-	const shouldTruncateDescription = $derived(
-		recipe?.description && recipe.description.length > MAX_DESCRIPTION_LENGTH
-	)
-	const truncatedDescription = $derived(
-		shouldTruncateDescription && recipe?.description
-			? recipe.description.slice(0, MAX_DESCRIPTION_LENGTH) + '...'
-			: recipe?.description || ''
-	)
 
 	function scrollToSection(section: HTMLElement) {
 		section.scrollIntoView({ behavior: 'smooth' })
@@ -226,30 +216,12 @@
 				<FloatingShareButton />
 			</div>
 
-			<div class="description card">
-				{#if recipe.userId && recipe.user?.username}
-					<div class="recipe-creator-wrapper">
-						<RecipeCreator
-							username={recipe.user.username}
-							userId={recipe.userId}
-							profilePicUrl={recipe.user?.avatarUrl}
-						/>
-					</div>
-					<div class="divider"></div>
-				{/if}
-
-				<p>{isDescriptionExpanded ? recipe.description : truncatedDescription}</p>
-
-				{#if shouldTruncateDescription}
-					<div class="divider" style:margin="0 calc(var(--spacing-lg) * -1)"></div>
-					<button
-						class="view-more"
-						onclick={() => (isDescriptionExpanded = !isDescriptionExpanded)}
-					>
-						{isDescriptionExpanded ? '- View less' : '+ View more'}
-					</button>
-				{/if}
-			</div>
+			<Description
+				description={recipe.description || ''}
+				username={recipe.user?.username}
+				userId={recipe.userId}
+				profilePicUrl={recipe.user?.avatarUrl}
+			/>
 
 			{#if singleServingNutrition}
 				<div>
