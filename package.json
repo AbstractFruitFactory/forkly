@@ -20,7 +20,7 @@
     "db:studio": "drizzle-kit studio",
     "db:reset": "drizzle-kit drop && drizzle-kit push:pg && pnpm db:seed",
     "db:prod:migrate": "drizzle-kit push:pg",
-    "storybook": "storybook dev -p 6006",
+    "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build -o storybook-static",
     "parse-openfoodfacts": "node src/lib/server/food-api/data/parse.js",
     "redis-ui": "redis-commander --redis-host localhost --redis-port 6379",
