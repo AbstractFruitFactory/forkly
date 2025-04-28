@@ -68,7 +68,7 @@
 	} = $props()
 
 	let searchValue = $derived(initialSearch)
-	let selectedTags = $derived(initialTags.map(tag => ({ label: tag, selected: true })))
+	let selectedTags = $derived(initialTags.map((tag) => ({ label: tag, selected: true })))
 	let selectedIngredients = $derived(initialIngredients)
 	let sortBy = $derived(initialSort)
 	let isMac = $state(false)
@@ -183,9 +183,7 @@
 	}
 
 	const emptyStateMessage = $derived(
-		searchValue ||
-			selectedTags.length > 0 ||
-			selectedIngredients.length > 0
+		searchValue || selectedTags.length > 0 || selectedIngredients.length > 0
 			? 'No recipes found matching your criteria. Try different search terms or filters, or browse all recipes.'
 			: 'No recipes yet! Be the first to create one.'
 	)
@@ -284,19 +282,7 @@
 	</div>
 
 	<div class="recipe-grid">
-		<div class="desktop-view">
-			<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} {isLoading} {loadMore} />
-		</div>
-
-		<div class="mobile-view">
-			{#if sortedRecipes.length > 0}
-				<div class="carousel-container">
-					<RecipeCarousel recipes={sortedRecipes} {loadMore} />
-				</div>
-			{:else}
-				<div class="empty-state">{emptyStateMessage}</div>
-			{/if}
-		</div>
+		<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} {isLoading} {loadMore} />
 
 		{#if showScrollToTop}
 			<div class="scroll-to-top">
@@ -420,23 +406,7 @@
 	.recipe-grid {
 		position: relative;
 	}
-
-	.desktop-view {
-		display: block;
-
-		@include mobile {
-			display: none;
-		}
-	}
-
-	.mobile-view {
-		display: none;
-
-		@include mobile {
-			display: block;
-		}
-	}
-
+	
 	.scroll-to-top {
 		display: none;
 
