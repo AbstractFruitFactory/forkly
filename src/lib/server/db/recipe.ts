@@ -1,6 +1,6 @@
 import { db } from '.'
 import { recipe, recipeLike, recipeDislike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
-import { eq, ilike, desc, sql, inArray, and, count, SQL } from 'drizzle-orm'
+import { eq, ilike, desc, sql, inArray, and, count, SQL, or } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 
 export type BasicRecipe = {
@@ -87,7 +87,15 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
 
     // Handle each term independently with implicit OR logic
     for (const term of searchTerms) {
-      conditions.push(ilike(recipe.title, `%${term}%`))
+      const titleCondition = ilike(recipe.title, `%${term}%`)
+      const tagCondition = sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${recipe.tags}) AS tag WHERE tag ILIKE ${'%' + term + '%'})`
+      const ingredientCondition = ilike(ingredient.name, `%${term}%`)
+
+      const validConditions = [titleCondition, tagCondition, ingredientCondition].filter(Boolean)
+
+      if (validConditions.length > 0) {
+        conditions.push(or(...validConditions) as any)
+      }
     }
   }
 
@@ -109,7 +117,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
 
   // Ingredient filtering using raw SQL subquery
   if (ingredients.length > 0) {
-    const ingredientsList = ingredients.map(ing => `'${ing}'`).join(',');
+    const ingredientsList = ingredients.map(ing => `'${ing}'`).join(',')
     conditions.push(sql`${recipe.id} IN (
       SELECT ri.recipe_id 
       FROM recipe_ingredient ri
@@ -122,7 +130,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
 
   // Excluded ingredient filtering using raw SQL subquery
   if (excludedIngredients.length > 0) {
-    const excludedList = excludedIngredients.map(ing => `'${ing}'`).join(',');
+    const excludedList = excludedIngredients.map(ing => `'${ing}'`).join(',')
     conditions.push(sql`${recipe.id} NOT IN (
       SELECT ri.recipe_id 
       FROM recipe_ingredient ri
