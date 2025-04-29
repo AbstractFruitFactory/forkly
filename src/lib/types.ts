@@ -1,5 +1,3 @@
-export type MeasurementUnit = string
-
 export const measurementUnits = [
   // Weight measurements
   // Metric
@@ -44,19 +42,12 @@ export const isValidTag = (tag: string): boolean => {
 
 type BaseIngredient = {
   quantity: number
-  measurement: MeasurementUnit
+  measurement: string
   name: string
+  displayName: string
 }
 
-type CustomIngredient = BaseIngredient & {
-  custom: true
-}
-
-type LookupIngredient = BaseIngredient & {
-  custom: false
-}
-
-export type Ingredient = CustomIngredient | LookupIngredient
+export type Ingredient = BaseIngredient
 
 export type RecipeData = {
   id: string

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { MeasurementUnit } from '$lib/types'
 	import Input from '$lib/components/input/Input.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import { UNITS, UNIT_DISPLAY_TEXT } from '$lib/utils/unitConversion'
@@ -19,31 +18,19 @@
 	} = $props()
 
 	const getUnits = (system: UnitSystem) => {
-		const units: MeasurementUnit[] = []
+		const units: string[] = []
 
 		// Add weight units
-		units.push(
-			...(system === 'metric'
-				? (UNITS.weight.metric as MeasurementUnit[])
-				: (UNITS.weight.imperial as MeasurementUnit[]))
-		)
+		units.push(...(system === 'metric' ? UNITS.weight.metric : UNITS.weight.imperial))
 
 		// Add volume units
-		units.push(
-			...(system === 'metric'
-				? (UNITS.volume.metric as MeasurementUnit[])
-				: (UNITS.volume.imperial as MeasurementUnit[]))
-		)
+		units.push(...(system === 'metric' ? UNITS.volume.metric : UNITS.volume.imperial))
 
 		// Add length units
-		units.push(
-			...(system === 'metric'
-				? (UNITS.length.metric as MeasurementUnit[])
-				: (UNITS.length.imperial as MeasurementUnit[]))
-		)
+		units.push(...(system === 'metric' ? UNITS.length.metric : UNITS.length.imperial))
 
 		// Add other units
-		units.push(...(UNITS.other as MeasurementUnit[]))
+		units.push(...UNITS.other)
 
 		return units
 	}

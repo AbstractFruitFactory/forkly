@@ -139,10 +139,6 @@
 		}
 	}
 
-	const setCustomIngredientInput = (index: number) => {
-		showCustomInput[index] = true
-	}
-
 	const searchTags = async (query: string): Promise<string[]> => {
 		if (!onSearchTags) return []
 
@@ -301,35 +297,12 @@
 							</div>
 
 							<div class="ingredient-input">
-								{#if showCustomInput[i] || !browser}
-									<div class="custom-ingredient">
-										<Input
-											actionButton={{
-												text: 'Search instead',
-												onClick: () => (showCustomInput[i] = false)
-											}}
-										>
-											<input
-												name={`ingredient-${i}-name&custom`}
-												placeholder="Enter custom ingredient"
-												value={inputValues[i] ?? ''}
-											/>
-										</Input>
-									</div>
-								{:else}
-									<div class="custom-ingredient">
-										<SuggestionSearch
-											placeholder="Search for ingredient"
-											isLoading={isLoading[i]}
-											onSearch={(query) => searchIngredients(query, i)}
-											onSelect={(suggestion) => handleSelect(i, suggestion)}
-											actionButton={{
-												text: 'Add manually',
-												onClick: () => setCustomIngredientInput(i)
-											}}
-										/>
-									</div>
-								{/if}
+								<SuggestionSearch
+									placeholder="Enter ingredient"
+									isLoading={isLoading[i]}
+									onSearch={(query) => searchIngredients(query, i)}
+									onSelect={(suggestion) => handleSelect(i, suggestion)}
+								/>
 							</div>
 
 							{#if ingredientCount > 1}
@@ -557,16 +530,6 @@
 		.ingredient-input {
 			flex: 1;
 			min-width: 0;
-
-			.custom-ingredient {
-				width: 100%;
-				height: 100%;
-
-				:global(.search),
-				:global(.input-wrapper) {
-					width: 100%;
-				}
-			}
 		}
 
 		@media (max-width: 600px) {

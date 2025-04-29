@@ -1,5 +1,6 @@
 import { safeFetch } from '$lib/utils/fetch'
 import { toHomePageRecipe } from '$lib/utils/recipe'
+import { error } from '@sveltejs/kit'
 import type { PageLoad } from './$types'
 import type { RecipesSearchResponse } from './api/recipes/search/+server'
 
@@ -22,10 +23,15 @@ export const load: PageLoad = async ({ url, fetch }) => {
 	if (excludedIngredients) searchParams.set('excludedIngredients', excludedIngredients)
 	if (sort) searchParams.set('sort', sort)
 
-	const recipes = (await safeFetch<RecipesSearchResponse>(fetch)('/api/recipes/search?' + searchParams.toString())).unwrap()
+	const recipes = (await safeFetch<RecipesSearchResponse>(fetch)('/api/recipes/search?' + searchParams.toString()))
+
+	if (recipes.isErr()) {
+		console.log(recipes.error)
+		throw error(500, 'Failed to fetch recipes')
+	}
 
 	return {
-		recipes: recipes.results.map(toHomePageRecipe),
+		recipes: recipes.value.results.map(toHomePageRecipe),
 		initialState: {
 			search: q || '',
 			tags: tags ? tags.split(',').filter(Boolean) : [],

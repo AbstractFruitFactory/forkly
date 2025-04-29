@@ -29,10 +29,7 @@
 				{/if}
 			</span>
 			<span class="ingredient-name">
-				{ingredient.name}
-				{#if ingredient.custom}
-					<span class="custom-badge">custom</span>
-				{/if}
+				{ingredient.displayName}
 			</span>
 		</li>
 	{/each}

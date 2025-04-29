@@ -1,5 +1,4 @@
-import type { MeasurementUnit } from '$lib/types'
-import { pgTable, text, timestamp, jsonb, integer, primaryKey, foreignKey, real, boolean } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, jsonb, integer, primaryKey, real } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 export const user = pgTable('user', {
@@ -21,9 +20,7 @@ export const session = pgTable('session', {
 export const ingredient = pgTable('ingredient', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull().unique(),
-	spoonacularId: integer('spoonacular_id').unique(),
-	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-	custom: boolean('custom').default(false).notNull()
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 })
 
 export const recipe = pgTable('recipe', {
@@ -33,9 +30,9 @@ export const recipe = pgTable('recipe', {
 	title: text('title').notNull(),
 	description: text('description'),
 	instructions: jsonb('instructions').$type<{
-		text: string;
-		mediaUrl?: string;
-		mediaType?: 'image' | 'video';
+		text: string
+		mediaUrl?: string
+		mediaType?: 'image' | 'video'
 	}[]>().notNull(),
 	tags: jsonb('tags').$type<string[]>().default([]).notNull(),
 	imageUrl: text('image_url'),
@@ -110,12 +107,13 @@ export const recipeIngredient = pgTable('recipe_ingredient', {
 	ingredientId: text('ingredient_id')
 		.notNull()
 		.references(() => ingredient.id, { onDelete: 'cascade' }),
+	displayName: text('display_name').notNull(),
 	quantity: real('quantity').notNull(),
-	measurement: text('measurement').$type<MeasurementUnit>().notNull(),
+	measurement: text('measurement').notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => {
 	return {
-		pk: primaryKey({ columns: [table.recipeId, table.ingredientId] })
+		pk: primaryKey({ columns: [table.recipeId, table.ingredientId, table.displayName] })
 	}
 })
 

@@ -2,7 +2,6 @@
 	import { defineMeta } from '@storybook/addon-svelte-csf'
 	import IngredientsList from './IngredientsList.svelte'
 	import type { Ingredient } from '$lib/types'
-	import type { UnitSystem } from '$lib/state/unitPreference.svelte.ts'
 
 	const { Story } = defineMeta({
 		title: 'lib/components/Ingredients List',
@@ -15,69 +14,38 @@
 			name: 'Chicken breast',
 			measurement: 'pounds',
 			quantity: 2,
-			custom: false
+			displayName: 'Chicken breast'
 		},
 		{
 			name: 'Olive oil',
 			measurement: 'tablespoons',
 			quantity: 2,
-			custom: false
+			displayName: 'Olive oil'
 		},
 		{
 			name: 'Garlic',
 			measurement: 'pieces',
 			quantity: 3,
-			custom: false
+			displayName: 'Garlic'
 		},
 		{
 			name: 'Salt',
 			measurement: 'to taste',
 			quantity: 0,
-			custom: false
+			displayName: 'Salt'
 		},
 		{
 			name: 'My special seasoning',
 			measurement: 'tablespoons',
 			quantity: 1,
-			custom: true
+			displayName: 'My special seasoning'
 		}
 	]
 
-	// Mock formatter function
-	const getFormattedIngredient = (ingredient: Ingredient, unitSystem: UnitSystem) => {
-		// This is a simplified version
-		return {
-			formattedMeasurement: unitSystem === 'metric' && ingredient.measurement !== 'to taste' && ingredient.measurement !== 'pinch'
-				? convertToMetric(ingredient)
-				: formatMeasurement(ingredient)
-		}
-	}
+	let currentServings = $state(4)
 
-	// Simple conversion function for demo purposes
-	function convertToMetric(ingredient: Ingredient): string {
-		if (ingredient.measurement === 'pounds') {
-			return `${(ingredient.quantity * 0.453).toFixed(1)} kg`
-		}
-		if (ingredient.measurement === 'ounces') {
-			return `${(ingredient.quantity * 28.35).toFixed(0)} g`
-		}
-		return formatMeasurement(ingredient)
-	}
-
-	function formatMeasurement(ingredient: Ingredient): string {
-		if (ingredient.measurement === 'to taste' || ingredient.measurement === 'pinch') {
-			return ingredient.measurement
-		}
-		return `${ingredient.quantity} ${formatUnit(ingredient.measurement)}`
-	}
-
-	function formatUnit(unit: string): string {
-		// Simple unit formatting
-		if (unit === 'pieces') return 'cloves'
-		if (unit === 'tablespoons') return 'tbsp'
-		if (unit === 'teaspoons') return 'tsp'
-		if (unit === 'pounds') return 'lb'
-		return unit
+	const onServingsChange = (newServings: number) => {
+		currentServings = newServings
 	}
 </script>
 
@@ -87,7 +55,8 @@
 			<IngredientsList
 				ingredients={mockIngredients}
 				unitSystem="imperial"
-				getFormattedIngredient={getFormattedIngredient}
+				{currentServings}
+				{onServingsChange}
 				{...args}
 			/>
 		</div>
@@ -100,7 +69,8 @@
 			<IngredientsList
 				ingredients={mockIngredients}
 				unitSystem="metric"
-				getFormattedIngredient={getFormattedIngredient}
+				{currentServings}
+				{onServingsChange}
 				{...args}
 			/>
 		</div>
@@ -113,9 +83,10 @@
 			<IngredientsList
 				ingredients={[]}
 				unitSystem="imperial"
-				getFormattedIngredient={getFormattedIngredient}
+				{currentServings}
+				{onServingsChange}
 				{...args}
 			/>
 		</div>
 	{/snippet}
-</Story> 
+</Story>

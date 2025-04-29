@@ -1,6 +1,6 @@
 import { db } from '.'
 import { recipe, recipeLike, recipeDislike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
-import { eq, ilike, desc, sql, inArray, and, count, SQL, or } from 'drizzle-orm'
+import { eq, ilike, desc, sql, and, SQL, or } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 
 export type BasicRecipe = {
@@ -165,8 +165,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
             'id', ${ingredient.id},
             'name', ${ingredient.name},
             'quantity', ${recipeIngredient.quantity},
-            'measurement', ${recipeIngredient.measurement},
-            'custom', ${ingredient.custom}
+            'measurement', ${recipeIngredient.measurement}
           )
         ) filter (where ${ingredient.id} is not null)`,
         nutrition: sql<{ calories: number, protein: number, carbs: number, fat: number }>`json_build_object(
@@ -219,9 +218,6 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     const limitedQuery = limit ? finalQuery.limit(limit) : finalQuery
 
     const results = await limitedQuery
-    console.log('Query params:', { page, limit, tags })
-    console.log('Results count:', results.length)
-    console.log('Recipe IDs:', results.map(r => r.id))
     return nullToUndefined(results)
   } else {
     // Basic query with limited fields
@@ -251,9 +247,6 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     const limitedQuery = limit ? finalQuery.limit(limit) : finalQuery
 
     const results = await limitedQuery
-    console.log('Query params:', { page, limit, tags })
-    console.log('Results count:', results.length)
-    console.log('Recipe IDs:', results.map(r => r.id))
     return nullToUndefined(results)
   }
 }
@@ -472,8 +465,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     id: ri.ingredient.id,
     name: ri.ingredient.name,
     quantity: ri.quantity,
-    measurement: ri.measurement,
-    custom: ri.ingredient.custom
+    measurement: ri.measurement
   }))
 
   const result = {

@@ -1,16 +1,13 @@
 import { fail } from '@sveltejs/kit'
 import type { Actions } from './$types'
-import type { Ingredient, MeasurementUnit } from '$lib/types'
+import type { Ingredient } from '$lib/types'
 import groupBy from 'ramda/src/groupBy'
 import { api } from '$lib/server/food-api'
 import { Ok, Result } from 'ts-results-es'
 import * as v from 'valibot'
 import { uploadImage, uploadMedia } from '$lib/server/cloudinary'
 import { safeFetch } from '$lib/utils/fetch'
-
-type ExtendedIngredient = Ingredient & {
-  spoonacularId?: number
-}
+import { normalizeIngredientName } from '$lib/server/utils/normalize-ingredient'
 
 const formValidationSchema = v.object({
   title: v.pipe(
@@ -63,37 +60,30 @@ const parseIngredients = (formData: FormData): Ingredient[] => {
       return { index: parseInt(index), field, value: value.toString() }
     })
 
-  console.log('ingredientEntries', ingredientEntries)
-
   const byIndex = groupBy(entry => entry.index.toString(), ingredientEntries)
 
   return Object.values(byIndex).map(entries => {
-    let quantity: number | undefined = undefined
-    let measurement: MeasurementUnit | undefined = undefined
-    let name: string | undefined = undefined
-    let custom: boolean | undefined = undefined
-    let lookupData: any = undefined
+    let quantity: number = 0
+    let measurement: string = ''
+    let displayName: string = ''
 
     entries!.forEach(({ field, value }) => {
       if (field === 'quantity') {
         quantity = parseFloat(value) || 0
       } else if (field === 'measurement') {
-        measurement = value as MeasurementUnit
+        measurement = value
       } else if (field.startsWith('name')) {
-        name = value
-        custom = field.split('&')[1] === 'custom'
-      } else if (field === 'lookupdata') {
-        lookupData = JSON.parse(value)
-        custom = false
+        displayName = value
       }
     })
+
+    const name = normalizeIngredientName(displayName)
 
     return {
       quantity,
       measurement,
       name,
-      custom,
-      ...(lookupData ? lookupData : {})
+      displayName
     }
   })
 }
@@ -209,19 +199,16 @@ export const actions = {
 
     const mappedIngredientsResults = await Promise.all(
       recipeData.ingredients.map(async (ing) => {
-        if (ing.custom) {
-          return Ok({
-            name: ing.name,
-            quantity: ing.quantity,
-            measurement: ing.measurement,
-            custom: true as const
-          })
-        }
-        return await api('mapIngredientToDatabaseEntry')(ing)
+        return Ok({
+          name: ing.name,
+          displayName: ing.displayName,
+          quantity: ing.quantity,
+          measurement: ing.measurement
+        })
       })
     )
 
-    const mappedIngredientsResult = Result.all(mappedIngredientsResults)
+    const mappedIngredientsResult: Result<Ingredient[], { message: string }> = Result.all(mappedIngredientsResults)
 
     if (mappedIngredientsResult.isErr()) {
       return fail(500, {
@@ -233,15 +220,7 @@ export const actions = {
       })
     }
 
-    const mappedIngredients = mappedIngredientsResult.value as ExtendedIngredient[]
-
-    const nonCustomIngredients = mappedIngredients
-      .filter(ing => !ing.custom)
-      .map(ing => ({
-        amount: ing.quantity,
-        unit: ing.measurement,
-        name: ing.name
-      }))
+    const mappedIngredients = mappedIngredientsResult.value as Ingredient[]
 
     let nutrition = {
       calories: 0,
@@ -250,8 +229,12 @@ export const actions = {
       fat: 0
     }
 
-    if (nonCustomIngredients.length > 0) {
-      const nutritionResult = await api('getRecipeInfo')(nonCustomIngredients)
+    if (mappedIngredients.length > 0) {
+      const nutritionResult = await api('getRecipeInfo')(mappedIngredients.map(ing => ({
+        amount: ing.quantity,
+        unit: ing.measurement,
+        name: ing.name
+      })))
 
       if (nutritionResult.isOk()) {
         nutrition = {
@@ -272,10 +255,9 @@ export const actions = {
 
     const formattedIngredients = mappedIngredients.map(ing => ({
       name: ing.name,
+      displayName: ing.displayName,
       quantity: ing.quantity,
-      measurement: ing.measurement,
-      custom: ing.custom,
-      spoonacularId: ing.spoonacularId
+      measurement: ing.measurement
     }))
 
     const requestPayload = {
@@ -284,10 +266,7 @@ export const actions = {
       servings: recipeData.servings,
       instructions: recipeData.instructions,
       ingredients: formattedIngredients,
-      nutrition: {
-        totalNutrition: nutrition,
-        hasCustomIngredients: mappedIngredients.some(ing => ing.custom)
-      },
+      nutrition: nutrition,
       tags: recipeData.tags,
       imageUrl
     }

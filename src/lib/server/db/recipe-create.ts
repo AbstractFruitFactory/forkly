@@ -1,28 +1,20 @@
 import { db } from '.'
 import { recipe, ingredient, recipeIngredient, recipeNutrition } from './schema'
-import { eq, isNull } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { generateId } from '$lib/server/id'
-import type { MeasurementUnit } from '$lib/types'
-import type { IngredientRecord } from './schema'
 
 type IngredientInput = {
   name: string
+  displayName: string
   quantity: number
-  measurement: MeasurementUnit
-  custom: boolean
-  spoonacularId?: number
-  openfoodfactsId?: number
-  usdaId?: number
+  measurement: string
 }
 
 type NutritionInput = {
-  totalNutrition: {
-    calories: number
-    protein: number
-    carbs: number
-    fat: number
-  }
-  hasCustomIngredients: boolean
+  calories: number
+  protein: number
+  carbs: number
+  fat: number
 }
 
 type InstructionInput = {
@@ -58,70 +50,35 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
 
   await db.insert(recipeNutrition).values({
     recipeId: recipeId,
-    calories: input.nutrition.totalNutrition.calories,
-    protein: input.nutrition.totalNutrition.protein,
-    carbs: input.nutrition.totalNutrition.carbs,
-    fat: input.nutrition.totalNutrition.fat
+    calories: input.nutrition.calories,
+    protein: input.nutrition.protein,
+    carbs: input.nutrition.carbs,
+    fat: input.nutrition.fat
   })
 
   for (const ingredientData of input.ingredients) {
     let ingredientId: string
 
-    if (ingredientData.custom) {
-      const existingIngredient = await db
-        .select()
-        .from(ingredient)
-        .where(eq(ingredient.name, ingredientData.name))
-        .limit(1)
+    const existingIngredient = await db
+      .select()
+      .from(ingredient)
+      .where(eq(ingredient.name, ingredientData.name))
+      .limit(1)
 
-      if (existingIngredient.length) {
-        ingredientId = existingIngredient[0].id
-      } else {
-        const newIngredient = await db.insert(ingredient).values({
-          id: generateId(),
-          name: ingredientData.name,
-          spoonacularId: null,
-          custom: true
-        }).returning()
-        ingredientId = newIngredient[0].id
-      }
+    if (existingIngredient.length) {
+      ingredientId = existingIngredient[0].id
     } else {
-      const spoonacularId = ingredientData.spoonacularId || null
-
-      let existingIngredient: IngredientRecord[] = []
-
-      if (spoonacularId !== null) {
-        existingIngredient = await db
-          .select()
-          .from(ingredient)
-          .where(eq(ingredient.spoonacularId, spoonacularId))
-          .limit(1)
-      }
-
-      if (!existingIngredient.length) {
-        existingIngredient = await db
-          .select()
-          .from(ingredient)
-          .where(eq(ingredient.name, ingredientData.name))
-          .limit(1)
-      }
-
-      if (existingIngredient.length) {
-        ingredientId = existingIngredient[0].id
-      } else {
-        const newIngredient = await db.insert(ingredient).values({
-          id: generateId(),
-          name: ingredientData.name,
-          spoonacularId,
-          custom: false
-        }).returning()
-        ingredientId = newIngredient[0].id
-      }
+      const newIngredient = await db.insert(ingredient).values({
+        id: generateId(),
+        name: ingredientData.name
+      }).returning()
+      ingredientId = newIngredient[0].id
     }
 
     await db.insert(recipeIngredient).values({
       recipeId: recipeId,
       ingredientId: ingredientId,
+      displayName: ingredientData.displayName,
       quantity: ingredientData.quantity,
       measurement: ingredientData.measurement
     })
