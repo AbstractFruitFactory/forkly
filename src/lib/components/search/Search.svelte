@@ -9,6 +9,7 @@
 		value = $bindable(''),
 		onInput = $bindable((newValue: string) => {}),
 		actionButton,
+		formName,
 		...inputProps
 	}: {
 		placeholder?: string
@@ -17,6 +18,7 @@
 		value?: string
 		onInput?: (value: string) => void
 		actionButton?: { text: string; onClick: () => void }
+		formName?: string
 	} & Omit<ComponentProps<typeof Input>, 'children' | 'value'> = $props()
 
 	const handleInput = (e: Event) => {
@@ -49,6 +51,7 @@
 				{value}
 				oninput={handleInput}
 				aria-label="Search"
+				name={formName}
 				bind:this={inputElement}
 			/>
 		</Input>

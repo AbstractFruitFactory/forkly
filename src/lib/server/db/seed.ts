@@ -45,8 +45,19 @@ export const seed = async () => {
     if (sampleRecipes.length === TARGET_RECIPE_COUNT) break
   }
 
-  // Collect all unique normalized ingredients
+  // Read all ingredient names from ingredient_list_en.txt
+  const ingredientListText = await readFile(new URL('./ingredient_list_en.txt', import.meta.url), 'utf-8')
+  const ingredientNames = ingredientListText.split('\n').map((name) => name.trim()).filter(Boolean)
   const ingredientMap = new Map<string, { id: string, name: string }>()
+  for (const name of ingredientNames) {
+    if (!ingredientMap.has(name)) {
+      ingredientMap.set(name, {
+        id: generateId(),
+        name: name
+      })
+    }
+  }
+  // Also add all ingredients from recipes
   for (const recipe of sampleRecipesRaw) {
     for (const ing of (recipe as any).ingredients || []) {
       const normalized = normalizeIngredientName(ing.displayName)

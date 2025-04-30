@@ -8,6 +8,11 @@ import * as v from 'valibot'
 import { uploadImage, uploadMedia } from '$lib/server/cloudinary'
 import { safeFetch } from '$lib/utils/fetch'
 import { normalizeIngredientName } from '$lib/server/utils/normalize-ingredient'
+import stringSimilarity from 'string-similarity'
+import { getAllIngredients } from '$lib/server/db/ingredient'
+import { db } from '$lib/server/db'
+import { ingredient as ingredientTable } from '$lib/server/db/schema'
+import { generateId } from '$lib/server/id'
 
 const formValidationSchema = v.object({
   title: v.pipe(
@@ -77,12 +82,10 @@ const parseIngredients = (formData: FormData): Ingredient[] => {
       }
     })
 
-    const name = normalizeIngredientName(displayName)
-
     return {
       quantity,
       measurement,
-      name,
+      name: displayName,
       displayName
     }
   })
@@ -121,6 +124,7 @@ const parseFormData = (formData: FormData): FormFields => {
 export const actions = {
   default: async ({ request, fetch }) => {
     const formData = await request.formData()
+    console.log('formData', formData)
     const recipeData = parseFormData(formData)
     const imageFile = formData.get('image') as File | undefined
 
@@ -170,7 +174,10 @@ export const actions = {
     }
 
     const invalidIngredients = recipeData.ingredients.filter(
-      ing => !ing.name || ing.quantity === undefined || !ing.measurement
+      ing => {
+        console.log('ingredient', ing)
+        return !ing.name || ing.name.trim() === ''
+      }
     )
 
     if (invalidIngredients.length > 0) {
@@ -178,7 +185,7 @@ export const actions = {
         success: false,
         errors: [{
           path: 'ingredients',
-          message: 'All ingredients must have a name, quantity, and measurement unit'
+          message: 'An ingredient cannot be empty'
         }]
       })
     }
@@ -197,10 +204,40 @@ export const actions = {
       })
     }
 
+    const canonicalIngredients = await getAllIngredients()
+    const canonicalNames = canonicalIngredients.map(i => i.name)
+
     const mappedIngredientsResults = await Promise.all(
       recipeData.ingredients.map(async (ing) => {
+        const normalizedInput = normalizeIngredientName(ing.name)
+        let matchedName: string
+        let matchedId: string
+
+        // Step 1: Exact match
+        const exact = canonicalIngredients.find(i => i.name.toLowerCase() === normalizedInput.toLowerCase())
+        if (exact) {
+          matchedName = exact.name
+          matchedId = exact.id
+          console.log('Exact match for', ing.displayName, '->', matchedName)
+        } else {
+          // Step 2: Fuzzy match
+          const bestMatch = stringSimilarity.findBestMatch(normalizedInput, canonicalNames)
+          if (bestMatch.bestMatch.rating > 0.85) {
+            matchedName = bestMatch.bestMatch.target
+            matchedId = canonicalIngredients.find(i => i.name === matchedName)?.id || ''
+            console.log('Fuzzy match for', ing.displayName, '->', matchedName, 'rating:', bestMatch.bestMatch.rating)
+          } else {
+            // Step 3: Create new ingredient
+            const newId = generateId()
+            await db.insert(ingredientTable).values({ id: newId, name: normalizedInput })
+            matchedName = normalizedInput
+            matchedId = newId
+            console.log('Created new ingredient for', ing.displayName, '->', matchedName)
+          }
+        }
+
         return Ok({
-          name: ing.name,
+          name: matchedName,
           displayName: ing.displayName,
           quantity: ing.quantity,
           measurement: ing.measurement

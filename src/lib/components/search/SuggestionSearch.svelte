@@ -11,7 +11,8 @@
 		onSelect,
 		inputElement = $bindable(),
 		clearInput = false,
-		actionButton
+		actionButton,
+		formName
 	}: {
 		placeholder?: string
 		isLoading?: boolean
@@ -20,6 +21,7 @@
 		inputElement?: HTMLInputElement
 		clearInput?: boolean
 		actionButton?: { text: string; onClick: () => void }
+		formName?: string
 	} = $props()
 
 	let searchValue = $state('')
@@ -77,6 +79,7 @@
 			{isLoading}
 			bind:inputElement
 			onInput={handleSearch}
+			name={formName}
 		/>
 	</Autocomplete>
 </div>

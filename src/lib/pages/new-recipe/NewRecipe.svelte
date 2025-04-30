@@ -163,7 +163,7 @@
 
 <div class="container">
 	<div class="progress-bar">
-		<div class="progress" style="width: {((currentStep - 1) / (TOTAL_STEPS - 1) * 100)}%" />
+		<div class="progress" style="width: {((currentStep - 1) / (TOTAL_STEPS - 1)) * 100}%" />
 		<div class="steps">
 			{#each Array(TOTAL_STEPS) as _, i}
 				<div
@@ -203,7 +203,7 @@
 			</div>
 		{/if}
 
-		<div 
+		<div
 			class="step-content card"
 			class:hidden={currentStep !== 1}
 			in:fly={{ x: 200, delay: 200, duration: 200 }}
@@ -222,11 +222,7 @@
 			<div class="form-group">
 				<label for="description">Description</label>
 				<Input>
-					<textarea
-						id="description"
-						name="description"
-						placeholder="Describe your recipe"
-						rows="3"
+					<textarea id="description" name="description" placeholder="Describe your recipe" rows="3"
 					></textarea>
 				</Input>
 			</div>
@@ -260,7 +256,7 @@
 			</div>
 		</div>
 
-		<div 
+		<div
 			class="step-content card"
 			class:hidden={currentStep !== 2}
 			in:fly={{ x: 200, delay: 200, duration: 200 }}
@@ -302,6 +298,7 @@
 									isLoading={isLoading[i]}
 									onSearch={(query) => searchIngredients(query, i)}
 									onSelect={(suggestion) => handleSelect(i, suggestion)}
+									formName={`ingredient-${i}-name`}
 								/>
 							</div>
 
@@ -322,7 +319,7 @@
 			</div>
 		</div>
 
-		<div 
+		<div
 			class="step-content card"
 			class:hidden={currentStep !== 3}
 			in:fly={{ x: 200, delay: 200, duration: 200 }}
@@ -418,7 +415,7 @@
 
 			&.active {
 				background-color: var(--color-primary);
-				
+
 				.dot {
 					background-color: var(--color-white);
 					width: 10px;
