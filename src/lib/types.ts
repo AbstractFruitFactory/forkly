@@ -41,8 +41,8 @@ export const isValidTag = (tag: string): boolean => {
 }
 
 type BaseIngredient = {
-  quantity: number
-  measurement: string
+  quantity?: number
+  measurement?: string
   name: string
   displayName: string
 }

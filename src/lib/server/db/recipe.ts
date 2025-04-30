@@ -401,7 +401,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     .select({
       ingredient: ingredient,
       quantity: recipeIngredient.quantity,
-      measurement: recipeIngredient.measurement
+      measurement: recipeIngredient.measurement,
+      displayName: recipeIngredient.displayName
     })
     .from(recipeIngredient)
     .innerJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
@@ -465,7 +466,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     id: ri.ingredient.id,
     name: ri.ingredient.name,
     quantity: ri.quantity,
-    measurement: ri.measurement
+    measurement: ri.measurement,
+    displayName: ri.displayName
   }))
 
   const result = {

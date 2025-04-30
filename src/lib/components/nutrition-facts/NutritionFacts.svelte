@@ -13,15 +13,14 @@
 	const proteinCalories = nutrition.protein * 4 // 4 calories per gram of protein
 	const totalCalories = carbCalories + fatCalories + proteinCalories
 
-	// Calculate actual percentage of calories from each macro
-	const carbsPercent = Math.round((carbCalories / totalCalories) * 100)
-	const fatPercent = Math.round((fatCalories / totalCalories) * 100)
-	const proteinPercent = Math.round((proteinCalories / totalCalories) * 100)
+	// Prevent NaN by checking if totalCalories is 0
+	const carbsPercent = totalCalories === 0 ? 0 : Math.round((carbCalories / totalCalories) * 100)
+	const fatPercent = totalCalories === 0 ? 0 : Math.round((fatCalories / totalCalories) * 100)
+	const proteinPercent = totalCalories === 0 ? 0 : Math.round((proteinCalories / totalCalories) * 100)
 
-	// Calculate proportions for the circle segments
-	const carbsProportion = carbCalories / totalCalories
-	const fatProportion = fatCalories / totalCalories
-	const proteinProportion = proteinCalories / totalCalories
+	const carbsProportion = totalCalories === 0 ? 0 : carbCalories / totalCalories
+	const fatProportion = totalCalories === 0 ? 0 : fatCalories / totalCalories
+	const proteinProportion = totalCalories === 0 ? 0 : proteinCalories / totalCalories
 
 	// Calculate circle parameters
 	const radius = 36

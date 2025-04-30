@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, jsonb, integer, primaryKey, real } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, jsonb, integer, primaryKey, real, check } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 export const user = pgTable('user', {
@@ -108,12 +108,13 @@ export const recipeIngredient = pgTable('recipe_ingredient', {
 		.notNull()
 		.references(() => ingredient.id, { onDelete: 'cascade' }),
 	displayName: text('display_name').notNull(),
-	quantity: real('quantity').notNull(),
-	measurement: text('measurement').notNull(),
+	quantity: real('quantity'),
+	measurement: text('measurement'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => {
 	return {
-		pk: primaryKey({ columns: [table.recipeId, table.ingredientId, table.displayName] })
+		pk: primaryKey({ columns: [table.recipeId, table.ingredientId, table.displayName] }),
+		quantityNonZero: check('quantity_non_zero', sql`quantity IS NULL OR quantity <> 0`)
 	}
 })
 

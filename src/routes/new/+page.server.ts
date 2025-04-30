@@ -14,6 +14,49 @@ import { db } from '$lib/server/db'
 import { ingredient as ingredientTable } from '$lib/server/db/schema'
 import { generateId } from '$lib/server/id'
 
+const ingredientSchema = v.pipe(
+  v.object({
+    quantity: v.optional(v.number()),
+    measurement: v.optional(v.string()),
+    name: v.pipe(
+      v.string(),
+      v.transform(input => input ?? ''),
+      v.minLength(1, 'An ingredient cannot be empty')
+    ),
+    displayName: v.string()
+  }),
+  v.rawTransform(({ dataset, addIssue }) => {
+    if (
+      dataset.value.measurement !== undefined && dataset.value.measurement !== '' &&
+      (dataset.value.quantity === undefined || isNaN(dataset.value.quantity))
+    ) {
+      addIssue({
+        message: 'A quantity is required if a measurement is specified',
+        path: [
+          {
+            type: 'object',
+            origin: 'value',
+            input: dataset.value,
+            key: 'quantity',
+            value: dataset.value.quantity
+          }
+        ]
+      })
+    }
+    return dataset.value
+  })
+)
+
+const instructionSchema = v.object({
+  text: v.pipe(
+    v.string(),
+    v.transform(input => input ?? ''),
+    v.minLength(1, 'All instructions must have text')
+  ),
+  mediaUrl: v.optional(v.string()),
+  mediaType: v.optional(v.union([v.literal('image'), v.literal('video')]))
+})
+
 const formValidationSchema = v.object({
   title: v.pipe(
     v.string(),
@@ -29,11 +72,11 @@ const formValidationSchema = v.object({
     v.minValue(1, 'Servings must be at least 1')
   ),
   ingredients: v.pipe(
-    v.array(v.any()),
+    v.array(ingredientSchema),
     v.minLength(1, 'At least one ingredient is required')
   ),
   instructions: v.pipe(
-    v.array(v.any()),
+    v.array(instructionSchema),
     v.minLength(1, 'At least one instruction is required')
   ),
   tags: v.array(v.string())
@@ -68,13 +111,13 @@ const parseIngredients = (formData: FormData): Ingredient[] => {
   const byIndex = groupBy(entry => entry.index.toString(), ingredientEntries)
 
   return Object.values(byIndex).map(entries => {
-    let quantity: number = 0
-    let measurement: string = ''
+    let quantity: number | undefined = undefined
+    let measurement: string | undefined = undefined
     let displayName: string = ''
 
     entries!.forEach(({ field, value }) => {
       if (field === 'quantity') {
-        quantity = parseFloat(value) || 0
+        quantity = value ? parseFloat(value) : undefined
       } else if (field === 'measurement') {
         measurement = value
       } else if (field.startsWith('name')) {
@@ -124,7 +167,6 @@ const parseFormData = (formData: FormData): FormFields => {
 export const actions = {
   default: async ({ request, fetch }) => {
     const formData = await request.formData()
-    console.log('formData', formData)
     const recipeData = parseFormData(formData)
     const imageFile = formData.get('image') as File | undefined
 
@@ -173,37 +215,6 @@ export const actions = {
       })
     }
 
-    const invalidIngredients = recipeData.ingredients.filter(
-      ing => {
-        console.log('ingredient', ing)
-        return !ing.name || ing.name.trim() === ''
-      }
-    )
-
-    if (invalidIngredients.length > 0) {
-      return fail(400, {
-        success: false,
-        errors: [{
-          path: 'ingredients',
-          message: 'An ingredient cannot be empty'
-        }]
-      })
-    }
-
-    const invalidInstructions = recipeData.instructions.filter(
-      inst => !inst.text || inst.text.trim() === ''
-    )
-
-    if (invalidInstructions.length > 0) {
-      return fail(400, {
-        success: false,
-        errors: [{
-          path: 'instructions',
-          message: 'All instructions must have text'
-        }]
-      })
-    }
-
     const canonicalIngredients = await getAllIngredients()
     const canonicalNames = canonicalIngredients.map(i => i.name)
 
@@ -218,21 +229,18 @@ export const actions = {
         if (exact) {
           matchedName = exact.name
           matchedId = exact.id
-          console.log('Exact match for', ing.displayName, '->', matchedName)
         } else {
           // Step 2: Fuzzy match
           const bestMatch = stringSimilarity.findBestMatch(normalizedInput, canonicalNames)
           if (bestMatch.bestMatch.rating > 0.85) {
             matchedName = bestMatch.bestMatch.target
             matchedId = canonicalIngredients.find(i => i.name === matchedName)?.id || ''
-            console.log('Fuzzy match for', ing.displayName, '->', matchedName, 'rating:', bestMatch.bestMatch.rating)
           } else {
             // Step 3: Create new ingredient
             const newId = generateId()
             await db.insert(ingredientTable).values({ id: newId, name: normalizedInput })
             matchedName = normalizedInput
             matchedId = newId
-            console.log('Created new ingredient for', ing.displayName, '->', matchedName)
           }
         }
 
@@ -266,20 +274,23 @@ export const actions = {
       fat: 0
     }
 
-    if (mappedIngredients.length > 0) {
-      const nutritionResult = await api('getRecipeInfo')(mappedIngredients.map(ing => ({
+
+    const nutritionResult = await api('getRecipeInfo')(
+      mappedIngredients.map(ing => ({
         amount: ing.quantity,
         unit: ing.measurement,
         name: ing.name
-      })))
+      })),
+      recipeData.instructions.map(i => i.text).join('\n'),
+      recipeData.servings
+    )
 
-      if (nutritionResult.isOk()) {
-        nutrition = {
-          calories: nutritionResult.value.calories,
-          protein: nutritionResult.value.protein,
-          carbs: nutritionResult.value.carbs,
-          fat: nutritionResult.value.fat
-        }
+    if (nutritionResult.isOk()) {
+      nutrition = {
+        calories: nutritionResult.value.calories,
+        protein: nutritionResult.value.protein,
+        carbs: nutritionResult.value.carbs,
+        fat: nutritionResult.value.fat
       }
     }
 
@@ -320,6 +331,7 @@ export const actions = {
     )
 
     if (fetchResponse.isErr()) {
+      console.error('Error creating recipe', fetchResponse.error)
       return fail(500, {
         success: false,
         errors: [{

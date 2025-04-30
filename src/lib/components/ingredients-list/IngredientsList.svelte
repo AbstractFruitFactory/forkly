@@ -21,16 +21,22 @@
 	{#each ingredients as ingredient}
 		{@const formattedIngredient = getFormattedIngredient(ingredient, unitSystem)}
 		<li>
-			<span class="measurement">
-				{#if ingredient.measurement === 'to taste' || ingredient.measurement === 'pinch'}
-					{ingredient.measurement}
-				{:else}
-					{formattedIngredient.formattedMeasurement}
-				{/if}
-			</span>
-			<span class="ingredient-name">
-				{ingredient.displayName}
-			</span>
+			{#if ingredient.quantity}
+				<span class="measurement">
+					{#if ingredient.measurement === 'to taste' || ingredient.measurement === 'pinch'}
+						{ingredient.measurement}
+					{:else}
+						{formattedIngredient.formattedMeasurement}
+					{/if}
+				</span>
+				<span class="ingredient-name">
+					{ingredient.displayName}
+				</span>
+			{:else}
+				<span class="ingredient-name">
+					{ingredient.displayName}
+				</span>
+			{/if}
 		</li>
 	{/each}
 </ul>

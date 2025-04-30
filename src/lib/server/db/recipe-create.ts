@@ -6,8 +6,8 @@ import { generateId } from '$lib/server/id'
 type IngredientInput = {
   name: string
   displayName: string
-  quantity: number
-  measurement: string
+  quantity?: number
+  measurement?: string
 }
 
 type NutritionInput = {

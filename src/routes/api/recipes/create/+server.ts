@@ -7,8 +7,8 @@ import { isValidTag } from '$lib/types'
 const baseIngredientSchema = v.object({
   name: v.string(),
   displayName: v.string(),
-  quantity: v.number(),
-  measurement: v.string()
+  quantity: v.optional(v.number()),
+  measurement: v.optional(v.string())
 })
 
 const createRecipeSchema = v.object({

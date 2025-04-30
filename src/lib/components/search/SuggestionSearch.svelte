@@ -79,7 +79,7 @@
 			{isLoading}
 			bind:inputElement
 			onInput={handleSearch}
-			name={formName}
+			{formName}
 		/>
 	</Autocomplete>
 </div>
@@ -89,4 +89,4 @@
 		width: 100%;
 		position: relative;
 	}
-</style> 
+</style>

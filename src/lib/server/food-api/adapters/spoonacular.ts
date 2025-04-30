@@ -65,6 +65,7 @@ export const getNutritionInfo: FoodAPI['getNutritionInfo'] = async (ingredientId
 			unit
 		}, (error: any, data: any) => {
 			if (error) throw error
+			console.log(data)
 			resolve({
 				...extractNutrients(data.nutrition.nutrients),
 				servingSize: data.nutrition.weightPerServing?.amount ?? 100
@@ -80,44 +81,52 @@ export const mapIngredientToDatabaseEntry: FoodAPI['mapIngredientToDatabaseEntry
 	spoonacularId: ingredient.id as number
 })
 
-export const getRecipeInfo: FoodAPI['getRecipeInfo'] = async (ingredients) => {
+export const getRecipeInfo: FoodAPI['getRecipeInfo'] = async (ingredients, instructions, servings = 1) => {
 	const formattedIngredients = ingredients.map(ing =>
 		`${ing.amount} ${ing.unit} ${ing.name}`
 	)
 
-	const response = await new Promise<RecipeNutritionInfo>((resolve, reject) => {
-		recipesApi.parseIngredients(
-			formattedIngredients.join('\n'),
-			1,
-			{
-				includeNutrition: true,
-				language: 'en'
-			},
-			(error: any, data: any) => {
-				if (error) throw error
-				// Calculate total nutrition values
-				const totals = data.reduce((acc: any, ingredient: any) => {
-					const nutrients = extractNutrients(ingredient.nutrition.nutrients)
-					return {
-						calories: acc.calories + nutrients.calories,
-						protein: acc.protein + nutrients.protein,
-						carbs: acc.carbs + nutrients.carbs,
-						fat: acc.fat + nutrients.fat,
-					}
-				}, { calories: 0, protein: 0, carbs: 0, fat: 0 })
+	const payload = {
+		title: 'Recipe',
+		servings,
+		ingredients: formattedIngredients,
+		instructions
+	}
 
-				resolve({
-					...totals,
-					ingredients: data.map((ingredient: any) => ({
-						name: ingredient.originalName,
-						amount: ingredient.amount,
-						unit: ingredient.unit,
-						nutrients: extractNutrients(ingredient.nutrition.nutrients)
-					}))
-				})
+	console.log('Analyze Recipe payload:', payload)
+
+	const url = `https://api.spoonacular.com/recipes/analyze?apiKey=${SPOONACULAR_API_KEY}&language=en&includeNutrition=true`
+
+	const res = await fetch(url,
+		{
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		}
+	)
+
+	const data = await res.json()
+	console.log('Analyze Recipe response:', data)
+
+	const totals = {
+		calories: data.nutrition?.nutrients?.find((n: any) => n.name === 'Calories')?.amount ?? 0,
+		protein: data.nutrition?.nutrients?.find((n: any) => n.name === 'Protein')?.amount ?? 0,
+		carbs: data.nutrition?.nutrients?.find((n: any) => n.name === 'Carbohydrates')?.amount ?? 0,
+		fat: data.nutrition?.nutrients?.find((n: any) => n.name === 'Fat')?.amount ?? 0
+	}
+
+	return {
+		...totals,
+		ingredients: (data.ingredients || []).map((ingredient: any) => ({
+			name: ingredient.name,
+			amount: ingredient.amount?.metric?.value ?? ingredient.amount?.us?.value ?? 0,
+			unit: ingredient.amount?.metric?.unit ?? ingredient.amount?.us?.unit ?? '',
+			nutrients: {
+				calories: ingredient.nutrition?.nutrients?.find((n: any) => n.name === 'Calories')?.amount ?? 0,
+				protein: ingredient.nutrition?.nutrients?.find((n: any) => n.name === 'Protein')?.amount ?? 0,
+				carbs: ingredient.nutrition?.nutrients?.find((n: any) => n.name === 'Carbohydrates')?.amount ?? 0,
+				fat: ingredient.nutrition?.nutrients?.find((n: any) => n.name === 'Fat')?.amount ?? 0
 			}
-		)
-	})
-
-	return response
+		}))
+	}
 }

@@ -77,7 +77,6 @@
 		{isLoggedIn}
 		{onBackClick}
 		onLike={handleLike}
-		{onDislike}
 		onSave={handleSave}
 		{comments}
 		{formError}

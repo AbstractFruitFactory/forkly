@@ -42,7 +42,7 @@ export type FoodAPI = {
   findIngredients(query: string): Promise<IngredientSearchResult>
   getIngredientInfo(id: number): Promise<any>
   getNutritionInfo(id: number, amount: number, unit: string): Promise<NutritionInfo>
-  getRecipeInfo(ingredients: { amount: number, unit: string, name: string }[]): Promise<RecipeNutritionInfo>
+  getRecipeInfo(ingredients: { amount?: number, unit?: string, name: string }[], instructions: string, servings?: number): Promise<RecipeNutritionInfo>
 }
 
 const _api: FoodAPI = {

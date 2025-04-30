@@ -40,7 +40,7 @@
 			body: JSON.stringify({ id: data.id })
 		})
 	}
-	
+
 	const handleUnitChange = (system: UnitSystem) => {
 		if (system === 'metric') {
 			unitPreferenceStore.setMetric()
@@ -48,27 +48,27 @@
 			unitPreferenceStore.setImperial()
 		}
 	}
-	
+
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 
 	// Ensure createdAt is a string
-	const createdAtStr = typeof data.createdAt === 'string' 
-		? data.createdAt 
-		: data.createdAt instanceof Date 
-		? data.createdAt.toISOString() 
-		: new Date().toISOString()
+	const createdAtStr =
+		typeof data.createdAt === 'string'
+			? data.createdAt
+			: data.createdAt instanceof Date
+				? data.createdAt.toISOString()
+				: new Date().toISOString()
 
 	const recipeData: RecipeData = {
 		...data,
 		createdAt: createdAtStr,
-		ingredients: data.ingredients.map((ingredient) => ({
-			...ingredient,
-			custom: ingredient.custom
-		})),
-		user: data.user ? {
-			username: data.user.username,
-			avatarUrl: data.user.avatarUrl || undefined
-		} : undefined
+		ingredients: data.ingredients,
+		user: data.user
+			? {
+					username: data.user.username,
+					avatarUrl: data.user.avatarUrl || undefined
+				}
+			: undefined
 	}
 </script>
 
