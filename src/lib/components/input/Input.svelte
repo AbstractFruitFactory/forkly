@@ -34,13 +34,13 @@
 >
 	{@render children()}
 	<div class="right-elements">
+		{#if isLoading}
+			<div class="loading-spinner"></div>
+		{/if}
 		{#if showClear}
 			<button class="clear-button" onclick={onClear} aria-label="Clear input">
 				<Clear />
 			</button>
-		{/if}
-		{#if isLoading}
-			<div class="loading-spinner"></div>
 		{/if}
 		{#if actionButton}
 			<button class="action-button" type="button" onclick={actionButton.onClick}>

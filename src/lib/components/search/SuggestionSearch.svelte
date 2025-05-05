@@ -68,7 +68,6 @@
 
 <div class="suggestion-search-wrapper" bind:this={searchWrapper}>
 	<Autocomplete
-		{isLoading}
 		suggestions={showSuggestions && suggestions.length > 0 ? suggestions : []}
 		onSelect={handleSelect}
 	>
