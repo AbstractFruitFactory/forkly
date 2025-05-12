@@ -27,3 +27,6 @@ storybook-static
 
 # Cursor rules
 .cursorrules
+
+# Supabase
+supabase
