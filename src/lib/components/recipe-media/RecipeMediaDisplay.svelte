@@ -4,19 +4,18 @@
 	import ChevronRight from 'lucide-svelte/icons/chevron-right'
 	import MediaPlayer from '$lib/components/media-player/MediaPlayer.svelte'
 
-	interface Instruction {
+	type Media = {
 		mediaUrl?: string
 		mediaType?: 'image' | 'video'
-		text: string
 	}
 
 	let {
 		mainImageUrl,
-		instructions,
+		media,
 		aspectRatio = '1/1'
 	} = $props<{
 		mainImageUrl?: string
-		instructions: Instruction[]
+		media: Media[]
 		aspectRatio?: string
 	}>()
 
@@ -31,16 +30,16 @@
 		// Add main recipe image as first slide if it exists
 		...(mainImageUrl ? [{ type: 'image' as const, url: mainImageUrl }] : []),
 		// Then add instruction media
-		...instructions
+		...media
 			.filter(
 				(
-					instruction: Instruction
-				): instruction is Instruction & { mediaUrl: string; mediaType: 'image' | 'video' } =>
+					instruction: Media
+				): instruction is Media & { mediaUrl: string; mediaType: 'image' | 'video' } =>
 					!!instruction.mediaUrl &&
 					!!instruction.mediaType &&
 					(instruction.mediaType === 'image' || instruction.mediaType === 'video')
 			)
-			.map((instruction: Instruction & { mediaUrl: string; mediaType: 'image' | 'video' }) => ({
+			.map((instruction: Media & { mediaUrl: string; mediaType: 'image' | 'video' }) => ({
 				type: instruction.mediaType,
 				url: instruction.mediaUrl,
 				duration: 3000 // Default duration for slideshow

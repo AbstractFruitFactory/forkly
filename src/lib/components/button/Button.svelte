@@ -8,6 +8,7 @@
 		variant = 'primary',
 		size = 'md',
 		type = 'button',
+		borderRadius = 'md',
 		fullWidth = false,
 		disabled = false,
 		onclick,
@@ -18,6 +19,7 @@
 		variant?: Variant
 		size?: Size
 		type?: 'button' | 'submit' | 'reset'
+		borderRadius?: 'md' | 'lg' | 'xl' | 'full'
 		fullWidth?: boolean
 		disabled?: boolean
 		onclick?: (e: MouseEvent) => void
@@ -42,6 +44,10 @@
 	class:sm={size === 'sm'}
 	class:md={size === 'md'}
 	class:lg={size === 'lg'}
+	class:border-radius-md={borderRadius === 'md'}
+	class:border-radius-lg={borderRadius === 'lg'}
+	class:border-radius-xl={borderRadius === 'xl'}
+	class:border-radius-full={borderRadius === 'full'}
 	class:full-width={fullWidth}
 	class:loading
 	{onclick}
@@ -59,7 +65,6 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--spacing-sm);
-		border-radius: var(--border-radius-md);
 		font-weight: 500;
 		cursor: pointer;
 		transition: all var(--transition-fast) var(--ease-in-out);
@@ -93,6 +98,22 @@
 			align-items: center;
 			justify-content: center;
 			gap: var(--spacing-xs);
+		}
+
+		&.border-radius-md {
+			border-radius: var(--border-radius-md);
+		}
+
+		&.border-radius-lg {
+			border-radius: var(--border-radius-lg);
+		}
+
+		&.border-radius-xl {
+			border-radius: var(--border-radius-xl);
+		}
+
+		&.border-radius-full {
+			border-radius: var(--border-radius-full);
 		}
 
 		// Sizes

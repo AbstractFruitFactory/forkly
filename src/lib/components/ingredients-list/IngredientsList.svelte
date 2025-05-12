@@ -1,34 +1,59 @@
+<script module lang="ts">
+	const scaleIngredientQuantity = (
+		ingredient: Ingredient,
+		currentServings: number,
+		originalServings: number
+	) => {
+		if (!ingredient.quantity) return ingredient
+		return {
+			...ingredient,
+			quantity: ingredient.quantity * (currentServings / originalServings)
+		}
+	}
+</script>
+
 <script lang="ts">
 	import type { Ingredient } from '$lib/types'
-	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import { getFormattedIngredient } from '$lib/pages/recipe/utils/recipeUtils'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 
 	let {
 		ingredients,
-		unitSystem,
-		currentServings,
+		servings,
+		originalServings,
 		onServingsChange
 	}: {
 		ingredients: Ingredient[]
-		unitSystem: UnitSystem
-		currentServings: number
-		onServingsChange: (newServings: number) => void
+		servings: number
+		originalServings: number
+		onServingsChange?: (newServings: number) => void
 	} = $props()
+
+	let currentServings = $state(servings)
+
+	let scaledIngredients = $derived(
+		ingredients.map((ingredient: Ingredient) =>
+			scaleIngredientQuantity(ingredient, currentServings, originalServings)
+		)
+	)
+
+	const handleServingsChange = (newServings: number) => {
+		currentServings = newServings
+		if (onServingsChange) onServingsChange(newServings)
+	}
 </script>
 
-<ul class="ingredients-list">
-	{#each ingredients as ingredient}
-		{@const formattedIngredient = getFormattedIngredient(ingredient, unitSystem)}
+<ul class="ingredients-list card">
+	{#each scaledIngredients as ingredient}
 		<li>
 			{#if ingredient.quantity}
-				<span class="measurement">
-					{#if ingredient.measurement === 'to taste' || ingredient.measurement === 'pinch'}
-						{ingredient.measurement}
-					{:else}
-						{formattedIngredient.formattedMeasurement}
-					{/if}
+				<span class="quantity">
+					{ingredient.quantity}
 				</span>
+				{#if ingredient.measurement}
+					<span class="measurement">
+						{ingredient.measurement}
+					</span>
+				{/if}
 				<span class="ingredient-name">
 					{ingredient.displayName}
 				</span>
@@ -39,15 +64,14 @@
 			{/if}
 		</li>
 	{/each}
-</ul>
 
-<ServingsAdjuster servings={currentServings} {onServingsChange} />
+	<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
+</ul>
 
 <style lang="scss">
 	@import '$lib/global.scss';
 
 	.ingredients-list {
-		margin-bottom: var(--spacing-md);
 		li {
 			list-style: none;
 			padding: var(--spacing-md) 0;
@@ -56,21 +80,17 @@
 			font-size: var(--font-size-sm);
 			width: 100%;
 
+			&:nth-last-child(2),
 			&:last-child {
 				border-bottom: none;
 			}
 		}
 	}
 
+	.quantity,
 	.measurement {
 		margin-right: var(--spacing-sm);
 		font-weight: var(--font-weight-semibold);
-
-		min-width: 50px;
-
-		@include tablet {
-			min-width: 60px;
-		}
 	}
 
 	.ingredient-name {

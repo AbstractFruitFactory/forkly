@@ -10,7 +10,7 @@
 	const shouldTruncateDescription = description.length > MAX_DESCRIPTION_LENGTH
 
 	const truncatedDescription = shouldTruncateDescription
-		? description.slice(0, MAX_DESCRIPTION_LENGTH) + '...'
+		? description.slice(0, MAX_DESCRIPTION_LENGTH)
 		: description
 
 	function toggleDescription() {
@@ -24,14 +24,14 @@
 		<div class="divider"></div>
 	{/if}
 
-	<p>{isDescriptionExpanded ? description : truncatedDescription}</p>
-
-	{#if shouldTruncateDescription}
-		<div class="divider" style:margin="0 calc(var(--spacing-lg) * -1)"></div>
-		<button class="view-more" onclick={toggleDescription}>
-			{isDescriptionExpanded ? '- View less' : '+ View more'}
-		</button>
-	{/if}
+	<p>
+		{isDescriptionExpanded ? description : truncatedDescription}
+		{#if shouldTruncateDescription}
+			<button class="view-more" onclick={toggleDescription}>
+				{isDescriptionExpanded ? '- View less' : '+ View more'}
+			</button>
+		{/if}
+	</p>
 </div>
 
 <style lang="scss">
@@ -44,14 +44,16 @@
 	.view-more {
 		background: none;
 		border: none;
-		color: var(--color-neutral-light);
-		font-size: var(--font-size-md);
-		padding-top: var(--spacing-sm);
+		color: var(--color-primary);
+		font-size: var(--font-size-sm);
+		padding: 0;
+		margin-left: 4px;
 		cursor: pointer;
+		text-decoration: underline;
 		font-weight: var(--font-weight-bold);
 
 		&:hover {
-			color: var(--color-text);
+			color: var(--color-primary-dark);
 		}
 	}
 

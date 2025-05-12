@@ -36,25 +36,28 @@
 	})
 
 	const mockRecipe = $state({
+		isSaved: false,
 		id: 'recipe-123',
 		title: 'Classic Spaghetti Carbonara',
 		description:
 			'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper. Lorem ipsum dolor sit amet consectetur. Et enim nisi ac dui venenatis vitae egestas sit. Viverra vehicula odio quis convallis. Et libero mauris tincidunt volutpat ut ut posuere rhoncus. Condimentum risus egestas ultricies fermentum ullamcorper id varius dignissim feugiat.',
 		servings: 4,
 		ingredients: [
-			{ quantity: 400, measurement: 'grams' as MeasurementUnit, name: 'spaghetti', custom: false },
-			{ quantity: 4, measurement: 'pieces' as MeasurementUnit, name: 'large eggs', custom: false },
+			{ quantity: 400, measurement: 'grams' as MeasurementUnit, name: 'spaghetti', displayName: 'spaghetti', custom: false },
+			{ quantity: 4, measurement: 'pieces' as MeasurementUnit, name: 'large eggs', displayName: 'large eggs', custom: false },
 			{
 				quantity: 100,
 				measurement: 'grams' as MeasurementUnit,
 				name: 'pecorino romano',
+				displayName: 'pecorino romano',
 				custom: false
 			},
-			{ quantity: 200, measurement: 'grams' as MeasurementUnit, name: 'pancetta', custom: false },
+			{ quantity: 200, measurement: 'grams' as MeasurementUnit, name: 'pancetta', displayName: 'pancetta', custom: false },
 			{
 				quantity: 2,
 				measurement: 'teaspoons' as MeasurementUnit,
 				name: 'black pepper',
+				displayName: 'black pepper',
 				custom: false
 			}
 		],
@@ -129,7 +132,7 @@
 				userId: args.hasUser ? mockRecipe.userId : undefined,
 				imageUrl: args.hasImage ? mockRecipe.imageUrl : undefined
 			}}
-			nutrition={mockNutrition}
+			nutritionInfo={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
 			isLoggedIn={!!args.hasUser}
@@ -146,7 +149,7 @@
 				description: undefined,
 				imageUrl: args.hasImage ? mockRecipe.imageUrl : undefined
 			}}
-			nutrition={mockNutrition}
+			nutritionInfo={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
 			isLoggedIn={true}
@@ -162,7 +165,7 @@
 				...mockRecipe,
 				imageUrl: args.hasImage ? mockRecipe.imageUrl : undefined
 			}}
-			nutrition={mockNutrition}
+			nutritionInfo={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
 			onLike={mockOnLike}

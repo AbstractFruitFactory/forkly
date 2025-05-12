@@ -34,7 +34,7 @@
 	let isSubmitting = $state(false)
 	let imageError = $state<string | null>(null)
 
-	function handleImageSelect(event: Event) {
+	async function handleImageSelect(event: Event) {
 		const input = event.target as HTMLInputElement
 		if (!input.files || input.files.length === 0) {
 			imagePreview = null
@@ -46,7 +46,7 @@
 		if (imagePreview) {
 			cleanupPreview(imagePreview)
 		}
-		const result = handleMediaFile(file, {
+		const result = await handleMediaFile(file, {
 			type: 'image',
 			maxSize: 5
 		})
@@ -69,11 +69,6 @@
 </script>
 
 <div class="comments-section">
-	<h3 class="comments-title">
-		<MessageSquare size={18} />
-		Comments ({comments.length})
-	</h3>
-
 	{#if isLoggedIn}
 		<form
 			class="comment-form"
@@ -161,18 +156,6 @@
 	.comments-section {
 		background-color: var(--color-neutral-darkest);
 	}
-
-	.comments-title {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-		font-size: var(--font-size-md);
-		color: var(--color-neutral-lightest);
-		margin-top: 0;
-		margin-bottom: var(--spacing-md);
-		padding-bottom: var(--spacing-sm);
-	}
-
 	.comment-form {
 		margin-bottom: var(--spacing-lg);
 		overflow: hidden;

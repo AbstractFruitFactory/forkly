@@ -4,12 +4,10 @@
 	import Popup from '$lib/components/popup/Popup.svelte'
 
 	let {
-		recipe,
-		onClose,
+		instructions,
 		isOpen = $bindable(false)
 	}: {
-		recipe: RecipeData
-		onClose: () => void,
+		instructions: RecipeData['instructions']
 		isOpen: boolean
 	} = $props()
 
@@ -35,12 +33,12 @@
 
 	function nextStep(e: Event) {
 		e.preventDefault()
-		if (currentStep < recipe.instructions.length - 1) {
+		if (currentStep < instructions.length - 1) {
 			currentStep++
 			videoLoaded = false
 			videoError = false
 		} else {
-			onClose()
+			isOpen = false
 		}
 	}
 
@@ -80,16 +78,16 @@
 	}
 </script>
 
-<Popup bind:isOpen onClose={onClose} width="800px">
+<Popup bind:isOpen onClose={() => (isOpen = false)} width="800px">
 	<div class="cooking-mode">
 		<div class="cooking-progress">
 			<div class="cooking-progress-text">
-				Step {currentStep + 1} of {recipe.instructions.length}
+				Step {currentStep + 1} of {instructions.length}
 			</div>
 			<div class="cooking-progress-bar">
 				<div
 					class="cooking-progress-fill"
-					style="width: {((currentStep + 1) / recipe.instructions.length) * 100}%"
+					style="width: {((currentStep + 1) / instructions.length) * 100}%"
 				></div>
 			</div>
 		</div>
@@ -100,11 +98,11 @@
 			ontouchmove={handleCookingTouchMove}
 			ontouchend={handleCookingTouchEnd}
 		>
-			{#if recipe.instructions[currentStep].mediaUrl}
+			{#if instructions[currentStep].mediaUrl}
 				<div class="cooking-media">
-					{#if recipe.instructions[currentStep].mediaType === 'video'}
+					{#if instructions[currentStep].mediaType === 'video'}
 						<video
-							src={recipe.instructions[currentStep].mediaUrl}
+							src={instructions[currentStep].mediaUrl}
 							autoplay
 							loop
 							muted
@@ -126,9 +124,9 @@
 								<div class="spinner"></div>
 							</div>
 						{/if}
-					{:else if recipe.instructions[currentStep].mediaType === 'image'}
+					{:else if instructions[currentStep].mediaType === 'image'}
 						<img
-							src={recipe.instructions[currentStep].mediaUrl}
+							src={instructions[currentStep].mediaUrl}
 							alt="Step {currentStep + 1}"
 							class="cooking-media-content"
 						/>
@@ -137,7 +135,7 @@
 			{/if}
 
 			<div class="cooking-instruction">
-				<p class="cooking-instruction-text">{recipe.instructions[currentStep].text}</p>
+				<p class="cooking-instruction-text">{instructions[currentStep].text}</p>
 			</div>
 		</div>
 
@@ -153,11 +151,11 @@
 				<div class="cooking-nav-button"></div>
 			{/if}
 			<Button
-				variant={currentStep === recipe.instructions.length - 1 ? 'secondary' : 'text'}
+				variant={currentStep === instructions.length - 1 ? 'secondary' : 'text'}
 				onclick={nextStep}
 			>
-				{currentStep === recipe.instructions.length - 1 ? 'Done' : 'Next'}
-				{#if currentStep < recipe.instructions.length - 1}
+				{currentStep === instructions.length - 1 ? 'Done' : 'Next'}
+				{#if currentStep < instructions.length - 1}
 					<svg width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
 						<path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
 					</svg>
@@ -322,4 +320,4 @@
 			transform: rotate(360deg);
 		}
 	}
-</style> 
+</style>

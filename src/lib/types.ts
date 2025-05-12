@@ -33,21 +33,21 @@ export const measurementUnits = [
   'pinch'
 ] as const
 
+export type MeasurementUnit = typeof measurementUnits[number]
+
 export const defaultMeasurementUnits = measurementUnits
 
 // A tag can be any string less than 10 characters
 export const isValidTag = (tag: string): boolean => {
-  return typeof tag === 'string' && tag.length > 0 && tag.length < 10;
+  return typeof tag === 'string' && tag.length > 0 && tag.length < 10
 }
 
-type BaseIngredient = {
+export type Ingredient = {
   quantity?: number
-  measurement?: string
+  measurement?: MeasurementUnit
   name: string
   displayName: string
 }
-
-export type Ingredient = BaseIngredient
 
 export type RecipeData = {
   id: string
@@ -57,9 +57,9 @@ export type RecipeData = {
   servings: number
   ingredients: Ingredient[]
   instructions: {
-    text: string;
-    mediaUrl?: string;
-    mediaType?: 'image' | 'video';
+    text: string
+    mediaUrl?: string
+    mediaType?: 'image' | 'video'
   }[]
   imageUrl?: string | null
   tags?: string[]
@@ -71,9 +71,7 @@ export type RecipeData = {
   }
   createdAt: string
   likes: number
-  dislikes: number
   isLiked: boolean
-  isDisliked: boolean
   isSaved: boolean
   user?: {
     username?: string
