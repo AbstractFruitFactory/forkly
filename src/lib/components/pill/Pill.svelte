@@ -36,6 +36,7 @@
 		position: relative;
 		user-select: none;
 		display: inline-flex;
+		height: 24px;
 	}
 
 	.pill-content {
@@ -46,17 +47,18 @@
 		padding: var(--spacing-xs) var(--spacing-sm);
 		border-radius: var(--border-radius-full);
 		transition: all 0.2s ease;
-		border: 2px solid var(--pill-color, #3B404E);
+		border: 2px solid var(--pill-color, #3b404e);
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-		color: white;
 	}
 
 	.pill-text {
-		font-size: var(--font-size-sm);
+		font-size: var(--font-size-xs);
 		font-weight: 500;
 		line-height: 1;
 		display: flex;
 		align-items: center;
+		color: var(--color-neutral-light);
+		text-wrap: nowrap;
 	}
 
 	.remove-button {
