@@ -50,6 +50,8 @@
 <style lang="scss">
 	@import '$lib/global.scss';
 
+	$max-width: 1200px;
+
 	.layout {
 		display: flex;
 		flex-direction: column;
@@ -66,7 +68,7 @@
 		top: 0;
 		z-index: var(--z-sticky);
 		width: 100%;
-		max-width: 1200px;
+		max-width: $max-width;
 		margin: 0 auto;
 		padding: 0 var(--spacing-2xl);
 
@@ -119,7 +121,7 @@
 
 	.main-content {
 		flex-grow: 1;
-		max-width: 1200px;
+		max-width: $max-width;
 		margin: 0 auto;
 		padding: var(--spacing-xl) var(--spacing-2xl);
 

@@ -273,6 +273,7 @@
 			in:fly={{ x: -50, duration: 300, delay: 300 }}
 			out:fly={{ x: -50, duration: 300 }}
 		>
+			<span class="sort-label">Sort by: </span>
 			<TabSelect
 				options={['Popular', 'Newest', 'Easiest']}
 				selected={sortBy}
@@ -319,7 +320,7 @@
 
 	.header-content {
 		display: flex;
-		justify-content: center;
+		justify-content: flex-start;
 		margin-bottom: var(--spacing-sm);
 
 		@include mobile {
@@ -343,6 +344,15 @@
 
 	.sort-controls {
 		margin: var(--spacing-sm) 0;
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+	}
+
+	.sort-label {
+		font-size: var(--font-size-md);
+		color: var(--color-neutral-light);
+		margin-right: var(--spacing-sm);
 	}
 
 	.search-container {
@@ -376,7 +386,6 @@
 		margin: var(--spacing-lg) 0;
 		min-height: 40px;
 		display: flex;
-		justify-content: center;
 
 		@include mobile {
 			display: none;
@@ -394,19 +403,19 @@
 			font-weight: 500;
 			color: var(--color-neutral-light);
 		}
-
-		.selected-pills {
-			display: flex;
-			flex-wrap: wrap;
-			gap: var(--spacing-sm);
-			align-items: center;
-		}
 	}
 
+	.selected-pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-sm);
+		align-items: center;
+	}
+	
 	.recipe-grid {
 		position: relative;
 	}
-	
+
 	.scroll-to-top {
 		display: none;
 
