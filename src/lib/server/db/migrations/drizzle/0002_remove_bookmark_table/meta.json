@@ -1,8 +1,0 @@
-{
-  "version": "5",
-  "dialect": "pg",
-  "id": "0002_remove_bookmark_table",
-  "name": "remove_bookmark_table",
-  "created": "2023-09-21T12:00:00.000Z",
-  "comment": "Remove the bookmark table as functionality is replaced by likes"
-} 

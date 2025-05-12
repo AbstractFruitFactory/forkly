@@ -1,1 +1,0 @@
-ALTER TABLE "recipe_ingredient" ADD CONSTRAINT "quantity_non_zero" CHECK (quantity IS NULL OR quantity <> 0);
