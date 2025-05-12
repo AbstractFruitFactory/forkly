@@ -1,6 +1,4 @@
 <script lang="ts">
-	import Timer from 'lucide-svelte/icons/timer'
-	import List from 'lucide-svelte/icons/list'
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
@@ -35,82 +33,40 @@
 	class:skeleton={loading}
 	aria-labelledby={recipe ? `recipe-title-${recipe.id}` : undefined}
 >
-	<div class="header">
-		<div class="image-container" class:no-image={recipe && !recipe.imageUrl}>
-			{#if loading}
-				<div class="gradient-animate"></div>
-			{:else if recipe?.imageUrl}
-				<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
-			{:else}
-				<div class="placeholder">
-					<Utensils size={32} strokeWidth={1.5} />
-				</div>
-			{/if}
-		</div>
+	<div class="image-container" class:no-image={recipe && !recipe.imageUrl}>
 		{#if loading}
-			<div class="avatar">
-				<div class="gradient-animate"></div>
-			</div>
-		{:else if recipe?.user}
-			<div
-				class="avatar"
-				style="background: {recipe.user.avatarUrl
-					? `url(${recipe.user.avatarUrl}) center/cover`
-					: `var(--color-${recipe.user.username.charCodeAt(0) % 5})`}"
-			>
-				{#if !recipe.user.avatarUrl}
-					{recipe.user.username[0].toUpperCase()}
-				{/if}
+			<div class="gradient-animate"></div>
+		{:else if recipe?.imageUrl}
+			<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+		{:else}
+			<div class="placeholder">
+				<Utensils size={32} strokeWidth={1.5} />
 			</div>
 		{/if}
 		<div class="action-buttons">
-			{#if loading}
-				<div class="like-button">
-					<div class="gradient-animate"></div>
-				</div>
-			{:else if recipe}
+			{#if recipe}
 				<LikeButton count={recipe.likes} />
 			{/if}
 		</div>
 	</div>
-	<div class="content">
-		{#if loading}
-			<div class="title">
-				<div class="gradient-animate"></div>
-			</div>
-		{:else if recipe}
-			<h4 id="recipe-title-{recipe.id}">{recipe.title}</h4>
-		{/if}
-		{#if loading}
-			<div class="description">
-				<div class="gradient-animate"></div>
-			</div>
-		{:else if recipe}
-			<p class="description dotted-overflow">{recipe.description}</p>
-		{/if}
-		<div class="meta" aria-label="Recipe details">
-			<span>
-				<List size={16} aria-hidden="true" />
-				{#if loading}
-					<span class="text">
-						<div class="gradient-animate"></div>
-					</span>
-				{:else if recipe}
-					<span>{recipe.ingredients} ingredients</span>
-				{/if}
-			</span>
-			<span>
-				<Timer size={16} aria-hidden="true" />
-				{#if loading}
-					<span class="text">
-						<div class="gradient-animate"></div>
-					</span>
-				{:else if recipe}
-					<span>{recipe.instructions} steps</span>
-				{/if}
-			</span>
+	{#if loading}
+		<div class="avatar">
+			<div class="gradient-animate"></div>
 		</div>
+	{:else if recipe?.user}
+		<div
+			class="avatar"
+			style="background: {recipe.user.avatarUrl
+				? `url(${recipe.user.avatarUrl}) center/cover`
+				: `var(--color-${recipe.user.username.charCodeAt(0) % 5})`}"
+		>
+			{#if !recipe.user.avatarUrl}
+				{recipe.user.username[0].toUpperCase()}
+			{/if}
+		</div>
+	{/if}
 
+	<div class="content">
 		<div class="tags">
 			{#if loading}
 				{#each Array(3) as _}
@@ -124,13 +80,30 @@
 				{/each}
 			{/if}
 		</div>
+		{#if loading}
+			<div class="title">
+				<div class="gradient-animate"></div>
+			</div>
+		{:else if recipe}
+			<h4 id="recipe-title-{recipe.id}" style:margin="0">{recipe.title}</h4>
+		{/if}
+		<div class="meta-single" aria-label="Recipe details">
+			{#if loading}
+				<span class="text">
+					<div class="gradient-animate"></div>
+				</span>
+			{:else if recipe}
+				<span>{recipe.ingredients} ingredients &nbsp;|&nbsp; {recipe.instructions} steps</span>
+			{/if}
+		</div>
 	</div>
 </a>
 
 <style lang="scss">
 	.recipe-card {
-		display: block;
-		height: 360px;
+		display: grid;
+		grid-template-rows: 60% auto;
+		height: 400px;
 		width: 100%;
 		border-radius: var(--border-radius-lg);
 		background: var(--color-neutral-dark);
@@ -176,23 +149,10 @@
 		}
 	}
 
-	.header {
-		position: relative;
-
-		.action-buttons {
-			position: absolute;
-			top: var(--spacing-md);
-			right: var(--spacing-md);
-			z-index: 2;
-			display: flex;
-			gap: var(--spacing-xs);
-		}
-	}
-
 	.image-container {
 		position: relative;
 		width: 100%;
-		height: 180px; /* Fixed height for image */
+		height: 100%;
 		overflow: hidden;
 		background: var(--color-neutral-darker, rgba(0, 0, 0, 0.2));
 
@@ -261,15 +221,9 @@
 	.content {
 		padding: var(--spacing-md);
 		display: grid;
-		grid-template-rows: auto 1fr auto auto;
-		height: 180px; /* Fixed height for content */
+		grid-template-rows: fit-content auto fit-content;
 		gap: var(--spacing-sm);
-	}
-
-	h4 {
-		margin: 0;
-		font-weight: 600;
-		color: var(--color-neutral-light);
+		overflow: hidden;
 	}
 
 	.description {
@@ -318,7 +272,6 @@
 
 	.tags {
 		display: flex;
-		flex-wrap: wrap;
 		gap: var(--spacing-xs);
 	}
 
@@ -414,5 +367,32 @@
 		100% {
 			background-position: -200% 0;
 		}
+	}
+
+	.action-buttons {
+		position: absolute;
+		top: var(--spacing-md);
+		right: var(--spacing-md);
+		display: flex;
+		gap: var(--spacing-xs);
+		z-index: 2;
+	}
+
+	.bookmark-btn {
+		background: rgba(0, 0, 0, 0.32);
+		border-radius: 50%;
+		padding: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.meta-single {
+		margin-top: var(--spacing-sm);
+		font-size: var(--font-size-sm);
+		color: var(--color-neutral-light);
+		opacity: 0.8;
+		font-weight: 500;
+		align-self: flex-end;
 	}
 </style>
