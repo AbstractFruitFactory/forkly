@@ -11,6 +11,6 @@ const searchSchema = v.pipe(
 export const GET: RequestHandler = async ({ params }) => {
   const input = v.parse(searchSchema, params.query)
 
-  const suggestions = await searchIngredients(input, 10)
+  const suggestions = await searchIngredients(input, 5)
   return json(suggestions)
 }

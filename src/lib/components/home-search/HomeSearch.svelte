@@ -13,7 +13,6 @@
 		searchIngredients,
 		selectedTags = $bindable<{ label: string; selected?: boolean }[]>([]),
 		selectedIngredients = $bindable<{ label: string; include: boolean }[]>([]),
-		handleSearch,
 		showResults,
 		onFiltersChange = undefined
 	}: {
@@ -26,7 +25,6 @@
 		searchIngredients: (query: string) => Promise<string[]>
 		selectedTags: { label: string; selected?: boolean }[]
 		selectedIngredients: { label: string; include: boolean }[]
-		handleSearch: () => void
 		showResults: (value: string) => void
 		onFiltersChange?: (tags: { label: string; selected?: boolean }[], ingredients: { label: string; include: boolean }[]) => void
 	} = $props()

@@ -19,14 +19,10 @@
 
 <script lang="ts">
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
-	import RecipeCarousel from '$lib/components/recipe-carousel/RecipeCarousel.svelte'
 	import Button from '$lib/components/button/Button.svelte'
-	import Search from '$lib/components/search/Search.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import { onMount } from 'svelte'
 	import { fly } from 'svelte/transition'
-	import IngredientFilter from '$lib/components/ingredient-filter/IngredientFilter.svelte'
-	import TagFilter from '$lib/components/tag-filter/TagFilter.svelte'
 	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 	import ScrollToTop from '$lib/components/scroll-to-top/ScrollToTop.svelte'
 	import Drawer from '$lib/components/drawer/Drawer.svelte'

@@ -11,7 +11,7 @@ export type TagSearchResponse = {
 
 export const GET = async ({ url }) => {
   const query = url.searchParams.get('q') || ''
-  const limit = 10
+  const limit = 5
 
   // If query is empty, get most popular tags
   if (!query.trim()) {
