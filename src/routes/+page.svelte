@@ -142,6 +142,19 @@
 			isLoading: false
 		}
 	}
+
+	const searchRecipes = async (query: string): Promise<any[]> => {
+		if (!query.trim()) return []
+		const url = new URL('/api/recipes/search', window.location.origin)
+		url.searchParams.set('q', query)
+		url.searchParams.set('limit', '5')
+		url.searchParams.set('page', '0')
+		const response = await safeFetch<any>()(url.toString())
+		if (response.isOk()) {
+			return response.value.results.map(toHomePageRecipe)
+		}
+		return []
+	}
 </script>
 
 <svelte:head>
@@ -164,4 +177,5 @@
 		...activeFilters.excludedIngredients.map(label => ({ label, include: false }))
 	]}
 	initialSort={sortParam}
+	searchRecipes={searchRecipes}
 />

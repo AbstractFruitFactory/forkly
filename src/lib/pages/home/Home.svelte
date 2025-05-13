@@ -30,6 +30,7 @@
 	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 	import ScrollToTop from '$lib/components/scroll-to-top/ScrollToTop.svelte'
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
+	import HomeSearch from '$lib/components/home-search/HomeSearch.svelte'
 
 	let {
 		recipes,
@@ -47,7 +48,8 @@
 		initialSearch = '',
 		initialTags = [],
 		initialIngredients = [],
-		initialSort = 'popular'
+		initialSort = 'popular',
+		searchRecipes,
 	}: {
 		recipes: Recipe[]
 		isLoading?: boolean
@@ -65,6 +67,7 @@
 		initialTags?: string[]
 		initialIngredients?: { label: string; include: boolean }[]
 		initialSort?: 'popular' | 'newest' | 'easiest'
+		searchRecipes: (query: string) => Promise<any[]>
 	} = $props()
 
 	let searchValue = $derived(initialSearch)
@@ -198,28 +201,23 @@
 >
 	<h1 class="home-title">Explore Recipes</h1>
 	<div class="search-content">
-		<Search
-			placeholder="Search recipes..."
-			onInput={(query) => handleSearch(query)}
+		<HomeSearch
 			bind:value={searchValue}
 			bind:inputElement={searchInput}
+			bind:selectedTags={selectedTags}
+			bind:selectedIngredients={selectedIngredients}
+			searchTags={loadTags}
+			searchIngredients={loadIngredients}
+			searchRecipes={searchRecipes}
+			handleSearch={() => handleSearch(searchValue)}
+			showResults={(query) => handleSearch(query)}
 			{isLoading}
 			actionButton={{
 				text: isMac ? '⌘+K' : 'Ctrl+K',
 				onClick: () => searchInput?.focus()
 			}}
-			roundedCorners
+			onFiltersChange={() => notifyFiltersChanged()}
 		/>
-
-		<div class="desktop-filters">
-			<TagFilter onSearch={loadTags} bind:selected={selectedTags} onSelect={notifyFiltersChanged} />
-
-			<IngredientFilter
-				onSearch={loadIngredients}
-				bind:selected={selectedIngredients}
-				onSelect={notifyFiltersChanged}
-			/>
-		</div>
 
 		<div class="mobile-filters-button">
 			<Button variant="primary" size="sm" fullWidth onclick={() => (showFiltersDrawer = true)}>
@@ -251,14 +249,6 @@
 			<h4 class="selected-filters-title">Selected Filters</h4>
 			{@render filterPills()}
 		</div>
-
-		<TagFilter onSearch={loadTags} bind:selected={selectedTags} onSelect={notifyFiltersChanged} />
-
-		<IngredientFilter
-			onSearch={loadIngredients}
-			bind:selected={selectedIngredients}
-			onSelect={notifyFiltersChanged}
-		/>
 	</div>
 </Drawer>
 
