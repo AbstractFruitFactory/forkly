@@ -9,6 +9,7 @@ export const user = pgTable('user', {
 	avatarUrl: text('avatar_url'),
 	email: text('email').notNull().unique(),
 	emailVerified: boolean('email_verified').notNull().default(false),
+	googleId: text('google_id').unique(),
 })
 
 export const session = pgTable('session', {

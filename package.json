@@ -69,6 +69,7 @@
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
     "@redis/client": "^1.5.14",
+    "arctic": "^3.6.1",
     "cloudinary": "^2.5.1",
     "compromise": "^14.14.4",
     "date-fns": "^4.1.0",

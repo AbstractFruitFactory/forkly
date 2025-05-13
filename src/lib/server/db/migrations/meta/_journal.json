@@ -15,6 +15,13 @@
       "when": 1747171134106,
       "tag": "0001_yellow_rogue",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747175800003,
+      "tag": "0002_thick_robbie_robertson",
+      "breakpoints": true
     }
   ]
 }
