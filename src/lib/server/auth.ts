@@ -101,6 +101,12 @@ export const validateCredentials = async (username: string, password: string) =>
 
 	return {
 		session: { ...session, token },
-		user: { id: user.id, username: user.username, bio: user.bio, avatarUrl: user.avatarUrl }
+		user: {
+			id: user.id,
+			username: user.username,
+			bio: user.bio,
+			avatarUrl: user.avatarUrl,
+			emailVerified: user.emailVerified
+		}
 	}
 }

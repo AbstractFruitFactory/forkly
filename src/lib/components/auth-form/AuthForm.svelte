@@ -48,6 +48,15 @@
 				</Input>
 			</div>
 
+			{#if mode === 'signup'}
+				<div class="form-group">
+					<label for="email">Email</label>
+					<Input>
+						<input id="email" name="email" type="email" placeholder="Enter email" required />
+					</Input>
+				</div>
+			{/if}
+
 			{#if error}
 				<p class="error">{error}</p>
 			{/if}

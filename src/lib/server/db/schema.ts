@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, jsonb, integer, primaryKey, real, check } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, jsonb, integer, primaryKey, real, check, boolean } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 export const user = pgTable('user', {
@@ -6,7 +6,9 @@ export const user = pgTable('user', {
 	username: text('username').notNull().unique(),
 	passwordHash: text('password_hash').notNull(),
 	bio: text('bio'),
-	avatarUrl: text('avatar_url')
+	avatarUrl: text('avatar_url'),
+	email: text('email').notNull().unique(),
+	emailVerified: boolean('email_verified').notNull().default(false),
 })
 
 export const session = pgTable('session', {
@@ -129,6 +131,12 @@ export const recipeComment = pgTable('recipe_comment', {
 	content: text('content').notNull(),
 	imageUrl: text('image_url'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const emailVerification = pgTable('email_verification', {
+	userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+	token: text('token').notNull().unique(),
+	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull()
 })
 
 export type Session = typeof session.$inferSelect

@@ -31,8 +31,9 @@ export const actions = {
 		
 		if (!input.success) return fail(400, { message: input.issues[0].message })
 
-		const { session } = await auth.validateCredentials(input.output.username, input.output.password)
+		const { session, user } = await auth.validateCredentials(input.output.username, input.output.password)
 		if (!session) return fail(401, { message: 'Invalid username or password' })
+		if (!user.emailVerified) return fail(401, { message: 'Please verify your email before logging in.' })
 
 		auth.setSessionTokenCookie(event, session.token, session.expiresAt)
 		throw redirect(302, '/')

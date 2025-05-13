@@ -26,6 +26,12 @@ const signupSchema = v.object({
         v.string(),
         v.minLength(6, 'Password must be at least 6 characters'),
         v.maxLength(255, 'Password must be at most 255 characters')
+    ),
+    email: v.pipe(
+        v.string(),
+        v.minLength(5, 'Email must be at least 5 characters'),
+        v.maxLength(255, 'Email must be at most 255 characters'),
+        v.regex(/^[^@\s]+@[^@\s]+\.[^@\s]+$/, 'Invalid email address')
     )
 })
 
@@ -40,8 +46,9 @@ export const actions = {
         const formData = await request.formData()
         const username = formData.get('username')
         const password = formData.get('password')
+        const email = formData.get('email')
 
-        const input = v.safeParse(signupSchema, { username, password })
+        const input = v.safeParse(signupSchema, { username, password, email })
 
         if (!input.success) return fail(400, { error: input.issues[0].message })
 
@@ -52,6 +59,14 @@ export const actions = {
             .then(results => results[0])
 
         if (existingUser) return fail(400, { error: 'Username already taken' })
+
+        const existingEmail = await db
+            .select()
+            .from(table.user)
+            .where(eq(table.user.email, input.output.email))
+            .then(results => results[0])
+
+        if (existingEmail) return fail(400, { error: 'Email already in use' })
 
         const userId = generateUserId()
         const passwordHash = await hash(input.output.password, {
@@ -64,8 +79,23 @@ export const actions = {
         await db.insert(table.user).values({
             id: userId,
             username: input.output.username,
-            passwordHash
+            passwordHash,
+            email: input.output.email,
+            emailVerified: false
         })
+
+        // Generate verification token
+        const tokenBytes = crypto.getRandomValues(new Uint8Array(32))
+        const token = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, '0')).join('')
+        const expiresAt = new Date(Date.now() + 1000 * 60 * 60) // 1 hour from now
+        await db.insert(table.emailVerification).values({
+            userId: userId,
+            token,
+            expiresAt
+        })
+
+        // Placeholder for sending email
+        console.log(`Verify your email: /verify-email/${token}`)
 
         const sessionToken = auth.generateSessionToken()
         const session = await auth.createSession(sessionToken, userId)

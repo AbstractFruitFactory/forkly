@@ -8,6 +8,13 @@
       "when": 1747071329385,
       "tag": "0000_rapid_talkback",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1747171134106,
+      "tag": "0001_yellow_rogue",
+      "breakpoints": true
     }
   ]
 }
