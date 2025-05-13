@@ -1,33 +1,64 @@
 <script lang="ts">
 	import { fade, fly } from 'svelte/transition'
 	import { cubicOut } from 'svelte/easing'
+	import type { Snippet } from 'svelte'
 
 	let {
 		message,
-		position = 'bottom',
+		position = 'top',
 		type = 'default'
 	}: {
-		message: string
+		message: string | Snippet
 		position?: 'top' | 'bottom'
 		type?: 'default' | 'success' | 'error' | 'warning' | 'info'
 	} = $props()
 
 	export const trigger = () => {
 		visible = true
+		if (hovered) {
+			clearTimer()
+		} else {
+			startTimer()
+		}
 	}
 
 	const duration = 2000
 	let visible = $state(false)
+	let timer: ReturnType<typeof setTimeout> | null = null
+	let hovered = $state(false)
+
+	const startTimer = () => {
+		if (timer) clearTimeout(timer)
+		timer = setTimeout(() => {
+			visible = false
+		}, duration)
+	}
+
+	const clearTimer = () => {
+		if (timer) {
+			clearTimeout(timer)
+			timer = null
+		}
+	}
 
 	$effect(() => {
-		if (visible) {
-			const timer = setTimeout(() => {
-				visible = false
-			}, duration)
-
-			return () => clearTimeout(timer)
+		if (visible && !hovered) {
+			startTimer()
+		} else {
+			clearTimer()
 		}
+		return () => clearTimer()
 	})
+
+	const handleMouseEnter = () => {
+		hovered = true
+		clearTimer()
+	}
+
+	const handleMouseLeave = () => {
+		hovered = false
+		startTimer()
+	}
 
 	const getPositionStyles = () => {
 		switch (position) {
@@ -50,8 +81,15 @@
 		style={getPositionStyles()}
 		in:fly={{ y: getTransitionY(), duration: 300, easing: cubicOut }}
 		out:fade={{ duration: 200 }}
+		onmouseenter={handleMouseEnter}
+		onmouseleave={handleMouseLeave}
+		role="status"
 	>
-		<span>{message}</span>
+		{#if typeof message === 'string'}
+			<span>{message}</span>
+		{:else}
+			{@render message()}
+		{/if}
 	</div>
 {/if}
 

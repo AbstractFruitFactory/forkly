@@ -19,6 +19,7 @@
 	import Description from '$lib/components/Description.svelte'
 	import { onMount, type Snippet } from 'svelte'
 	import MessageSquare from 'lucide-svelte/icons/message-square'
+	import Toast from '$lib/components/toast/Toast.svelte'
 
 	let {
 		recipe,
@@ -52,19 +53,31 @@
 	let isSharePopupOpen = $state(false)
 	let isCookingMode = $state(false)
 	let shareUrl = $state('')
+	let toastType = $state<'like' | 'save'>()
+	let toastRef: Toast
 
 	onMount(() => {
 		shareUrl = `${window.location.origin}${window.location.pathname}`
 	})
 
 	const handleLike = () => {
-		if (!isLoggedIn || !onLike) return
+		if (!isLoggedIn) {
+			toastType = 'like'
+			if (toastRef) toastRef.trigger()
+			return
+		}
+		if (!onLike) return
 		isLiked = !isLiked
 		onLike()
 	}
 
 	const handleSave = () => {
-		if (!isLoggedIn || !onSave) return
+		if (!isLoggedIn) {
+			toastType = 'save'
+			if (toastRef) toastRef.trigger()
+			return
+		}
+		if (!onSave) return
 		isSaved = !isSaved
 		onSave()
 	}
@@ -123,13 +136,8 @@
 {/snippet}
 
 {#snippet actionButtons()}
-	{#if isLoggedIn}
-		<FloatingLikeButton isActive={isLiked} onClick={handleLike} />
-		<FloatingSaveButton isActive={isSaved} onClick={handleSave} />
-	{:else}
-		<FloatingLikeButton />
-		<FloatingSaveButton />
-	{/if}
+	<FloatingLikeButton isActive={isLiked} onClick={handleLike} />
+	<FloatingSaveButton isActive={isSaved} onClick={handleSave} />
 	<FloatingShareButton onClick={toggleSharePopup} />
 {/snippet}
 
@@ -255,6 +263,12 @@
 	url={shareUrl}
 	title={recipe.title}
 />
+
+<Toast bind:this={toastRef} type="info">
+	{#snippet message()}
+		Please <a href="/login">log in</a> to {toastType === 'like' ? 'like' : 'save'} recipes.
+	{/snippet}
+</Toast>
 
 <style lang="scss">
 	@import '$lib/global.scss';
