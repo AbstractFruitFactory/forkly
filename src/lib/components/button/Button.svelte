@@ -5,7 +5,7 @@
 	type Size = 'xs' | 'sm' | 'md' | 'lg'
 
 	let {
-		variant,
+		variant = 'primary',
 		size = 'md',
 		color,
 		type = 'button',
@@ -32,17 +32,17 @@
 </script>
 
 <svelte:element
-  style:--button-color={color}
+	style={color ? `--button-color: ${color}` : undefined}
 	this={href ? 'a' : 'button'}
 	{href}
 	{type}
 	{disabled}
 	class="button"
-	class:primary={variant === 'primary'}
-	class:secondary={variant === 'secondary'}
-	class:text={variant === 'text'}
-	class:dotted={variant === 'dotted'}
-	class:border={variant === 'border'}
+	class:primary={variant === 'primary' && !color}
+	class:secondary={variant === 'secondary' && !color}
+	class:text={variant === 'text' && !color}
+	class:dotted={variant === 'dotted' && !color}
+	class:border={variant === 'border' && !color}
 	class:xs={size === 'xs'}
 	class:sm={size === 'sm'}
 	class:md={size === 'md'}
