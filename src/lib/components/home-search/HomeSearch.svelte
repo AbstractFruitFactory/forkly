@@ -35,11 +35,17 @@
 	let tagResults = $state<{ label: string }[]>([])
 	let ingredientResults = $state<{ label: string }[]>([])
 	let dropdownOpen = $state(false)
+	let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-	const handleInput = async (v: string) => {
+	const handleInput = (v: string) => {
 		value = v
 		dropdownOpen = !!v
-		await fetchDropdownResults(v)
+		if (debounceTimer) clearTimeout(debounceTimer)
+		debounceTimer = setTimeout(async () => {
+			isLoading = true
+			await fetchDropdownResults(v)
+			isLoading = false
+		}, 300)
 	}
 
 	const handleKeydown = (e: KeyboardEvent) => {
