@@ -63,15 +63,17 @@
 				{loading ? `${submitText}...` : submitText}
 			</Button>
 
-			<a href="/login/google" style="display: block; margin-top: 1rem; text-align: center;">
-				<button
-					type="button"
-					style="width: 100%; padding: 0.75em; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5em;"
-				>
-					<GoogleIcon />
-					Sign in with Google
-				</button>
-			</a>
+			{#if mode === 'login'}
+				<a href="/login/google" style="display: block; margin-top: 1rem; text-align: center;">
+					<button
+						type="button"
+						style="width: 100%; padding: 0.75em; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5em;"
+					>
+						<GoogleIcon />
+						Sign in with Google
+					</button>
+				</a>
+			{/if}
 		</form>
 
 		<p class="alternate-link">
