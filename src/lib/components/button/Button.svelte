@@ -5,8 +5,9 @@
 	type Size = 'xs' | 'sm' | 'md' | 'lg'
 
 	let {
-		variant = 'primary',
+		variant,
 		size = 'md',
+		color,
 		type = 'button',
 		borderRadius = 'md',
 		fullWidth = false,
@@ -17,6 +18,7 @@
 		loading = false
 	}: {
 		variant?: Variant
+		color?: string
 		size?: Size
 		type?: 'button' | 'submit' | 'reset'
 		borderRadius?: 'md' | 'lg' | 'xl' | 'full'
@@ -30,6 +32,7 @@
 </script>
 
 <svelte:element
+  style:--button-color={color}
 	this={href ? 'a' : 'button'}
 	{href}
 	{type}
@@ -68,7 +71,7 @@
 		font-weight: 500;
 		cursor: pointer;
 		transition: all var(--transition-fast) var(--ease-in-out);
-		background: transparent;
+		background: var(--button-color, transparent);
 		color: var(--color-neutral);
 		border: none;
 		text-decoration: none;

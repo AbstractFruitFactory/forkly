@@ -45,7 +45,7 @@
 		initialTags = [],
 		initialIngredients = [],
 		initialSort = 'popular',
-		searchRecipes,
+		searchRecipes
 	}: {
 		recipes: Recipe[]
 		isLoading?: boolean
@@ -200,12 +200,11 @@
 		<HomeSearch
 			bind:value={searchValue}
 			bind:inputElement={searchInput}
-			bind:selectedTags={selectedTags}
-			bind:selectedIngredients={selectedIngredients}
+			bind:selectedTags
+			bind:selectedIngredients
 			searchTags={loadTags}
 			searchIngredients={loadIngredients}
-			searchRecipes={searchRecipes}
-			handleSearch={() => handleSearch(searchValue)}
+			{searchRecipes}
 			showResults={(query) => handleSearch(query)}
 			{isLoading}
 			actionButton={{
@@ -259,12 +258,29 @@
 			in:fly={{ x: -50, duration: 300, delay: 300 }}
 			out:fly={{ x: -50, duration: 300 }}
 		>
-			<span class="sort-label">Sort by: </span>
-			<TabSelect
-				options={['Popular', 'Newest', 'Easiest']}
-				selected={sortBy}
-				onSelect={(option) => handleSortClick(option.toLowerCase())}
-			/>
+			<div class="pill-sort-group">
+				<button
+					type="button"
+					class="pill-sort-btn {sortBy === 'popular' ? 'active' : ''}"
+					onclick={() => handleSortClick('popular')}
+				>
+					Popular
+				</button>
+				<button
+					type="button"
+					class="pill-sort-btn {sortBy === 'newest' ? 'active' : ''}"
+					onclick={() => handleSortClick('newest')}
+				>
+					Newest
+				</button>
+				<button
+					type="button"
+					class="pill-sort-btn {sortBy === 'easiest' ? 'active' : ''}"
+					onclick={() => handleSortClick('easiest')}
+				>
+					Easiest
+				</button>
+			</div>
 		</div>
 	</div>
 
@@ -332,13 +348,9 @@
 		margin: var(--spacing-sm) 0;
 		display: flex;
 		align-items: center;
+		justify-content: center;
+		width: 100%;
 		gap: var(--spacing-md);
-	}
-
-	.sort-label {
-		font-size: var(--font-size-md);
-		color: var(--color-neutral-light);
-		margin-right: var(--spacing-sm);
 	}
 
 	.search-container {
@@ -397,7 +409,7 @@
 		gap: var(--spacing-sm);
 		align-items: center;
 	}
-	
+
 	.recipe-grid {
 		position: relative;
 	}
@@ -536,5 +548,30 @@
 		text-align: center;
 		color: var(--color-neutral);
 		padding: var(--spacing-xl);
+	}
+
+	.pill-sort-group {
+		display: flex;
+		gap: 1.5rem;
+	}
+
+	.pill-sort-btn {
+		background: var(--color-neutral-dark);
+		border: none;
+		border-radius: var(--border-radius-full);
+		height: 40px;
+		width: 90px;
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		transition:
+			background 0.2s,
+			color 0.2s;
+		cursor: pointer;
+		outline: none;
+
+		&.active {
+			background: var(--color-secondary);
+			color: #22232e;
+		}
 	}
 </style>
