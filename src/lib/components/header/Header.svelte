@@ -35,7 +35,7 @@
 
 	<div class="right-section">
 		<div class="new-recipe-wrapper">
-			<Button href={newRecipeHref} variant="dotted" size="sm">
+			<Button href={newRecipeHref} variant="border" size="sm">
 				<PlusIcon size={16} color="black" />
 				New Recipe
 			</Button>
