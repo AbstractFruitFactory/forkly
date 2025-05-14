@@ -2,6 +2,7 @@
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
+	import { navigating } from '$app/state'
 
 	interface Recipe {
 		id: string
@@ -25,13 +26,27 @@
 		recipe?: Recipe
 		loading?: boolean
 	} = $props()
+
+	let isNavigating = $state(false)
+
+	const handleClick = (event: MouseEvent) => {
+		if (!recipe) return
+		isNavigating = true
+	}
+
+	$effect(() => {
+		if (isNavigating && !navigating) {
+			isNavigating = false
+		}
+	})
 </script>
 
 <a
 	href={recipe ? `/recipe/${recipe.id}` : undefined}
 	class="recipe-card"
-	class:skeleton={loading}
+	class:skeleton={loading || isNavigating}
 	aria-labelledby={recipe ? `recipe-title-${recipe.id}` : undefined}
+	onclick={handleClick}
 >
 	<div class="image-container" class:no-image={recipe && !recipe.imageUrl}>
 		{#if loading}
@@ -97,6 +112,12 @@
 			{/if}
 		</div>
 	</div>
+
+	{#if isNavigating}
+		<div class="spinner-overlay">
+			<div class="spinner"></div>
+		</div>
+	{/if}
 </a>
 
 <style lang="scss">
@@ -394,5 +415,33 @@
 		opacity: 0.8;
 		font-weight: 500;
 		align-self: flex-end;
+	}
+
+	.spinner-overlay {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(255, 255, 255, 0.5);
+		z-index: 10;
+	}
+
+	.spinner {
+		width: 48px;
+		height: 48px;
+		border: 4px solid rgba(0, 0, 0, 0.1);
+		border-top: 4px solid var(--color-primary, #4f46e5);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 </style>

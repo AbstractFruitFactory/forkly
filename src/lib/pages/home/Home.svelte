@@ -23,8 +23,6 @@
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import { onMount } from 'svelte'
 	import { fly } from 'svelte/transition'
-	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
-	import ScrollToTop from '$lib/components/scroll-to-top/ScrollToTop.svelte'
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
 	import HomeSearch from '$lib/components/home-search/HomeSearch.svelte'
 
