@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
+	import { fly } from 'svelte/transition'
 
 	let {
 		image,
@@ -26,14 +27,22 @@
 
 <div class="desktop-layout">
 	<div class="sidebar">
-		<div class="action-buttons">
+		<div
+			class="action-buttons"
+			in:fly={{ x: -50, duration: 300, delay: 500 }}
+			out:fly={{ x: -50, duration: 300 }}
+		>
 			{@render actionButtons()}
 		</div>
 	</div>
 
 	<div class="main-content">
 		<div class="content-grid">
-			<div class="recipe-info">
+			<div
+				class="recipe-info"
+				in:fly={{ x: -50, duration: 300, delay: 300 }}
+				out:fly={{ x: -50, duration: 300 }}
+			>
 				<div class="tags-and-action-buttons">
 					<div class="tags">
 						{@render tags()}
@@ -49,14 +58,22 @@
 				</div>
 			</div>
 
-			<div class="right-column">
+			<div
+				class="right-column"
+				in:fly={{ y: 50, duration: 300, delay: 300 }}
+				out:fly={{ x: -50, duration: 300 }}
+			>
 				<div class="recipe-media">
 					{@render image()}
 				</div>
 				{@render instructions()}
 			</div>
 		</div>
-		<div class="comments-section">
+		<div
+			class="comments-section"
+			in:fly={{ y: 50, duration: 300, delay: 300 }}
+			out:fly={{ y: 50, duration: 300 }}
+		>
 			{@render comments()}
 		</div>
 	</div>
