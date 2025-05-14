@@ -50,7 +50,7 @@
 			</div>
 
 			<div class="right-column">
-				<div class="recipe-media card">
+				<div class="recipe-media">
 					{@render image()}
 				</div>
 				{@render instructions()}
@@ -80,14 +80,6 @@
 		display: grid;
 		grid-template-columns: minmax(300px, 1fr) minmax(400px, 1.5fr);
 		gap: var(--spacing-lg);
-	}
-
-	.card {
-		background: var(--color-neutral-dark);
-		border: var(--border-width-thin) solid var(--color-neutral);
-		border-radius: var(--border-radius-lg);
-		padding: var(--spacing-lg);
-		box-shadow: var(--shadow-md);
 	}
 
 	.right-column {
