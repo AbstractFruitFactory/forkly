@@ -2,21 +2,26 @@
 	const sizeMap = {
 		sm: '32px',
 		lg: '48px'
-	} as const;
+	} as const
 
-	let { 
+	let {
 		profilePicUrl,
 		size = 'sm'
-	}: { 
-		profilePicUrl?: string,
+	}: {
+		profilePicUrl?: string
 		size?: 'sm' | 'lg'
 	} = $props()
 
-	const pixelSize = sizeMap[size];
+	const pixelSize = sizeMap[size]
 </script>
 
 {#if profilePicUrl}
-	<img src={profilePicUrl} alt="Profile" class="profile-pic" style="width: {pixelSize}; height: {pixelSize};" />
+	<img
+		src={profilePicUrl}
+		alt="Profile"
+		class="profile-pic"
+		style="width: {pixelSize}; height: {pixelSize};"
+	/>
 {:else}
 	<div class="profile-pic-placeholder" style="width: {pixelSize}; height: {pixelSize};">
 		<svg
@@ -25,7 +30,7 @@
 			height="20"
 			viewBox="0 0 24 24"
 			fill="none"
-			stroke="currentColor"
+			stroke="black"
 			stroke-width="2"
 			stroke-linecap="round"
 			stroke-linejoin="round"
@@ -44,10 +49,9 @@
 
 	.profile-pic-placeholder {
 		border-radius: 50%;
-		background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
+		border: var(--border-width-normal) solid var(--color-neutral);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: var(--color-neutral);
 	}
-</style> 
+</style>

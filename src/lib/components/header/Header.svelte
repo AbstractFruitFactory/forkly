@@ -35,8 +35,8 @@
 
 	<div class="right-section">
 		<div class="new-recipe-wrapper">
-			<Button href={newRecipeHref} color="var(--color-success)" size="sm">
-				<PlusIcon size={16} />
+			<Button href={newRecipeHref} variant="dotted" size="sm">
+				<PlusIcon size={16} color="black" />
 				New Recipe
 			</Button>
 		</div>
@@ -45,7 +45,6 @@
 			{#if loggedIn}
 				<a href={profileHref} class="profile-link">
 					<ProfilePic {profilePicUrl} size="sm" />
-					<span class="profile-text">Profile</span>
 				</a>
 			{:else}
 				<Button href={loginHref} variant="dotted" size="sm">Login</Button>
@@ -81,6 +80,7 @@
 			text-decoration: none;
 			transition: opacity var(--transition-fast) var(--ease-in-out);
 			white-space: nowrap;
+			color: black;
 
 			@include mobile {
 				font-size: var(--font-size-2xl);

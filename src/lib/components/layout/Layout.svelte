@@ -83,7 +83,7 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background: var(--color-neutral-dark);
+		background: var(--color-primary);
 		border-bottom: 1px solid var(--color-neutral);
 		box-shadow: var(--shadow-sm);
 		width: 100vw;

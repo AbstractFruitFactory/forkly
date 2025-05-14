@@ -64,11 +64,11 @@
 		cursor: pointer;
 		font-size: var(--font-size-sm);
 		z-index: 2;
-
+		transition: color 0.1s;
 	}
 
 	.background {
-		background-color: var(--color-primary-dark);
+		background-color: var(--color-secondary);
 		border-radius: var(--border-radius-full);
 		position: absolute;
 		top: 0;
@@ -76,5 +76,10 @@
 		width: 100%;
 		height: 100%;
 		z-index: 1;
+	}
+
+	.active {
+		color: black;
+		
 	}
 </style>

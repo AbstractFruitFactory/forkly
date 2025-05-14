@@ -20,11 +20,11 @@
 
 <div class="servings-pill">
 	<button class="adjust-button" onclick={decrement} disabled={servings <= 1}>
-		<Minus size={22} />
+		<Minus size={22} color="var(--color-secondary)" />
 	</button>
 	<span class="servings-text">Serves {servings}</span>
 	<button class="adjust-button" onclick={increment}>
-		<Plus size={22} />
+		<Plus size={22} color="var(--color-secondary)" />
 	</button>
 </div>
 

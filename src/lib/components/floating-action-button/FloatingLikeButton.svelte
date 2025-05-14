@@ -13,9 +13,8 @@
 
 <style lang="scss">
 	.like-button-container {
-		:global(.action-button.active) {
-			background: var(--color-primary-dark);
-			border-color: var(--color-primary);
+		:global(.action-button.active > svg) {
+			fill: var(--color-text);
 		}
 	}
 </style>

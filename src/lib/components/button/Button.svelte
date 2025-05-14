@@ -32,8 +32,8 @@
 </script>
 
 <svelte:element
-	style={color ? `--button-color: ${color}` : undefined}
 	this={href ? 'a' : 'button'}
+	style={color ? `--button-color: ${color}` : undefined}
 	{href}
 	{type}
 	{disabled}
@@ -72,7 +72,6 @@
 		cursor: pointer;
 		transition: all var(--transition-fast) var(--ease-in-out);
 		background: var(--button-color, transparent);
-		color: var(--color-neutral);
 		border: none;
 		text-decoration: none;
 		position: relative;
@@ -101,6 +100,7 @@
 			align-items: center;
 			justify-content: center;
 			gap: var(--spacing-xs);
+			color: black;
 		}
 
 		&.border-radius-md {
@@ -141,11 +141,12 @@
 
 		// Variants
 		&.primary {
-			background: var(--color-primary-dark);
+			background: var(--color-primary);
+			color: black;
 			font-weight: 600;
 
 			&:hover:not(:disabled) {
-				background: color-mix(in srgb, var(--color-primary-dark), black 15%);
+				background: color-mix(in srgb, var(--color-primary), black 15%);
 			}
 
 			&:active:not(:disabled) {

@@ -34,9 +34,10 @@ $breakpoint-xl: 1280px;
 
 :root {
   // Primary colors
-  --color-primary: #FF914D;
-  --color-primary-light: #ff9650;
-  --color-primary-dark: #B45309;
+  $primary-color: #FCDF68;
+  --color-primary: #{$primary-color};
+  --color-primary-light: #{lighten($primary-color, 20%)};
+  --color-primary-dark: #{darken($primary-color, 20%)};
 
   --color-secondary: #96DCFA;
 
