@@ -1,11 +1,22 @@
 <script lang="ts">
 	import RecipeCreator from '$lib/components/recipe-creator/RecipeCreator.svelte'
-	export let description: string
-	export let username: string | undefined
-	export let userId: string | undefined
-	export let profilePicUrl: string | undefined
 
-	let isDescriptionExpanded = false
+	let {
+		description,
+		username,
+		userId,
+		profilePicUrl,
+		card = false
+	}: {
+		description: string
+		username: string | undefined
+		userId: string | undefined
+		profilePicUrl: string | undefined
+		card?: boolean
+	} = $props()
+
+	let isDescriptionExpanded = $state(false)
+
 	const MAX_DESCRIPTION_LENGTH = 200
 	const shouldTruncateDescription = description.length > MAX_DESCRIPTION_LENGTH
 
@@ -18,7 +29,7 @@
 	}
 </script>
 
-<div class="description card">
+<div class="description" class:card>
 	{#if username && userId}
 		<RecipeCreator {username} {userId} {profilePicUrl} />
 		<div class="divider"></div>

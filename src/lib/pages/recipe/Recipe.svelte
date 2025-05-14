@@ -141,12 +141,13 @@
 	<FloatingShareButton onClick={toggleSharePopup} />
 {/snippet}
 
-{#snippet description()}
+{#snippet commonDescription(card: boolean)}
 	<Description
 		description={recipe.description || ''}
 		username={recipe.user?.username}
 		userId={recipe.userId}
 		profilePicUrl={recipe.user?.avatarUrl}
+		{card}
 	/>
 {/snippet}
 
@@ -210,16 +211,7 @@
 {/snippet}
 
 <div class="recipe-desktop-view">
-	<DesktopLayout
-		{tags}
-		{title}
-		{actionButtons}
-		{description}
-		{nutrition}
-		{ingredients}
-		{instructions}
-		{comments}
-	>
+	<DesktopLayout {tags} {title} {actionButtons} {nutrition} {ingredients} {instructions} {comments}>
 		{#snippet image()}
 			{#snippet img()}
 				<RecipeMediaDisplay
@@ -230,6 +222,10 @@
 			{/snippet}
 			{@render commonImage(img)}
 		{/snippet}
+
+		{#snippet description()}
+			{@render commonDescription(false)}
+		{/snippet}
 	</DesktopLayout>
 </div>
 
@@ -239,7 +235,6 @@
 		{tags}
 		{title}
 		{actionButtons}
-		{description}
 		{nutrition}
 		{ingredients}
 		{instructions}
@@ -251,6 +246,10 @@
 				<img src={recipe.imageUrl || ''} alt={recipe.title} />
 			{/snippet}
 			{@render commonImage(img)}
+		{/snippet}
+
+		{#snippet description()}
+			{@render commonDescription(true)}
 		{/snippet}
 	</MobileLayout>
 </div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from 'svelte'
 
 	let {
 		image,
@@ -12,19 +12,19 @@
 		instructions,
 		comments
 	}: {
-		image: Snippet;
-		tags: Snippet;
-		title: Snippet;
-		actionButtons: Snippet;
-		description: Snippet;
-		nutrition: Snippet;
-		ingredients: Snippet;
-		instructions: Snippet;
-		comments: Snippet;
-	} = $props();
+		image: Snippet
+		tags: Snippet
+		title: Snippet
+		actionButtons: Snippet
+		description: Snippet
+		nutrition: Snippet
+		ingredients: Snippet
+		instructions: Snippet
+		comments: Snippet
+	} = $props()
 </script>
 
-<div class="recipe-desktop-view-new">
+<div class="desktop-layout">
 	<div class="sidebar">
 		<div class="action-buttons">
 			{@render actionButtons()}
@@ -33,17 +33,18 @@
 
 	<div class="main-content">
 		<div class="content-grid">
-			<div class="left-column card">
-				<div class="recipe-info">
-					<div class="tags-and-action-buttons">
-						<div class="tags">
-							{@render tags()}
-						</div>
+			<div class="recipe-info">
+				<div class="tags-and-action-buttons">
+					<div class="tags">
+						{@render tags()}
 					</div>
+				</div>
 
-					{@render title()}
-					{@render description()}
-					{@render nutrition()}
+				{@render title()}
+				{@render description()}
+				{@render nutrition()}
+
+				<div class="ingredients">
 					{@render ingredients()}
 				</div>
 			</div>
@@ -64,13 +65,15 @@
 <style lang="scss">
 	@import '$lib/global.scss';
 
-	.recipe-desktop-view-new {
+	.desktop-layout {
 		display: grid;
 		grid-template-columns: auto 1fr;
-		gap: var(--spacing-lg);
-		max-width: 1200px;
-		padding: 0 var(--spacing-xl);
+		gap: var(--spacing-xl);
 		background: var(--color-background);
+	}
+
+	.main-content {
+		position: relative;
 	}
 
 	.content-grid {
@@ -85,12 +88,6 @@
 		border-radius: var(--border-radius-lg);
 		padding: var(--spacing-lg);
 		box-shadow: var(--shadow-md);
-	}
-
-	.left-column {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xl);
 	}
 
 	.right-column {
@@ -129,6 +126,13 @@
 		flex-direction: column;
 		gap: var(--spacing-xl);
 		align-items: center;
+		margin-top: var(--spacing-xl);
+	}
+
+	.ingredients {
+		position: sticky;
+		top: var(--spacing-md);
+		height: fit-content;
 	}
 
 	.recipe-media {
@@ -151,4 +155,4 @@
 		border-top: 1px solid rgba(255, 255, 255, 0.1);
 		margin-bottom: var(--spacing-xl);
 	}
-</style> 
+</style>

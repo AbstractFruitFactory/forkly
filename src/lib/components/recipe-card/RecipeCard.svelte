@@ -106,7 +106,7 @@
 		height: 400px;
 		width: 100%;
 		border-radius: var(--border-radius-lg);
-		background: var(--color-neutral-dark);
+		background: var(--color-surface);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		box-shadow: var(--shadow-sm);
 		text-decoration: none;
