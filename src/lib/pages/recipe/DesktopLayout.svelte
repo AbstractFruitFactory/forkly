@@ -135,7 +135,7 @@
 		flex-direction: column;
 		gap: var(--spacing-xl);
 		align-items: center;
-		margin-top: var(--spacing-xl);
+		margin-top: var(--spacing-2xl);
 	}
 
 	.ingredients {
