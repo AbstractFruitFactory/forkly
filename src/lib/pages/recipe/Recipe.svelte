@@ -20,6 +20,7 @@
 	import { onMount, type Snippet } from 'svelte'
 	import MessageSquare from 'lucide-svelte/icons/message-square'
 	import Toast from '$lib/components/toast/Toast.svelte'
+	import Switch from '$lib/components/Switch.svelte'
 
 	let {
 		recipe,
@@ -55,6 +56,7 @@
 	let shareUrl = $state('')
 	let toastType = $state<'like' | 'save'>()
 	let toastRef: Toast
+	let hideImages = $state(false)
 
 	onMount(() => {
 		shareUrl = `${window.location.origin}${window.location.pathname}`
@@ -179,12 +181,13 @@
 {/snippet}
 
 {#snippet instructions()}
-	{#if recipe.instructions && recipe.instructions.length > 0}
-		<div bind:this={instructionsSection}>
-			<h3>Instructions</h3>
-			<RecipeInstructions instructions={recipe.instructions} />
+	<div bind:this={instructionsSection}>
+		<div class="instructions-header">
+			<h3 style="margin-bottom: 0;">Instructions</h3>
+			<Switch bind:checked={hideImages} label="Hide media" />
 		</div>
-	{/if}
+		<RecipeInstructions instructions={recipe.instructions} bind:hideImages />
+	</div>
 {/snippet}
 
 {#snippet comments()}
@@ -295,7 +298,8 @@
 		margin-bottom: var(--spacing-md);
 	}
 
-	.ingredients-header {
+	.ingredients-header,
+	.instructions-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;

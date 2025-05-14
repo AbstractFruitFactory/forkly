@@ -7,7 +7,7 @@
 	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
 	import Button from '../button/Button.svelte'
 
-	let { instructions }: { instructions: RecipeData['instructions'] } = $props()
+	let { instructions, hideImages = $bindable(false) }: { instructions: RecipeData['instructions'], hideImages?: boolean } = $props()
 
 	let isCookingMode = $state(false)
 </script>
@@ -55,12 +55,14 @@
 						{#if instruction.mediaUrl}
 							<div class="instruction-media desktop-only">
 								{#if instruction.mediaType === 'image'}
-									<img
-										src={instruction.mediaUrl}
-										alt={`Step ${i + 1} visual`}
-										loading="lazy"
-										decoding="async"
-									/>
+									{#if !hideImages}
+										<img
+											src={instruction.mediaUrl}
+											alt={`Step ${i + 1} visual`}
+											loading="lazy"
+											decoding="async"
+										/>
+									{/if}
 								{:else if instruction.mediaType === 'video'}
 									<InstructionVideo src={instruction.mediaUrl} stepNumber={i + 1} />
 								{/if}
