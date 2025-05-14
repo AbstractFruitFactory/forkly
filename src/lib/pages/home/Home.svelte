@@ -74,8 +74,6 @@
 	let searchInput: HTMLInputElement
 	let availableTags = $state<{ name: string; count: number }[]>([])
 	let availableIngredients = $state<{ id: string; name: string }[]>([])
-	let showScrollToTop = $state(false)
-	let observer: IntersectionObserver
 	let showFiltersDrawer = $state(false)
 	let isMobile = $state(false)
 
@@ -94,25 +92,6 @@
 		isMac = navigator.userAgent.toLowerCase().includes('mac')
 		checkMobile()
 		window.addEventListener('resize', checkMobile)
-
-		observer = new IntersectionObserver(
-			(entries) => {
-				showScrollToTop = !entries[0].isIntersecting
-			},
-			{
-				threshold: 0
-			}
-		)
-
-		const searchContainer = document.querySelector('.search-container')
-		if (searchContainer) {
-			observer.observe(searchContainer)
-		}
-
-		return () => {
-			observer?.disconnect()
-			window.removeEventListener('resize', checkMobile)
-		}
 	})
 
 	const handleSearch = (query: string) => {
@@ -286,12 +265,6 @@
 
 	<div class="recipe-grid">
 		<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} {isLoading} {loadMore} />
-
-		{#if showScrollToTop}
-			<div class="scroll-to-top">
-				<ScrollToTop />
-			</div>
-		{/if}
 	</div>
 </div>
 
