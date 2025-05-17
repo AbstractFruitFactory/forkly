@@ -1,19 +1,22 @@
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte'
 	import { scrollStore } from '$lib/state/scroll.svelte'
+	import { slide } from 'svelte/transition'
 
 	let {
 		header,
 		content,
-		sidebar,
-		sidebarOpen = $bindable(false),
-		bottomNav
+		homepage = false,
+		wideHeader = false,
+		homepageHeader,
+		homepageHeaderTransition = true
 	} = $props<{
 		header: Snippet
 		content: Snippet
-		sidebar?: Snippet
-		sidebarOpen?: boolean
-		bottomNav?: Snippet
+		homepage?: boolean
+		wideHeader?: boolean
+		homepageHeader?: Snippet
+		homepageHeaderTransition?: boolean
 	}>()
 
 	let mainElement: HTMLElement
@@ -23,28 +26,27 @@
 	})
 </script>
 
-<div class="layout">
-	<header class="header">
-		<div class="header-background"></div>
+<div class="layout" class:home-page={homepage}>
+	<header class="header" class:home-page={homepage} class:wide-header={wideHeader}>
+		<div class="header-background" class:transparent={homepage && wideHeader}></div>
 		{@render header()}
 	</header>
-	<div class="main-layout">
-		{#if sidebar}
-			<div class="sidebar-container">
-				{#if sidebarOpen}
-					{@render sidebar()}
-				{/if}
+
+	<main class="main" class:home-page={homepage} bind:this={mainElement}>
+		{#if homepage}
+			<div
+				class="homepage-header"
+				transition:slide={{ duration: homepageHeaderTransition ? 300 : 0 }}
+			>
+				{@render homepageHeader()}
 			</div>
 		{/if}
-		<main class="main" class:with-sidebar={sidebarOpen} bind:this={mainElement}>
-			<div class="main-content">
+		<div class="main-layout" class:expanded={!wideHeader}>
+			<div class="main-content" class:home-page={homepage}>
 				{@render content()}
 			</div>
-		</main>
-	</div>
-	{#if bottomNav}
-		{@render bottomNav()}
-	{/if}
+		</div>
+	</main>
 </div>
 
 <style lang="scss">
@@ -58,6 +60,10 @@
 		height: 100dvh;
 		overflow: hidden;
 
+		&.home-page {
+			overflow: unset;
+		}
+
 		@include desktop {
 			padding-bottom: 0;
 		}
@@ -67,10 +73,17 @@
 		position: sticky;
 		top: 0;
 		z-index: var(--z-sticky);
-		width: 100%;
+		width: 100vw;
 		max-width: $max-width;
 		margin: 0 auto;
 		padding: 0 var(--spacing-2xl);
+
+		transition: max-width 0.25s ease-out;
+
+		&.wide-header {
+			width: 100vw;
+			max-width: 100vw;
+		}
 
 		@include mobile {
 			display: none;
@@ -84,16 +97,12 @@
 		right: 0;
 		bottom: 0;
 		background: var(--color-primary);
-		border-bottom: 1px solid var(--color-neutral);
-		box-shadow: var(--shadow-sm);
 		width: 100vw;
 		margin-left: calc(-50vw + 50%);
-	}
 
-	.main-layout {
-		display: flex;
-		flex: 1;
-		overflow: hidden;
+		&.transparent {
+			background: transparent;
+		}
 	}
 
 	.sidebar-container {
@@ -106,11 +115,12 @@
 		flex-grow: 1;
 		overflow-y: auto;
 		scrollbar-width: thin;
-		scrollbar-gutter: stable both-edges;
 		transition: margin-left 0.25s ease-out;
 
-		&.with-sidebar {
-			margin-left: 300px;
+		&.home-page {
+			overflow-y: unset;
+			scrollbar-width: unset;
+			scrollbar-gutter: unset;
 		}
 
 		@include mobile {
@@ -119,11 +129,34 @@
 		}
 	}
 
+	.main-layout {
+		z-index: var(--z-dropdown);
+		background: var(--color-background);
+		margin: 0 var(--spacing-2xl);
+		margin-top: var(--spacing-3xl);
+		border-top-left-radius: 3rem;
+		border-top-right-radius: 3rem;
+
+		transition:
+			margin 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+			border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+		&.expanded {
+			margin: 0;
+			max-width: 100vw;
+			border-radius: 0;
+		}
+	}
+
 	.main-content {
-		flex-grow: 1;
 		max-width: $max-width;
 		margin: 0 auto;
 		padding: var(--spacing-xl) var(--spacing-2xl);
+
+		&.home-page {
+			max-width: 100%;
+			padding: 0;
+		}
 
 		@include mobile {
 			padding: var(--spacing-md);

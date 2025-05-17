@@ -7,6 +7,7 @@
 	import type { TagSearchResponse } from './api/tags/+server'
 	import type { RecipesSearchResponse } from './api/recipes/search/+server'
 	import { toHomePageRecipe } from '$lib/utils/recipe'
+	import { stickyScrollBarStore } from './+layout.svelte'
 
 	let { data } = $props()
 
@@ -109,13 +110,13 @@
 		pagination.isLoading = true
 
 		const url = new URL('/api/recipes/search', window.location.origin)
-		
+
 		// Preserve all current query parameters
 		const currentParams = new URLSearchParams(page.url.search)
 		currentParams.forEach((value, key) => {
 			url.searchParams.set(key, value)
 		})
-		
+
 		// Update pagination parameters
 		url.searchParams.set('limit', pagination.limit.toString())
 		url.searchParams.set('page', (pagination.page + 1).toString())
@@ -155,11 +156,11 @@
 		}
 		return []
 	}
-</script>
 
-<svelte:head>
-	<title>Forkly - Discover and Share Recipes</title>
-</svelte:head>
+	const onSearchbarSticky = (isSticky: boolean) => {
+		isSticky ? stickyScrollBarStore.setTrue() : stickyScrollBarStore.setFalse()
+	}
+</script>
 
 <Home
 	{recipes}
@@ -173,9 +174,10 @@
 	initialSearch={searchValue}
 	initialTags={activeFilters.tags}
 	initialIngredients={[
-		...activeFilters.ingredients.map(label => ({ label, include: true })),
-		...activeFilters.excludedIngredients.map(label => ({ label, include: false }))
+		...activeFilters.ingredients.map((label) => ({ label, include: true })),
+		...activeFilters.excludedIngredients.map((label) => ({ label, include: false }))
 	]}
 	initialSort={sortParam}
-	searchRecipes={searchRecipes}
+	{searchRecipes}
+	{onSearchbarSticky}
 />

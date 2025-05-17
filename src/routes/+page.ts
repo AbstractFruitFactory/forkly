@@ -2,7 +2,7 @@ import { safeFetch } from '$lib/utils/fetch'
 import { toHomePageRecipe } from '$lib/utils/recipe'
 import { error } from '@sveltejs/kit'
 import type { PageLoad } from './$types'
-import type { RecipesSearchResponse } from './api/recipes/search/+server'
+import type { RecipesSearchResponse } from './(pages)/api/recipes/search/+server'
 
 export const load: PageLoad = async ({ url, fetch }) => {
 	const searchParams = new URLSearchParams()

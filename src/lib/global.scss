@@ -157,6 +157,25 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+// Hide scrollbar on home page
+html,
+body {
+  height: 100%;
+  overflow: auto;
+
+  /* Firefox */
+  scrollbar-width: none;
+
+  /* IE/Edge */
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  /* Chrome/Safari */
+}
+
 h1 {
   font-size: var(--font-size-3xl);
   font-weight: 700;

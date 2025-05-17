@@ -1,21 +1,24 @@
 <script lang="ts">
-	import Button from '$lib/components/button/Button.svelte'
-	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
-	import { onMount } from 'svelte'
-	import PlusIcon from 'lucide-svelte/icons/plus'
+	import { onMount, type Snippet } from 'svelte'
+	import Logo from '$lib/components/logo/Logo.svelte'
+	import HeaderActions from './HeaderActions.svelte'
 
 	let {
 		loggedIn = false,
 		newRecipeHref,
 		profileHref,
 		loginHref,
-		profilePicUrl = ''
+		profilePicUrl = '',
+		actions,
+		logo
 	}: {
 		loggedIn: boolean
 		newRecipeHref?: string
 		profileHref?: string
 		loginHref?: string
 		profilePicUrl?: string
+		actions?: Snippet
+		logo?: Snippet
 	} = $props()
 
 	let isMac = $state(false)
@@ -27,66 +30,24 @@
 
 <header class="header">
 	<div class="left-section">
-		<div class="logo">
-			<a href="/" class="logo-desktop">Forkly</a>
-			<a href="/" class="logo-mobile">F</a>
-		</div>
+		{#if logo}
+			{@render logo()}
+		{:else}
+			<Logo />
+		{/if}
 	</div>
 
 	<div class="right-section">
-		<div class="new-recipe-wrapper">
-			<Button href={newRecipeHref} variant="border" size="sm">
-				<PlusIcon size={16} color="black" />
-				New Recipe
-			</Button>
-		</div>
-
-		<nav class="main-nav">
-			{#if loggedIn}
-				<a href={profileHref} class="profile-link">
-					<ProfilePic {profilePicUrl} size="sm" />
-				</a>
-			{:else}
-				<Button href={loginHref} variant="dotted" size="sm">Login</Button>
-			{/if}
-		</nav>
+		{#if actions}
+			{@render actions()}
+		{:else}
+			<HeaderActions {loggedIn} {newRecipeHref} {profileHref} {loginHref} {profilePicUrl} />
+		{/if}
 	</div>
 </header>
 
 <style lang="scss">
 	@import '$lib/global.scss';
-
-	.logo {
-		&-desktop {
-			display: block;
-
-			@include mobile {
-				display: none;
-			}
-		}
-
-		&-mobile {
-			display: none;
-
-			@include mobile {
-				display: block;
-				width: 24px;
-			}
-		}
-
-		a {
-			font-family: 'Pacifico', cursive;
-			font-size: var(--font-size-3xl);
-			text-decoration: none;
-			transition: opacity var(--transition-fast) var(--ease-in-out);
-			white-space: nowrap;
-			color: black;
-
-			@include mobile {
-				font-size: var(--font-size-2xl);
-			}
-		}
-	}
 
 	.header {
 		display: flex;
@@ -106,7 +67,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-xl);
-		flex: 1;
+		flex: 0 1 auto;
 
 		@include mobile {
 			gap: var(--spacing-sm);
@@ -116,11 +77,7 @@
 	.right-section {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-lg);
-
-		@include mobile {
-			gap: var(--spacing-sm);
-		}
+		flex: 0 1 auto;
 	}
 
 	.new-recipe-button {

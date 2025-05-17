@@ -25,6 +25,9 @@
 	import { fly } from 'svelte/transition'
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
 	import HomeSearch from '$lib/components/home-search/HomeSearch.svelte'
+	import Logo from '$lib/components/logo/Logo.svelte'
+	import { setSlots } from '../../../routes/+layout.svelte'
+	import { writable } from 'svelte/store'
 
 	let {
 		recipes,
@@ -43,7 +46,8 @@
 		initialTags = [],
 		initialIngredients = [],
 		initialSort = 'popular',
-		searchRecipes
+		searchRecipes,
+		onSearchbarSticky = (isSticky: boolean) => {}
 	}: {
 		recipes: Recipe[]
 		isLoading?: boolean
@@ -62,6 +66,7 @@
 		initialIngredients?: { label: string; include: boolean }[]
 		initialSort?: 'popular' | 'newest' | 'easiest'
 		searchRecipes: (query: string) => Promise<any[]>
+		onSearchbarSticky?: (isSticky: boolean) => void
 	} = $props()
 
 	let searchValue = $derived(initialSearch)
@@ -74,6 +79,10 @@
 	let availableIngredients = $state<{ id: string; name: string }[]>([])
 	let showFiltersDrawer = $state(false)
 	let isMobile = $state(false)
+	let searchbarIsSticky = $state(false)
+	let searchContainer: HTMLDivElement
+	let hasInitializedObserver = false
+	let sentinelNode = writable<HTMLElement | null>(null)
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -90,6 +99,33 @@
 		isMac = navigator.userAgent.toLowerCase().includes('mac')
 		checkMobile()
 		window.addEventListener('resize', checkMobile)
+
+		let observer: IntersectionObserver | null = null
+		let unsubscribe = sentinelNode.subscribe((node) => {
+			if (observer) {
+				observer.disconnect()
+				observer = null
+			}
+			if (node) {
+				observer = new window.IntersectionObserver(
+					(entries) => {
+						if (!hasInitializedObserver) {
+							hasInitializedObserver = true
+							return
+						}
+						searchbarIsSticky = entries[0].intersectionRatio < 1
+						onSearchbarSticky(searchbarIsSticky)
+					},
+					{ root: null, threshold: 1 }
+				)
+				observer.observe(node)
+			}
+		})
+		return () => {
+			if (observer) observer.disconnect()
+			window.removeEventListener('resize', checkMobile)
+			unsubscribe()
+		}
 	})
 
 	const handleSearch = (query: string) => {
@@ -163,111 +199,193 @@
 			? 'No recipes found matching your criteria. Try different search terms or filters, or browse all recipes.'
 			: 'No recipes yet! Be the first to create one.'
 	)
+
+	setSlots({ homepageHeader, content })
 </script>
 
 <svelte:document onkeydown={handleKeyDown} />
 
-<div
-	class="search-container"
-	in:fly={{ x: -50, duration: 300, delay: 300 }}
-	out:fly={{ x: -50, duration: 300 }}
->
-	<h1 class="home-title">Explore Recipes</h1>
-	<div class="search-content">
-		<HomeSearch
-			bind:value={searchValue}
-			bind:inputElement={searchInput}
-			bind:selectedTags
-			bind:selectedIngredients
-			searchTags={loadTags}
-			searchIngredients={loadIngredients}
-			{searchRecipes}
-			showResults={(query) => handleSearch(query)}
-			{isLoading}
-			actionButton={{
-				text: isMac ? '⌘+K' : 'Ctrl+K',
-				onClick: () => searchInput?.focus()
-			}}
-			onFiltersChange={() => notifyFiltersChanged()}
-		/>
+{#snippet homepageHeader()}
+	<div class="large-header">Explore recipes on <Logo /></div>
 
-		<div class="mobile-filters-button">
-			<Button variant="primary" size="sm" fullWidth onclick={() => (showFiltersDrawer = true)}>
-				Filters
-			</Button>
-		</div>
-	</div>
-</div>
+	<div bind:this={$sentinelNode} style="height: 1px;"></div>
+	<div
+		class="search-container"
+		bind:this={searchContainer}
+	>
+		<div class="search-content">
+			<HomeSearch
+				bind:value={searchValue}
+				bind:inputElement={searchInput}
+				bind:selectedTags
+				bind:selectedIngredients
+				searchTags={loadTags}
+				searchIngredients={loadIngredients}
+				{searchRecipes}
+				showResults={(query) => handleSearch(query)}
+				{isLoading}
+				actionButton={{
+					text: isMac ? '⌘+K' : 'Ctrl+K',
+					onClick: () => searchInput?.focus()
+				}}
+				onFiltersChange={() => notifyFiltersChanged()}
+			/>
 
-{#snippet filterPills()}
-	<div class="selected-pills">
-		{#each selectedTags as tag (tag.label)}
-			<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
-		{/each}
-
-		{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
-			<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
-		{/each}
-
-		{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
-			<Pill text={`-${ingredient.label}`} onRemove={() => removeIngredient(ingredient.label)} />
-		{/each}
-	</div>
-{/snippet}
-
-<Drawer bind:isOpen={showFiltersDrawer} title="Filters">
-	<div class="mobile-filters">
-		<div class="selected-filters">
-			<h4 class="selected-filters-title">Selected Filters</h4>
-			{@render filterPills()}
-		</div>
-	</div>
-</Drawer>
-
-<div class="selected-filters-container">
-	{@render filterPills()}
-</div>
-
-<div class="home-container">
-	<div class="header-content">
-		<div
-			class="sort-controls"
-			in:fly={{ x: -50, duration: 300, delay: 300 }}
-			out:fly={{ x: -50, duration: 300 }}
-		>
-			<div class="pill-sort-group">
-				<button
-					type="button"
-					class="pill-sort-btn {sortBy === 'popular' ? 'active' : ''}"
-					onclick={() => handleSortClick('popular')}
-				>
-					Popular
-				</button>
-				<button
-					type="button"
-					class="pill-sort-btn {sortBy === 'newest' ? 'active' : ''}"
-					onclick={() => handleSortClick('newest')}
-				>
-					Newest
-				</button>
-				<button
-					type="button"
-					class="pill-sort-btn {sortBy === 'easiest' ? 'active' : ''}"
-					onclick={() => handleSortClick('easiest')}
-				>
-					Easiest
-				</button>
+			<div class="mobile-filters-button">
+				<Button variant="primary" size="sm" fullWidth onclick={() => (showFiltersDrawer = true)}>
+					Filters
+				</Button>
 			</div>
 		</div>
 	</div>
+{/snippet}
 
-	<div class="recipe-grid">
-		<RecipeGrid recipes={sortedRecipes} emptyMessage={emptyStateMessage} {isLoading} {loadMore} />
+{#snippet content()}
+	<div class="main-layout" class:expanded={searchbarIsSticky}>
+		<div class="main-content">
+			<div class="selected-filters-container">
+				<div class="selected-pills">
+					{#each selectedTags as tag (tag.label)}
+						<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
+					{/each}
+
+					{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
+						<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
+					{/each}
+
+					{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
+						<Pill
+							text={`-${ingredient.label}`}
+							onRemove={() => removeIngredient(ingredient.label)}
+						/>
+					{/each}
+				</div>
+			</div>
+
+			<Drawer bind:isOpen={showFiltersDrawer} title="Filters">
+				<div class="mobile-filters">
+					<div class="selected-filters">
+						<h4 class="selected-filters-title">Selected Filters</h4>
+						<div class="selected-pills">
+							{#each selectedTags as tag (tag.label)}
+								<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
+							{/each}
+
+							{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
+								<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
+							{/each}
+
+							{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
+								<Pill
+									text={`-${ingredient.label}`}
+									onRemove={() => removeIngredient(ingredient.label)}
+								/>
+							{/each}
+						</div>
+					</div>
+				</div>
+			</Drawer>
+
+			<div class="home-container">
+				<div class="header-content">
+					<div
+						class="sort-controls"
+						in:fly={{ x: -50, duration: 300, delay: 300 }}
+						out:fly={{ x: -50, duration: 300 }}
+					>
+						<div class="pill-sort-group">
+							<button
+								type="button"
+								class="pill-sort-btn {sortBy === 'popular' ? 'active' : ''}"
+								onclick={() => handleSortClick('popular')}
+							>
+								Popular
+							</button>
+							<button
+								type="button"
+								class="pill-sort-btn {sortBy === 'newest' ? 'active' : ''}"
+								onclick={() => handleSortClick('newest')}
+							>
+								Newest
+							</button>
+							<button
+								type="button"
+								class="pill-sort-btn {sortBy === 'easiest' ? 'active' : ''}"
+								onclick={() => handleSortClick('easiest')}
+							>
+								Easiest
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="recipe-grid">
+				<RecipeGrid
+					recipes={sortedRecipes}
+					emptyMessage={emptyStateMessage}
+					{isLoading}
+					{loadMore}
+				/>
+			</div>
+		</div>
 	</div>
-</div>
+{/snippet}
 
 <style lang="scss">
 	@import '$lib/global.scss';
+
+	$max-width: 1200px;
+
+	.header {
+		position: absolute;
+		top: 0;
+		z-index: var(--z-sticky);
+		width: 100%;
+		background: var(--color-primary);
+
+		.header-content {
+			max-width: $max-width;
+			margin: 0 auto;
+			padding: 0 var(--spacing-2xl);
+		}
+
+		&.hidden {
+			opacity: 0;
+			transition: opacity 0.2s ease-in-out;
+		}
+
+		@include mobile {
+			display: none;
+		}
+	}
+
+	.large-header {
+		color: black;
+		font-size: 2rem;
+		font-weight: 600;
+		text-align: center;
+		padding: var(--spacing-2xl) 0;
+	}
+
+	.header-actions-main {
+		position: absolute;
+		top: var(--spacing-md);
+		right: var(--spacing-2xl);
+		z-index: var(--z-sticky);
+	}
+
+
+	.main-content {
+		flex-grow: 1;
+		max-width: $max-width;
+		margin: 0 auto;
+		padding: var(--spacing-xl) var(--spacing-2xl);
+
+		@include mobile {
+			padding: var(--spacing-md);
+		}
+	}
 
 	.home-title {
 		text-align: center;
@@ -326,6 +444,9 @@
 
 	.search-container {
 		margin: var(--spacing-lg) 0;
+		position: sticky;
+		top: 16px;
+		z-index: var(--z-sticky);
 
 		@include tablet {
 			margin: var(--spacing-lg);
@@ -341,7 +462,6 @@
 		flex-direction: column;
 		align-items: center;
 		gap: var(--spacing-md);
-		width: 100%;
 	}
 
 	.pill-selectors {
@@ -352,7 +472,6 @@
 
 	.selected-filters-container {
 		width: 100%;
-		margin: var(--spacing-lg) 0;
 		min-height: 40px;
 		display: flex;
 
@@ -544,5 +663,16 @@
 			background: var(--color-secondary);
 			color: #22232e;
 		}
+	}
+
+	.sticky-header {
+		position: sticky;
+		top: 0;
+		z-index: var(--z-sticky) + 2;
+		width: 100vw;
+		background: var(--color-primary);
+		left: 50%;
+		transform: translateX(-50%);
+		max-width: 100vw;
 	}
 </style>

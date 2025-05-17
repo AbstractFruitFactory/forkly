@@ -26,7 +26,10 @@
 		selectedTags: { label: string; selected?: boolean }[]
 		selectedIngredients: { label: string; include: boolean }[]
 		showResults: (value: string) => void
-		onFiltersChange?: (tags: { label: string; selected?: boolean }[], ingredients: { label: string; include: boolean }[]) => void
+		onFiltersChange?: (
+			tags: { label: string; selected?: boolean }[],
+			ingredients: { label: string; include: boolean }[]
+		) => void
 	} = $props()
 
 	let recipeResults = $state<any[]>([])
@@ -90,6 +93,8 @@
 		selectedIngredients = selectedIngredients.filter((i) => i.label !== ingredient)
 		onFiltersChange?.(selectedTags, selectedIngredients)
 	}
+
+	$inspect(dropdownOpen)
 </script>
 
 <svelte:document onkeydown={handleKeydown} />
@@ -133,7 +138,7 @@
 				{#each tagResults as tag (tag.label)}
 					{@const selected = selectedTags.some((t) => t.label === tag.label)}
 					<div class="dropdown-tag-item">
-						<span class:selected={selected}>{tag.label}</span>
+						<span class:selected>{tag.label}</span>
 						<button
 							type="button"
 							class="action-button include"
@@ -152,11 +157,15 @@
 			<div class="dropdown-section">
 				<div class="dropdown-header">Ingredients</div>
 				{#each ingredientResults as ingredient (ingredient.label)}
-					{@const included = selectedIngredients.find((i) => i.label === ingredient.label && i.include)}
-					{@const excluded = selectedIngredients.find((i) => i.label === ingredient.label && !i.include)}
-          
+					{@const included = selectedIngredients.find(
+						(i) => i.label === ingredient.label && i.include
+					)}
+					{@const excluded = selectedIngredients.find(
+						(i) => i.label === ingredient.label && !i.include
+					)}
+
 					<div class="dropdown-ingredient-item">
-						<span class:excluded={excluded}>{ingredient.label}</span>
+						<span class:excluded>{ingredient.label}</span>
 						<button
 							type="button"
 							class="action-button include"
