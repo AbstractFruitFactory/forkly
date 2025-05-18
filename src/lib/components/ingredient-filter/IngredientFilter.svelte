@@ -1,14 +1,15 @@
 <script lang="ts">
-	import FilterSelect from '../filter-select/FilterSelect.svelte'
+	import SearchFilterSelect from '../filter-select/SearchFilterSelect.svelte'
 	import { Plus, Minus, Check } from 'lucide-svelte'
+	import Carrot from 'lucide-svelte/icons/carrot'
 
 	type IngredientFilter = {
 		label: string
 		include: boolean
 	}
 
-	let { 
-		selected = $bindable<IngredientFilter[]>([]), 
+	let {
+		selected = $bindable<IngredientFilter[]>([]),
 		onSearch,
 		onSelect
 	} = $props<{
@@ -30,13 +31,16 @@
 </script>
 
 <div class="ingredient-filter">
-	<FilterSelect
+	<SearchFilterSelect
 		label={selected.length ? `Add/remove ingredient (${selected.length})` : 'Add/remove ingredient'}
 		searchPlaceholder="Search ingredients"
 		bind:selected
 		onSearch={searchIngredients}
 	>
-		{#snippet item(result, select)}
+		{#snippet icon()}
+			<Carrot size={16} />
+		{/snippet}
+		{#snippet item(result: { label: string }, select: (item: { include: boolean }) => void)}
 			{@const state = selected.find((s: IngredientFilter) => s.label === result.label)}
 			<div class="ingredient-item">
 				<span class="ingredient-label" class:excluded={state?.include === false}>
@@ -74,7 +78,7 @@
 				</div>
 			</div>
 		{/snippet}
-	</FilterSelect>
+	</SearchFilterSelect>
 </div>
 
 <style lang="scss">

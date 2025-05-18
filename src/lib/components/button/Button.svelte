@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
 
-	type Variant = 'primary' | 'secondary' | 'text' | 'dotted' | 'border'
+	type Variant = 'primary' | 'secondary' | 'text' | 'dotted' | 'border' | 'pill'
 	type Size = 'xs' | 'sm' | 'md' | 'lg'
 
 	let {
@@ -43,6 +43,7 @@
 	class:text={variant === 'text' && !color}
 	class:dotted={variant === 'dotted' && !color}
 	class:border={variant === 'border' && !color}
+	class:pill={variant === 'pill' && !color}
 	class:xs={size === 'xs'}
 	class:sm={size === 'sm'}
 	class:md={size === 'md'}
@@ -189,6 +190,27 @@
 
 			&:hover:not(:disabled) {
 				background: rgba(0, 0, 0, 0.05);
+			}
+		}
+
+		&.pill {
+			background-color: var(--color-neutral-dark);
+			color: var(--color-white);
+			border-radius: var(--border-radius-full);
+			border: 1px solid var(--color-neutral);
+
+			&:hover:not(:disabled) {
+				border-color: var(--color-primary);
+				background: var(--color-neutral-darker);
+			}
+			&:focus-visible {
+				outline: none;
+				box-shadow: 0 0 0 2px var(--color-primary-light);
+			}
+			> .content {
+				padding: var(--spacing-md) var(--spacing-lg);
+				font-size: var(--font-size-sm);
+				color: white;
 			}
 		}
 

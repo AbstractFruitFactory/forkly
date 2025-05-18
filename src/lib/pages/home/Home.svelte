@@ -27,6 +27,9 @@
 	import { setSlots } from '../../../routes/+layout.svelte'
 	import { writable } from 'svelte/store'
 	import Search from '$lib/components/search/Search.svelte'
+	import IngredientFilter from '$lib/components/ingredient-filter/IngredientFilter.svelte'
+	import TagFilter from '$lib/components/tag-filter/TagFilter.svelte'
+	import OptionFilterSelect from '$lib/components/filter-select/OptionFilterSelect.svelte'
 
 	let {
 		recipes,
@@ -71,7 +74,6 @@
 	let searchValue = $derived(initialSearch)
 	let selectedTags = $derived(initialTags.map((tag) => ({ label: tag, selected: true })))
 	let selectedIngredients = $derived(initialIngredients)
-	let sortBy = $derived(initialSort)
 	let isMac = $state(false)
 	let searchInput: HTMLInputElement
 	let availableTags = $state<{ name: string; count: number }[]>([])
@@ -82,6 +84,14 @@
 	let searchContainer: HTMLDivElement
 	let hasInitializedObserver = false
 	let sentinelNode = writable<HTMLElement | null>(null)
+
+	const sortOptions = [
+		{ label: 'Popular', value: 'popular' },
+		{ label: 'Newest', value: 'newest' },
+		{ label: 'Easiest', value: 'easiest' }
+	]
+
+	let sortBy = $derived(sortOptions.find((option) => option.value === initialSort)!)
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -142,11 +152,6 @@
 		notifyFiltersChanged()
 	}
 
-	const handleSortClick = (newSortBy: string) => {
-		sortBy = newSortBy as 'popular' | 'newest' | 'easiest'
-		onSortChange(sortBy)
-	}
-
 	const notifyFiltersChanged = () => {
 		onFiltersChange({
 			tags: selectedTags.map((t) => t.label),
@@ -168,7 +173,7 @@
 
 	const sortedRecipes = $derived(
 		[...recipes].sort((a, b) => {
-			switch (sortBy) {
+			switch (sortBy.value) {
 				case 'popular':
 					return calculatePopularityScore(b) - calculatePopularityScore(a)
 				case 'newest':
@@ -233,90 +238,65 @@
 {#snippet content()}
 	<div class="main-layout" class:expanded={searchbarIsSticky}>
 		<div class="main-content">
-			<div class="selected-filters-container">
-				<div class="selected-pills">
-					{#each selectedTags as tag (tag.label)}
-						<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
-					{/each}
+			<div class="filters">
+				<div>
+					<IngredientFilter
+						onSearch={loadIngredients}
+						bind:selected={selectedIngredients}
+						onSelect={notifyFiltersChanged}
+					/>
 
-					{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
-						<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
-					{/each}
-
-					{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
-						<Pill
-							text={`-${ingredient.label}`}
-							onRemove={() => removeIngredient(ingredient.label)}
-						/>
-					{/each}
+					<TagFilter
+						onSearch={loadTags}
+						bind:selected={selectedTags}
+						onSelect={notifyFiltersChanged}
+					/>
 				</div>
-			</div>
 
-			<Drawer bind:isOpen={showFiltersDrawer} title="Filters">
-				<div class="mobile-filters">
-					<div class="selected-filters">
-						<h4 class="selected-filters-title">Selected Filters</h4>
-						<div class="selected-pills">
-							{#each selectedTags as tag (tag.label)}
-								<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
-							{/each}
+				<div class="selected-filters-container">
+					<div class="selected-pills">
+						{#each selectedTags as tag (tag.label)}
+							<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
+						{/each}
 
-							{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
-								<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
-							{/each}
+						{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
+							<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
+						{/each}
 
-							{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
-								<Pill
-									text={`-${ingredient.label}`}
-									onRemove={() => removeIngredient(ingredient.label)}
-								/>
-							{/each}
-						</div>
+						{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
+							<Pill
+								text={`-${ingredient.label}`}
+								onRemove={() => removeIngredient(ingredient.label)}
+							/>
+						{/each}
 					</div>
 				</div>
-			</Drawer>
+
+				<div>
+					<OptionFilterSelect label="Sort by" options={sortOptions} bind:selected={sortBy}>
+						{#snippet item(option, select)}
+							<button
+								onclick={() => {
+									select(option)
+									onSortChange(option.value as 'popular' | 'newest' | 'easiest')
+								}}
+							>
+								{option.label}
+							</button>
+						{/snippet}
+					</OptionFilterSelect>
+				</div>
+			</div>
 
 			<div class="home-container">
-				<div class="header-content">
-					<div
-						class="sort-controls"
-						in:fly={{ x: -50, duration: 300, delay: 300 }}
-						out:fly={{ x: -50, duration: 300 }}
-					>
-						<div class="pill-sort-group">
-							<button
-								type="button"
-								class="pill-sort-btn {sortBy === 'popular' ? 'active' : ''}"
-								onclick={() => handleSortClick('popular')}
-							>
-								Popular
-							</button>
-							<button
-								type="button"
-								class="pill-sort-btn {sortBy === 'newest' ? 'active' : ''}"
-								onclick={() => handleSortClick('newest')}
-							>
-								Newest
-							</button>
-							<button
-								type="button"
-								class="pill-sort-btn {sortBy === 'easiest' ? 'active' : ''}"
-								onclick={() => handleSortClick('easiest')}
-							>
-								Easiest
-							</button>
-						</div>
-					</div>
+				<div class="recipe-grid">
+					<RecipeGrid
+						recipes={sortedRecipes}
+						emptyMessage={emptyStateMessage}
+						{isLoading}
+						{loadMore}
+					/>
 				</div>
-			</div>
-
-			<div class="recipe-grid">
-				<RecipeGrid
-					recipes={sortedRecipes}
-					emptyMessage={emptyStateMessage}
-					{isLoading}
-					{loadMore}
-				/>
 			</div>
 		</div>
 	</div>
@@ -388,6 +368,8 @@
 	.home-container {
 		position: relative;
 		overflow: visible;
+
+		margin-top: var(--spacing-xl);
 
 		@include mobile {
 			padding: var(--spacing-lg) 0;
@@ -466,6 +448,17 @@
 
 		@include mobile {
 			display: none;
+		}
+	}
+
+	.filters {
+		display: flex;
+		gap: var(--spacing-md);
+		justify-content: space-between;
+
+		> * {
+			display: flex;
+			gap: var(--spacing-md);
 		}
 	}
 

@@ -1,21 +1,34 @@
 <script lang="ts">
-	import FilterSelect from '../filter-select/FilterSelect.svelte'
+	import SearchFilterSelect from '../filter-select/SearchFilterSelect.svelte'
 	import { Plus, Check } from 'lucide-svelte'
+	import TagIcon from 'lucide-svelte/icons/tag'
+	import { onMount } from 'svelte'
 
 	type Tag = {
 		label: string
-		selected?: boolean
+		selected: boolean
 	}
 
 	let {
 		selected = $bindable<Tag[]>([]),
 		onSearch,
 		onSelect
-	} = $props<{
+	}: {
 		selected: Tag[]
 		onSearch: (query: string) => Promise<string[]>
 		onSelect?: (tag: Tag) => void
-	}>()
+	} = $props()
+
+	let initialResults = $state<{ label: string }[]>([])
+	let isLoading = $state(true)
+
+	onMount(async () => {
+		const results = await onSearch('')
+		initialResults = results
+			.filter((tag: string) => !selected.some((s: Tag) => s.label === tag))
+			.map((tag: string) => ({ label: tag }))
+		isLoading = false
+	})
 
 	const searchTags = async (query: string) => {
 		const results = await onSearch(query)
@@ -32,14 +45,21 @@
 </script>
 
 <div class="tag-filter">
-	<FilterSelect
+	<SearchFilterSelect
 		label={selected.length ? `Add tag (${selected.length})` : 'Add tag'}
 		searchPlaceholder="Search tags"
 		bind:selected
 		onSearch={searchTags}
+		{initialResults}
+		{isLoading}
 	>
+		{#snippet icon()}
+			<TagIcon size={16} />
+		{/snippet}
+
 		{#snippet item(result, select)}
-			{@const state = selected.find((s: Tag) => s.label === result.label)}
+			{@const isSelected = selected.find((s: Tag) => s.label === result.label)?.selected ?? false}
+
 			<div class="tag-item">
 				<span class="tag-label">
 					{result.label}
@@ -48,13 +68,13 @@
 					type="button"
 					class="action-button"
 					onclick={() => {
-						select({ selected: true })
-						handleSelect(result, true)
+						select({ selected: isSelected })
+						handleSelect(result, isSelected)
 					}}
-					aria-label={state?.selected ? 'Remove tag' : 'Add tag'}
-					data-active={state?.selected}
+					aria-label={isSelected ? 'Remove tag' : 'Add tag'}
+					data-active={isSelected}
 				>
-					{#if state?.selected}
+					{#if isSelected}
 						<Check size={16} />
 					{:else}
 						<Plus size={16} />
@@ -62,7 +82,7 @@
 				</button>
 			</div>
 		{/snippet}
-	</FilterSelect>
+	</SearchFilterSelect>
 </div>
 
 <style lang="scss">
@@ -105,10 +125,10 @@
 			background-color: var(--color-neutral);
 		}
 
-		&[data-active="true"] {
+		&[data-active='true'] {
 			background-color: var(--color-success);
 			border-color: var(--color-success);
 			color: var(--color-white);
 		}
 	}
-</style> 
+</style>
