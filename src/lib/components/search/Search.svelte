@@ -60,7 +60,8 @@
 
 <style lang="scss">
 	.search-wrapper {
-		position: relative;		
+		position: relative;
+		
 		max-width: 500px;
 		width: 100%;
 	}

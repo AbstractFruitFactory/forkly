@@ -19,15 +19,14 @@
 
 <script lang="ts">
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
-	import Button from '$lib/components/button/Button.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import { onMount } from 'svelte'
 	import { fly } from 'svelte/transition'
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
-	import HomeSearch from '$lib/components/home-search/HomeSearch.svelte'
 	import Logo from '$lib/components/logo/Logo.svelte'
 	import { setSlots } from '../../../routes/+layout.svelte'
 	import { writable } from 'svelte/store'
+	import Search from '$lib/components/search/Search.svelte'
 
 	let {
 		recipes,
@@ -211,31 +210,22 @@
 	<div bind:this={$sentinelNode} style="height: 1px;"></div>
 	<div
 		class="search-container"
-		bind:this={searchContainer}
+		in:fly={{ x: -50, duration: 300, delay: 300 }}
+		out:fly={{ x: -50, duration: 300 }}
 	>
 		<div class="search-content">
-			<HomeSearch
+			<Search
+				placeholder="Search recipes..."
+				onInput={(query) => handleSearch(query)}
 				bind:value={searchValue}
 				bind:inputElement={searchInput}
-				bind:selectedTags
-				bind:selectedIngredients
-				searchTags={loadTags}
-				searchIngredients={loadIngredients}
-				{searchRecipes}
-				showResults={(query) => handleSearch(query)}
 				{isLoading}
 				actionButton={{
 					text: isMac ? '⌘+K' : 'Ctrl+K',
 					onClick: () => searchInput?.focus()
 				}}
-				onFiltersChange={() => notifyFiltersChanged()}
+				roundedCorners
 			/>
-
-			<div class="mobile-filters-button">
-				<Button variant="primary" size="sm" fullWidth onclick={() => (showFiltersDrawer = true)}>
-					Filters
-				</Button>
-			</div>
 		</div>
 	</div>
 {/snippet}
@@ -374,7 +364,6 @@
 		right: var(--spacing-2xl);
 		z-index: var(--z-sticky);
 	}
-
 
 	.main-content {
 		flex-grow: 1;
