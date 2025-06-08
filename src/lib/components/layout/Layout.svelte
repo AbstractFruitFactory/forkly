@@ -53,12 +53,14 @@
 	@import '$lib/global.scss';
 
 	$max-width: 1200px;
+	$header-height: 4rem;
 
 	.layout {
 		display: flex;
 		flex-direction: column;
 		height: 100dvh;
 		overflow: hidden;
+		padding-top: $header-height;
 
 		&.home-page {
 			overflow: unset;
@@ -70,14 +72,17 @@
 	}
 
 	.header {
-		position: sticky;
+		position: absolute;
+		left: 50%;
+		transform: translateX(-50%);
 		top: 0;
+		height: $header-height;
 		z-index: var(--z-sticky);
 		width: 100vw;
 		max-width: $max-width;
-		margin: 0 auto;
 		padding: 0 var(--spacing-2xl);
-
+		display: flex;
+		align-items: center;
 		transition: max-width 0.25s ease-out;
 
 		&.wide-header {
