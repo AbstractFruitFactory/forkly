@@ -139,8 +139,8 @@
 		background: var(--color-background);
 		margin: 0 var(--spacing-2xl);
 		margin-top: var(--spacing-3xl);
-		border-top-left-radius: 3rem;
-		border-top-right-radius: 3rem;
+		border-radius: 3rem;
+		min-height: calc(100dvh - $header-height);
 
 		transition:
 			margin 0.4s cubic-bezier(0.4, 0, 0.2, 1),
