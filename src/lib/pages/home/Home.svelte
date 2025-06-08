@@ -213,11 +213,7 @@
 	<div class="large-header">Explore recipes on <Logo /></div>
 
 	<div bind:this={$sentinelNode} style="height: 1px;"></div>
-	<div
-		class="search-container"
-		in:fly={{ x: -50, duration: 300, delay: 300 }}
-		out:fly={{ x: -50, duration: 300 }}
-	>
+	<div class="search-container" in:fly={{ x: -50, duration: 300, delay: 300 }}>
 		<div class="search-content">
 			<Search
 				placeholder="Search recipes..."
