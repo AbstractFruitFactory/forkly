@@ -208,8 +208,6 @@
 				box-shadow: 0 0 0 2px var(--color-primary-light);
 			}
 			> .content {
-				padding: var(--spacing-md) var(--spacing-lg);
-				font-size: var(--font-size-sm);
 				color: white;
 			}
 		}
