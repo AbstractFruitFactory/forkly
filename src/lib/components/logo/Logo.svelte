@@ -1,10 +1,12 @@
 <script lang="ts">
-	let { href = '/' }: { href?: string } = $props()
+	let { href = '/', responsive = true }: { href?: string; responsive?: boolean } = $props()
 </script>
 
 <div class="logo">
-	<a {href} class="logo-desktop">Forkly</a>
-	<a {href} class="logo-mobile">F</a>
+	<a {href} class:logo-desktop={responsive}>Forkly</a>
+	{#if responsive}
+		<a {href} class:logo-mobile={responsive}>F</a>
+	{/if}
 </div>
 
 <style lang="scss">
@@ -34,7 +36,8 @@
 			transition: opacity var(--transition-fast) var(--ease-in-out);
 			white-space: nowrap;
 			color: black;
-			@include mobile {
+
+			&.logo-mobile {
 				font-size: var(--font-size-2xl);
 			}
 		}
