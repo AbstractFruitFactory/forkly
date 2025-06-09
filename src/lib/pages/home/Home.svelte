@@ -20,10 +20,7 @@
 <script lang="ts">
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
-	import { onMount } from 'svelte'
-	import { fly } from 'svelte/transition'
-	import Drawer from '$lib/components/drawer/Drawer.svelte'
-	import Logo from '$lib/components/logo/Logo.svelte'
+	import { onMount, type Snippet } from 'svelte'
 	import { setSlots } from '../../../routes/+layout.svelte'
 	import { writable } from 'svelte/store'
 	import Search from '$lib/components/search/Search.svelte'
@@ -210,10 +207,10 @@
 <svelte:document onkeydown={handleKeyDown} />
 
 {#snippet homepageHeader()}
-	<div class="large-header">Explore recipes on <Logo /></div>
+	<div class="large-header">Explore recipes</div>
 
 	<div bind:this={$sentinelNode} style="height: 1px;"></div>
-	<div class="search-container" in:fly={{ x: -50, duration: 300, delay: 300 }}>
+	<div class="search-container">
 		<div class="search-content">
 			<Search
 				placeholder="Search recipes..."
@@ -235,40 +232,21 @@
 	<div class="main-layout" class:expanded={searchbarIsSticky}>
 		<div class="main-content">
 			<div class="filters">
-				<div>
-					<IngredientFilter
-						onSearch={loadIngredients}
-						bind:selected={selectedIngredients}
-						onSelect={notifyFiltersChanged}
-					/>
+				<div class="buttons">
+					<div>
+						<IngredientFilter
+							onSearch={loadIngredients}
+							bind:selected={selectedIngredients}
+							onSelect={notifyFiltersChanged}
+						/>
 
-					<TagFilter
-						onSearch={loadTags}
-						bind:selected={selectedTags}
-						onSelect={notifyFiltersChanged}
-					/>
-				</div>
-
-				<div class="selected-filters-container">
-					<div class="selected-pills">
-						{#each selectedTags as tag (tag.label)}
-							<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
-						{/each}
-
-						{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
-							<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
-						{/each}
-
-						{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
-							<Pill
-								text={`-${ingredient.label}`}
-								onRemove={() => removeIngredient(ingredient.label)}
-							/>
-						{/each}
+						<TagFilter
+							onSearch={loadTags}
+							bind:selected={selectedTags}
+							onSelect={notifyFiltersChanged}
+						/>
 					</div>
-				</div>
 
-				<div>
 					<OptionFilterSelect label="Sort by" options={sortOptions} bind:selected={sortBy}>
 						{#snippet item(option, select)}
 							<button
@@ -281,6 +259,23 @@
 							</button>
 						{/snippet}
 					</OptionFilterSelect>
+				</div>
+
+				<div class="selected-pills">
+					{#each selectedTags as tag (tag.label)}
+						<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
+					{/each}
+
+					{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
+						<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
+					{/each}
+
+					{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
+						<Pill
+							text={`-${ingredient.label}`}
+							onRemove={() => removeIngredient(ingredient.label)}
+						/>
+					{/each}
 				</div>
 			</div>
 
@@ -347,8 +342,8 @@
 		margin: 0 auto;
 		padding: var(--spacing-xl) var(--spacing-2xl);
 
-		@include mobile {
-			padding: var(--spacing-md);
+		@include tablet {
+			padding: var(--spacing-lg) var(--spacing-xl);
 		}
 	}
 
@@ -365,7 +360,7 @@
 		position: relative;
 		overflow: visible;
 
-		margin-top: var(--spacing-xl);
+		margin-top: var(--spacing-xs);
 
 		@include mobile {
 			padding: var(--spacing-lg) 0;
@@ -409,26 +404,12 @@
 		gap: var(--spacing-md);
 	}
 
-	.search-container {
-		margin: var(--spacing-lg) 0;
-		position: sticky;
-		top: 16px;
-		z-index: var(--z-sticky);
-
-		@include tablet {
-			margin: var(--spacing-lg);
-		}
-
-		@include mobile {
-			margin: 0;
-		}
-	}
-
 	.search-content {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: var(--spacing-md);
+		height: 3rem;
 	}
 
 	.pill-selectors {
@@ -437,24 +418,34 @@
 		align-items: center;
 	}
 
-	.selected-filters-container {
-		width: 100%;
-		min-height: 40px;
+	.filters {
 		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
 
-		@include mobile {
-			display: none;
+		.buttons {
+			display: flex;
+			gap: var(--spacing-md);
+			align-items: center;
+			justify-content: space-between;
+
+			> * {
+				display: flex;
+				gap: var(--spacing-md);
+			}
 		}
 	}
 
-	.filters {
+	.selected-pills {
+		width: 100%;
+		min-height: 40px;
 		display: flex;
-		gap: var(--spacing-md);
-		justify-content: space-between;
+		gap: var(--spacing-sm);
+		overflow-x: auto;
+		scrollbar-width: none;
 
-		> * {
-			display: flex;
-			gap: var(--spacing-md);
+		@include mobile {
+			display: none;
 		}
 	}
 
@@ -469,13 +460,6 @@
 			font-weight: 500;
 			color: var(--color-neutral-light);
 		}
-	}
-
-	.selected-pills {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-sm);
-		align-items: center;
 	}
 
 	.recipe-grid {
