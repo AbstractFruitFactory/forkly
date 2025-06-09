@@ -10,7 +10,7 @@
 		selected = $bindable(),
 		icon,
 		content,
-    isOpen = $bindable(false)
+		isOpen = $bindable(false)
 	}: {
 		label: string | Snippet
 		selected: Item | Item[]
@@ -80,7 +80,7 @@
 </script>
 
 <div class="filter-select">
-	<Button variant="pill" onclick={toggleDropdown}>
+	<Button variant="pill" onclick={toggleDropdown} size="sm">
 		{@render icon?.()}
 		{#if typeof label === 'string'}
 			{label}
