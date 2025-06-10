@@ -23,7 +23,6 @@
 	import { onMount, type Snippet } from 'svelte'
 	import { setSlots } from '../../../routes/+layout.svelte'
 	import { writable } from 'svelte/store'
-	import Search from '$lib/components/search/Search.svelte'
 	import IngredientFilter from '$lib/components/ingredient-filter/IngredientFilter.svelte'
 	import TagFilter from '$lib/components/tag-filter/TagFilter.svelte'
 	import OptionFilterSelect from '$lib/components/filter-select/OptionFilterSelect.svelte'
@@ -31,7 +30,6 @@
 	let {
 		recipes,
 		isLoading = false,
-		onSearchChange = (query: string) => {},
 		onFiltersChange = (filters: {
 			tags: string[]
 			ingredients: string[]
@@ -41,11 +39,9 @@
 		searchTags = (query: string) => Promise.resolve<{ name: string; count: number }[]>([]),
 		searchIngredients = (query: string) => Promise.resolve<{ id: string; name: string }[]>([]),
 		loadMore = () => Promise.resolve(),
-		initialSearch = '',
 		initialTags = [],
 		initialIngredients = [],
 		initialSort = 'popular',
-		searchRecipes,
 		onSearchbarSticky = (isSticky: boolean) => {}
 	}: {
 		recipes: Recipe[]
@@ -60,19 +56,14 @@
 		searchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 		searchIngredients?: (query: string) => Promise<{ id: string; name: string }[]>
 		loadMore?: () => Promise<void>
-		initialSearch?: string
 		initialTags?: string[]
 		initialIngredients?: { label: string; include: boolean }[]
 		initialSort?: 'popular' | 'newest' | 'easiest'
-		searchRecipes: (query: string) => Promise<any[]>
 		onSearchbarSticky?: (isSticky: boolean) => void
 	} = $props()
 
-	let searchValue = $derived(initialSearch)
 	let selectedTags = $derived(initialTags.map((tag) => ({ label: tag, selected: true })))
 	let selectedIngredients = $derived(initialIngredients)
-	let isMac = $state(false)
-	let searchInput: HTMLInputElement
 	let availableTags = $state<{ name: string; count: number }[]>([])
 	let availableIngredients = $state<{ id: string; name: string }[]>([])
 	let showFiltersDrawer = $state(false)
@@ -90,19 +81,11 @@
 
 	let sortBy = $derived(sortOptions.find((option) => option.value === initialSort)!)
 
-	const handleKeyDown = (e: KeyboardEvent) => {
-		if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-			e.preventDefault()
-			searchInput?.focus()
-		}
-	}
-
 	const checkMobile = () => {
 		isMobile = window.innerWidth <= 768
 	}
 
 	onMount(() => {
-		isMac = navigator.userAgent.toLowerCase().includes('mac')
 		checkMobile()
 		window.addEventListener('resize', checkMobile)
 
@@ -133,11 +116,6 @@
 			unsubscribe()
 		}
 	})
-
-	const handleSearch = (query: string) => {
-		searchValue = query
-		onSearchChange(query)
-	}
 
 	const removeTag = (tag: string) => {
 		selectedTags = selectedTags.filter((t) => t.label !== tag)
@@ -196,7 +174,7 @@
 	}
 
 	const emptyStateMessage = $derived(
-		searchValue || selectedTags.length > 0 || selectedIngredients.length > 0
+		selectedTags.length > 0 || selectedIngredients.length > 0
 			? 'No recipes found matching your criteria. Try different search terms or filters, or browse all recipes.'
 			: 'No recipes yet! Be the first to create one.'
 	)
@@ -204,26 +182,13 @@
 	setSlots({ homepageHeader, content })
 </script>
 
-<svelte:document onkeydown={handleKeyDown} />
-
-{#snippet homepageHeader()}
+{#snippet homepageHeader(searchBar?: Snippet<['homepage' | 'header']>)}
 	<div class="large-header">Explore recipes</div>
 
 	<div bind:this={$sentinelNode} style="height: 1px;"></div>
 	<div class="search-container">
 		<div class="search-content">
-			<Search
-				placeholder="Search recipes..."
-				onInput={(query) => handleSearch(query)}
-				bind:value={searchValue}
-				bind:inputElement={searchInput}
-				{isLoading}
-				actionButton={{
-					text: isMac ? '⌘+K' : 'Ctrl+K',
-					onClick: () => searchInput?.focus()
-				}}
-				roundedCorners
-			/>
+			{@render searchBar?.('homepage')}
 		</div>
 	</div>
 {/snippet}
@@ -410,6 +375,11 @@
 		align-items: center;
 		gap: var(--spacing-md);
 		height: 3rem;
+
+		:global(.homepage-searchbar) {
+			width: 100%;
+			max-width: 30rem;
+		}
 	}
 
 	.pill-selectors {

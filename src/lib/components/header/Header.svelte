@@ -10,7 +10,8 @@
 		loginHref,
 		profilePicUrl = '',
 		actions,
-		logo
+		logo,
+		searchBar
 	}: {
 		loggedIn: boolean
 		newRecipeHref?: string
@@ -19,6 +20,7 @@
 		profilePicUrl?: string
 		actions?: Snippet
 		logo?: Snippet
+		searchBar?: Snippet
 	} = $props()
 
 	let isMac = $state(false)
@@ -35,7 +37,10 @@
 		{:else}
 			<Logo />
 		{/if}
+
 	</div>
+	
+	{@render searchBar?.()}
 
 	<div class="right-section">
 		{#if actions}

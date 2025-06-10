@@ -1,10 +1,11 @@
 <script module lang="ts">
-	import { getContext, setContext } from 'svelte'
+	import { getContext, onMount, setContext } from 'svelte'
+	import { tick } from 'svelte'
 
 	const key = Symbol('layout-slots')
 
 	type Slots = {
-		homepageHeader?: Snippet
+		homepageHeader?: Snippet<[searchBar?: Snippet<['homepage' | 'header']>]>
 		content?: Snippet
 	}
 
@@ -18,17 +19,17 @@
 		Object.assign(context, slots)
 	}
 
-	let _isStickyScrollBar = $state(false)
+	let _isScrolledDownHomepage = $state(false)
 
-	export const stickyScrollBarStore = {
+	export const scrolledDownHomepageStore = {
 		get value() {
-			return _isStickyScrollBar
+			return _isScrolledDownHomepage
 		},
 		setTrue() {
-			_isStickyScrollBar = true
+			_isScrolledDownHomepage = true
 		},
 		setFalse() {
-			_isStickyScrollBar = false
+			_isScrolledDownHomepage = false
 		}
 	}
 </script>
@@ -40,6 +41,8 @@
 	import type { Snippet } from 'svelte'
 	import type { LayoutData } from './$types'
 	import { navigating, page } from '$app/state'
+	import Search from '$lib/components/search/Search.svelte'
+	import gsap from 'gsap'
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props()
 
@@ -49,17 +52,56 @@
 
 	let homepageHeaderTransition = $state(true)
 
+	let _flip: (typeof import('gsap/Flip'))['Flip'] | null = $state(null)
+
+	let isLoading = $state(false)
+
+	onMount(() => {
+		import('gsap/Flip').then(({ Flip }) => {
+			gsap.registerPlugin(Flip)
+			_flip = Flip
+		})
+	})
+
 	$effect(() => {
-		if (navigating.from?.route.id === '/' && stickyScrollBarStore.value) {
+		if (navigating.from?.route.id === '/' && scrolledDownHomepageStore.value) {
 			homepageHeaderTransition = false
 
 			setTimeout(() => {
 				homepageHeaderTransition = true
 			}, 300)
 
-			stickyScrollBarStore.setFalse()
+			scrolledDownHomepageStore.setFalse()
 		}
 	})
+
+	let flipState = $state<any>(null)
+
+	let searchBarPosition = $state<'header' | 'homepage'>('homepage')
+
+	$effect(() => {
+		if (scrolledDownHomepageStore.value) {
+			handleFlip('header')
+		} else {
+			handleFlip('homepage')
+		}
+	})
+
+	async function handleFlip(target: 'header' | 'homepage') {
+		if (!_flip) return
+
+		flipState = _flip.getState('.header-searchbar, .homepage-searchbar')
+
+		searchBarPosition = target
+
+		await tick()
+
+		_flip.from(flipState, {
+			targets: '.header-searchbar, .homepage-searchbar',
+			duration: 0.2,
+			ease: 'power1.inOut'
+		})
+	}
 </script>
 
 <svelte:head>
@@ -68,13 +110,40 @@
 
 {@render children()}
 
-<Layout {homepage} wideHeader={!stickyScrollBarStore.value && homepage} {homepageHeaderTransition}>
+{#snippet search(type: 'homepage' | 'header')}
+	<div
+		class:homepage-searchbar={type === 'homepage'}
+		class:header-searchbar={type === 'header'}
+		data-flip-id="searchbar"
+	>
+		<Search
+			placeholder="Search recipes..."
+			onInput={(query) => {
+				window.dispatchEvent(new CustomEvent('search', { detail: { query } }))
+			}}
+			{isLoading}
+			roundedCorners
+		/>
+	</div>
+{/snippet}
+
+<Layout
+	{homepage}
+	wideHeader={!scrolledDownHomepageStore.value && homepage}
+	{homepageHeaderTransition}
+>
 	{#snippet header()}
-		<Header loggedIn={!!data.user} newRecipeHref="/new" profileHref="/profile" loginHref="/login" />
+		<Header loggedIn={!!data.user} newRecipeHref="/new" profileHref="/profile" loginHref="/login">
+			{#snippet searchBar()}
+				{#if searchBarPosition === 'header'}
+					{@render search('header')}
+				{/if}
+			{/snippet}
+		</Header>
 	{/snippet}
 
 	{#snippet homepageHeader()}
-		{@render slots.homepageHeader?.()}
+		{@render slots.homepageHeader?.(searchBarPosition === 'homepage' ? search : undefined)}
 	{/snippet}
 
 	{#snippet content()}
@@ -95,5 +164,10 @@
 
 	:global(.header) {
 		display: var(--header-display, block);
+	}
+
+	div {
+		position: relative;
+		will-change: transform;
 	}
 </style>

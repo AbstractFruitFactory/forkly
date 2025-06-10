@@ -1,13 +1,15 @@
 <script lang="ts">
 	import Home from '$lib/pages/home/Home.svelte'
-	import { goto } from '$app/navigation'
+	import { goto, invalidateAll } from '$app/navigation'
 	import { page } from '$app/state'
 	import { safeFetch } from '$lib/utils/fetch'
-	import type { IngredientLookupResult } from './api/ingredients/lookup/[query]/+server'
-	import type { TagSearchResponse } from './api/tags/+server'
-	import type { RecipesSearchResponse } from './api/recipes/search/+server'
+	import type { IngredientLookupResult } from './(pages)/api/ingredients/lookup/[query]/+server'
+	import type { TagSearchResponse } from './(pages)/api/tags/+server'
+	import type { RecipesSearchResponse } from './(pages)/api/recipes/search/+server'
 	import { toHomePageRecipe } from '$lib/utils/recipe'
-	import { stickyScrollBarStore } from './+layout.svelte'
+	import { scrolledDownHomepageStore } from './+layout.svelte'
+	import { onMount } from 'svelte'
+	import { useCookies } from '$lib/utils/cookies'
 
 	let { data } = $props()
 
@@ -29,6 +31,19 @@
 		isLoading: false
 	})
 
+	onMount(() => {
+		// Listen for search events from the layout
+		window.addEventListener('search', ((e: CustomEvent) => {
+			handleSearchChange(e.detail.query)
+		}) as EventListener)
+
+		return () => {
+			window.removeEventListener('search', ((e: CustomEvent) => {
+				handleSearchChange(e.detail.query)
+			}) as EventListener)
+		}
+	})
+
 	const updateUrl = (params: Record<string, string>) => {
 		const url = new URL(page.url)
 		Object.entries(params).forEach(([key, value]) => {
@@ -45,31 +60,15 @@
 		query: string,
 		filters?: { tags: string[]; ingredients: string[]; excludedIngredients: string[] }
 	) => {
-		const params: Record<string, string> = {
-			q: query,
-			limit: pagination.limit.toString(),
-			page: '0'
-		}
+		useCookies('search').set({
+			query,
+			tags: filters?.tags || [],
+			ingredients: filters?.ingredients || [],
+			excludedIngredients: filters?.excludedIngredients || [],
+			sort: sortParam
+		})
 
-		if (filters) {
-			if (filters.tags.length > 0) {
-				params.tags = filters.tags.join(',')
-			} else {
-				params.tags = ''
-			}
-			if (filters.ingredients.length > 0) {
-				params.ingredients = filters.ingredients.join(',')
-			} else {
-				params.ingredients = ''
-			}
-			if (filters.excludedIngredients.length > 0) {
-				params.excludedIngredients = filters.excludedIngredients.join(',')
-			} else {
-				params.excludedIngredients = ''
-			}
-		}
-
-		updateUrl(params)
+		invalidateAll()
 	}
 
 	const searchIngredients = async (query: string): Promise<{ id: string; name: string }[]> => {
@@ -144,21 +143,8 @@
 		}
 	}
 
-	const searchRecipes = async (query: string): Promise<any[]> => {
-		if (!query.trim()) return []
-		const url = new URL('/api/recipes/search', window.location.origin)
-		url.searchParams.set('q', query)
-		url.searchParams.set('limit', '5')
-		url.searchParams.set('page', '0')
-		const response = await safeFetch<any>()(url.toString())
-		if (response.isOk()) {
-			return response.value.results.map(toHomePageRecipe)
-		}
-		return []
-	}
-
 	const onSearchbarSticky = (isSticky: boolean) => {
-		isSticky ? stickyScrollBarStore.setTrue() : stickyScrollBarStore.setFalse()
+		isSticky ? scrolledDownHomepageStore.setTrue() : scrolledDownHomepageStore.setFalse()
 	}
 </script>
 
@@ -171,13 +157,11 @@
 	{searchTags}
 	{searchIngredients}
 	{loadMore}
-	initialSearch={searchValue}
 	initialTags={activeFilters.tags}
 	initialIngredients={[
 		...activeFilters.ingredients.map((label) => ({ label, include: true })),
 		...activeFilters.excludedIngredients.map((label) => ({ label, include: false }))
 	]}
 	initialSort={sortParam}
-	{searchRecipes}
 	{onSearchbarSticky}
 />
