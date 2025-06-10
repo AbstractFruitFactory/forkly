@@ -66,8 +66,6 @@
 		gap: var(--spacing-lg);
 	}
 
-
-
 	.left-section {
 		display: flex;
 		align-items: center;
@@ -94,6 +92,10 @@
 	.main-nav {
 		display: flex;
 		align-items: center;
+	}
+
+	.search-bar {
+		min-width: 0;
 	}
 
 	.profile {
