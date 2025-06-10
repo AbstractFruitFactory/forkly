@@ -185,74 +185,68 @@
 {#snippet homepageHeader(searchBar?: Snippet<['homepage' | 'header']>)}
 	<div class="large-header">Explore recipes</div>
 
-	<div bind:this={$sentinelNode} style="height: 1px;"></div>
-	<div class="search-container">
-		<div class="search-content">
-			{@render searchBar?.('homepage')}
-		</div>
+	<div bind:this={$sentinelNode} style="height: 60px;"></div>
+
+	<div class="search-content">
+		{@render searchBar?.('homepage')}
 	</div>
 {/snippet}
 
 {#snippet content()}
 	<div class="main-layout" class:expanded={searchbarIsSticky}>
-		<div class="main-content">
-			<div class="filters">
-				<div class="buttons">
-					<div>
-						<IngredientFilter
-							onSearch={loadIngredients}
-							bind:selected={selectedIngredients}
-							onSelect={notifyFiltersChanged}
-						/>
+		<div class="filters">
+			<div class="buttons">
+				<div>
+					<IngredientFilter
+						onSearch={loadIngredients}
+						bind:selected={selectedIngredients}
+						onSelect={notifyFiltersChanged}
+					/>
 
-						<TagFilter
-							onSearch={loadTags}
-							bind:selected={selectedTags}
-							onSelect={notifyFiltersChanged}
-						/>
-					</div>
-
-					<OptionFilterSelect label="Sort by" options={sortOptions} bind:selected={sortBy}>
-						{#snippet item(option, select)}
-							<button
-								onclick={() => {
-									select(option)
-									onSortChange(option.value as 'popular' | 'newest' | 'easiest')
-								}}
-							>
-								{option.label}
-							</button>
-						{/snippet}
-					</OptionFilterSelect>
-				</div>
-
-				<div class="selected-pills">
-					{#each selectedTags as tag (tag.label)}
-						<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
-					{/each}
-
-					{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
-						<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
-					{/each}
-
-					{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
-						<Pill
-							text={`-${ingredient.label}`}
-							onRemove={() => removeIngredient(ingredient.label)}
-						/>
-					{/each}
-				</div>
-			</div>
-
-			<div class="home-container">
-				<div class="recipe-grid">
-					<RecipeGrid
-						recipes={sortedRecipes}
-						emptyMessage={emptyStateMessage}
-						{isLoading}
-						{loadMore}
+					<TagFilter
+						onSearch={loadTags}
+						bind:selected={selectedTags}
+						onSelect={notifyFiltersChanged}
 					/>
 				</div>
+
+				<OptionFilterSelect label="Sort by" options={sortOptions} bind:selected={sortBy}>
+					{#snippet item(option, select)}
+						<button
+							onclick={() => {
+								select(option)
+								onSortChange(option.value as 'popular' | 'newest' | 'easiest')
+							}}
+						>
+							{option.label}
+						</button>
+					{/snippet}
+				</OptionFilterSelect>
+			</div>
+
+			<div class="selected-pills">
+				{#each selectedTags as tag (tag.label)}
+					<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
+				{/each}
+
+				{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
+					<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
+				{/each}
+
+				{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
+					<Pill text={`-${ingredient.label}`} onRemove={() => removeIngredient(ingredient.label)} />
+				{/each}
+			</div>
+		</div>
+
+		<div class="home-container">
+			<div class="recipe-grid">
+				<RecipeGrid
+					recipes={sortedRecipes}
+					emptyMessage={emptyStateMessage}
+					{isLoading}
+					{loadMore}
+				/>
 			</div>
 		</div>
 	</div>
@@ -299,17 +293,6 @@
 		top: var(--spacing-md);
 		right: var(--spacing-2xl);
 		z-index: var(--z-sticky);
-	}
-
-	.main-content {
-		flex-grow: 1;
-		max-width: $max-width;
-		margin: 0 auto;
-		padding: var(--spacing-xl) var(--spacing-2xl);
-
-		@include tablet {
-			padding: var(--spacing-lg) var(--spacing-xl);
-		}
 	}
 
 	.home-title {
@@ -375,6 +358,8 @@
 		align-items: center;
 		gap: var(--spacing-md);
 		height: 3rem;
+
+		padding: 0 var(--spacing-xl);
 
 		:global(.homepage-searchbar) {
 			width: 100%;

@@ -46,7 +46,7 @@
 
 <div class="tag-filter">
 	<SearchFilterSelect
-		label={selected.length ? `Add tag (${selected.length})` : 'Add tag'}
+		buttonLabel={selected.length ? `Add tag (${selected.length})` : 'Add tag'}
 		searchPlaceholder="Search tags"
 		bind:selected
 		onSearch={searchTags}

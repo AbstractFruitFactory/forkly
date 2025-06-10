@@ -2,26 +2,27 @@
 $base-unit: 0.25rem; // 4px
 
 // Breakpoints
-$breakpoint-sm: 640px;
-$breakpoint-md: 768px;
-$breakpoint-lg: 1024px;
-$breakpoint-xl: 1280px;
+$breakpoint-xs: 320px;  // Small mobile
+$breakpoint-sm: 480px;  // Mobile
+$breakpoint-md: 768px;  // Tablet
+$breakpoint-lg: 1024px; // Desktop
+$breakpoint-xl: 1280px; // Large desktop
 
 // Mobile view mixins
 @mixin mobile {
-  @media (max-width: $breakpoint-md) {
-    @content;
-  }
-}
-
-@mixin small-mobile {
   @media (max-width: $breakpoint-sm) {
     @content;
   }
 }
 
+@mixin small-mobile {
+  @media (max-width: $breakpoint-xs) {
+    @content;
+  }
+}
+
 @mixin tablet {
-  @media (max-width: $breakpoint-lg) {
+  @media (max-width: $breakpoint-md) {
     @content;
   }
 }

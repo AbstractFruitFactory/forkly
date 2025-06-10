@@ -32,7 +32,9 @@
 
 <div class="ingredient-filter">
 	<SearchFilterSelect
-		label={selected.length ? `Add/remove ingredient (${selected.length})` : 'Add/remove ingredient'}
+		buttonLabel={selected.length
+			? `Add/remove ingredient (${selected.length})`
+			: 'Add/remove ingredient'}
 		searchPlaceholder="Search ingredients"
 		bind:selected
 		onSearch={searchIngredients}

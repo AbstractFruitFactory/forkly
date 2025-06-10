@@ -39,8 +39,10 @@
 		{/if}
 
 	</div>
-	
-	{@render searchBar?.()}
+
+	<div class="search-bar">
+		{@render searchBar?.()}
+	</div>
 
 	<div class="right-section">
 		{#if actions}
@@ -62,11 +64,9 @@
 		padding: var(--spacing-md) 0;
 		width: 100%;
 		gap: var(--spacing-lg);
-
-		@include mobile {
-			padding: var(--spacing-sm);
-		}
 	}
+
+
 
 	.left-section {
 		display: flex;

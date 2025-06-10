@@ -6,7 +6,7 @@
 	type SearchResult = $$Generic<{ label: string }>
 
 	let {
-		label,
+		buttonLabel,
 		searchPlaceholder,
 		onSearch,
 		selected = $bindable<Item[]>([]),
@@ -15,7 +15,7 @@
 		initialResults = [],
 		isLoading: externalIsLoading = false
 	}: {
-		label: string
+		buttonLabel: string
 		searchPlaceholder: string
 		onSearch: (query: string) => Promise<SearchResult[]>
 		selected: Item[]
@@ -58,7 +58,13 @@
 	}
 </script>
 
-<BaseFilterSelect {label} bind:selected {icon}>
+<BaseFilterSelect bind:selected {icon}>
+	{#snippet label()}
+		<div class="label">
+			{buttonLabel}
+		</div>
+	{/snippet}
+
 	{#snippet content(handleSelect)}
 		<div class="search-container">
 			<input
@@ -79,11 +85,7 @@
 			{/if}
 
 			{#each searchResults as result, i}
-				<div
-					class="item"
-					data-item-index={i}
-					role="option"
-				>
+				<div class="item" data-item-index={i} role="option">
 					{@render item(result, (itemData) => handleSelect(result.label, itemData))}
 				</div>
 			{/each}
@@ -92,6 +94,8 @@
 </BaseFilterSelect>
 
 <style lang="scss">
+	@import '$lib/global.scss';
+
 	.search-container {
 		padding: var(--spacing-xs) var(--spacing-sm);
 		border-bottom: 1px solid var(--color-neutral);
@@ -110,6 +114,12 @@
 		}
 	}
 
+	.label {
+		@include tablet {
+			display: none;
+		}
+	}
+
 	.item {
 		padding: var(--spacing-xs) var(--spacing-sm);
 
@@ -124,4 +134,4 @@
 		text-align: center;
 		font-size: var(--font-size-sm);
 	}
-</style> 
+</style>

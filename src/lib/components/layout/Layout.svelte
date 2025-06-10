@@ -27,7 +27,7 @@
 </script>
 
 <div class="layout" class:home-page={homepage}>
-	<header class="header" class:home-page={homepage} class:wide-header={wideHeader}>
+	<header class="header page-padding" class:home-page={homepage} class:wide-header={wideHeader}>
 		<div class="header-background" class:transparent={homepage && wideHeader}></div>
 		{@render header()}
 	</header>
@@ -42,7 +42,7 @@
 			</div>
 		{/if}
 		<div class="main-layout" class:expanded={!wideHeader}>
-			<div class="main-content" class:home-page={homepage}>
+			<div class="main-content page-padding" class:home-page={homepage}>
 				{@render content()}
 			</div>
 		</div>
@@ -61,6 +61,7 @@
 		height: 100dvh;
 		overflow: hidden;
 		padding-top: $header-height;
+		min-width: 320px;
 
 		&.home-page {
 			overflow: unset;
@@ -68,6 +69,14 @@
 
 		@include desktop {
 			padding-bottom: 0;
+		}
+	}
+
+	.page-padding {
+		padding: 0 var(--spacing-2xl);
+
+		@include mobile {
+			padding: 0 var(--spacing-xl);
 		}
 	}
 
@@ -80,7 +89,6 @@
 		z-index: var(--z-sticky);
 		width: 100vw;
 		max-width: $max-width;
-		padding: 0 var(--spacing-2xl);
 		display: flex;
 		align-items: center;
 		transition: max-width 0.25s ease-out;
@@ -147,6 +155,11 @@
 			margin-right: var(--spacing-xl);
 		}
 
+		@include mobile {
+			margin-left: var(--spacing-xs);
+			margin-right: var(--spacing-xs);
+		}
+
 		&.expanded {
 			margin: 0;
 			max-width: 100vw;
@@ -157,15 +170,10 @@
 	.main-content {
 		max-width: $max-width;
 		margin: 0 auto;
-		padding: var(--spacing-xl) var(--spacing-2xl);
-
-		&.home-page {
-			max-width: 100%;
-			padding: 0;
-		}
+		padding-top: var(--spacing-xl);
 
 		@include mobile {
-			padding: var(--spacing-md);
+			padding-top: var(--spacing-lg);
 		}
 	}
 
