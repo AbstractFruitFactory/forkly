@@ -10,23 +10,15 @@
 
 	let {
 		selected = $bindable<IngredientFilter[]>([]),
-		onSearch,
-		onSelect
+		onSearch
 	} = $props<{
 		selected: IngredientFilter[]
 		onSearch: (query: string) => Promise<string[]> | string[]
-		onSelect?: (ingredient: IngredientFilter) => void
 	}>()
 
 	const searchIngredients = async (query: string) => {
 		const results = await Promise.resolve(onSearch(query))
 		return results.map((ingredient: string) => ({ label: ingredient }))
-	}
-
-	const handleSelect = (ingredient: { label: string }, include: boolean) => {
-		if (onSelect) {
-			onSelect({ ...ingredient, include })
-		}
 	}
 </script>
 
@@ -52,10 +44,7 @@
 					<button
 						type="button"
 						class="action-button include"
-						onclick={() => {
-							select({ include: true })
-							handleSelect(result, true)
-						}}
+						onclick={() => select({ include: true })}
 						aria-label="Include ingredient"
 						data-active={state?.include === true}
 					>
@@ -68,10 +57,7 @@
 					<button
 						type="button"
 						class="action-button exclude"
-						onclick={() => {
-							select({ include: false })
-							handleSelect(result, false)
-						}}
+						onclick={() => select({ include: false })}
 						aria-label="Exclude ingredient"
 						data-active={state?.include === false}
 					>

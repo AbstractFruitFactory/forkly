@@ -62,8 +62,8 @@
 		onSearchbarSticky?: (isSticky: boolean) => void
 	} = $props()
 
-	let selectedTags = $derived(initialTags.map((tag) => ({ label: tag, selected: true })))
-	let selectedIngredients = $derived(initialIngredients)
+	let selectedTags = $state<{ label: string; selected: boolean }[]>([])
+	let selectedIngredients = $state<{ label: string; include: boolean }[]>([])
 	let availableTags = $state<{ name: string; count: number }[]>([])
 	let availableIngredients = $state<{ id: string; name: string }[]>([])
 	let isMobile = $state(false)
@@ -71,21 +71,13 @@
 	let hasInitializedObserver = false
 	let sentinelNode = writable<HTMLElement | null>(null)
 
-	const sortOptions = [
-		{ label: 'Popular', value: 'popular' },
-		{ label: 'Newest', value: 'newest' },
-		{ label: 'Easiest', value: 'easiest' }
-	]
-
-	let sortBy = $derived(sortOptions.find((option) => option.value === initialSort)!)
-
-	const checkMobile = () => {
-		isMobile = window.innerWidth <= 768
-	}
-
 	onMount(() => {
 		checkMobile()
 		window.addEventListener('resize', checkMobile)
+
+		// Initialize selected values
+		selectedTags = initialTags.map((tag) => ({ label: tag, selected: true }))
+		selectedIngredients = initialIngredients
 
 		let observer: IntersectionObserver | null = null
 		let unsubscribe = sentinelNode.subscribe((node) => {
@@ -114,6 +106,26 @@
 			unsubscribe()
 		}
 	})
+
+	$effect(() => {
+		onFiltersChange({
+			tags: selectedTags.map((t) => t.label),
+			ingredients: selectedIngredients.filter((i) => i.include).map((i) => i.label),
+			excludedIngredients: selectedIngredients.filter((i) => !i.include).map((i) => i.label)
+		})
+	})
+
+	const sortOptions = [
+		{ label: 'Popular', value: 'popular' },
+		{ label: 'Newest', value: 'newest' },
+		{ label: 'Easiest', value: 'easiest' }
+	]
+
+	let sortBy = $derived(sortOptions.find((option) => option.value === initialSort)!)
+
+	const checkMobile = () => {
+		isMobile = window.innerWidth <= 768
+	}
 
 	const removeTag = (tag: string) => {
 		selectedTags = selectedTags.filter((t) => t.label !== tag)
@@ -198,13 +210,11 @@
 					<IngredientFilter
 						onSearch={loadIngredients}
 						bind:selected={selectedIngredients}
-						onSelect={notifyFiltersChanged}
 					/>
 
 					<TagFilter
 						onSearch={loadTags}
 						bind:selected={selectedTags}
-						onSelect={notifyFiltersChanged}
 					/>
 				</div>
 

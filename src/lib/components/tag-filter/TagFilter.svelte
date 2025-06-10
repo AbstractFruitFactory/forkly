@@ -11,12 +11,10 @@
 
 	let {
 		selected = $bindable<Tag[]>([]),
-		onSearch,
-		onSelect
+		onSearch
 	}: {
 		selected: Tag[]
 		onSearch: (query: string) => Promise<string[]>
-		onSelect?: (tag: Tag) => void
 	} = $props()
 
 	let initialResults = $state<{ label: string }[]>([])
@@ -35,12 +33,6 @@
 		return results
 			.filter((tag: string) => !selected.some((s: Tag) => s.label === tag))
 			.map((tag: string) => ({ label: tag }))
-	}
-
-	const handleSelect = (tag: { label: string }, selected: boolean) => {
-		if (onSelect) {
-			onSelect({ ...tag, selected })
-		}
 	}
 </script>
 
@@ -67,10 +59,7 @@
 				<button
 					type="button"
 					class="action-button"
-					onclick={() => {
-						select({ selected: isSelected })
-						handleSelect(result, isSelected)
-					}}
+					onclick={() => select({ selected: !isSelected })}
 					aria-label={isSelected ? 'Remove tag' : 'Add tag'}
 					data-active={isSelected}
 				>

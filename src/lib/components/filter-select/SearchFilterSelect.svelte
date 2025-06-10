@@ -118,7 +118,7 @@
 					<span class="pill-label">{item.label}</span>
 					<button
 						class="remove-button"
-						onclick={() => (selected = selected.filter((i) => i.label !== item.label))}
+						onclick={() => handleSelect(item.label, item)}
 					>
 						×
 					</button>
