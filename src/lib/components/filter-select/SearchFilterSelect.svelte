@@ -61,7 +61,7 @@
 		}, DEBOUNCE_DELAY)
 	}
 
-	const displayedResults = $derived(
+	const filteredResults = $derived(
 		searchResults.filter((result) => !selected.some((item) => item.label === result.label))
 	)
 </script>
@@ -92,9 +92,9 @@
 			</div>
 		{/if}
 
-		{#each displayedResults as result, i (result.label)}
+		{#each filteredResults as result, i (result.label)}
 			<div
-				class="item"
+				class="item mobile-only"
 				data-item-index={i}
 				role="option"
 				in:receive={{ key: result.label }}
@@ -107,6 +107,12 @@
 			</div>
 		{/each}
 
+		{#each searchResults as result, i}
+			<div class="item desktop-only" data-item-index={i} role="option">
+				{@render item(result, (itemData) => handleSelect(result.label, itemData))}
+			</div>
+		{/each}
+
 		<div class="selected-items">
 			{#each selected as item (item.label)}
 				<div
@@ -116,12 +122,7 @@
 					animate:flip={{ duration: 200 }}
 				>
 					<span class="pill-label">{item.label}</span>
-					<button
-						class="remove-button"
-						onclick={() => handleSelect(item.label, item)}
-					>
-						×
-					</button>
+					<button class="remove-button" onclick={() => handleSelect(item.label, item)}> × </button>
 				</div>
 			{/each}
 		</div>
@@ -167,6 +168,10 @@
 		flex-wrap: wrap;
 		gap: var(--spacing-xs);
 		padding: var(--spacing-sm);
+
+		@include desktop {
+			display: none;
+		}
 	}
 
 	.selected-item {
@@ -185,5 +190,21 @@
 	.remove-button {
 		cursor: pointer;
 		font-size: var(--font-size-lg);
+	}
+
+	.desktop-only {
+		display: none;
+
+		@include desktop {
+			display: block;
+		}
+	}
+
+	.mobile-only {
+		display: block;
+
+		@include desktop {
+			display: none;
+		}
 	}
 </style>
