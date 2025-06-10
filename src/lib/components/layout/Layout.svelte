@@ -145,10 +145,10 @@
 		margin-top: var(--spacing-3xl);
 		border-radius: 3rem;
 		min-height: calc(100dvh - $header-height);
-
+		will-change: margin, border-radius;
 		transition:
-			margin 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-			border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+			margin 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 		@include tablet {
 			margin-left: var(--spacing-xl);
