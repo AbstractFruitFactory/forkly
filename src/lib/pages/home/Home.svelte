@@ -66,10 +66,8 @@
 	let selectedIngredients = $derived(initialIngredients)
 	let availableTags = $state<{ name: string; count: number }[]>([])
 	let availableIngredients = $state<{ id: string; name: string }[]>([])
-	let showFiltersDrawer = $state(false)
 	let isMobile = $state(false)
 	let searchbarIsSticky = $state(false)
-	let searchContainer: HTMLDivElement
 	let hasInitializedObserver = false
 	let sentinelNode = writable<HTMLElement | null>(null)
 
@@ -286,6 +284,11 @@
 		font-weight: 600;
 		text-align: center;
 		padding: var(--spacing-2xl) 0;
+
+		@include mobile {
+			padding: 0;
+			padding-top: var(--spacing-xl);
+		}
 	}
 
 	.header-actions-main {

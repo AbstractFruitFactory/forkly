@@ -158,6 +158,7 @@
 		@include mobile {
 			margin-left: var(--spacing-xs);
 			margin-right: var(--spacing-xs);
+			margin-top: var(--spacing-xl);
 		}
 
 		&.expanded {

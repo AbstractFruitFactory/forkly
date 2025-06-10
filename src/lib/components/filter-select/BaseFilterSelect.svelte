@@ -2,6 +2,7 @@
 	import Dropdown from '../dropdown/Dropdown.svelte'
 	import type { Snippet } from 'svelte'
 	import Button from '../button/Button.svelte'
+	import Drawer from '../drawer/Drawer.svelte'
 
 	type Item = $$Generic<{ label: string }>
 
@@ -20,10 +21,13 @@
 	} = $props()
 
 	let selectedIndex = $state(-1)
+	let drawerIsOpen = $state(false)
+	let dropdownIsOpen = $state(false)
 
 	const toggleDropdown = () => {
-		isOpen = !isOpen
-		if (isOpen) {
+		drawerIsOpen = !drawerIsOpen
+		dropdownIsOpen = !dropdownIsOpen
+		if (drawerIsOpen || dropdownIsOpen) {
 			selectedIndex = -1
 		}
 	}
@@ -47,7 +51,7 @@
 	}
 
 	const handleKeyDown = (event: KeyboardEvent) => {
-		if (!isOpen) return
+		if (!drawerIsOpen && !dropdownIsOpen) return
 
 		switch (event.key) {
 			case 'ArrowDown':
@@ -73,7 +77,8 @@
 				break
 			case 'Escape':
 				event.preventDefault()
-				isOpen = false
+				drawerIsOpen = false
+				dropdownIsOpen = false
 				break
 		}
 	}
@@ -89,14 +94,23 @@
 		{/if}
 	</Button>
 
-	<Dropdown bind:isOpen>
-		<div class="items-container" role="listbox" onkeydown={handleKeyDown}>
+	<div class="mobile-only">
+		<Drawer bind:isOpen={drawerIsOpen}>
 			{@render content(handleSelect)}
-		</div>
-	</Dropdown>
+		</Drawer>
+	</div>
+
+	<div class="desktop-only">
+		<Dropdown bind:isOpen={dropdownIsOpen}>
+			<div class="items-container" role="listbox" onkeydown={handleKeyDown}>
+				{@render content(handleSelect)}
+			</div>
+		</Dropdown>
+	</div>
 </div>
 
 <style lang="scss">
+	@import '$lib/global.scss';
 	.filter-select {
 		position: relative;
 		display: inline-block;
@@ -105,5 +119,17 @@
 	.items-container {
 		max-height: 300px;
 		overflow-y: auto;
+	}
+
+	.mobile-only {
+		@include desktop {
+			display: none;
+		}
+	}
+
+	.desktop-only {
+		@include tablet {
+			display: none;
+		}
 	}
 </style>
