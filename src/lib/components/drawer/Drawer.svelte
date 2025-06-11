@@ -32,32 +32,29 @@
 {#if isOpen}
 	<div class="drawer-overlay" transition:fade={{ duration: 200 }} />
 	<div class="drawer-container" bind:this={drawer} transition:slide={{ duration: 300 }}>
-		{#if title}
-			<div class="drawer-header">
-				<div>
-					{#if title}
-						<h3 class="drawer-title">{title}</h3>
-					{/if}
-				</div>
-
-				<button class="drawer-close" onclick={() => (isOpen = false)} aria-label="Close drawer">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="20"
-						height="20"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					>
-						<line x1="18" y1="6" x2="6" y2="18" />
-						<line x1="6" y1="6" x2="18" y2="18" />
-					</svg>
-				</button>
+		<div class="drawer-header">
+			<div>
+				{#if title}
+					<h3 class="drawer-title">{title}</h3>
+				{/if}
 			</div>
-		{/if}
+			<button class="drawer-close" onclick={() => (isOpen = false)} aria-label="Close drawer">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<line x1="18" y1="6" x2="6" y2="18" />
+					<line x1="6" y1="6" x2="18" y2="18" />
+				</svg>
+			</button>
+		</div>
 		<div class="drawer-content">
 			{@render children()}
 		</div>

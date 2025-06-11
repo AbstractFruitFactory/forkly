@@ -10,14 +10,18 @@
 		label,
 		selected = $bindable(),
 		icon,
+		count,
 		content,
-		isOpen = $bindable(false)
+		isOpen = $bindable(false),
+		title
 	}: {
 		label: string | Snippet
 		selected: Item | Item[]
 		icon?: Snippet
+		count?: number
 		content: Snippet<[handleSelect: (itemLabel: string, itemData: Omit<Item, 'label'>) => void]>
 		isOpen?: boolean
+		title?: string
 	} = $props()
 
 	let selectedIndex = $state(-1)
@@ -92,11 +96,19 @@
 		{:else}
 			{@render label()}
 		{/if}
+		{#if count}
+			<span class="count">({count})</span>
+		{/if}
 	</Button>
 
 	<div class="mobile-only">
-		<Drawer bind:isOpen={drawerIsOpen}>
-			{@render content(handleSelect)}
+		<Drawer bind:isOpen={drawerIsOpen} {title}>
+			<div class="drawer-flex-col">
+				<div class="drawer-scroll-content">
+					{@render content(handleSelect)}
+				</div>
+				<Button fullWidth onclick={() => (drawerIsOpen = false)}>Show Results</Button>
+			</div>
 		</Drawer>
 	</div>
 
@@ -131,5 +143,15 @@
 		@include tablet {
 			display: none;
 		}
+	}
+
+	.drawer-flex-col {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
+	.drawer-scroll-content {
+		flex: 1 1 auto;
+		overflow-y: auto;
 	}
 </style>

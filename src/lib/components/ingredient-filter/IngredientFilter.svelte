@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SearchFilterSelect from '../filter-select/SearchFilterSelect.svelte'
-	import { Plus, Minus, Check } from 'lucide-svelte'
 	import Carrot from 'lucide-svelte/icons/carrot'
+	import FilterActionButton from '../tag-filter/FilterActionButton.svelte'
 
 	type IngredientFilter = {
 		label: string
@@ -24,12 +24,11 @@
 
 <div class="ingredient-filter">
 	<SearchFilterSelect
-		buttonLabel={selected.length
-			? `Add/remove ingredient (${selected.length})`
-			: 'Add/remove ingredient'}
+		buttonLabel="Ingredients"
 		searchPlaceholder="Search ingredients"
 		bind:selected
 		onSearch={searchIngredients}
+		title="Add/remove ingredients"
 	>
 		{#snippet icon()}
 			<Carrot size={16} />
@@ -41,28 +40,16 @@
 					{result.label}
 				</span>
 				<div class="actions">
-					<button
-						type="button"
-						class="action-button include"
-						onclick={() => select({ include: true })}
-						aria-label="Include ingredient"
-						data-active={state?.include === true}
-					>
-						{#if state?.include === true}
-							<Check size={14} />
-						{:else}
-							<Plus size={14} />
-						{/if}
-					</button>
-					<button
-						type="button"
-						class="action-button exclude"
-						onclick={() => select({ include: false })}
-						aria-label="Exclude ingredient"
-						data-active={state?.include === false}
-					>
-						<Minus size={14} />
-					</button>
+					<FilterActionButton
+						isSelected={state?.include === true}
+						onClick={() => select({ include: true })}
+						variant="include"
+					/>
+					<FilterActionButton
+						isSelected={state?.include === false}
+						onClick={() => select({ include: false })}
+						variant="exclude"
+					/>
 				</div>
 			</div>
 		{/snippet}
@@ -72,6 +59,12 @@
 <style lang="scss">
 	.ingredient-filter {
 		display: inline-block;
+	}
+
+	.count {
+		margin-left: var(--spacing-xs);
+		font-size: var(--font-size-sm);
+		color: var(--color-neutral-light);
 	}
 
 	.ingredient-item {
@@ -94,40 +87,5 @@
 	.actions {
 		display: flex;
 		gap: var(--spacing-xs);
-	}
-
-	.action-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 20px;
-		height: 20px;
-		border-radius: 50%;
-		border: 1px solid var(--color-neutral-light);
-		background: none;
-		cursor: pointer;
-		color: var(--color-neutral-light);
-		transition: all 0.2s ease;
-		padding: 0;
-
-		&:hover {
-			background-color: var(--color-neutral);
-		}
-
-		&.include {
-			&[data-active='true'] {
-				background-color: var(--color-success);
-				border-color: var(--color-success);
-				color: var(--color-white);
-			}
-		}
-
-		&.exclude {
-			&[data-active='true'] {
-				background-color: var(--color-error);
-				border-color: var(--color-error);
-				color: var(--color-white);
-			}
-		}
 	}
 </style>

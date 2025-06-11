@@ -1,11 +1,12 @@
 <script lang="ts">
 	import BaseFilterSelect from './BaseFilterSelect.svelte'
 	import Search from '../search/Search.svelte'
+	import FilterActionButton from '../tag-filter/FilterActionButton.svelte'
 	import type { Snippet } from 'svelte'
 	import { crossfade } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
 
-	type Item = $$Generic<{ label: string }>
+	type Item = $$Generic<{ label: string; include?: boolean }>
 	type SearchResult = $$Generic<{ label: string }>
 
 	let {
@@ -16,7 +17,8 @@
 		item,
 		icon,
 		initialResults = [],
-		isLoading: externalIsLoading = false
+		isLoading: externalIsLoading = false,
+		title
 	}: {
 		buttonLabel: string
 		searchPlaceholder: string
@@ -26,6 +28,7 @@
 		icon?: Snippet
 		initialResults?: SearchResult[]
 		isLoading?: boolean
+		title?: string
 	} = $props()
 
 	let searchQuery = $state('')
@@ -66,7 +69,7 @@
 	)
 </script>
 
-<BaseFilterSelect bind:selected {icon}>
+<BaseFilterSelect bind:selected {icon} {title} count={selected.length}>
 	{#snippet label()}
 		<div class="label">
 			{buttonLabel}
@@ -121,6 +124,11 @@
 					out:send={{ key: item.label }}
 					animate:flip={{ duration: 200 }}
 				>
+					<FilterActionButton
+						isSelected
+						onClick={() => {}}
+						variant={item.include === false ? 'exclude' : 'include'}
+					/>
 					<span class="pill-label">{item.label}</span>
 					<button class="remove-button" onclick={() => handleSelect(item.label, item)}> × </button>
 				</div>
@@ -181,6 +189,7 @@
 		border-radius: var(--border-radius-xl);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		font-size: var(--font-size-sm);
+		gap: var(--spacing-xs);
 	}
 
 	.pill-label {

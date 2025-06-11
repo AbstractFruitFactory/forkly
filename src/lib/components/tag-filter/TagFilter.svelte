@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SearchFilterSelect from '../filter-select/SearchFilterSelect.svelte'
-	import { Plus, Check } from 'lucide-svelte'
 	import TagIcon from 'lucide-svelte/icons/tag'
+	import FilterActionButton from './FilterActionButton.svelte'
 	import { onMount } from 'svelte'
 
 	type Tag = {
@@ -38,12 +38,13 @@
 
 <div class="tag-filter">
 	<SearchFilterSelect
-		buttonLabel={selected.length ? `Add tag (${selected.length})` : 'Add tag'}
+		buttonLabel="Tags"
 		searchPlaceholder="Search tags"
 		bind:selected
 		onSearch={searchTags}
 		{initialResults}
 		{isLoading}
+		title="Add tags"
 	>
 		{#snippet icon()}
 			<TagIcon size={16} />
@@ -56,19 +57,11 @@
 				<span class="tag-label">
 					{result.label}
 				</span>
-				<button
-					type="button"
-					class="action-button"
-					onclick={() => select({ selected: !isSelected })}
-					aria-label={isSelected ? 'Remove tag' : 'Add tag'}
-					data-active={isSelected}
-				>
-					{#if isSelected}
-						<Check size={16} />
-					{:else}
-						<Plus size={16} />
-					{/if}
-				</button>
+				<FilterActionButton
+					{isSelected}
+					onClick={() => select({ selected: !isSelected })}
+					variant="include"
+				/>
 			</div>
 		{/snippet}
 	</SearchFilterSelect>
@@ -77,6 +70,12 @@
 <style lang="scss">
 	.tag-filter {
 		display: inline-block;
+	}
+
+	.count {
+		margin-left: var(--spacing-xs);
+		font-size: var(--font-size-sm);
+		color: var(--color-neutral-light);
 	}
 
 	.tag-item {
@@ -94,30 +93,5 @@
 	.tag-label {
 		color: var(--color-white);
 		font-size: var(--font-size-sm);
-	}
-
-	.action-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 20px;
-		height: 20px;
-		border-radius: 50%;
-		border: 1px solid var(--color-neutral-light);
-		background: none;
-		cursor: pointer;
-		color: var(--color-neutral-light);
-		transition: all 0.2s ease;
-		padding: 0;
-
-		&:hover {
-			background-color: var(--color-neutral);
-		}
-
-		&[data-active='true'] {
-			background-color: var(--color-success);
-			border-color: var(--color-success);
-			color: var(--color-white);
-		}
 	}
 </style>
