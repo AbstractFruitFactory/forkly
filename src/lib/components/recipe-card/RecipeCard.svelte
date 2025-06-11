@@ -300,21 +300,27 @@
 		pointer-events: none;
 	}
 
-	.gradient-animate {
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(
-			90deg,
-			rgba(255, 255, 255, 0.05) 0%,
-			rgba(255, 255, 255, 0.1) 25%,
-			rgba(255, 255, 255, 0.15) 50%,
-			rgba(255, 255, 255, 0.1) 75%,
-			rgba(255, 255, 255, 0.05) 100%
-		);
-		background-size: 200% 100%;
-		animation: gradient-shift 1.5s ease-in-out infinite;
-		will-change: background-position;
-	}
+       .gradient-animate {
+               position: absolute;
+               inset: 0;
+               background: linear-gradient(
+                       90deg,
+                       rgba(255, 255, 255, 0.05) 0%,
+                       rgba(255, 255, 255, 0.1) 25%,
+                       rgba(255, 255, 255, 0.15) 50%,
+                       rgba(255, 255, 255, 0.1) 75%,
+                       rgba(255, 255, 255, 0.05) 100%
+               );
+               background-size: 200% 100%;
+               animation: gradient-shift 1.5s ease-in-out infinite;
+               will-change: background-position;
+       }
+
+       @media (prefers-reduced-motion: reduce) {
+               .gradient-animate {
+                       animation: none;
+               }
+       }
 
 	.skeleton .image-container {
 		position: relative;

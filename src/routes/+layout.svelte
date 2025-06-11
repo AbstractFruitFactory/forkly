@@ -87,8 +87,8 @@
 		}
 	})
 
-	async function handleFlip(target: 'header' | 'homepage') {
-		if (!_flip) return
+       async function handleFlip(target: 'header' | 'homepage') {
+               if (!_flip || searchBarPosition === target) return
 
 		flipState = _flip.getState('.header-searchbar, .homepage-searchbar')
 
@@ -166,8 +166,7 @@
 		display: var(--header-display, block);
 	}
 
-	div {
-		position: relative;
-		will-change: transform;
-	}
+       div {
+               position: relative;
+       }
 </style>

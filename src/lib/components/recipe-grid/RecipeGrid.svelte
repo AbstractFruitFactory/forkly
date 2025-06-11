@@ -59,16 +59,16 @@
 	})
 </script>
 
-<div in:fly={{ y: 50, duration: 300, delay: 300 }} out:fly={{ y: 50, duration: 300 }}>
+<div>
 	{#if recipes.length === 0}
 		<div class="empty-state">
 			<p>{emptyMessage}</p>
 		</div>
 	{:else}
-		<div class="recipe-grid">
-			{#each recipes as recipe (recipe.id)}
-				<RecipeCard {recipe} />
-			{/each}
+                <div class="recipe-grid">
+                        {#each recipes as recipe, i (recipe.id)}
+                                <RecipeCard {recipe} in:fly={{ y: 50, duration: 300, delay: i * 50 }} />
+                        {/each}
 
 			{#if isLoading}
 				{#each Array(18) as _}
