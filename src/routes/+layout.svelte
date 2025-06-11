@@ -166,8 +166,11 @@
 		display: var(--header-display, block);
 	}
 
-	div {
-		position: relative;
+	:global(.header-searchbar) {
+		will-change: transform;
+	}
+
+	:global(.homepage-searchbar) {
 		will-change: transform;
 	}
 </style>
