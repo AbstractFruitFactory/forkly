@@ -10,6 +10,7 @@ export const user = pgTable('user', {
 	email: text('email').notNull().unique(),
 	emailVerified: boolean('email_verified').notNull().default(false),
 	googleId: text('google_id').unique(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
 export const session = pgTable('session', {

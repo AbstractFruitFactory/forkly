@@ -3,6 +3,10 @@ import { recipe, recipeLike, recipeDislike, recipeIngredient, ingredient, recipe
 import { eq, ilike, desc, sql, and, SQL, or } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 
+function escapeSqlString(str: string): string {
+  return str.replace(/'/g, "''")
+}
+
 export type BasicRecipe = {
   id: string
   title: string
@@ -19,7 +23,7 @@ export type DetailedRecipe = {
   instructions: { text: string; mediaUrl?: string; mediaType?: "image" | "video" }[]
   tags: string[]
   imageUrl?: string
-  createdAt: Date | string
+  createdAt: Date
   likes: number
   dislikes: number
   bookmarks: number
@@ -117,7 +121,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
 
   // Ingredient filtering using raw SQL subquery
   if (ingredients.length > 0) {
-    const ingredientsList = ingredients.map(ing => `'${ing}'`).join(',')
+    const ingredientsList = ingredients.map(ing => `'${escapeSqlString(ing)}'`).join(',')
     conditions.push(sql`${recipe.id} IN (
       SELECT ri.recipe_id 
       FROM recipe_ingredient ri
@@ -130,7 +134,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
 
   // Excluded ingredient filtering using raw SQL subquery
   if (excludedIngredients.length > 0) {
-    const excludedList = excludedIngredients.map(ing => `'${ing}'`).join(',')
+    const excludedList = excludedIngredients.map(ing => `'${escapeSqlString(ing)}'`).join(',')
     conditions.push(sql`${recipe.id} NOT IN (
       SELECT ri.recipe_id 
       FROM recipe_ingredient ri
