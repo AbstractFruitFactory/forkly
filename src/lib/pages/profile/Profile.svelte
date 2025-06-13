@@ -96,8 +96,8 @@
 								<p class="error">{error}</p>
 							{/if}
 							<div class="edit-actions">
-								<Button type="submit" variant="primary">Save</Button>
-								<Button type="button" variant="secondary" onclick={toggleEditMode}>Cancel</Button>
+								<Button type="submit" color="primary">Save</Button>
+								<Button type="button" color="secondary" onclick={toggleEditMode}>Cancel</Button>
 							</div>
 						</form>
 					</div>
@@ -106,7 +106,7 @@
 						<h1>{user.username}</h1>
 						<p class="bio">{user.bio || 'No bio yet'}</p>
 						<div class="profile-actions">
-							<Button variant="secondary" size="sm" onclick={toggleEditMode}>Edit Profile</Button>
+							<Button color="secondary" size="sm" onclick={toggleEditMode}>Edit Profile</Button>
 							<Button variant="text" size="sm" onclick={onLogout}>Logout</Button>
 						</div>
 					</div>
@@ -153,7 +153,7 @@
 				{:else}
 					<div class="empty-state">
 						<p>You haven't created any recipes yet.</p>
-						<Button href="/new" variant="primary">Create Your First Recipe</Button>
+						<Button href="/new" color="primary">Create Your First Recipe</Button>
 					</div>
 				{/if}
 			{:else if savedRecipes.length > 0}
@@ -165,7 +165,7 @@
 			{:else}
 				<div class="empty-state">
 					<p>You haven't saved any recipes yet.</p>
-					<Button href="/" variant="primary">Explore Recipes</Button>
+					<Button href="/" color="primary">Explore Recipes</Button>
 				</div>
 			{/if}
 		</div>

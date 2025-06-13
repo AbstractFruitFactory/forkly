@@ -252,7 +252,7 @@
 
 			<div class="navigation-buttons">
 				<div></div>
-				<Button variant="primary" onclick={nextStep}>Next</Button>
+				<Button color="primary" onclick={nextStep}>Next</Button>
 			</div>
 		</div>
 
@@ -314,8 +314,8 @@
 			</div>
 
 			<div class="navigation-buttons">
-				<Button variant="secondary" onclick={previousStep}>Previous</Button>
-				<Button variant="primary" onclick={nextStep}>Next</Button>
+				<Button color="secondary" onclick={previousStep}>Previous</Button>
+				<Button color="primary" onclick={nextStep}>Next</Button>
 			</div>
 		</div>
 
@@ -356,8 +356,8 @@
 			</div>
 
 			<div class="navigation-buttons">
-				<Button variant="secondary" onclick={previousStep}>Previous</Button>
-				<Button loading={submitting} type="submit" variant="primary">Create Recipe</Button>
+				<Button color="secondary" onclick={previousStep}>Previous</Button>
+				<Button loading={submitting} type="submit" color="primary">Create Recipe</Button>
 			</div>
 		</div>
 	</form>

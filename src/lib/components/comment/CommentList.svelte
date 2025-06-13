@@ -113,7 +113,7 @@
 					/>
 				</div>
 
-				<Button type="submit" variant="primary" size="sm" disabled={isSubmitting}>
+				<Button type="submit" color="primary" size="sm" disabled={isSubmitting}>
 					{isSubmitting ? 'Posting...' : 'Post Comment'}
 				</Button>
 			</div>

@@ -1,13 +1,15 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
 
-	type Variant = 'primary' | 'secondary' | 'text' | 'dotted' | 'border' | 'pill'
+	type Variant = 'text' | 'dotted' | 'border' | 'pill'
+	type Color = 'primary' | 'secondary'
 	type Size = 'xs' | 'sm' | 'md' | 'lg'
 
 	let {
-		variant = 'primary',
-		size = 'md',
+		variant,
 		color,
+		buttonColor,
+		size = 'md',
 		type = 'button',
 		borderRadius = 'md',
 		fullWidth = false,
@@ -18,7 +20,8 @@
 		loading = false
 	}: {
 		variant?: Variant
-		color?: string
+		color?: Color
+		buttonColor?: string
 		size?: Size
 		type?: 'button' | 'submit' | 'reset'
 		borderRadius?: 'md' | 'lg' | 'xl' | 'full'
@@ -33,17 +36,17 @@
 
 <svelte:element
 	this={href ? 'a' : 'button'}
-	style={color ? `--button-color: ${color}` : undefined}
+	style={buttonColor ? `--button-color: ${buttonColor}` : undefined}
 	{href}
 	{type}
 	{disabled}
 	class="button"
-	class:primary={variant === 'primary' && !color}
-	class:secondary={variant === 'secondary' && !color}
-	class:text={variant === 'text' && !color}
-	class:dotted={variant === 'dotted' && !color}
-	class:border={variant === 'border' && !color}
-	class:pill={variant === 'pill' && !color}
+	class:primary={color === 'primary'}
+	class:secondary={color === 'secondary'}
+	class:text={variant === 'text'}
+	class:dotted={variant === 'dotted'}
+	class:border={variant === 'border'}
+	class:pill={variant === 'pill'}
 	class:xs={size === 'xs'}
 	class:sm={size === 'sm'}
 	class:md={size === 'md'}
@@ -72,7 +75,6 @@
 		font-weight: 500;
 		cursor: pointer;
 		transition: all var(--transition-fast) var(--ease-in-out);
-		background: var(--button-color, transparent);
 		border: none;
 		text-decoration: none;
 		position: relative;
@@ -101,7 +103,6 @@
 			align-items: center;
 			justify-content: center;
 			gap: var(--spacing-xs);
-			color: black;
 		}
 
 		&.border-radius-md {
@@ -142,32 +143,36 @@
 
 		// Variants
 		&.primary {
-			background: var(--color-primary);
-			color: black;
-			font-weight: 600;
+			background-color: var(--color-primary);
 
 			&:hover:not(:disabled) {
-				background: color-mix(in srgb, var(--color-primary), black 15%);
+				background-color: color-mix(in srgb, var(--color-primary), black 15%);
 			}
 
 			&:active:not(:disabled) {
 				transform: translateY(var(--spacing-xs));
 			}
+
+			.content {
+				color: var(--color-neutral-2);
+			}
 		}
 
 		&.secondary {
-			background: var(--color-secondary);
-			border: var(--border-width-thin) solid var(--color-neutral);
+			background-color: var(--color-secondary);
 
 			&:hover:not(:disabled) {
-				background: color-mix(in srgb, var(--color-secondary), black 15%);
+				background-color: color-mix(in srgb, var(--color-secondary), black 15%);
+			}
+
+			.content {
+				color: var(--color-neutral-2);
 			}
 		}
 
 		&.text {
-			color: var(--color-primary);
-			padding: 0;
 			background: none;
+			padding: 0;
 
 			&:hover:not(:disabled) {
 				text-decoration: underline;
@@ -179,7 +184,6 @@
 			width: 100%;
 
 			&:hover:not(:disabled) {
-				color: var(--color-primary);
 				border-color: var(--color-primary);
 				background: rgba(0, 0, 0, 0.05);
 			}
@@ -195,7 +199,6 @@
 
 		&.pill {
 			background-color: var(--color-neutral-dark);
-			color: var(--color-white);
 			border-radius: var(--border-radius-full);
 			border: 1px solid var(--color-neutral);
 
@@ -206,9 +209,6 @@
 			&:focus-visible {
 				outline: none;
 				box-shadow: 0 0 0 2px var(--color-primary-light);
-			}
-			> .content {
-				color: white;
 			}
 		}
 

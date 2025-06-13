@@ -17,13 +17,7 @@
 {:else}
 	<div class="instructions card">
 		<div style:margin-bottom="var(--spacing-lg)">
-			<Button
-				variant="primary"
-				size="md"
-				borderRadius="full"
-				fullWidth
-				onclick={() => (isCookingMode = true)}
-			>
+			<Button color="primary" onclick={() => (isCookingMode = true)}>
 				Step by Step Mode
 			</Button>
 		</div>

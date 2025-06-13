@@ -10,13 +10,13 @@
 
 <Story name="Primary">
 	{#snippet children(args)}
-		<Button {...args}>Click me</Button>
+		<Button color="primary" {...args}>Click me</Button>
 	{/snippet}
 </Story>
 
 <Story name="Secondary">
 	{#snippet children(args)}
-		<Button variant="secondary" {...args}>Click me</Button>
+		<Button color="secondary" {...args}>Click me</Button>
 	{/snippet}
 </Story>
 

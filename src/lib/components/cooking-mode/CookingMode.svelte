@@ -151,7 +151,8 @@
 				<div class="cooking-nav-button"></div>
 			{/if}
 			<Button
-				variant={currentStep === instructions.length - 1 ? 'secondary' : 'text'}
+				color={currentStep === instructions.length - 1 ? 'secondary' : undefined}
+				variant="text"
 				onclick={nextStep}
 			>
 				{currentStep === instructions.length - 1 ? 'Done' : 'Next'}
