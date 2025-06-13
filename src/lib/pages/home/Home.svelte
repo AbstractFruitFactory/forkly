@@ -1,26 +1,7 @@
-<script module lang="ts">
-	export type Recipe = {
-		id: string
-		title: string
-		description?: string
-		ingredients: number
-		instructions: number
-		imageUrl?: string | null
-		user?: {
-			username: string
-			avatarUrl?: string | null
-		}
-		likes: number
-		bookmarks: number
-		createdAt: string
-		dislikes?: number
-	}
-</script>
-
 <script lang="ts">
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
-	import { onMount, type Snippet } from 'svelte'
+	import { onMount, type ComponentProps, type Snippet } from 'svelte'
 	import { setSlots } from '../../../routes/+layout.svelte'
 	import { writable } from 'svelte/store'
 	import IngredientFilter from '$lib/components/ingredient-filter/IngredientFilter.svelte'
@@ -44,7 +25,7 @@
 		initialSort = 'popular',
 		onSearchbarSticky = (isSticky: boolean) => {}
 	}: {
-		recipes: Recipe[]
+		recipes: ComponentProps<typeof RecipeGrid>['recipes']
 		isLoading?: boolean
 		onSearchChange?: (query: string) => void
 		onFiltersChange?: (filters: {
@@ -145,7 +126,7 @@
 		})
 	}
 
-	const calculatePopularityScore = (recipe: Recipe): number => {
+	const calculatePopularityScore = (recipe: (typeof recipes)[number]): number => {
 		if (!recipe.dislikes) return recipe.likes
 
 		const engagementScore = recipe.likes - recipe.dislikes * 1.5
@@ -207,15 +188,9 @@
 		<div class="filters">
 			<div class="buttons">
 				<div>
-					<IngredientFilter
-						onSearch={loadIngredients}
-						bind:selected={selectedIngredients}
-					/>
+					<IngredientFilter onSearch={loadIngredients} bind:selected={selectedIngredients} />
 
-					<TagFilter
-						onSearch={loadTags}
-						bind:selected={selectedTags}
-					/>
+					<TagFilter onSearch={loadTags} bind:selected={selectedTags} />
 				</div>
 
 				<OptionFilterSelect label="Sort by" options={sortOptions} bind:selected={sortBy}>

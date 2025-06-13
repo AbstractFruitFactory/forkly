@@ -6,7 +6,6 @@
 	import type { IngredientLookupResult } from './(pages)/api/ingredients/lookup/[query]/+server'
 	import type { TagSearchResponse } from './(pages)/api/tags/+server'
 	import type { RecipesSearchResponse } from './(pages)/api/recipes/search/+server'
-	import { toHomePageRecipe } from '$lib/utils/recipe'
 	import { scrolledDownHomepageStore } from './+layout.svelte'
 	import { onMount } from 'svelte'
 	import { useCookies } from '$lib/utils/cookies'
@@ -131,13 +130,11 @@
 			return
 		}
 
-		const newRecipes = newData.results.map(toHomePageRecipe)
-
-		recipes = [...recipes, ...newRecipes]
+		recipes = [...recipes, ...newData.results]
 
 		pagination = {
 			...pagination,
-			hasMore: newRecipes.length === pagination.limit,
+			hasMore: newData.results.length === pagination.limit,
 			page: pagination.page + 1,
 			isLoading: false
 		}

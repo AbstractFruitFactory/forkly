@@ -1,24 +1,8 @@
 <script lang="ts">
 	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
+	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	import { fly } from 'svelte/transition'
 	import { onMount } from 'svelte'
-
-	type Recipe = {
-		id: string
-		title: string
-		description?: string
-		ingredients: number
-		instructions: number
-		imageUrl?: string | null
-		user?: {
-			username: string
-			avatarUrl?: string | null
-		}
-		likes: number
-		createdAt: string
-		dislikes?: number
-		tags?: string[]
-	}
 
 	let {
 		recipes = [],
@@ -26,7 +10,7 @@
 		isLoading = false,
 		loadMore
 	}: {
-		recipes: Recipe[]
+		recipes: DetailedRecipe[]
 		emptyMessage?: string
 		isLoading?: boolean
 		loadMore?: () => Promise<void>

@@ -3,27 +3,13 @@
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import { navigating } from '$app/state'
-
-	interface Recipe {
-		id: string
-		title: string
-		description?: string
-		ingredients: number
-		instructions: number
-		imageUrl?: string | null
-		tags?: string[]
-		user?: {
-			username: string
-			avatarUrl?: string | null
-		}
-		likes: number
-	}
+	import type { DetailedRecipe } from '$lib/server/db/recipe'
 
 	let {
 		recipe,
 		loading = false
 	}: {
-		recipe?: Recipe
+		recipe?: DetailedRecipe
 		loading?: boolean
 	} = $props()
 
@@ -73,10 +59,10 @@
 			class="avatar"
 			style="background: {recipe.user.avatarUrl
 				? `url(${recipe.user.avatarUrl}) center/cover`
-				: `var(--color-${recipe.user.username.charCodeAt(0) % 5})`}"
+				: `var(--color-${recipe.user.username!.charCodeAt(0) % 5})`}"
 		>
 			{#if !recipe.user.avatarUrl}
-				{recipe.user.username[0].toUpperCase()}
+				{recipe.user.username?.[0]?.toUpperCase()}
 			{/if}
 		</div>
 	{/if}
@@ -108,7 +94,9 @@
 					<div class="gradient-animate"></div>
 				</span>
 			{:else if recipe}
-				<span>{recipe.ingredients} ingredients &nbsp;|&nbsp; {recipe.instructions} steps</span>
+				<span
+					>{recipe.ingredients.length} ingredients &nbsp;|&nbsp; {recipe.instructions.length} steps</span
+				>
 			{/if}
 		</div>
 	</div>

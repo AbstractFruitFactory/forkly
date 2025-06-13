@@ -1,5 +1,4 @@
 import { safeFetch } from '$lib/utils/fetch'
-import { toHomePageRecipe } from '$lib/utils/recipe'
 import { error } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import type { RecipesSearchResponse } from './(pages)/api/recipes/search/+server'
@@ -23,8 +22,8 @@ export const load: PageServerLoad = async ({ url, fetch, cookies }) => {
 	}
 
 	return {
-		recipes: recipes.value.results.map(toHomePageRecipe),
-		initialState: {	
+		recipes: recipes.value.results,
+		initialState: {
 			search: search?.query || '',
 			tags: search?.tags || [],
 			ingredients: search?.ingredients || [],
