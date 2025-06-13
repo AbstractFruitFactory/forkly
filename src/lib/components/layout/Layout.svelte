@@ -26,13 +26,13 @@
 	})
 </script>
 
-<div class="layout" class:home-page={homepage}>
-	<header class="header page-padding" class:home-page={homepage} class:wide-header={wideHeader}>
+<div class="layout" class:homepage>
+	<header class="header page-padding" class:homepage class:wide-header={wideHeader}>
 		<div class="header-background" class:transparent={homepage && wideHeader}></div>
 		{@render header()}
 	</header>
 
-	<main class="main" class:home-page={homepage} bind:this={mainElement}>
+	<main class="main" class:homepage bind:this={mainElement}>
 		{#if homepage}
 			<div
 				class="homepage-header"
@@ -42,7 +42,7 @@
 			</div>
 		{/if}
 		<div class="main-layout" class:expanded={!wideHeader}>
-			<div class="main-content page-padding" class:home-page={homepage}>
+			<div class="main-content page-padding" class:homepage>
 				{@render content()}
 			</div>
 		</div>
@@ -63,7 +63,7 @@
 		padding-top: $header-height;
 		min-width: 320px;
 
-		&.home-page {
+		&.homepage {
 			overflow: unset;
 		}
 
