@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte'
 
 	type Variant = 'text' | 'dotted' | 'border' | 'pill'
-	type Color = 'primary' | 'secondary'
+	type Color = 'primary' | 'secondary' | 'neutral'
 	type Size = 'xs' | 'sm' | 'md' | 'lg'
 
 	let {
@@ -12,6 +12,7 @@
 		size = 'md',
 		type = 'button',
 		borderRadius = 'md',
+		bold = false,
 		fullWidth = false,
 		disabled = false,
 		onclick,
@@ -25,6 +26,7 @@
 		size?: Size
 		type?: 'button' | 'submit' | 'reset'
 		borderRadius?: 'md' | 'lg' | 'xl' | 'full'
+		bold?: boolean
 		fullWidth?: boolean
 		disabled?: boolean
 		onclick?: (e: MouseEvent) => void
@@ -43,10 +45,12 @@
 	class="button"
 	class:primary={color === 'primary'}
 	class:secondary={color === 'secondary'}
+	class:neutral={color === 'neutral'}
 	class:text={variant === 'text'}
 	class:dotted={variant === 'dotted'}
 	class:border={variant === 'border'}
 	class:pill={variant === 'pill'}
+	class:bold
 	class:xs={size === 'xs'}
 	class:sm={size === 'sm'}
 	class:md={size === 'md'}
@@ -72,7 +76,6 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--spacing-sm);
-		font-weight: 500;
 		cursor: pointer;
 		transition: all var(--transition-fast) var(--ease-in-out);
 		border: none;
@@ -83,6 +86,7 @@
 		white-space: nowrap;
 		width: fit-content;
 		min-width: fit-content;
+		font-variation-settings: 'wght' var(--font-weight-normal);
 
 		&:disabled {
 			opacity: 0.6;
@@ -134,6 +138,7 @@
 
 		&.md > .content {
 			padding: var(--spacing-md) var(--spacing-lg);
+			font-size: var(--font-size-sm);
 		}
 
 		&.lg > .content {
@@ -170,6 +175,10 @@
 			}
 		}
 
+		&.neutral {
+			background-color: var(--color-neutral-2);
+		}
+
 		&.text {
 			background: none;
 			padding: 0;
@@ -190,22 +199,21 @@
 		}
 
 		&.border {
-			border: var(--border-width-normal) solid var(--color-neutral);
+			border: var(--border-width-thin) solid var(--color-neutral);
 
 			&:hover:not(:disabled) {
 				background: rgba(0, 0, 0, 0.05);
 			}
 		}
 
-		&.pill {
-			background-color: var(--color-neutral-dark);
-			border-radius: var(--border-radius-full);
-			border: 1px solid var(--color-neutral);
+		&.bold {
+			font-weight: var(--font-weight-bold);
+			font-variation-settings: 'wght' var(--font-weight-bold);
+		}
 
-			&:hover:not(:disabled) {
-				border-color: var(--color-primary);
-				background: var(--color-neutral-darker);
-			}
+		&.pill {
+			border-radius: var(--border-radius-full);
+
 			&:focus-visible {
 				outline: none;
 				box-shadow: 0 0 0 2px var(--color-primary-light);

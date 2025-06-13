@@ -32,7 +32,7 @@
 				<ProfilePic {profilePicUrl} size="sm" />
 			</a>
 		{:else}
-			<Button href={loginHref} variant="dotted" size="sm">Login</Button>
+			<Button href={loginHref} variant="dotted" color="primary" size="sm">Login</Button>
 		{/if}
 	</nav>
 </div>

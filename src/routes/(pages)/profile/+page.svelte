@@ -20,8 +20,7 @@
 
 <Profile
 	user={form?.user ?? data.user}
-	recipes={data.recipes}
+	createdRecipes={data.recipes}
 	savedRecipes={data.saved}
-	recipeHref="/recipe"
 	onLogout={handleLogout}
 />

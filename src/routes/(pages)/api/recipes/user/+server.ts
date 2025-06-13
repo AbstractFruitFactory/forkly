@@ -3,6 +3,11 @@ import type { RequestHandler } from './$types'
 import { getRecipes, type RecipeFilter, type DetailedRecipe } from '$lib/server/db/recipe'
 import { getSavedRecipesByUser } from '$lib/server/db/save'
 
+export type UserRecipes = {
+  created: DetailedRecipe[]
+  saved: DetailedRecipe[]
+}
+
 export const GET: RequestHandler = async ({ locals }) => {
   if (!locals.user) error(401, { message: 'Unauthorized' })
 
@@ -10,10 +15,10 @@ export const GET: RequestHandler = async ({ locals }) => {
     userId: locals.user.id,
     detailed: true
   }
-  
+
   const createdRecipes = await getRecipes(createdFilters)
   const savedIds = await getSavedRecipesByUser(locals.user.id)
-  
+
   let savedRecipes: DetailedRecipe[] = []
   if (savedIds.length > 0) {
     const savedFilters: RecipeFilter = {
@@ -36,5 +41,5 @@ export const GET: RequestHandler = async ({ locals }) => {
   return json({
     created: createdWithType,
     saved: savedWithType
-  })
+  } satisfies UserRecipes)
 } 

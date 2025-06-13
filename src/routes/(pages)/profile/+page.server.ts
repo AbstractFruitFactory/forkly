@@ -1,10 +1,10 @@
 import { error, fail } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
-import { getUserByUsername, updateUserProfile } from '$lib/server/db/user'
-import { getSavedRecipesByUser } from '$lib/server/db/save'
-import { getRecipes, type DetailedRecipe } from '$lib/server/db/recipe'
+import { getUserById, getUserByUsername, updateUserProfile } from '$lib/server/db/user'
 import * as v from 'valibot'
 import { deleteImage } from '$lib/server/cloudinary'
+import { safeFetch } from '$lib/utils/fetch'
+import type { UserRecipes } from '../api/recipes/user/+server'
 
 const updateProfileSchema = v.object({
   username: v.pipe(
@@ -20,25 +20,17 @@ const updateProfileSchema = v.object({
 export const load: PageServerLoad = async ({ locals, fetch }) => {
   if (!locals.user) error(401, 'Unauthorized')
 
-  const recipesResponse = await fetch('/api/recipes/user')
-  if (!recipesResponse.ok) error(500, 'Failed to load recipes')
+  const recipesResult = await safeFetch<UserRecipes>(fetch)('/api/recipes/user')
+  if (recipesResult.isErr()) error(500, 'Failed to load recipes')
 
-  const recipesData = await recipesResponse.json()
-  
-  // Get saved recipes
-  const savedRecipeIds = await getSavedRecipesByUser(locals.user.id)
-  let savedRecipes: DetailedRecipe[] = []
-  if (savedRecipeIds.length > 0) {
-    savedRecipes = await getRecipes({
-      recipeIds: savedRecipeIds,
-      detailed: true
-    })
-  }
-  
-  return { 
-    recipes: recipesData.created, 
-    saved: savedRecipes, 
-    user: locals.user 
+  const recipesData = recipesResult.value
+  const savedRecipes = recipesData.saved
+  const user = await getUserById(locals.user.id)
+
+  return {
+    recipes: recipesData.created,
+    saved: savedRecipes,
+    user
   }
 }
 

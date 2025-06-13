@@ -8,12 +8,14 @@
 		recipes = [],
 		emptyMessage = 'No recipes found.',
 		isLoading = false,
+		useAnimation = true,
 		loadMore
 	}: {
 		recipes: DetailedRecipe[]
 		emptyMessage?: string
 		isLoading?: boolean
 		loadMore?: () => Promise<void>
+		useAnimation?: boolean
 	} = $props()
 
 	let loadMoreTrigger: HTMLElement
@@ -43,7 +45,10 @@
 	})
 </script>
 
-<div in:fly={{ y: 50, duration: 300, delay: 300 }} out:fly={{ y: 50, duration: 300 }}>
+<div
+	in:fly={{ y: 50, duration: useAnimation ? 300 : 0, delay: 300 }}
+	out:fly={{ y: 50, duration: useAnimation ? 300 : 0 }}
+>
 	{#if recipes.length === 0}
 		<div class="empty-state">
 			<p>{emptyMessage}</p>
