@@ -186,6 +186,10 @@
 			&:hover:not(:disabled) {
 				text-decoration: underline;
 			}
+
+			.content {
+				color: var(--color-primary);
+			}
 		}
 
 		&.dotted {

@@ -59,7 +59,7 @@
 				<p class="error">{error}</p>
 			{/if}
 
-			<Button type="submit" fullWidth disabled={loading}>
+			<Button color="primary" type="submit" fullWidth disabled={loading}>
 				{loading ? `${submitText}...` : submitText}
 			</Button>
 
