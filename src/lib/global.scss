@@ -2,9 +2,9 @@
 $base-unit: 0.25rem; // 4px
 
 // Breakpoints
-$breakpoint-xs: 320px;  // Small mobile
-$breakpoint-sm: 480px;  // Mobile
-$breakpoint-md: 768px;  // Tablet
+$breakpoint-xs: 320px; // Small mobile
+$breakpoint-sm: 480px; // Mobile
+$breakpoint-md: 768px; // Tablet
 $breakpoint-lg: 1024px; // Desktop
 $breakpoint-xl: 1280px; // Large desktop
 
@@ -28,7 +28,7 @@ $breakpoint-xl: 1280px; // Large desktop
 }
 
 @mixin desktop {
-  @media (min-width: $breakpoint-lg) {
+  @media (min-width: $breakpoint-md) {
     @content;
   }
 }

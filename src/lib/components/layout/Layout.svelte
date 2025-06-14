@@ -76,7 +76,7 @@
 		padding: 0 var(--spacing-2xl);
 
 		@include mobile {
-			padding: 0 var(--spacing-xl);
+			padding: 0 var(--spacing-md);
 		}
 	}
 
