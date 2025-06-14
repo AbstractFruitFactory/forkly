@@ -7,7 +7,10 @@
 	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
 	import Button from '../button/Button.svelte'
 
-	let { instructions, hideImages = $bindable(false) }: { instructions: RecipeData['instructions'], hideImages?: boolean } = $props()
+	let {
+		instructions,
+		hideImages = $bindable(false)
+	}: { instructions: RecipeData['instructions']; hideImages?: boolean } = $props()
 
 	let isCookingMode = $state(false)
 </script>
@@ -17,7 +20,7 @@
 {:else}
 	<div class="instructions card">
 		<div style:margin-bottom="var(--spacing-lg)">
-			<Button color="primary" onclick={() => (isCookingMode = true)}>
+			<Button color="primary" onclick={() => (isCookingMode = true)} fullWidth>
 				Step by Step Mode
 			</Button>
 		</div>
