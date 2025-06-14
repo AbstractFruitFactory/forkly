@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'src/lib/server/db/migrations/**'
+
 jobs:
   migrate:
     runs-on: ubuntu-latest
@@ -31,4 +30,4 @@ jobs:
       - name: Run database migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: pnpm db:prod:migrate
+        run: pnpm db:prod:migrate --force
