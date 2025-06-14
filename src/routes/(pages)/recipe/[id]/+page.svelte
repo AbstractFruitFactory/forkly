@@ -7,6 +7,7 @@
 	import type { RecipesLikeResponse } from '../../api/recipes/like/+server.js'
 	import type { RecipesSaveResponse } from '../../api/recipes/save/+server.js'
 	import type { RecipeData } from '$lib/types'
+	import type { CollectionsResponse } from '../../api/collections/+server.js'
 
 	let { data } = $props()
 
@@ -20,13 +21,23 @@
 		})
 	}
 
-	const handleSave = async () => {
+	const handleSave = async (collectionName?: string) => {
 		await safeFetch<RecipesSaveResponse>()(`/api/recipes/save`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ id: data.id })
+			body: JSON.stringify({ id: data.id, collectionName })
+		})
+	}
+
+	const createCollection = async (name: string) => {
+		await safeFetch<CollectionsResponse>()(`/api/collections`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ name })
 		})
 	}
 
@@ -73,8 +84,9 @@
 		onLike={handleLike}
 		onSave={handleSave}
 		onBackClick={() => goto('/')}
-		isLoggedIn={!!data.user}
-		comments={data.comments}
+		onCreateCollection={createCollection}
+		user={data.user ? { collections: data.collections!.map((c) => c.name) } : undefined}
+		recipeComments={data.comments}
 		formError={page.form?.error}
 	/>
 </div>

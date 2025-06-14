@@ -1,8 +1,7 @@
 <script lang="ts">
 	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
-	import type { DetailedRecipe } from '$lib/server/db/recipe'
-	import { fly } from 'svelte/transition'
-	import { onMount } from 'svelte'
+	import CardGrid from '$lib/components/card-grid/CardGrid.svelte'
+	import { onMount, type ComponentProps } from 'svelte'
 
 	let {
 		recipes = [],
@@ -11,7 +10,7 @@
 		useAnimation = true,
 		loadMore
 	}: {
-		recipes: DetailedRecipe[]
+		recipes: NonNullable<ComponentProps<typeof RecipeCard>['recipe']>[]
 		emptyMessage?: string
 		isLoading?: boolean
 		loadMore?: () => Promise<void>
@@ -43,34 +42,31 @@
 			}
 		}
 	})
+
+	let renderedItems = $derived.by(() => {
+		if (isLoading) {
+			return [
+				...recipes.map((recipe) => ({ ...recipe, loading: false })),
+				...Array(18).fill({ loading: true })
+			]
+		}
+		return recipes
+	})
 </script>
 
-<div
-	in:fly={{ y: 50, duration: useAnimation ? 300 : 0, delay: 300 }}
-	out:fly={{ y: 50, duration: useAnimation ? 300 : 0 }}
->
-	{#if recipes.length === 0}
-		<div class="empty-state">
-			<p>{emptyMessage}</p>
-		</div>
-	{:else}
-		<div class="recipe-grid">
-			{#each recipes as recipe (recipe.id)}
-				<RecipeCard {recipe} />
-			{/each}
-
-			{#if isLoading}
-				{#each Array(18) as _}
-					<RecipeCard loading />
-				{/each}
-			{/if}
-		</div>
-
-		{#if loadMore}
-			<div bind:this={loadMoreTrigger} class="load-more-trigger"></div>
+<CardGrid items={renderedItems} {emptyMessage} {useAnimation}>
+	{#snippet item(recipe)}
+		{#if recipe.loading}
+			<RecipeCard loading />
+		{:else}
+			<RecipeCard {recipe} />
 		{/if}
-	{/if}
-</div>
+	{/snippet}
+</CardGrid>
+
+{#if loadMore}
+	<div bind:this={loadMoreTrigger} class="load-more-trigger"></div>
+{/if}
 
 <style lang="scss">
 	@import '$lib/global.scss';

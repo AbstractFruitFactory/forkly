@@ -21,6 +21,9 @@
 	import MessageSquare from 'lucide-svelte/icons/message-square'
 	import Toast from '$lib/components/toast/Toast.svelte'
 	import Switch from '$lib/components/Switch.svelte'
+	import Popup from '$lib/components/popup/Popup.svelte'
+	import CirclePlus from 'lucide-svelte/icons/circle-plus'
+	import Button from '$lib/components/button/Button.svelte'
 
 	let {
 		recipe,
@@ -29,7 +32,8 @@
 		onSave,
 		unitSystem,
 		onUnitChange,
-		isLoggedIn,
+		user,
+		onCreateCollection,
 		onBackClick,
 		recipeComments = [],
 		formError
@@ -40,10 +44,13 @@
 			hasCustomIngredients: boolean
 		}
 		onLike?: () => void
-		onSave?: () => void
+		onSave?: (collectionName?: string) => void
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
-		isLoggedIn: boolean
+		user?: {
+			collections: string[]
+		}
+		onCreateCollection: (name: string) => Promise<void>
 		onBackClick?: () => void
 		recipeComments?: any[]
 		formError?: string
@@ -57,13 +64,14 @@
 	let toastType = $state<'like' | 'save'>()
 	let toastRef: Toast
 	let hideImages = $state(false)
+	let savePopupOpen = $state(false)
 
 	onMount(() => {
 		shareUrl = `${window.location.origin}${window.location.pathname}`
 	})
 
 	const handleLike = () => {
-		if (!isLoggedIn) {
+		if (!user) {
 			toastType = 'like'
 			if (toastRef) toastRef.trigger()
 			return
@@ -73,15 +81,15 @@
 		onLike()
 	}
 
-	const handleSave = () => {
-		if (!isLoggedIn) {
+	const handleSave = (collectionName?: string) => {
+		if (!user) {
 			toastType = 'save'
 			if (toastRef) toastRef.trigger()
 			return
 		}
 		if (!onSave) return
 		isSaved = !isSaved
-		onSave()
+		onSave(collectionName)
 	}
 
 	const toggleSharePopup = () => {
@@ -139,7 +147,16 @@
 
 {#snippet actionButtons()}
 	<FloatingLikeButton isActive={isLiked} onClick={handleLike} />
-	<FloatingSaveButton isActive={isSaved} onClick={handleSave} />
+	<FloatingSaveButton
+		isActive={isSaved}
+		onClick={() => {
+			if (isSaved) {
+				handleSave()
+			} else {
+				savePopupOpen = true
+			}
+		}}
+	/>
 	<FloatingShareButton onClick={toggleSharePopup} />
 {/snippet}
 
@@ -199,7 +216,7 @@
 				>({recipeComments.length})</span
 			>
 		</h3>
-		<CommentList comments={recipeComments} {isLoggedIn} recipeId={recipe.id} {formError} />
+		<CommentList comments={recipeComments} isLoggedIn={!!user} recipeId={recipe.id} {formError} />
 	</div>
 {/snippet}
 
@@ -265,6 +282,43 @@
 	url={shareUrl}
 	title={recipe.title}
 />
+
+{#if user}
+	<Popup isOpen={savePopupOpen} onClose={() => (savePopupOpen = false)}>
+		<div class="collections-list">
+			{#each user.collections as collection}
+				<div class="collection-item">
+					<div class="collection-item-name">{collection}</div>
+					<div class="collection-item-icon">
+						<CirclePlus
+							size={16}
+							onclick={() => {
+								handleSave(collection)
+								savePopupOpen = false
+							}}
+						/>
+					</div>
+				</div>
+			{/each}
+		</div>
+
+		<div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+			<Button
+				fullWidth
+				color="primary"
+				onclick={() => {
+					handleSave()
+					savePopupOpen = false
+				}}
+			>
+				Save
+			</Button>
+			<Button fullWidth color="primary" onclick={() => onCreateCollection('New Collection')}
+				>Create New Collection</Button
+			>
+		</div>
+	</Popup>
+{/if}
 
 <Toast bind:this={toastRef} type="info">
 	{#snippet message()}
@@ -349,6 +403,38 @@
 			color: var(--color-primary);
 			opacity: 1;
 			background: rgba(255, 255, 255, 0.08);
+		}
+	}
+
+	.collections-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		margin-top: var(--spacing-md);
+		margin-bottom: var(--spacing-md);
+	}
+
+	.collection-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--spacing-sm);
+		border-radius: var(--border-radius-md);
+		transition: background var(--transition-fast) var(--ease-in-out);
+
+		&:hover {
+			background: var(--color-neutral);
+		}
+
+		.collection-item-name {
+			font-size: var(--font-size-sm);
+		}
+
+		.collection-item-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
 		}
 	}
 </style>

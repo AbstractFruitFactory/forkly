@@ -135,7 +135,7 @@
 			nutritionInfo={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
-			isLoggedIn={!!args.hasUser}
+			user={!!args.hasUser}
 			onLike={mockOnLike}
 		/>
 	{/snippet}
@@ -152,7 +152,7 @@
 			nutritionInfo={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
-			isLoggedIn={true}
+			user={true}
 			onLike={mockOnLike}
 		/>
 	{/snippet}
@@ -169,7 +169,7 @@
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
 			onLike={mockOnLike}
-			isLoggedIn={false}
+			user={false}
 		/>
 	{/snippet}
 </Story>

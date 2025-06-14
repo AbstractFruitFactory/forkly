@@ -5,7 +5,10 @@
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	import LogOut from 'lucide-svelte/icons/log-out'
-	import { fly, slide } from 'svelte/transition'
+	import { fly } from 'svelte/transition'
+	import CardGrid from '$lib/components/card-grid/CardGrid.svelte'
+	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
+	import CollectionCard from '$lib/components/collection-card/CollectionCard.svelte'
 
 	let {
 		user,
@@ -14,7 +17,7 @@
 		onLogout
 	}: {
 		user: Omit<User, 'passwordHash'>
-		savedRecipes?: DetailedRecipe[]
+		savedRecipes?: (DetailedRecipe & { collectionName?: string })[]
 		createdRecipes?: DetailedRecipe[]
 		onLogout?: () => void
 	} = $props()
@@ -25,6 +28,22 @@
 	function handleTabSelect(option: string) {
 		selectedTab = option
 	}
+
+	const collections = $derived.by(() => {
+		const collectionMap = new Map<string, DetailedRecipe[]>()
+		savedRecipes.forEach((recipe) => {
+			if (recipe.collectionName) {
+				const recipes = collectionMap.get(recipe.collectionName) || []
+				recipes.push(recipe)
+				collectionMap.set(recipe.collectionName, recipes)
+			}
+		})
+		return Array.from(collectionMap.keys())
+	})
+
+	const collectionItems = $derived.by(() => {
+		return [...collections, ...savedRecipes.filter((recipe) => !recipe.collectionName)]
+	})
 </script>
 
 <div
@@ -76,39 +95,43 @@
 		</div>
 	</div>
 
-	<div class="profile-tabs-row">
+	<div class="profile-content">
 		<TabSelect options={tabOptions} onSelect={handleTabSelect} />
-	</div>
 
-	<div class="tab-content card">
-		{#if selectedTab === 'Profile info'}
-			<div class="profile-info">
-				<div class="profile-info-row">
-					<div class="profile-info-label">Username</div>
-					<div class="profile-info-value">{user.username}</div>
+		<div class="tab-content card">
+			{#if selectedTab === 'Profile info'}
+				<div class="profile-info">
+					<div class="profile-info-row">
+						<div class="profile-info-label">Username</div>
+						<div class="profile-info-value">{user.username}</div>
+					</div>
+					<div class="profile-info-row">
+						<div class="profile-info-label">Email</div>
+						<div class="profile-info-value">{user.email}</div>
+					</div>
+					<div class="profile-info-row">
+						<div class="profile-info-label">Bio</div>
+						<div class="profile-info-value">{user.bio}</div>
+					</div>
 				</div>
-				<div class="profile-info-row">
-					<div class="profile-info-label">Email</div>
-					<div class="profile-info-value">{user.email}</div>
-				</div>
-				<div class="profile-info-row">
-					<div class="profile-info-label">Bio</div>
-					<div class="profile-info-value">{user.bio}</div>
-				</div>
-			</div>
-		{:else if selectedTab === 'Created recipes'}
-			<RecipeGrid
-				recipes={createdRecipes}
-				emptyMessage="You haven't created any recipes yet."
-				useAnimation={false}
-			/>
-		{:else if selectedTab === 'Saved recipes'}
-			<RecipeGrid
-				recipes={savedRecipes}
-				emptyMessage="You haven't saved any recipes yet."
-				useAnimation={false}
-			/>
-		{/if}
+			{:else if selectedTab === 'Created recipes'}
+				<RecipeGrid
+					recipes={createdRecipes}
+					emptyMessage="You haven't created any recipes yet."
+					useAnimation={false}
+				/>
+			{:else if selectedTab === 'Saved recipes'}
+				<CardGrid items={collectionItems} useAnimation={false}>
+					{#snippet item(item)}
+						{#if typeof item === 'string'}
+							<CollectionCard name={item} />
+						{:else}
+							<RecipeCard recipe={item} />
+						{/if}
+					{/snippet}
+				</CardGrid>
+			{/if}
+		</div>
 	</div>
 </div>
 
@@ -116,6 +139,12 @@
 	.profile-container {
 		max-width: 900px;
 		margin: 2rem auto;
+	}
+
+	.profile-content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
 	}
 
 	.profile-header-row {
@@ -204,10 +233,6 @@
 		gap: 0.5rem;
 		color: var(--color-neutral-light);
 		font-size: var(--font-size-sm);
-	}
-
-	.profile-tabs-row {
-		margin-bottom: 2.5rem;
 	}
 
 	.profile-info {

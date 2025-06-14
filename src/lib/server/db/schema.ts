@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, jsonb, integer, primaryKey, real, check, boolean } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, jsonb, integer, primaryKey, real, check, boolean, foreignKey } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 export const user = pgTable('user', {
@@ -90,6 +90,18 @@ export const recipeDislike = pgTable('recipe_dislike', {
 	}
 })
 
+export const collection = pgTable('collection', {
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	name: text('name').notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => {
+	return {
+		pk: primaryKey({ columns: [table.userId, table.name] })
+	}
+})
+
 export const recipeBookmark = pgTable('recipe_bookmark', {
 	userId: text('user_id')
 		.notNull()
@@ -97,10 +109,15 @@ export const recipeBookmark = pgTable('recipe_bookmark', {
 	recipeId: text('recipe_id')
 		.notNull()
 		.references(() => recipe.id, { onDelete: 'cascade' }),
+	collectionName: text('collection_name'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 }, (table) => {
 	return {
-		pk: primaryKey({ columns: [table.userId, table.recipeId] })
+		pk: primaryKey({ columns: [table.userId, table.recipeId] }),
+		collectionFk: foreignKey({
+			columns: [table.userId, table.collectionName],
+			foreignColumns: [collection.userId, collection.name],
+		}).onDelete('cascade')
 	}
 })
 
@@ -154,3 +171,5 @@ export type RecipeIngredient = typeof recipeIngredient.$inferSelect
 export type RecipeNutrition = typeof recipeNutrition.$inferSelect
 
 export type RecipeComment = typeof recipeComment.$inferSelect
+
+export type Collection = typeof collection.$inferSelect

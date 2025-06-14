@@ -145,7 +145,11 @@
 				case 'newest':
 					return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
 				case 'easiest':
-					return a.ingredients + a.instructions - (b.ingredients + b.instructions)
+					return (
+						a.ingredients.length +
+						a.instructions.length -
+						(b.ingredients.length + b.instructions.length)
+					)
 				default:
 					return 0
 			}

@@ -4,6 +4,7 @@ import type { PageServerLoad, Actions } from './$types'
 import { addComment, getComments } from '$lib/server/db/recipe-comments'
 import { uploadImage } from '$lib/server/cloudinary'
 import * as v from 'valibot'
+import { getCollections } from '$lib/server/db/save'
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const result = await getRecipeWithDetails(params.id, locals.user?.id)
@@ -11,9 +12,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   const comments = await getComments(params.id)
 
+  let collections: Awaited<ReturnType<typeof getCollections>> | undefined = undefined
+
+  if (locals.user) {
+    collections = await getCollections(locals.user.id)
+  }
+
   return {
     ...result,
-    comments
+    comments,
+    collections
   }
 }
 
@@ -39,7 +47,7 @@ export const actions: Actions = {
     }
 
     const trimmedContent = content.trim()
-    
+
     const validatedData = v.safeParse(commentSchema, {
       content: trimmedContent
     })

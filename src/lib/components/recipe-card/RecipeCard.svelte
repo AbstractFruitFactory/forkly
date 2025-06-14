@@ -121,7 +121,6 @@
 		text-decoration: none;
 		overflow: hidden;
 		position: relative;
-		isolation: isolate;
 		transition:
 			transform var(--transition-fast) var(--ease-out),
 			box-shadow var(--transition-fast) var(--ease-out),

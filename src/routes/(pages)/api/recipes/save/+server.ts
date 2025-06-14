@@ -5,7 +5,8 @@ import { toggleRecipeSave } from '$lib/server/db/save'
 import * as v from 'valibot'
 
 const saveRecipeSchema = v.object({
-  id: v.string()
+  id: v.string(),
+  collectionName: v.optional(v.string())
 })
 
 export type RecipesSaveResponse = {
@@ -21,7 +22,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   const existingRecipe = await getRecipeById(input.id)
   if (!existingRecipe) error(404, { message: 'Recipe not found' })
 
-  const saved = await toggleRecipeSave(input.id, locals.user.id)
+  const saved = await toggleRecipeSave(input.id, locals.user.id, input.collectionName)
 
   const response: RecipesSaveResponse = {
     saved

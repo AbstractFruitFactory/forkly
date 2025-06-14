@@ -2,10 +2,11 @@ import { error, json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { getRecipes, type RecipeFilter, type DetailedRecipe } from '$lib/server/db/recipe'
 import { getSavedRecipesByUser } from '$lib/server/db/save'
+import map from 'ramda/src/map'
 
 export type UserRecipes = {
   created: DetailedRecipe[]
-  saved: DetailedRecipe[]
+  saved: (DetailedRecipe & { collectionName?: string })[]
 }
 
 export const GET: RequestHandler = async ({ locals }) => {
@@ -17,29 +18,22 @@ export const GET: RequestHandler = async ({ locals }) => {
   }
 
   const createdRecipes = await getRecipes(createdFilters)
-  const savedIds = await getSavedRecipesByUser(locals.user.id)
+  const savedRecipeIds = await getSavedRecipesByUser(locals.user.id)
 
-  let savedRecipes: DetailedRecipe[] = []
-  if (savedIds.length > 0) {
-    const savedFilters: RecipeFilter = {
-      recipeIds: savedIds,
+  let savedRecipes: (DetailedRecipe & { collectionName?: string })[] = []
+
+  if (savedRecipeIds.length > 0) {
+    savedRecipes = await getRecipes({
+      recipeIds: savedRecipeIds.map(r => r.recipeId),
       detailed: true
-    }
-    savedRecipes = await getRecipes(savedFilters)
+    }).then(map(r => ({
+      ...r,
+      collectionName: savedRecipeIds.find(s => s.recipeId === r.id)?.collectionName ?? undefined
+    })))
   }
 
-  const createdWithType = createdRecipes.map(r => ({
-    ...r,
-    type: 'created'
-  }))
-
-  const savedWithType = savedRecipes.map(r => ({
-    ...r,
-    type: 'saved'
-  }))
-
   return json({
-    created: createdWithType,
-    saved: savedWithType
+    created: createdRecipes,
+    saved: savedRecipes
   } satisfies UserRecipes)
 } 
