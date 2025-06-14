@@ -64,3 +64,4 @@ jobs:
           onlyChanged: false # Disable TurboSnap since we're using Vite
           skip: ${{ github.actor == 'dependabot[bot]' }}
           exitZeroOnChanges: true
+          autoAcceptChanges: main
