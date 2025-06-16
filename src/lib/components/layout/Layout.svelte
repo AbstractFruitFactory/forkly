@@ -9,7 +9,8 @@
 		homepage = false,
 		wideHeader = false,
 		homepageHeader,
-		homepageHeaderTransition = true
+		homepageHeaderTransition = true,
+		bottomNavBar
 	} = $props<{
 		header: Snippet
 		content: Snippet
@@ -17,6 +18,7 @@
 		wideHeader?: boolean
 		homepageHeader?: Snippet
 		homepageHeaderTransition?: boolean
+		bottomNavBar?: Snippet
 	}>()
 
 	let mainElement: HTMLElement
@@ -47,6 +49,12 @@
 			</div>
 		</div>
 	</main>
+
+	<div class="mobile-bottom-bar">
+		<div class="bottom-bar-content page-padding">
+			{@render bottomNavBar()}
+		</div>
+	</div>
 </div>
 
 <style lang="scss">
@@ -54,6 +62,7 @@
 
 	$max-width: 1200px;
 	$header-height: 4rem;
+	$bottom-bar-height: 3.5rem;
 
 	.layout {
 		display: flex;
@@ -69,6 +78,11 @@
 
 		@include desktop {
 			padding-bottom: 0;
+		}
+
+		@include mobile {
+			padding-top: 0;
+			padding-bottom: $bottom-bar-height;
 		}
 	}
 
@@ -97,6 +111,10 @@
 			width: 100vw;
 			max-width: 100vw;
 		}
+
+		@include mobile {
+			display: none;
+		}
 	}
 
 	.header-background {
@@ -112,6 +130,29 @@
 		&.transparent {
 			background: transparent;
 		}
+	}
+
+	.mobile-bottom-bar {
+		display: none;
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: $bottom-bar-height;
+		background: var(--color-primary);
+		z-index: var(--z-sticky);
+		box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+
+		@include mobile {
+			display: block;
+		}
+	}
+
+	.bottom-bar-content {
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 	}
 
 	.sidebar-container {

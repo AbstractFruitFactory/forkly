@@ -37,6 +37,7 @@
 <script lang="ts">
 	import Header from '$lib/components/header/Header.svelte'
 	import Layout from '$lib/components/layout/Layout.svelte'
+	import BottomNav from '$lib/components/navigation/BottomNav.svelte'
 	import '$lib/global.scss'
 	import type { Snippet } from 'svelte'
 	import type { LayoutData } from './$types'
@@ -148,6 +149,16 @@
 
 	{#snippet content()}
 		{@render slots.content?.()}
+	{/snippet}
+
+	{#snippet bottomNavBar()}
+		<BottomNav 
+			loggedIn={!!data.user} 
+			homeHref="/"
+			newRecipeHref="/new"
+			profileHref="/profile"
+			loginHref="/login"
+		/>
 	{/snippet}
 </Layout>
 
