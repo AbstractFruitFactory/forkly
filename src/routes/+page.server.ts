@@ -1,7 +1,7 @@
 import { safeFetch } from '$lib/utils/fetch'
 import { error } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
-import type { RecipesSearchResponse } from './(pages)/api/recipes/search/+server'
+import type { RecipesSearchResponse } from './api/recipes/search/+server'
 import type { SearchCookie } from '$lib/utils/cookies'
 
 export const load: PageServerLoad = async ({ url, fetch, cookies }) => {
