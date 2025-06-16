@@ -24,6 +24,7 @@
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import CirclePlus from 'lucide-svelte/icons/circle-plus'
 	import Button from '$lib/components/button/Button.svelte'
+	import Input from '$lib/components/input/Input.svelte'
 
 	let {
 		recipe,
@@ -65,6 +66,15 @@
 	let toastRef: Toast
 	let hideImages = $state(false)
 	let savePopupOpen = $state(false)
+	let isCreatingCollection = $state(false)
+	let newCollectionName = $state('')
+	let localCollections = $state<string[]>([])
+
+	$effect(() => {
+		if (user?.collections) {
+			localCollections = [...user.collections]
+		}
+	})
 
 	onMount(() => {
 		shareUrl = `${window.location.origin}${window.location.pathname}`
@@ -284,9 +294,16 @@
 />
 
 {#if user}
-	<Popup isOpen={savePopupOpen} onClose={() => (savePopupOpen = false)}>
+	<Popup
+		isOpen={savePopupOpen}
+		onClose={() => {
+			savePopupOpen = false
+			isCreatingCollection = false
+			newCollectionName = ''
+		}}
+	>
 		<div class="collections-list">
-			{#each user.collections as collection}
+			{#each localCollections as collection}
 				<div class="collection-item">
 					<div class="collection-item-name">{collection}</div>
 					<div class="collection-item-icon">
@@ -303,6 +320,28 @@
 		</div>
 
 		<div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+			{#if isCreatingCollection}
+				<Input
+					bind:value={newCollectionName}
+					actionButton={{
+						text: 'Save',
+						onClick: async () => {
+							if (newCollectionName.trim()) {
+								await onCreateCollection(newCollectionName)
+								localCollections = [...localCollections, newCollectionName]
+								isCreatingCollection = false
+								newCollectionName = ''
+							}
+						}
+					}}
+				>
+					<input bind:value={newCollectionName} type="text" placeholder="Collection name" />
+				</Input>
+			{:else}
+				<Button fullWidth color="primary" onclick={() => (isCreatingCollection = true)}>
+					Create New Collection
+				</Button>
+			{/if}
 			<Button
 				fullWidth
 				color="primary"
@@ -313,9 +352,6 @@
 			>
 				Save
 			</Button>
-			<Button fullWidth color="primary" onclick={() => onCreateCollection('New Collection')}
-				>Create New Collection</Button
-			>
 		</div>
 	</Popup>
 {/if}

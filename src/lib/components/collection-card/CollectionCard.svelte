@@ -1,10 +1,11 @@
 <script lang="ts">
-	let { name }: { name: string } = $props()
+	let { name, count = 0 }: { name: string; count?: number } = $props()
 </script>
 
 <a href={`/collection/${name}`} class="collection-card card">
 	<div class="collection-content">
 		<h3 class="collection-name">{name}</h3>
+		<div class="collection-count">{count} {count === 1 ? 'recipe' : 'recipes'}</div>
 	</div>
 </a>
 
@@ -31,7 +32,8 @@
 		align-items: center;
 		justify-content: center;
 		height: 100%;
-		gap: 1rem;
+		gap: 0.5rem;
+		padding: 1.5rem;
 	}
 
 	.collection-icon {
@@ -47,5 +49,10 @@
 		margin: 0;
 		font-size: var(--font-size-lg);
 		text-align: center;
+	}
+
+	.collection-count {
+		color: var(--color-neutral-light);
+		font-size: var(--font-size-sm);
 	}
 </style>

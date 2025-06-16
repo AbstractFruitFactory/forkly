@@ -1,25 +1,23 @@
 <script lang="ts">
 	import type { User } from '$lib/server/db/schema'
 	import Button from '$lib/components/button/Button.svelte'
-	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	import LogOut from 'lucide-svelte/icons/log-out'
 	import CardGrid from '$lib/components/card-grid/CardGrid.svelte'
-	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
 	import CollectionCard from '$lib/components/collection-card/CollectionCard.svelte'
 	import DesktopLayout from './DesktopLayout.svelte'
 	import MobileLayout from './MobileLayout.svelte'
 
 	let {
 		user,
-		savedRecipes = [],
 		createdRecipes = [],
+		collections = [],
 		onLogout
 	}: {
 		user: Omit<User, 'passwordHash'>
-		savedRecipes?: (DetailedRecipe & { collectionName?: string })[]
 		createdRecipes?: DetailedRecipe[]
+		collections?: { name: string; count: number }[]
 		onLogout?: () => void
 	} = $props()
 
@@ -29,22 +27,6 @@
 	function handleTabSelect(option: string) {
 		selectedTab = option
 	}
-
-	const collections = $derived.by(() => {
-		const collectionMap = new Map<string, DetailedRecipe[]>()
-		savedRecipes.forEach((recipe) => {
-			if (recipe.collectionName) {
-				const recipes = collectionMap.get(recipe.collectionName) || []
-				recipes.push(recipe)
-				collectionMap.set(recipe.collectionName, recipes)
-			}
-		})
-		return Array.from(collectionMap.keys())
-	})
-
-	const collectionItems = $derived.by(() => {
-		return [...collections, ...savedRecipes.filter((recipe) => !recipe.collectionName)]
-	})
 </script>
 
 {#snippet avatar()}
@@ -120,13 +102,9 @@
 {/snippet}
 
 {#snippet _savedRecipes()}
-	<CardGrid items={collectionItems} useAnimation={false}>
+	<CardGrid items={collections} useAnimation={false}>
 		{#snippet item(item)}
-			{#if typeof item === 'string'}
-				<CollectionCard name={item} />
-			{:else}
-				<RecipeCard recipe={item} />
-			{/if}
+			<CollectionCard name={item.name} count={item.count} />
 		{/snippet}
 	</CardGrid>
 {/snippet}

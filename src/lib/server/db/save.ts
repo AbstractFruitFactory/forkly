@@ -2,6 +2,7 @@ import { db } from '.'
 import { recipeBookmark, collection, recipe } from './schema'
 import { eq, and, sql } from 'drizzle-orm'
 import { getRecipes } from './recipe'
+import type { DetailedRecipe } from './recipe'
 
 /**
  * Check if a recipe is saved by a user
@@ -65,16 +66,42 @@ export async function getSavedRecipesByUser(userId: string) {
 }
 
 /**
- * Get all collections for a user
+ * Get all collections for a user with their recipe counts
  */
-export async function getCollections(userId: string) {
+export async function getCollections(userId: string): Promise<{ name: string; count: number }[]> {
+  // Get all collections for the user
   const collections = await db
     .select()
     .from(collection)
     .where(eq(collection.userId, userId))
     .orderBy(collection.createdAt)
 
-  return collections
+  // Get recipe counts for each collection
+  const collectionCounts = await db
+    .select({
+      collectionName: recipeBookmark.collectionName,
+      count: sql<number>`count(*)`
+    })
+    .from(recipeBookmark)
+    .where(eq(recipeBookmark.userId, userId))
+    .groupBy(recipeBookmark.collectionName)
+
+  // Get total count of all saved recipes
+  const totalCount = await db
+    .select({
+      count: sql<number>`count(*)`
+    })
+    .from(recipeBookmark)
+    .where(eq(recipeBookmark.userId, userId))
+    .then(result => result[0]?.count || 0)
+
+  return [
+    { name: 'All Recipes', count: totalCount },
+    ...collections.map(c => ({
+      name: c.name,
+      count: collectionCounts.find(cc => cc.collectionName === c.name)?.count || 0
+    }))
+  ]
 }
 
 /**
@@ -102,10 +129,12 @@ export async function getCollection(userId: string, collectionName: string) {
     })
     .from(recipeBookmark)
     .where(
-      and(
-        eq(recipeBookmark.userId, userId),
-        eq(recipeBookmark.collectionName, collectionName)
-      )
+      collectionName === 'All Recipes'
+        ? eq(recipeBookmark.userId, userId)
+        : and(
+            eq(recipeBookmark.userId, userId),
+            eq(recipeBookmark.collectionName, collectionName)
+          )
     )
 
   const recipeIds = bookmarks.map(bookmark => bookmark.recipeId)

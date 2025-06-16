@@ -5,6 +5,7 @@ import * as v from 'valibot'
 import { deleteImage } from '$lib/server/cloudinary'
 import { safeFetch } from '$lib/utils/fetch'
 import type { UserRecipes } from '../../api/recipes/user/+server'
+import { getCollections } from '$lib/server/db/save'
 
 const updateProfileSchema = v.object({
   username: v.pipe(
@@ -23,13 +24,12 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
   const recipesResult = await safeFetch<UserRecipes>(fetch)('/api/recipes/user')
   if (recipesResult.isErr()) error(500, 'Failed to load recipes')
 
-  const recipesData = recipesResult.value
-  const savedRecipes = recipesData.saved
   const user = await getUserById(locals.user.id)
+  const collections = await getCollections(locals.user.id)
 
   return {
-    recipes: recipesData.created,
-    saved: savedRecipes,
+    recipes: recipesResult.value.created,
+    collections,
     user
   }
 }

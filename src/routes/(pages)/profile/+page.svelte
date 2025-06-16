@@ -21,6 +21,6 @@
 <Profile
 	user={form?.user ?? data.user}
 	createdRecipes={data.recipes}
-	savedRecipes={data.saved}
+	collections={data.collections}
 	onLogout={handleLogout}
 />
