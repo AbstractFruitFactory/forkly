@@ -23,4 +23,5 @@
 	createdRecipes={data.recipes}
 	collections={data.collections}
 	onLogout={handleLogout}
+	initialTab={data.initialTab}
 />

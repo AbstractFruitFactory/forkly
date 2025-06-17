@@ -18,7 +18,10 @@ const updateProfileSchema = v.object({
   avatarUrl: v.nullish(v.string())
 })
 
-export const load: PageServerLoad = async ({ locals, fetch }) => {
+const validTabs = ['Profile info', 'Created recipes', 'Saved recipes', 'menu'] as const
+type ValidTab = typeof validTabs[number]
+
+export const load: PageServerLoad = async ({ locals, fetch, url }) => {
   if (!locals.user) error(401, 'Unauthorized')
 
   const recipesResult = await safeFetch<UserRecipes>(fetch)('/api/recipes/user')
@@ -27,10 +30,14 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
   const user = await getUserById(locals.user.id)
   const collections = await getCollections(locals.user.id)
 
+  const tab = url.searchParams.get('tab')
+  const initialTab: ValidTab = validTabs.includes(tab as ValidTab) ? (tab as ValidTab) : 'Profile info'
+
   return {
     recipes: recipesResult.value.created,
     collections,
-    user
+    user,
+    initialTab
   }
 }
 

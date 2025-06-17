@@ -5,6 +5,7 @@
 	import Bookmark from 'lucide-svelte/icons/bookmark'
 	import ArrowLeft from 'lucide-svelte/icons/arrow-left'
 	import { fly } from 'svelte/transition'
+	import { goto } from '$app/navigation'
 
 	let {
 		avatar,
@@ -14,7 +15,8 @@
 		location,
 		profileInfo,
 		createdRecipes,
-		savedRecipes
+		savedRecipes,
+		initialView = 'menu'
 	}: {
 		avatar: Snippet
 		name: Snippet
@@ -24,12 +26,14 @@
 		profileInfo: Snippet
 		createdRecipes: Snippet
 		savedRecipes: Snippet
+		initialView?: 'menu' | 'profile' | 'created' | 'saved'
 	} = $props()
 
-	let view: 'menu' | 'profile' | 'created' | 'saved' = $state('menu')
+	let view = $state(initialView)
 
 	function open(viewName: typeof view) {
 		view = viewName
+		goto(`/profile?tab=${view}`, { replaceState: true })
 	}
 </script>
 
@@ -71,15 +75,16 @@
 				{view === 'profile' ? 'Profile' : view === 'created' ? 'Created recipes' : 'Saved recipes'}
 			</span>
 		</div>
-		<div class="card">
-			{#if view === 'profile'}
+
+		{#if view === 'profile'}
+			<div class="card">
 				{@render profileInfo()}
-			{:else if view === 'created'}
-				{@render createdRecipes()}
-			{:else if view === 'saved'}
-				{@render savedRecipes()}
-			{/if}
-		</div>
+			</div>
+		{:else if view === 'created'}
+			{@render createdRecipes()}
+		{:else if view === 'saved'}
+			{@render savedRecipes()}
+		{/if}
 	</div>
 {/if}
 
@@ -161,6 +166,7 @@
 		background: var(--color-background);
 		z-index: var(--z-modal);
 		padding: var(--spacing-lg);
+		overflow-y: auto;
 	}
 
 	.profile-detail-header {

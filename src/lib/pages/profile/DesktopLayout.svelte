@@ -47,11 +47,13 @@
 	</div>
 
 	<div class="profile-content">
-		<TabSelect options={tabOptions} onSelect={onTabSelect} />
+		<TabSelect options={tabOptions} onSelect={onTabSelect} selected={selectedTab} />
 
-		<div class="tab-content card">
+		<div class="tab-content">
 			{#if selectedTab === 'Profile info'}
-				{@render profileInfo()}
+				<div class="card">
+					{@render profileInfo()}
+				</div>
 			{:else if selectedTab === 'Created recipes'}
 				{@render createdRecipes()}
 			{:else if selectedTab === 'Saved recipes'}

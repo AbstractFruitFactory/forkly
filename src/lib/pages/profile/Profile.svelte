@@ -8,24 +8,41 @@
 	import CollectionCard from '$lib/components/collection-card/CollectionCard.svelte'
 	import DesktopLayout from './DesktopLayout.svelte'
 	import MobileLayout from './MobileLayout.svelte'
+	import { goto } from '$app/navigation'
 
 	let {
 		user,
 		createdRecipes = [],
 		collections = [],
+		initialTab = 'Profile info',
 		onLogout
 	}: {
 		user: Omit<User, 'passwordHash'>
 		createdRecipes?: DetailedRecipe[]
 		collections?: { name: string; count: number }[]
+		initialTab?: string
 		onLogout?: () => void
 	} = $props()
 
 	const tabOptions = ['Profile info', 'Created recipes', 'Saved recipes']
-	let selectedTab = $state('Profile info')
+	let selectedTab = $state(initialTab)
 
-	function handleTabSelect(option: string) {
+	function handleTabSelect(option: (typeof tabOptions)[number]) {
 		selectedTab = option
+		goto(`/profile?tab=${option}`, { replaceState: true })
+	}
+
+	function getInitialView(tab: string): 'menu' | 'profile' | 'created' | 'saved' {
+		switch (tab) {
+			case 'Profile info':
+				return 'profile'
+			case 'Created recipes':
+				return 'created'
+			case 'Saved recipes':
+				return 'saved'
+			default:
+				return 'menu'
+		}
 	}
 </script>
 
@@ -133,6 +150,7 @@
 		{profileInfo}
 		createdRecipes={_createdRecipes}
 		savedRecipes={_savedRecipes}
+		initialView={getInitialView(initialTab)}
 	/>
 </div>
 

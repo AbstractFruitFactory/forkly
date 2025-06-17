@@ -1,12 +1,13 @@
 <script lang="ts">
 	import Button from '../button/Button.svelte'
 
-	let { options = [], onSelect = () => {} } = $props<{
+	let { options = [], onSelect = () => {}, selected = options[0] } = $props<{
 		options: string[]
 		onSelect?: (option: string) => void
+		selected?: string
 	}>()
 
-	let currentSelected = $state(options[0])
+	let currentSelected = $state(selected)
 
 	const handleSelect = (option: string) => {
 		currentSelected = option
