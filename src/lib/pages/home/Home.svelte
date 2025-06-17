@@ -456,19 +456,17 @@
 		top: var(--spacing-xs);
 		z-index: var(--z-sticky);
 		background: var(--color-background);
-		transition:
-			padding 0.2s ease-in-out,
-			margin 0.2s ease-in-out,
-			border 0.2s ease-in-out;
+		transform-origin: center top;
+		transition: border 0.2s ease-in-out;
+		padding: var(--spacing-xs) 0;
+		margin: var(--spacing-md);
 
 		&.sticky {
 			border: var(--border-width-thin) solid var(--color-neutral);
 			border-radius: var(--border-radius-xl);
-			margin: var(--spacing-md);
-			padding: var(--spacing-md) 0;
 
 			.buttons {
-				margin: 0 var(--spacing-md);
+				transform: scale(0.9);
 			}
 		}
 
@@ -477,6 +475,7 @@
 			gap: var(--spacing-md);
 			align-items: center;
 			justify-content: space-between;
+			transition: transform 0.2s ease-in-out;
 
 			> * {
 				display: flex;
