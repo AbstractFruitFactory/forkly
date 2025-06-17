@@ -1,32 +1,66 @@
 <script lang="ts">
-	import Utensils from 'lucide-svelte/icons/utensils'
-	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
-	import Pill from '$lib/components/pill/Pill.svelte'
-	import { navigating } from '$app/state'
-	import type { DetailedRecipe } from '$lib/server/db/recipe'
+        import Utensils from 'lucide-svelte/icons/utensils'
+        import LikeButton from '$lib/components/like-button/LikeButton.svelte'
+        import Dropdown from '$lib/components/dropdown/Dropdown.svelte'
+        import Popup from '$lib/components/popup/Popup.svelte'
+        import MoreVertical from 'lucide-svelte/icons/more-vertical'
+        import { safeFetch } from '$lib/utils/fetch'
+        import { invalidateAll } from '$app/navigation'
+        import Pill from '$lib/components/pill/Pill.svelte'
+        import { navigating } from '$app/state'
+        import type { DetailedRecipe } from '$lib/server/db/recipe'
 
-	let {
-		recipe,
-		loading = false,
-		size = 'large'
-	}: {
-		recipe?: DetailedRecipe
-		loading?: boolean
-		size?: 'large' | 'small'
-	} = $props()
+        let {
+                recipe,
+                loading = false,
+                size = 'large',
+                menu = false,
+                collections = [],
+                currentCollection
+        }: {
+                recipe?: DetailedRecipe
+                loading?: boolean
+                size?: 'large' | 'small'
+                menu?: boolean
+                collections?: string[]
+                currentCollection?: string
+        } = $props()
 
-	let isNavigating = $state(false)
+        let isNavigating = $state(false)
+        let menuOpen = $state(false)
+        let moveOpen = $state(false)
 
 	const handleClick = (event: MouseEvent) => {
 		if (!recipe) return
 		isNavigating = true
 	}
 
-	$effect(() => {
-		if (isNavigating && !navigating) {
-			isNavigating = false
-		}
-	})
+        $effect(() => {
+                if (isNavigating && !navigating) {
+                        isNavigating = false
+                }
+        })
+
+        const handleDelete = async () => {
+                if (!recipe) return
+                await safeFetch<{ saved: boolean }>()('/api/recipes/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: recipe.id })
+                })
+                invalidateAll()
+        }
+
+        const handleMove = async (collectionName?: string) => {
+                if (!recipe) return
+                await safeFetch<{ success: true }>()('/api/recipes/move', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: recipe.id, collectionName })
+                })
+                moveOpen = false
+                invalidateAll()
+        }
 </script>
 
 <a
@@ -47,12 +81,21 @@
 				<Utensils size={32} strokeWidth={1.5} />
 			</div>
 		{/if}
-		<div class="action-buttons">
-			{#if recipe}
-				<LikeButton count={recipe.likes} />
-			{/if}
-		</div>
-	</div>
+                <div class="action-buttons">
+                        {#if recipe}
+                                <LikeButton count={recipe.likes} />
+                                {#if menu}
+                                        <button class="menu-btn" on:click={() => (menuOpen = !menuOpen)} aria-label="Recipe menu">
+                                                <MoreVertical size={16} />
+                                        </button>
+                                        <Dropdown bind:isOpen={menuOpen}>
+                                                <button class="dropdown-item" on:click={() => { menuOpen = false; moveOpen = true }}>Move</button>
+                                                <button class="dropdown-item delete" on:click={() => { menuOpen = false; handleDelete() }}>Delete</button>
+                                        </Dropdown>
+                                {/if}
+                        {/if}
+                </div>
+        </div>
 	{#if loading}
 		<div class="avatar">
 			<div class="gradient-animate"></div>
@@ -109,12 +152,24 @@
 		</div>
 	</div>
 
-	{#if isNavigating}
-		<div class="spinner-overlay">
-			<div class="spinner"></div>
-		</div>
-	{/if}
+        {#if isNavigating}
+                <div class="spinner-overlay">
+                        <div class="spinner"></div>
+                </div>
+        {/if}
 </a>
+
+{#if menu}
+        <Popup isOpen={moveOpen} onClose={() => (moveOpen = false)} title="Move Recipe" width="300px">
+                <div class="collections-list">
+                        {#each collections.filter(c => c !== currentCollection) as collection}
+                                <div class="collection-item" on:click={() => handleMove(collection)}>
+                                        <div class="collection-item-name">{collection}</div>
+                                </div>
+                        {/each}
+                </div>
+        </Popup>
+{/if}
 
 <style lang="scss">
 	.recipe-card {
@@ -454,14 +509,69 @@
 		z-index: 10;
 	}
 
-	.spinner {
-		width: 48px;
-		height: 48px;
-		border: 4px solid rgba(0, 0, 0, 0.1);
-		border-top: 4px solid var(--color-primary, #4f46e5);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
+        .spinner {
+                width: 48px;
+                height: 48px;
+                border: 4px solid rgba(0, 0, 0, 0.1);
+                border-top: 4px solid var(--color-primary, #4f46e5);
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+        }
+
+        .menu-btn {
+                background: none;
+                border: none;
+                color: var(--color-neutral-light);
+                padding: var(--spacing-xs);
+                border-radius: var(--border-radius-sm);
+                cursor: pointer;
+                transition: background-color var(--transition-fast) var(--ease-in-out);
+
+                &:hover {
+                        background-color: var(--color-hover);
+                        color: var(--color-primary);
+                }
+        }
+
+        .dropdown-item {
+                display: block;
+                width: 100%;
+                text-align: left;
+                padding: var(--spacing-sm) var(--spacing-md);
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: var(--color-white);
+
+                &:hover {
+                        background-color: var(--color-hover);
+                }
+        }
+
+        .dropdown-item.delete {
+                color: var(--color-error);
+        }
+
+        .collections-list {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-sm);
+                margin-top: var(--spacing-md);
+                margin-bottom: var(--spacing-md);
+        }
+
+        .collection-item {
+                display: flex;
+                align-items: center;
+                padding: var(--spacing-sm);
+                border-radius: var(--border-radius-md);
+                transition: background var(--transition-fast) var(--ease-in-out);
+                cursor: pointer;
+
+                &:hover {
+                        background: var(--color-neutral);
+                }
+        }
 
 	@keyframes spin {
 		0% {

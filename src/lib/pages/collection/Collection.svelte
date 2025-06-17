@@ -1,10 +1,12 @@
 <script lang="ts">
-	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
-	import type { DetailedRecipe } from '$lib/server/db/recipe'
-	import { fly } from 'svelte/transition'
-	import ArrowLeftIcon from 'lucide-svelte/icons/arrow-left'
+       import CardGrid from '$lib/components/card-grid/CardGrid.svelte'
+       import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
+       import type { DetailedRecipe } from '$lib/server/db/recipe'
+       import { fly } from 'svelte/transition'
+       import ArrowLeftIcon from 'lucide-svelte/icons/arrow-left'
 
-	let { name, recipes }: { name: string; recipes: DetailedRecipe[] } = $props()
+       let { name, recipes, collections = [] }:
+               { name: string; recipes: DetailedRecipe[]; collections?: string[] } = $props()
 </script>
 
 <div in:fly={{ x: -50, duration: 300, delay: 500 }} out:fly={{ x: -50, duration: 300 }}>
@@ -15,7 +17,11 @@
 
 	<h1>{name}</h1>
 
-	<RecipeGrid {recipes} useAnimation={false} />
+       <CardGrid items={recipes} useAnimation={false} emptyMessage="No recipes in this collection.">
+               {#snippet item(recipe)}
+                       <RecipeCard menu {recipe} {collections} currentCollection={name} />
+               {/snippet}
+       </CardGrid>
 </div>
 
 <style lang="scss">
