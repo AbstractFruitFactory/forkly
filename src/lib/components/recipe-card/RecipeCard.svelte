@@ -71,26 +71,31 @@
 	{/if}
 
 	<div class="content">
-		<div class="tags">
-			{#if loading}
-				{#each Array(3) as _}
-					<div class="tag">
+		<div>
+			<div class="tags">
+				{#if loading}
+					{#each Array(3) as _}
+						<div class="tag">
+							<div class="gradient-animate"></div>
+						</div>
+					{/each}
+				{:else if recipe?.tags && recipe.tags.length > 0}
+					{#each recipe.tags as tag}
+						<Pill text={tag} />
+					{/each}
+				{/if}
+			</div>
+
+			<div style:margin-top="var(--spacing-sm)">
+				{#if loading}
+					<div class="title">
 						<div class="gradient-animate"></div>
 					</div>
-				{/each}
-			{:else if recipe?.tags && recipe.tags.length > 0}
-				{#each recipe.tags as tag}
-					<Pill text={tag} />
-				{/each}
-			{/if}
-		</div>
-		{#if loading}
-			<div class="title">
-				<div class="gradient-animate"></div>
+				{:else if recipe}
+					<h4 class="recipe-title" style:margin="0">{recipe.title}</h4>
+				{/if}
 			</div>
-		{:else if recipe}
-			<h4 id="recipe-title-{recipe.id}" style:margin="0">{recipe.title}</h4>
-		{/if}
+		</div>
 		<div class="meta-single" aria-label="Recipe details">
 			{#if loading}
 				<span class="text">
@@ -144,7 +149,7 @@
 				padding: var(--spacing-sm);
 			}
 
-			h4 {
+			.recipe-title {
 				font-size: var(--font-size-sm);
 				word-break: normal;
 				overflow-wrap: break-word;

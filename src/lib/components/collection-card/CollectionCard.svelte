@@ -12,7 +12,7 @@
 <style lang="scss">
 	.collection-card {
 		display: block;
-		background: var(--color-neutral);
+		
 		height: 100%;
 		width: 100%;
 
