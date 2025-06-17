@@ -478,6 +478,8 @@
 			gap: var(--spacing-md);
 			align-items: center;
 			justify-content: space-between;
+			margin: 0 var(--spacing-md);
+			
 
 			> * {
 				display: flex;

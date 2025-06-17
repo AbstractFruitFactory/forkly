@@ -69,7 +69,9 @@
 
 <style lang="scss">
 	.tag-filter {
-		display: inline-block;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.count {

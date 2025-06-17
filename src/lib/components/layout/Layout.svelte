@@ -184,7 +184,7 @@
 		background: var(--color-background);
 		margin: 0 var(--spacing-2xl);
 		margin-top: var(--spacing-3xl);
-		border-radius: 3rem;
+		border-radius: var(--border-radius-3xl);
 		min-height: calc(100dvh - $header-height);
 		will-change: margin, border-radius;
 		transition:

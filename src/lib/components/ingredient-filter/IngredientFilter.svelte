@@ -8,10 +8,7 @@
 		include: boolean
 	}
 
-	let {
-		selected = $bindable<IngredientFilter[]>([]),
-		onSearch
-	} = $props<{
+	let { selected = $bindable<IngredientFilter[]>([]), onSearch } = $props<{
 		selected: IngredientFilter[]
 		onSearch: (query: string) => Promise<string[]> | string[]
 	}>()
@@ -58,7 +55,9 @@
 
 <style lang="scss">
 	.ingredient-filter {
-		display: inline-block;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.count {
