@@ -6,7 +6,7 @@
 		unitPreferenceStore,
 		type UnitSystem
 	} from '$lib/state/unitPreference.svelte'
-	import type { TagSearchResponse } from '../api/tags/+server'
+	import type { TagSearchResponse } from '../../api/tags/+server'
 	import { safeFetch } from '$lib/utils/fetch'
 
 	let { form, data } = $props()

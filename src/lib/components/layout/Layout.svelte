@@ -215,7 +215,7 @@
 		padding-top: var(--spacing-xl);
 
 		@include mobile {
-			padding-top: var(--spacing-lg);
+			padding-top: var(--spacing-md);
 		}
 	}
 

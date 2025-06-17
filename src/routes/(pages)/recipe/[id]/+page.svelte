@@ -4,10 +4,10 @@
 	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
 	import { page } from '$app/state'
 	import { safeFetch } from '$lib/utils/fetch.js'
-	import type { RecipesLikeResponse } from '../../api/recipes/like/+server.js'
-	import type { RecipesSaveResponse } from '../../api/recipes/save/+server.js'
+	import type { RecipesLikeResponse } from '../../../api/recipes/like/+server.js'
+	import type { RecipesSaveResponse } from '../../../api/recipes/save/+server.js'
 	import type { RecipeData } from '$lib/types'
-	import type { CollectionsResponse } from '../../api/collections/+server.js'
+	import type { CollectionsResponse } from '../../../api/collections/+server.js'
 
 	let { data } = $props()
 

@@ -389,12 +389,6 @@
 	.home-container {
 		position: relative;
 		overflow: visible;
-
-		margin-top: var(--spacing-xs);
-
-		@include mobile {
-			padding: var(--spacing-lg) 0;
-		}
 	}
 
 	.search-results-header {
@@ -462,8 +456,8 @@
 		top: var(--spacing-xs);
 		z-index: var(--z-sticky);
 		background: var(--color-background);
-		padding: var(--spacing-md) 0;
 		transition:
+			padding 0.2s ease-in-out,
 			margin 0.2s ease-in-out,
 			border 0.2s ease-in-out;
 
@@ -471,6 +465,11 @@
 			border: var(--border-width-thin) solid var(--color-neutral);
 			border-radius: var(--border-radius-xl);
 			margin: var(--spacing-md);
+			padding: var(--spacing-md) 0;
+
+			.buttons {
+				margin: 0 var(--spacing-md);
+			}
 		}
 
 		.buttons {
@@ -478,8 +477,6 @@
 			gap: var(--spacing-md);
 			align-items: center;
 			justify-content: space-between;
-			margin: 0 var(--spacing-md);
-			
 
 			> * {
 				display: flex;
@@ -539,6 +536,11 @@
 
 	.recipe-grid {
 		position: relative;
+		margin-top: var(--spacing-lg);
+
+		@include mobile {
+			margin-top: var(--spacing-md);
+		}
 	}
 
 	.scroll-to-top {
