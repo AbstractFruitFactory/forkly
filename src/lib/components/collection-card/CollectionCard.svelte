@@ -107,7 +107,6 @@
 <style lang="scss">
 	.collection-card {
 		position: relative;
-		background: var(--color-neutral);
 		height: 100%;
 		width: 100%;
 
