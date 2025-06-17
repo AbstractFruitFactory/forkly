@@ -10,8 +10,7 @@
 		loginHref,
 		profilePicUrl = '',
 		actions,
-		logo,
-		searchBar
+		logo
 	}: {
 		loggedIn: boolean
 		newRecipeHref?: string
@@ -20,7 +19,6 @@
 		profilePicUrl?: string
 		actions?: Snippet
 		logo?: Snippet
-		searchBar?: Snippet
 	} = $props()
 
 	let isMac = $state(false)
@@ -37,11 +35,6 @@
 		{:else}
 			<Logo />
 		{/if}
-
-	</div>
-
-	<div class="search-bar">
-		{@render searchBar?.()}
 	</div>
 
 	<div class="right-section">
@@ -93,11 +86,7 @@
 		display: flex;
 		align-items: center;
 	}
-
-	.search-bar {
-		min-width: 0;
-	}
-
+	
 	.profile {
 		&-link {
 			display: flex;

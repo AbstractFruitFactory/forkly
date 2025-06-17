@@ -42,7 +42,6 @@
 	import type { Snippet } from 'svelte'
 	import type { LayoutData } from './$types'
 	import { navigating, page } from '$app/state'
-	import Search from '$lib/components/search/Search.svelte'
 	import gsap from 'gsap'
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props()
@@ -54,8 +53,6 @@
 	let homepageHeaderTransition = $state(true)
 
 	let _flip: (typeof import('gsap/Flip'))['Flip'] | null = $state(null)
-
-	let isLoading = $state(false)
 
 	onMount(() => {
 		import('gsap/Flip').then(({ Flip }) => {
@@ -75,34 +72,6 @@
 			scrolledDownHomepageStore.setFalse()
 		}
 	})
-
-	let flipState = $state<any>(null)
-
-	let searchBarPosition = $state<'header' | 'homepage'>('homepage')
-
-	$effect(() => {
-		if (scrolledDownHomepageStore.value) {
-			handleFlip('header')
-		} else {
-			handleFlip('homepage')
-		}
-	})
-
-	async function handleFlip(target: 'header' | 'homepage') {
-		if (!_flip) return
-
-		flipState = _flip.getState('.header-searchbar, .homepage-searchbar')
-
-		searchBarPosition = target
-
-		await tick()
-
-		_flip.from(flipState, {
-			targets: '.header-searchbar, .homepage-searchbar',
-			duration: 0.2,
-			ease: 'power1.inOut'
-		})
-	}
 </script>
 
 <svelte:head>
@@ -111,40 +80,17 @@
 
 {@render children()}
 
-{#snippet search(type: 'homepage' | 'header')}
-	<div
-		class:homepage-searchbar={type === 'homepage'}
-		class:header-searchbar={type === 'header'}
-		data-flip-id="searchbar"
-	>
-		<Search
-			placeholder="Search recipes..."
-			onInput={(query) => {
-				window.dispatchEvent(new CustomEvent('search', { detail: { query } }))
-			}}
-			{isLoading}
-			roundedCorners
-		/>
-	</div>
-{/snippet}
-
 <Layout
 	{homepage}
 	wideHeader={!scrolledDownHomepageStore.value && homepage}
 	{homepageHeaderTransition}
 >
 	{#snippet header()}
-		<Header loggedIn={!!data.user} newRecipeHref="/new" profileHref="/profile" loginHref="/login">
-			{#snippet searchBar()}
-				{#if searchBarPosition === 'header'}
-					{@render search('header')}
-				{/if}
-			{/snippet}
-		</Header>
+		<Header loggedIn={!!data.user} newRecipeHref="/new" profileHref="/profile" loginHref="/login" />
 	{/snippet}
 
 	{#snippet homepageHeader()}
-		{@render slots.homepageHeader?.(searchBarPosition === 'homepage' ? search : undefined)}
+		{@render slots.homepageHeader?.()}
 	{/snippet}
 
 	{#snippet content()}
@@ -175,13 +121,5 @@
 
 	:global(.header) {
 		display: var(--header-display, block);
-	}
-
-	:global(.header-searchbar) {
-		will-change: transform;
-	}
-
-	:global(.homepage-searchbar) {
-		will-change: transform;
 	}
 </style>

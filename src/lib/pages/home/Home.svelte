@@ -7,6 +7,9 @@
 	import IngredientFilter from '$lib/components/ingredient-filter/IngredientFilter.svelte'
 	import TagFilter from '$lib/components/tag-filter/TagFilter.svelte'
 	import OptionFilterSelect from '$lib/components/filter-select/OptionFilterSelect.svelte'
+	import Search from '$lib/components/search/Search.svelte'
+	import { tick } from 'svelte'
+	import gsap from 'gsap'
 
 	let {
 		recipes,
@@ -51,6 +54,8 @@
 	let searchbarIsSticky = $state(false)
 	let hasInitializedObserver = false
 	let sentinelNode = writable<HTMLElement | null>(null)
+	let flipState = $state<any>(null)
+	let searchBarPosition = $state<'header' | 'filters'>('header')
 
 	onMount(() => {
 		checkMobile()
@@ -87,6 +92,31 @@
 			unsubscribe()
 		}
 	})
+
+	$effect(() => {
+		if (searchbarIsSticky) {
+			handleFlip('filters')
+		} else {
+			handleFlip('header')
+		}
+	})
+
+	async function handleFlip(target: 'header' | 'filters') {
+		const flip = (await import('gsap/Flip')).Flip
+		if (!flip) return
+
+		flipState = flip.getState('.header-searchbar, .filters-searchbar')
+
+		searchBarPosition = target
+
+		await tick()
+
+		flip.from(flipState, {
+			targets: '.header-searchbar, .filters-searchbar',
+			duration: 0.2,
+			ease: 'power1.inOut'
+		})
+	}
 
 	$effect(() => {
 		onFiltersChange({
@@ -177,24 +207,49 @@
 	setSlots({ homepageHeader, content })
 </script>
 
-{#snippet homepageHeader(searchBar?: Snippet<['homepage' | 'header']>)}
+{#snippet search(placement: 'header' | 'filters')}
+	<div
+		class:header-searchbar={placement === 'header'}
+		class:filters-searchbar={placement === 'filters'}
+		data-flip-id="searchbar"
+	>
+		<Search
+			placeholder="Search recipes..."
+			onInput={(query) => {
+				window.dispatchEvent(new CustomEvent('search', { detail: { query } }))
+			}}
+			{isLoading}
+			roundedCorners
+		/>
+	</div>
+{/snippet}
+
+{#snippet homepageHeader()}
 	<div class="large-header">Explore recipes</div>
 
 	<div bind:this={$sentinelNode} style="height: 60px;"></div>
 
 	<div class="search-content">
-		{@render searchBar?.('homepage')}
+		{#if searchBarPosition === 'header'}
+			{@render search('header')}
+		{/if}
 	</div>
 {/snippet}
 
 {#snippet content()}
 	<div class="main-layout" class:expanded={searchbarIsSticky}>
-		<div class="filters">
+		<div class="filters" class:sticky={searchbarIsSticky}>
 			<div class="buttons">
 				<div>
 					<IngredientFilter onSearch={loadIngredients} bind:selected={selectedIngredients} />
 
 					<TagFilter onSearch={loadTags} bind:selected={selectedTags} />
+
+					<div class="filters-search">
+						{#if searchBarPosition === 'filters'}
+							{@render search('filters')}
+						{/if}
+					</div>
 				</div>
 
 				<OptionFilterSelect label="Sort by" options={sortOptions} bind:selected={sortBy}>
@@ -211,18 +266,27 @@
 				</OptionFilterSelect>
 			</div>
 
-			<div class="selected-pills">
-				{#each selectedTags as tag (tag.label)}
-					<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
-				{/each}
+			<div
+				class="selected-pills"
+				class:sticky={searchbarIsSticky}
+				class:has-content={selectedTags.length > 0 || selectedIngredients.length > 0}
+			>
+				<div>
+					{#each selectedTags as tag (tag.label)}
+						<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
+					{/each}
 
-				{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
-					<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
-				{/each}
+					{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
+						<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
+					{/each}
 
-				{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
-					<Pill text={`-${ingredient.label}`} onRemove={() => removeIngredient(ingredient.label)} />
-				{/each}
+					{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
+						<Pill
+							text={`-${ingredient.label}`}
+							onRemove={() => removeIngredient(ingredient.label)}
+						/>
+					{/each}
+				</div>
 			</div>
 		</div>
 
@@ -249,7 +313,6 @@
 		top: 0;
 		z-index: var(--z-sticky);
 		width: 100%;
-		background: var(--color-primary);
 
 		.header-content {
 			max-width: $max-width;
@@ -352,11 +415,11 @@
 		height: 3rem;
 
 		padding: 0 var(--spacing-xl);
+	}
 
-		:global(.homepage-searchbar) {
-			width: 100%;
-			max-width: 30rem;
-		}
+	.header-searchbar {
+		width: 100%;
+		max-width: 30rem;
 	}
 
 	.pill-selectors {
@@ -368,7 +431,20 @@
 	.filters {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-md);
+		position: sticky;
+		top: var(--spacing-xs);
+		z-index: var(--z-sticky);
+		background: var(--color-background);
+		padding: var(--spacing-md) 0;
+		transition:
+			margin 0.2s ease-in-out,
+			border 0.2s ease-in-out;
+
+		&.sticky {
+			border: var(--border-width-thin) solid var(--color-neutral);
+			border-radius: var(--border-radius-xl);
+			margin: var(--spacing-md);
+		}
 
 		.buttons {
 			display: flex;
@@ -379,17 +455,40 @@
 			> * {
 				display: flex;
 				gap: var(--spacing-md);
+				min-width: 0;
+			}
+
+			> *:first-child {
+				flex: 1;
+				min-width: 0;
 			}
 		}
 	}
 
+	.filters-search {
+		width: 100%;
+		max-width: 30rem;
+	}
+
 	.selected-pills {
 		width: 100%;
-		min-height: 40px;
-		display: flex;
-		gap: var(--spacing-sm);
-		overflow-x: auto;
-		scrollbar-width: none;
+		display: grid;
+		grid-template-rows: 0fr;
+		transition: grid-template-rows 0.2s ease-in-out;
+		overflow: hidden;
+		padding: 0 var(--spacing-sm);
+
+		&.has-content {
+			grid-template-rows: 1fr;
+		}
+
+		> div {
+			min-height: 0;
+			display: flex;
+			gap: var(--spacing-sm);
+			overflow-x: auto;
+			scrollbar-width: none;
+		}
 
 		@include mobile {
 			display: none;
@@ -583,5 +682,14 @@
 		left: 50%;
 		transform: translateX(-50%);
 		max-width: 100vw;
+	}
+
+	.header-searchbar {
+		will-change: transform;
+	}
+
+	.filters-searchbar {
+		width: 100%;
+		min-width: 0;
 	}
 </style>
