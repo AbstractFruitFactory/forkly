@@ -8,13 +8,15 @@
 		emptyMessage = 'No recipes found.',
 		isLoading = false,
 		useAnimation = true,
-		loadMore
+		loadMore,
+		size = 'large'
 	}: {
 		recipes: NonNullable<ComponentProps<typeof RecipeCard>['recipe']>[]
 		emptyMessage?: string
 		isLoading?: boolean
 		loadMore?: () => Promise<void>
 		useAnimation?: boolean
+		size?: 'large' | 'small'
 	} = $props()
 
 	let loadMoreTrigger: HTMLElement
@@ -54,12 +56,12 @@
 	})
 </script>
 
-<CardGrid items={renderedItems} {emptyMessage} {useAnimation}>
+<CardGrid items={renderedItems} {emptyMessage} {useAnimation} {size}>
 	{#snippet item(recipe)}
 		{#if recipe.loading}
-			<RecipeCard loading />
+			<RecipeCard loading size={size} />
 		{:else}
-			<RecipeCard {recipe} />
+			<RecipeCard {size} {recipe} />
 		{/if}
 	{/snippet}
 </CardGrid>
@@ -76,30 +78,8 @@
 		padding: var(--spacing-2xl) 0;
 	}
 
-	.recipe-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-		gap: var(--spacing-lg);
-		justify-content: center;
-		place-items: center;
-
-		&:last-child {
-			padding-bottom: var(--spacing-lg);
-		}
-
-		@include mobile {
-			overflow-y: auto;
-		}
-	}
-
 	.load-more-trigger {
 		height: 1px;
 		width: 100%;
-	}
-
-	@media (max-width: 640px) {
-		.recipe-grid {
-			grid-template-columns: 1fr;
-		}
 	}
 </style>

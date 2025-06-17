@@ -7,10 +7,12 @@
 
 	let {
 		recipe,
-		loading = false
+		loading = false,
+		size = 'large'
 	}: {
 		recipe?: DetailedRecipe
 		loading?: boolean
+		size?: 'large' | 'small'
 	} = $props()
 
 	let isNavigating = $state(false)
@@ -31,6 +33,7 @@
 	href={recipe ? `/recipe/${recipe.id}` : undefined}
 	class="recipe-card"
 	class:skeleton={loading || isNavigating}
+	class:small={size === 'small'}
 	aria-labelledby={recipe ? `recipe-title-${recipe.id}` : undefined}
 	onclick={handleClick}
 >
@@ -111,7 +114,7 @@
 <style lang="scss">
 	.recipe-card {
 		display: grid;
-		grid-template-rows: 60% auto;
+		grid-template-rows: 50% auto;
 		height: 400px;
 		width: 100%;
 		border-radius: var(--border-radius-lg);
@@ -125,6 +128,37 @@
 			transform var(--transition-fast) var(--ease-out),
 			box-shadow var(--transition-fast) var(--ease-out),
 			border-color var(--transition-fast) var(--ease-out);
+
+		&.small {
+			height: 300px;
+			grid-template-rows: 55% auto;
+
+			.avatar {
+				width: 24px;
+				height: 24px;
+				bottom: -12px;
+				font-size: var(--font-size-xs);
+			}
+
+			.content {
+				padding: var(--spacing-sm);
+			}
+
+			h4 {
+				font-size: var(--font-size-sm);
+				word-break: normal;
+				overflow-wrap: break-word;
+			}
+
+			.meta-single > span {
+				font-size: var(--font-size-xs);
+			}
+
+			.action-buttons {
+				top: var(--spacing-sm);
+				right: var(--spacing-sm);
+			}
+		}
 
 		&::after {
 			content: '';
@@ -228,10 +262,12 @@
 
 	.content {
 		padding: var(--spacing-md);
-		display: grid;
-		grid-template-rows: fit-content auto fit-content;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
 		gap: var(--spacing-sm);
 		overflow: hidden;
+		min-width: 0;
 	}
 
 	.description {
@@ -280,6 +316,7 @@
 
 	.tags {
 		display: flex;
+		flex-wrap: wrap;
 		gap: var(--spacing-xs);
 	}
 
@@ -396,12 +433,10 @@
 	}
 
 	.meta-single {
-		margin-top: var(--spacing-sm);
 		font-size: var(--font-size-sm);
 		color: var(--color-neutral-light);
 		opacity: 0.8;
 		font-weight: 500;
-		align-self: flex-end;
 	}
 
 	.spinner-overlay {

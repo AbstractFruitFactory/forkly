@@ -291,13 +291,24 @@
 		</div>
 
 		<div class="home-container">
-			<div class="recipe-grid">
-				<RecipeGrid
-					recipes={sortedRecipes}
-					emptyMessage={emptyStateMessage}
-					{isLoading}
-					{loadMore}
-				/>
+			{#snippet recipeGrid(size: 'large' | 'small')}
+				<div class="recipe-grid">
+					<RecipeGrid
+						recipes={sortedRecipes}
+						emptyMessage={emptyStateMessage}
+						{isLoading}
+						{loadMore}
+						{size}
+					/>
+				</div>
+			{/snippet}
+
+			<div class="desktop-only">
+				{@render recipeGrid('large')}
+			</div>
+
+			<div class="mobile-only">
+				{@render recipeGrid('small')}
 			</div>
 		</div>
 	</div>
@@ -327,6 +338,22 @@
 
 		@include mobile {
 			display: none;
+		}
+	}
+
+	.desktop-only {
+		display: block;
+
+		@include tablet {
+			display: none;
+		}
+	}
+
+	.mobile-only {
+		display: none;
+
+		@include tablet {
+			display: block;
 		}
 	}
 
