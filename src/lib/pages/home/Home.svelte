@@ -458,15 +458,19 @@
 		background: var(--color-background);
 		transform-origin: center top;
 		transition: border 0.2s ease-in-out;
-		padding: var(--spacing-xs) 0;
+		padding: var(--spacing-md) 0;
 
 		&.sticky {
 			border: var(--border-width-thin) solid var(--color-neutral);
 			border-radius: var(--border-radius-xl);
-			margin: var(--spacing-md);
+			margin: var(--spacing-sm);
 
 			.buttons {
-				transform: scale(0.9);
+				transform: scale(0.98);
+
+				@include mobile {
+					transform: scale(0.94);
+				}
 			}
 		}
 
