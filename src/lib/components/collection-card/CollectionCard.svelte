@@ -5,6 +5,7 @@
 	import Button from '../button/Button.svelte'
 	import { safeFetch } from '$lib/utils/fetch'
 	import MoreVertical from 'lucide-svelte/icons/more-vertical'
+	import { invalidateAll } from '$app/navigation'
 
 	let { name, count = 0 }: { name: string; count?: number } = $props()
 
@@ -22,7 +23,7 @@
 
 		if (result.isOk()) {
 			renameOpen = false
-			location.reload()
+			invalidateAll()
 		}
 	}
 
@@ -34,7 +35,7 @@
 		})
 
 		if (result.isOk()) {
-			location.reload()
+			invalidateAll()
 		}
 	}
 </script>
@@ -45,6 +46,7 @@
 			<button class="menu-btn" onclick={() => (menuOpen = !menuOpen)} aria-label="Collection menu">
 				<MoreVertical size={16} />
 			</button>
+			
 			<Dropdown bind:isOpen={menuOpen}>
 				<button
 					class="dropdown-item"
@@ -74,33 +76,33 @@
 			<div class="collection-count">{count} {count === 1 ? 'recipe' : 'recipes'}</div>
 		</div>
 	</a>
-
-	<Popup
-		isOpen={renameOpen}
-		onClose={() => (renameOpen = false)}
-		title="Rename Collection"
-		width="300px"
-	>
-		<Input bind:value={newName} actionButton={{ text: 'Save', onClick: handleRename }}>
-			<input type="text" placeholder="New name" bind:value={newName} />
-		</Input>
-	</Popup>
-
-	<Popup
-		isOpen={deleteOpen}
-		onClose={() => (deleteOpen = false)}
-		title="Delete Collection"
-		width="300px"
-	>
-		<div class="delete-content">
-			<p>Are you sure you want to delete "{name}"?</p>
-			<div class="delete-actions">
-				<Button color="primary" onclick={handleDelete}>Delete</Button>
-				<Button variant="border" onclick={() => (deleteOpen = false)}>Cancel</Button>
-			</div>
-		</div>
-	</Popup>
 </div>
+
+<Popup
+	isOpen={renameOpen}
+	onClose={() => (renameOpen = false)}
+	title="Rename Collection"
+	width="300px"
+>
+	<Input bind:value={newName} actionButton={{ text: 'Save', onClick: handleRename }}>
+		<input type="text" placeholder="New name" bind:value={newName} />
+	</Input>
+</Popup>
+
+<Popup
+	isOpen={deleteOpen}
+	onClose={() => (deleteOpen = false)}
+	title="Delete Collection"
+	width="300px"
+>
+	<div class="delete-content">
+		<p>Are you sure you want to delete "{name}"?</p>
+		<div class="delete-actions">
+			<Button color="primary" onclick={handleDelete}>Delete</Button>
+			<Button variant="border" onclick={() => (deleteOpen = false)}>Cancel</Button>
+		</div>
+	</div>
+</Popup>
 
 <style lang="scss">
 	.collection-card {
@@ -114,7 +116,6 @@
 			box-shadow var(--transition-fast) var(--ease-out);
 
 		&:hover {
-			transform: translateY(calc(var(--spacing-xs) * -1));
 			box-shadow: var(--shadow-lg);
 		}
 	}

@@ -13,11 +13,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const data = await request.json()
 	const input = v.parse(deleteSchema, data)
 
-	try {
-		const success = await deleteCollection(locals.user.id, input.name)
-		if (!success) error(404, { message: 'Collection not found' })
-		return json({ success: true })
-	} catch (err) {
-		throw error(500, 'Failed to delete collection')
-	}
+
+	const success = await deleteCollection(locals.user.id, input.name)
+	if (!success) error(404, { message: 'Collection not found' })
+	return json({ success: true })
 }
