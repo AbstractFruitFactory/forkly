@@ -16,7 +16,7 @@
 		profileInfo,
 		createdRecipes,
 		savedRecipes,
-		initialView = 'menu'
+		initialView
 	}: {
 		avatar: Snippet
 		name: Snippet
@@ -26,14 +26,14 @@
 		profileInfo: Snippet
 		createdRecipes: Snippet
 		savedRecipes: Snippet
-		initialView?: 'menu' | 'profile' | 'created' | 'saved'
+		initialView?: string
 	} = $props()
 
 	let view = $state(initialView)
 
-	function open(viewName: typeof view) {
+	function open(viewName?: typeof view) {
 		view = viewName
-		goto(`/profile?tab=${view}`, { replaceState: true })
+		goto(viewName ? `/profile?tab=${viewName}` : '/profile', { replaceState: true })
 	}
 </script>
 
@@ -51,15 +51,15 @@
 		{/if}
 	</div>
 	<div class="profile-menu">
-		<button class="menu-btn card" onclick={() => open('profile')}>
+		<button class="menu-btn card" onclick={() => open('Profile info')}>
 			<span class="menu-icon"><User size={20} /></span>
 			<span>Profile info</span>
 		</button>
-		<button class="menu-btn card" onclick={() => open('created')}>
+		<button class="menu-btn card" onclick={() => open('Created recipes')}>
 			<span class="menu-icon"><SquarePlus size={20} /></span>
 			<span>Created recipes</span>
 		</button>
-		<button class="menu-btn card" onclick={() => open('saved')}>
+		<button class="menu-btn card" onclick={() => open('Saved recipes')}>
 			<span class="menu-icon"><Bookmark size={20} /></span>
 			<span>Saved recipes</span>
 		</button>
@@ -67,22 +67,22 @@
 	<div class="signout-row">{@render signOut(true)}</div>
 </div>
 
-{#if view !== 'menu'}
+{#if view}
 	<div class="profile-detail" transition:fly={{ duration: 300, x: 800, opacity: 1 }}>
 		<div class="profile-detail-header">
-			<button class="back-btn" onclick={() => open('menu')}><ArrowLeft size={20} /></button>
+			<button class="back-btn" onclick={() => open()}><ArrowLeft size={20} /></button>
 			<span class="detail-title">
-				{view === 'profile' ? 'Profile' : view === 'created' ? 'Created recipes' : 'Saved recipes'}
+				{view === 'Profile info' ? 'Profile' : view === 'Created recipes' ? 'Created recipes' : 'Saved recipes'}
 			</span>
 		</div>
 
-		{#if view === 'profile'}
+		{#if view === 'Profile info'}
 			<div class="card">
 				{@render profileInfo()}
 			</div>
-		{:else if view === 'created'}
+		{:else if view === 'Created recipes'}
 			{@render createdRecipes()}
-		{:else if view === 'saved'}
+		{:else if view === 'Saved recipes'}
 			{@render savedRecipes()}
 		{/if}
 	</div>

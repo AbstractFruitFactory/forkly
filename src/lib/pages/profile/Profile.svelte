@@ -14,7 +14,7 @@
 		user,
 		createdRecipes = [],
 		collections = [],
-		initialTab = 'Profile info',
+		initialTab,
 		onLogout
 	}: {
 		user: Omit<User, 'passwordHash'>
@@ -30,19 +30,6 @@
 	function handleTabSelect(option: (typeof tabOptions)[number]) {
 		selectedTab = option
 		goto(`/profile?tab=${option}`, { replaceState: true })
-	}
-
-	function getInitialView(tab: string): 'menu' | 'profile' | 'created' | 'saved' {
-		switch (tab) {
-			case 'Profile info':
-				return 'profile'
-			case 'Created recipes':
-				return 'created'
-			case 'Saved recipes':
-				return 'saved'
-			default:
-				return 'menu'
-		}
 	}
 </script>
 
@@ -150,7 +137,7 @@
 		{profileInfo}
 		createdRecipes={_createdRecipes}
 		savedRecipes={_savedRecipes}
-		initialView={getInitialView(initialTab)}
+		initialView={initialTab}
 	/>
 </div>
 

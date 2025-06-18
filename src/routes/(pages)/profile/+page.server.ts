@@ -18,9 +18,6 @@ const updateProfileSchema = v.object({
   avatarUrl: v.nullish(v.string())
 })
 
-const validTabs = ['Profile info', 'Created recipes', 'Saved recipes', 'menu'] as const
-type ValidTab = typeof validTabs[number]
-
 export const load: PageServerLoad = async ({ locals, fetch, url }) => {
   if (!locals.user) error(401, 'Unauthorized')
 

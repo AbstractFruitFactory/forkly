@@ -12,7 +12,7 @@
 		createdRecipes,
 		savedRecipes,
 		tabOptions,
-		selectedTab,
+		selectedTab = tabOptions[0],
 		onTabSelect
 	}: {
 		avatar: Snippet
@@ -23,7 +23,7 @@
 		createdRecipes: Snippet
 		savedRecipes: Snippet
 		tabOptions: string[]
-		selectedTab: string
+		selectedTab?: string
 		onTabSelect: (option: string) => void
 	} = $props()
 </script>
