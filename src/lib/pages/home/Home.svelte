@@ -1,6 +1,7 @@
 <script lang="ts">
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
+	import TagCarousel from '$lib/components/tag-carousel/TagCarousel.svelte'
 	import { onMount, type ComponentProps, type Snippet } from 'svelte'
 	import { setSlots } from '../../../routes/+layout.svelte'
 	import { writable } from 'svelte/store'
@@ -57,6 +58,7 @@
 	let flipState = $state<any>(null)
 	let searchBarPosition = $state<'header' | 'filters'>('header')
 	let searchValue = $state('')
+	let popularTags = $state<string[]>([])
 
 	onMount(() => {
 		checkMobile()
@@ -65,6 +67,11 @@
 		// Initialize selected values
 		selectedTags = initialTags.map((tag) => ({ label: tag, selected: true }))
 		selectedIngredients = initialIngredients
+
+		// Load popular tags for carousel
+		searchTags('').then((results) => {
+			popularTags = results.map((t) => t.name)
+		})
 
 		let observer: IntersectionObserver | null = null
 		let unsubscribe = sentinelNode.subscribe((node) => {
@@ -142,6 +149,13 @@
 	const removeTag = (tag: string) => {
 		selectedTags = selectedTags.filter((t) => t.label !== tag)
 		notifyFiltersChanged()
+	}
+
+	const addTag = (tag: string) => {
+		if (!selectedTags.some((t) => t.label === tag)) {
+			selectedTags = [...selectedTags, { label: tag, selected: true }]
+			notifyFiltersChanged()
+		}
 	}
 
 	const removeIngredient = (ingredient: string) => {
@@ -229,6 +243,10 @@
 
 {#snippet homepageHeader()}
 	<div class="large-header">Effortless food recipes, made by the community.</div>
+
+	{#if popularTags.length > 0}
+		<TagCarousel tags={popularTags} onTagClick={addTag} />
+	{/if}
 
 	<div bind:this={$sentinelNode} style="height: 60px;"></div>
 
