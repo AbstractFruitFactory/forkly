@@ -128,17 +128,17 @@
 		// Sizes
 		&.xs > .content {
 			padding: var(--spacing-xs) var(--spacing-sm);
-			font-size: var(--font-size-xs);
+			font-size: var(--font-size-sm);
 		}
 
 		&.sm > .content {
 			padding: var(--spacing-sm) var(--spacing-md);
-			font-size: var(--font-size-sm);
+			font-size: var(--font-size-md);
 		}
 
 		&.md > .content {
 			padding: var(--spacing-md) var(--spacing-lg);
-			font-size: var(--font-size-sm);
+			font-size: var(--font-size-md);
 		}
 
 		&.lg > .content {
