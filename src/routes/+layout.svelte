@@ -41,7 +41,9 @@
 	import '$lib/global.scss'
 	import type { Snippet } from 'svelte'
 	import type { LayoutData } from './$types'
-	import { navigating, page } from '$app/state'
+       import { navigating, page } from '$app/state'
+       import { afterNavigate } from '$app/navigation'
+       import { scrollStore } from '$lib/state/scroll.svelte'
 	import gsap from 'gsap'
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props()
@@ -54,12 +56,16 @@
 
 	let _flip: (typeof import('gsap/Flip'))['Flip'] | null = $state(null)
 
-	onMount(() => {
-		import('gsap/Flip').then(({ Flip }) => {
-			gsap.registerPlugin(Flip)
-			_flip = Flip
-		})
-	})
+        onMount(() => {
+                import('gsap/Flip').then(({ Flip }) => {
+                        gsap.registerPlugin(Flip)
+                        _flip = Flip
+                })
+        })
+
+       afterNavigate(() => {
+               scrollStore.scrollToTop()
+       })
 
 	$effect(() => {
 		if (navigating.from?.route.id === '/' && scrolledDownHomepageStore.value) {
