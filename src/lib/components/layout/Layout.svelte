@@ -44,6 +44,7 @@
 			</div>
 		{/if}
 		<div class="main-layout" class:expanded={!wideHeader}>
+			<div class="main-background" class:expanded={!wideHeader}></div>
 			<div class="main-content page-padding" class:homepage>
 				{@render content()}
 			</div>
@@ -180,8 +181,8 @@
 	}
 
 	.main-layout {
+		position: relative;
 		z-index: var(--z-dropdown);
-		background: var(--color-background);
 		margin: 0 var(--spacing-2xl);
 		margin-top: var(--spacing-3xl);
 		border-radius: var(--border-radius-3xl);
@@ -201,11 +202,34 @@
 			margin-right: var(--spacing-xs);
 			margin-top: var(--spacing-xl);
 		}
+	}
+
+	.main-background {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: var(--color-background);
+		border-radius: var(--border-radius-3xl);
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 		&.expanded {
-			margin: 0;
-			max-width: 100vw;
+			top: calc(-1 * (var(--spacing-3xl) + $header-height));
+			left: calc(-1 * var(--spacing-2xl));
+			right: calc(-1 * var(--spacing-2xl));
 			border-radius: 0;
+
+			@include tablet {
+				left: calc(-1 * var(--spacing-xl));
+				right: calc(-1 * var(--spacing-xl));
+			}
+
+			@include mobile {
+				top: calc(-1 * var(--spacing-xl));
+				left: calc(-1 * var(--spacing-xs));
+				right: calc(-1 * var(--spacing-xs));
+			}
 		}
 	}
 
