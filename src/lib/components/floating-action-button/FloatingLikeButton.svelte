@@ -16,6 +16,7 @@
 		:global(.action-button.active > svg) {
 			color: var(--color-error);
 			fill: var(--color-error);
+			stroke: var(--color-error);
 			animation: like-pop 0.3s ease;
 		}
 	}
