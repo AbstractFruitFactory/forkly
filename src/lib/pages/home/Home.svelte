@@ -436,7 +436,7 @@
 		flex-direction: column;
 		align-items: center;
 		gap: var(--spacing-md);
-		height: 3rem;
+		height: 6rem;
 
 		padding: 0 var(--spacing-xl);
 	}
@@ -460,7 +460,9 @@
 		z-index: var(--z-sticky);
 		background: var(--color-background);
 		transform-origin: center top;
-		transition: border 0.2s ease-in-out, opacity 0.2s ease-in-out;
+		transition:
+			border 0.2s ease-in-out,
+			opacity 0.2s ease-in-out;
 		padding: var(--spacing-md) 0;
 		border: var(--border-width-thin) solid transparent;
 		border-radius: var(--border-radius-xl);
