@@ -1,5 +1,5 @@
 {
-  "id": "be17bc06-4c90-4220-9e5a-80908fb63dd6",
+  "id": "12d05136-c5fc-425d-89bb-11100d3fe9ee",
   "prevId": "fc76a070-2351-4ce8-a75c-1df7c99f9929",
   "version": "7",
   "dialect": "postgresql",
@@ -399,7 +399,6 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
-    },
     },
     "public.recipe_ingredient": {
       "name": "recipe_ingredient",
