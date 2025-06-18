@@ -1,7 +1,11 @@
 <script lang="ts">
 	import Button from '../button/Button.svelte'
 
-	let { options = [], onSelect = () => {}, selected = options[0] } = $props<{
+	let {
+		options = [],
+		onSelect = () => {},
+		selected = options[0]
+	} = $props<{
 		options: string[]
 		onSelect?: (option: string) => void
 		selected?: string
@@ -32,7 +36,7 @@
 	.tab-select {
 		display: flex;
 		gap: var(--spacing-md);
-		
+
 		@media (max-width: 640px) {
 			width: 100%;
 			justify-content: space-between;

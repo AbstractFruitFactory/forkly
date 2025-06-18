@@ -31,13 +31,12 @@ export const load: PageServerLoad = async ({ locals, fetch, url }) => {
   const collections = await getCollections(locals.user.id)
 
   const tab = url.searchParams.get('tab')
-  const initialTab: ValidTab = validTabs.includes(tab as ValidTab) ? (tab as ValidTab) : 'Profile info'
 
   return {
     recipes: recipesResult.value.created,
     collections,
     user,
-    initialTab
+    initialTab: tab ?? undefined
   }
 }
 
