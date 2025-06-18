@@ -225,7 +225,7 @@
 {/snippet}
 
 {#snippet homepageHeader()}
-	<div class="large-header">Explore recipes</div>
+	<div class="large-header">Effortless food recipes, made by the community.</div>
 
 	<div bind:this={$sentinelNode} style="height: 60px;"></div>
 

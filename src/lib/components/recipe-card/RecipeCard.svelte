@@ -347,42 +347,6 @@
 		font-size: var(--font-size-sm);
 	}
 
-	.meta {
-		display: flex;
-		gap: var(--spacing-lg);
-		font-size: var(--font-size-sm);
-		color: var(--color-neutral-light);
-		padding-top: var(--spacing-sm);
-		border-top: 1px solid rgba(255, 255, 255, 0.1);
-		opacity: 0.7;
-		transition: opacity var(--transition-fast) var(--ease-out);
-
-		span {
-			display: flex;
-			align-items: center;
-			gap: var(--spacing-xs);
-		}
-	}
-
-	.recipe-card:hover .meta {
-		opacity: 1;
-	}
-
-	@media (max-width: 600px) {
-		.content {
-			padding: var(--spacing-sm);
-		}
-
-		h2 {
-			font-size: var(--font-size-md);
-		}
-
-		.meta {
-			font-size: var(--font-size-xs);
-			gap: var(--spacing-sm);
-		}
-	}
-
 	.tags {
 		display: flex;
 		flex-wrap: wrap;
@@ -502,10 +466,12 @@
 	}
 
 	.meta-single {
-		font-size: var(--font-size-sm);
 		color: var(--color-neutral-light);
 		opacity: 0.8;
-		font-weight: 500;
+
+		span {
+			font-size: var(--font-size-sm);
+		}
 	}
 
 	.spinner-overlay {
