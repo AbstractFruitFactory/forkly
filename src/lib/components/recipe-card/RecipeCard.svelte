@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
+	import Dropdown from '$lib/components/dropdown/Dropdown.svelte'
+	import MoreVertical from 'lucide-svelte/icons/more-vertical'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import { navigating } from '$app/state'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
@@ -8,14 +10,21 @@
 	let {
 		recipe,
 		loading = false,
-		size = 'large'
+		size = 'large',
+		menu
 	}: {
 		recipe?: DetailedRecipe
 		loading?: boolean
 		size?: 'large' | 'small'
+		menu?: {
+			options: { [key: string]: () => void }
+		}
 	} = $props()
 
 	let isNavigating = $state(false)
+	let menuOpen = $state(false)
+	let menuButton: HTMLButtonElement
+	let dropdownPosition = $state({ top: 0, left: 0 })
 
 	const handleClick = (event: MouseEvent) => {
 		if (!recipe) return
@@ -25,6 +34,31 @@
 	$effect(() => {
 		if (isNavigating && !navigating) {
 			isNavigating = false
+		}
+	})
+
+	const updateDropdownPosition = () => {
+		if (menuButton) {
+			const rect = menuButton.getBoundingClientRect()
+			dropdownPosition = {
+				top: rect.bottom + window.scrollY + 8,
+				left: rect.left + window.scrollX
+			}
+		}
+	}
+
+	const handleMenuToggle = (e: MouseEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		menuOpen = !menuOpen
+		if (menuOpen) {
+			updateDropdownPosition()
+		}
+	}
+
+	$effect(() => {
+		if (menuOpen) {
+			updateDropdownPosition()
 		}
 	})
 </script>
@@ -50,6 +84,16 @@
 		<div class="action-buttons">
 			{#if recipe}
 				<LikeButton count={recipe.likes} />
+				{#if menu}
+					<button
+						bind:this={menuButton}
+						class="menu-btn"
+						onclick={handleMenuToggle}
+						aria-label="Recipe menu"
+					>
+						<MoreVertical size={16} />
+					</button>
+				{/if}
 			{/if}
 		</div>
 	</div>
@@ -115,6 +159,26 @@
 		</div>
 	{/if}
 </a>
+
+{#if menu && menuOpen}
+	<div
+		class="portal-dropdown-container"
+		style="position: fixed; top: {dropdownPosition.top}px; left: {dropdownPosition.left}px; z-index: 1000;"
+	>
+		<Dropdown bind:isOpen={menuOpen}>
+			{#each Object.entries(menu.options) as [label, action]}
+				<button
+					class="dropdown-item"
+					class:delete={['Delete', 'Remove'].includes(label)}
+					onclick={() => {
+						menuOpen = false
+						action()
+					}}>{label}</button
+				>
+			{/each}
+		</Dropdown>
+	</div>
+{/if}
 
 <style lang="scss">
 	.recipe-card {
@@ -463,12 +527,63 @@
 		animation: spin 1s linear infinite;
 	}
 
+	.menu-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: var(--border-radius-full);
+		background: var(--color-neutral-2);
+		border: 1px solid var(--color-neutral);
+		padding: 0 var(--spacing-xs);
+		color: var(--color-neutral-light);
+		cursor: pointer;
+		transition: background-color var(--transition-fast) var(--ease-in-out);
+
+		&:hover {
+			background-color: var(--color-neutral);
+		}
+	}
+
+	.dropdown-item {
+		display: block;
+		width: 100%;
+		text-align: left;
+		padding: var(--spacing-sm) var(--spacing-md);
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: var(--color-white);
+
+		&:hover {
+			background-color: var(--color-hover);
+		}
+	}
+
+	.dropdown-item.delete {
+		color: var(--color-error);
+	}
+
 	@keyframes spin {
 		0% {
 			transform: rotate(0deg);
 		}
 		100% {
 			transform: rotate(360deg);
+		}
+	}
+
+	.portal-dropdown-container {
+		animation: dropdown-fade-in 0.2s ease-out;
+	}
+
+	@keyframes dropdown-fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
 		}
 	}
 </style>

@@ -4,4 +4,4 @@
 	let { data } = $props()
 </script>
 
-<Collection name={data.name} recipes={data.recipes} />
+<Collection name={data.name} recipes={data.recipes} collections={data.collections} />
