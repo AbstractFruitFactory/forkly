@@ -217,7 +217,12 @@
 			bind:value={searchValue}
 			onInput={(query) => {
 				searchValue = query
-				window.dispatchEvent(new CustomEvent('search', { detail: { query } }))
+				if (!isMobile) {
+					window.dispatchEvent(new CustomEvent('search', { detail: { query } }))
+				}
+			}}
+			onConfirm={() => {
+				window.dispatchEvent(new CustomEvent('search', { detail: { query: searchValue } }))
 			}}
 			{isLoading}
 			roundedCorners

@@ -8,6 +8,7 @@
 		inputElement = $bindable(),
 		value = $bindable(''),
 		onInput = $bindable((newValue: string) => {}),
+		onConfirm = $bindable((value: string) => {}),
 		actionButton,
 		formName,
 		...inputProps
@@ -17,6 +18,7 @@
 		inputElement?: HTMLInputElement
 		value?: string
 		onInput?: (value: string) => void
+		onConfirm?: (value: string) => void
 		actionButton?: { text: string; onClick: () => void }
 		formName?: string
 	} & Omit<ComponentProps<typeof Input>, 'children' | 'value'> = $props()
@@ -24,6 +26,21 @@
 	const handleInput = (e: Event) => {
 		value = (e.target as HTMLInputElement).value
 		onInput(value)
+	}
+
+	const confirmSearch = () => {
+		onConfirm(value)
+		inputElement?.blur()
+	}
+
+	const handleKeydown = (e: KeyboardEvent) => {
+		if (e.key === 'Enter') {
+			confirmSearch()
+		}
+	}
+
+	const handleSearchEvent = () => {
+		confirmSearch()
 	}
 </script>
 
@@ -50,9 +67,12 @@
 				{placeholder}
 				{value}
 				oninput={handleInput}
+				onkeydown={handleKeydown}
+				onsearch={handleSearchEvent}
 				aria-label="Search"
 				name={formName}
 				bind:this={inputElement}
+				enterkeyhint="search"
 			/>
 		</Input>
 	</div>
