@@ -738,4 +738,8 @@
 		width: 100%;
 		min-width: 0;
 	}
+
+	:global(.filters-searchbar .search-input-container input) {
+		border-color: var(--color-primary) !important;
+	}
 </style>
