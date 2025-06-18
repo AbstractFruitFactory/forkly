@@ -157,8 +157,8 @@
 		})
 	}
 
-       const calculatePopularityScore = (recipe: (typeof recipes)[number]): number => {
-               const engagementScore = recipe.likes
+	const calculatePopularityScore = (recipe: (typeof recipes)[number]): number => {
+		const engagementScore = recipe.likes
 
 		const ageInDays = (Date.now() - new Date(recipe.createdAt).getTime()) / (1000 * 60 * 60 * 24)
 		const recencyBoost = Math.max(0, 10 - Math.min(10, ageInDays / 30))
@@ -267,28 +267,30 @@
 				</OptionFilterSelect>
 			</div>
 
-			<div
-				class="selected-pills"
-				class:sticky={searchbarIsSticky}
-				class:has-content={selectedTags.length > 0 || selectedIngredients.length > 0}
-			>
-				<div>
-					{#each selectedTags as tag (tag.label)}
-						<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
-					{/each}
+			{#if selectedTags.length > 0 || selectedIngredients.length > 0}
+				<div
+					class="selected-pills"
+					class:sticky={searchbarIsSticky}
+					class:has-content={selectedTags.length > 0 || selectedIngredients.length > 0}
+				>
+					<div>
+						{#each selectedTags as tag (tag.label)}
+							<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
+						{/each}
 
-					{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
-						<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
-					{/each}
+						{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
+							<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
+						{/each}
 
-					{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
-						<Pill
-							text={`-${ingredient.label}`}
-							onRemove={() => removeIngredient(ingredient.label)}
-						/>
-					{/each}
+						{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
+							<Pill
+								text={`-${ingredient.label}`}
+								onRemove={() => removeIngredient(ingredient.label)}
+							/>
+						{/each}
+					</div>
 				</div>
-			</div>
+			{/if}
 		</div>
 
 		<div class="home-container">
@@ -504,6 +506,7 @@
 	}
 
 	.selected-pills {
+		margin-top: var(--spacing-sm);
 		width: 100%;
 		display: grid;
 		grid-template-rows: 0fr;
