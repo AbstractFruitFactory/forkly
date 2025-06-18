@@ -28,14 +28,19 @@
 		onInput(value)
 	}
 
+	const confirmSearch = () => {
+		onConfirm(value)
+		inputElement?.blur()
+	}
+
 	const handleKeydown = (e: KeyboardEvent) => {
 		if (e.key === 'Enter') {
-			onConfirm(value)
+			confirmSearch()
 		}
 	}
 
 	const handleSearchEvent = () => {
-		onConfirm(value)
+		confirmSearch()
 	}
 </script>
 
