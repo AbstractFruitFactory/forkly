@@ -184,7 +184,7 @@
 		position: relative;
 		z-index: var(--z-dropdown);
 		margin: 0 var(--spacing-2xl);
-		margin-top: var(--spacing-3xl);
+		margin-top: var(--spacing-lg);
 		border-radius: var(--border-radius-3xl);
 		min-height: calc(100dvh - $header-height);
 		will-change: margin, border-radius;
@@ -200,7 +200,7 @@
 		@include mobile {
 			margin-left: var(--spacing-xs);
 			margin-right: var(--spacing-xs);
-			margin-top: var(--spacing-xl);
+			margin-top: var(--spacing-sm);
 		}
 	}
 
@@ -215,7 +215,6 @@
 		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 		&.expanded {
-			// should go to the top of the screen
 			top: calc(-1 * (var(--spacing-3xl) + 6rem));
 			left: calc(-1 * var(--spacing-2xl));
 			right: calc(-1 * var(--spacing-2xl));
@@ -235,9 +234,10 @@
 	}
 
 	.main-content {
+		position: relative;
 		max-width: $max-width;
 		margin: 0 auto;
-		padding-top: var(--spacing-xl);
+		padding-top: var(--spacing-lg);
 
 		@include mobile {
 			padding-top: var(--spacing-md);
