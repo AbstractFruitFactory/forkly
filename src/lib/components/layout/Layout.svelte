@@ -87,6 +87,11 @@
 		}
 	}
 
+	.homepage-header {
+		position: relative;
+		z-index: var(--z-sticky);
+	}
+
 	.page-padding {
 		padding: 0 var(--spacing-2xl);
 
