@@ -61,7 +61,7 @@
 <style lang="scss">
 	.search-wrapper {
 		position: relative;
-		
+
 		max-width: 500px;
 		width: 100%;
 	}
@@ -122,6 +122,7 @@
 
 	:global(.search-input-container input) {
 		padding-left: calc(var(--spacing-xl) + var(--spacing-xs)) !important;
+		border-color: var(--color-primary) !important;
 	}
 
 	@keyframes spin {
