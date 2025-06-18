@@ -56,6 +56,7 @@
 	let sentinelNode = writable<HTMLElement | null>(null)
 	let flipState = $state<any>(null)
 	let searchBarPosition = $state<'header' | 'filters'>('header')
+	let searchValue = $state('')
 
 	onMount(() => {
 		checkMobile()
@@ -215,7 +216,9 @@
 	>
 		<Search
 			placeholder="Search recipes..."
+			bind:value={searchValue}
 			onInput={(query) => {
+				searchValue = query
 				window.dispatchEvent(new CustomEvent('search', { detail: { query } }))
 			}}
 			{isLoading}
