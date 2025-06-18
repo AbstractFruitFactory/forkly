@@ -157,10 +157,8 @@
 		})
 	}
 
-	const calculatePopularityScore = (recipe: (typeof recipes)[number]): number => {
-		if (!recipe.dislikes) return recipe.likes
-
-		const engagementScore = recipe.likes - recipe.dislikes * 1.5
+       const calculatePopularityScore = (recipe: (typeof recipes)[number]): number => {
+               const engagementScore = recipe.likes
 
 		const ageInDays = (Date.now() - new Date(recipe.createdAt).getTime()) / (1000 * 60 * 60 * 24)
 		const recencyBoost = Math.max(0, 10 - Math.min(10, ageInDays / 30))

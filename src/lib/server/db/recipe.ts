@@ -1,5 +1,5 @@
 import { db } from '.'
-import { recipe, recipeLike, recipeDislike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
+import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
 import { eq, ilike, desc, sql, and, SQL, or } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 
@@ -25,7 +25,6 @@ export type DetailedRecipe = {
   imageUrl?: string
   createdAt: Date
   likes: number
-  dislikes: number
   bookmarks: number
   servings: number
   ingredients: Array<{
@@ -163,7 +162,6 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         createdAt: recipe.createdAt,
         servings: recipe.servings,
         likes: sql<number>`count(DISTINCT ${recipeLike.userId})::int`,
-        dislikes: sql<number>`count(DISTINCT ${recipeDislike.userId})::int`,
         ingredients: sql<Array<{ id: string, name: string, quantity: number, measurement: string, custom?: boolean }>>`json_agg(
           json_build_object(
             'id', ${ingredient.id},
@@ -186,7 +184,6 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
       .from(recipe)
       .leftJoin(user, eq(recipe.userId, user.id))
       .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
-      .leftJoin(recipeDislike, eq(recipe.id, recipeDislike.recipeId))
       .leftJoin(recipeNutrition, eq(recipe.id, recipeNutrition.recipeId))
       .leftJoin(recipeIngredient, eq(recipe.id, recipeIngredient.recipeId))
       .leftJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
@@ -425,7 +422,6 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
   }
 
   let isLiked = false
-  let isDisliked = false
   let isSaved = false
   if (userId) {
     const likes = await db
@@ -436,15 +432,6 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
         eq(recipeLike.userId, userId)
       ))
     isLiked = likes.length > 0
-
-    const dislikes = await db
-      .select()
-      .from(recipeDislike)
-      .where(and(
-        eq(recipeDislike.recipeId, recipeId),
-        eq(recipeDislike.userId, userId)
-      ))
-    isDisliked = dislikes.length > 0
 
     const bookmarks = await db
       .select()
@@ -461,11 +448,6 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     .from(recipeLike)
     .where(eq(recipeLike.recipeId, recipeId))
 
-  const dislikes = await db
-    .select()
-    .from(recipeDislike)
-    .where(eq(recipeDislike.recipeId, recipeId))
-
   const ingredients = recipeIngredients.map(ri => ({
     id: ri.ingredient.id,
     name: ri.ingredient.name,
@@ -479,10 +461,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     ingredients,
     nutrition,
     isLiked,
-    isDisliked,
     isSaved,
-    likes: likes.length,
-    dislikes: dislikes.length
+    likes: likes.length
   }
 
   return nullToUndefined(result)
