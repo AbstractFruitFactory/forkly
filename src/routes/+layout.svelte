@@ -42,6 +42,8 @@
 	import type { Snippet } from 'svelte'
 	import type { LayoutData } from './$types'
 	import { navigating, page } from '$app/state'
+	import { afterNavigate } from '$app/navigation'
+	import { scrollStore } from '$lib/state/scroll.svelte'
 	import gsap from 'gsap'
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props()
@@ -59,6 +61,10 @@
 			gsap.registerPlugin(Flip)
 			_flip = Flip
 		})
+	})
+
+	afterNavigate(() => {
+		scrollStore.scrollToTop('instant')
 	})
 
 	$effect(() => {
@@ -98,8 +104,8 @@
 	{/snippet}
 
 	{#snippet bottomNavBar()}
-		<BottomNav 
-			loggedIn={!!data.user} 
+		<BottomNav
+			loggedIn={!!data.user}
 			homeHref="/"
 			newRecipeHref="/new"
 			profileHref="/profile"

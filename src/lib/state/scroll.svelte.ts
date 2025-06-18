@@ -24,9 +24,9 @@ export const scrollStore = {
     _scrollPosition = _scrollContainer.scrollTop
   },
 
-  scrollToTop() {
+  scrollToTop(behavior: 'smooth' | 'instant' = 'smooth') {
     if (!_scrollContainer) return
-    _scrollContainer.scrollTo({ top: 0, behavior: 'smooth' })
+    _scrollContainer.scrollTo({ top: 0, behavior })
   },
 
   scrollToElement(element: HTMLElement) {
