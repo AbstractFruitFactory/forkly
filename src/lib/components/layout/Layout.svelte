@@ -215,7 +215,8 @@
 		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 		&.expanded {
-			top: calc(-1 * (var(--spacing-3xl) + $header-height));
+			// should go to the top of the screen
+			top: calc(-1 * (var(--spacing-3xl) + 6rem));
 			left: calc(-1 * var(--spacing-2xl));
 			right: calc(-1 * var(--spacing-2xl));
 			border-radius: 0;
@@ -226,7 +227,7 @@
 			}
 
 			@include mobile {
-				top: calc(-1 * var(--spacing-xl));
+				top: calc(-1 * (var(--spacing-xl) + 6rem));
 				left: calc(-1 * var(--spacing-xs));
 				right: calc(-1 * var(--spacing-xs));
 			}
