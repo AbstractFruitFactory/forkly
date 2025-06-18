@@ -38,10 +38,6 @@
 			confirmSearch()
 		}
 	}
-
-	const handleSearchEvent = () => {
-		confirmSearch()
-	}
 </script>
 
 <div class="search-wrapper">
@@ -68,7 +64,6 @@
 				{value}
 				oninput={handleInput}
 				onkeydown={handleKeydown}
-				onsearch={handleSearchEvent}
 				aria-label="Search"
 				name={formName}
 				bind:this={inputElement}
