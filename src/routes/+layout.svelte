@@ -64,10 +64,6 @@
 	})
 
 	afterNavigate(() => {
-		scrollStore.scrollToTop()
-	})
-
-	afterNavigate(() => {
 		scrollStore.scrollToTop('instant')
 	})
 
