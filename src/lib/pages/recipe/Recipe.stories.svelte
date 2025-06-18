@@ -88,9 +88,8 @@
 				mediaType: 'video' as const
 			}
 		],
-		likes: 42,
-		dislikes: 12,
-		bookmarks: 24,
+               likes: 42,
+               bookmarks: 24,
 		isLiked: false,
 		imageUrl:
 			'https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&q=80',

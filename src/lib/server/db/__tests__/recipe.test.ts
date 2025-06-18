@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import { getRecipes, getRecipeById, getRecipeWithDetails } from '../recipe'
 import { setupTestDb, teardownTestDb, createTestUser, createTestRecipe, testDb } from '../test-utils'
-import { recipe, recipeLike, recipeDislike, recipeBookmark, recipeIngredient, ingredient, recipeNutrition } from '../schema'
+import { recipe, recipeLike, recipeBookmark, recipeIngredient, ingredient, recipeNutrition } from '../schema'
 import { randomUUID } from 'crypto'
 
 describe('recipe.ts', () => {
@@ -51,7 +51,6 @@ describe('recipe.ts', () => {
         tags: recipe.tags,
         servings: recipe.servings,
         likes: 0,
-        dislikes: 0,
         user: {
           username: user.username
         }
@@ -127,9 +126,8 @@ describe('recipe.ts', () => {
       const [user] = await createTestUser(randomUUID())
       const [recipe] = await createTestRecipe(user.id)
 
-      // Add some likes, dislikes, and bookmarks
+      // Add a like and a bookmark
       await testDb.insert(recipeLike).values({ userId: user.id, recipeId: recipe.id })
-      await testDb.insert(recipeDislike).values({ userId: user.id, recipeId: recipe.id })
       await testDb.insert(recipeBookmark).values({ userId: user.id, recipeId: recipe.id })
 
       // Add an ingredient
@@ -163,10 +161,8 @@ describe('recipe.ts', () => {
         tags: recipe.tags,
         servings: recipe.servings,
         isLiked: true,
-        isDisliked: true,
         isSaved: true,
         likes: 1,
-        dislikes: 1,
         ingredients: [{
           id: testIngredient.id,
           name: testIngredient.name,

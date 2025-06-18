@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { recipe, recipeLike, recipeDislike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
+import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
 import { sql } from 'drizzle-orm'
 
 // Create a test database connection
@@ -13,7 +13,6 @@ export async function setupTestDb() {
   try {
     await testDb.delete(recipeBookmark)
     await testDb.delete(recipeLike)
-    await testDb.delete(recipeDislike)
     await testDb.delete(recipeIngredient)
     await testDb.delete(recipeNutrition)
     await testDb.delete(recipe)
