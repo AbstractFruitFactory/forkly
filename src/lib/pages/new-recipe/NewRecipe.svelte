@@ -11,6 +11,7 @@
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import FilterSelector from '$lib/components/filter-selector/FilterSelector.svelte'
 	import { fly } from 'svelte/transition'
+	import { NEW_RECIPE_STEP_IN, NEW_RECIPE_STEP_OUT } from '$lib/utils/transitions'
 
 	type T = $$Generic<{ name: string; custom: false }>
 	type Ingredient = T | { name: string; custom: true }
@@ -206,8 +207,8 @@
 		<div
 			class="step-content card"
 			class:hidden={currentStep !== 1}
-			in:fly={{ x: 200, delay: 200, duration: 200 }}
-			out:fly={{ x: -200, duration: 200 }}
+			in:fly={NEW_RECIPE_STEP_IN}
+			out:fly={NEW_RECIPE_STEP_OUT}
 		>
 			<h2>Basic Information</h2>
 			<MediaUpload name="image" type="image" previewAlt="Recipe preview" />
@@ -259,8 +260,8 @@
 		<div
 			class="step-content card"
 			class:hidden={currentStep !== 2}
-			in:fly={{ x: 200, delay: 200, duration: 200 }}
-			out:fly={{ x: -200, duration: 200 }}
+			in:fly={NEW_RECIPE_STEP_IN}
+			out:fly={NEW_RECIPE_STEP_OUT}
 		>
 			<h2>Ingredients & Servings</h2>
 			<div class="form-group">
@@ -322,8 +323,8 @@
 		<div
 			class="step-content card"
 			class:hidden={currentStep !== 3}
-			in:fly={{ x: 200, delay: 200, duration: 200 }}
-			out:fly={{ x: -200, duration: 200 }}
+			in:fly={NEW_RECIPE_STEP_IN}
+			out:fly={NEW_RECIPE_STEP_OUT}
 		>
 			<h2>Instructions</h2>
 			<div class="form-group">

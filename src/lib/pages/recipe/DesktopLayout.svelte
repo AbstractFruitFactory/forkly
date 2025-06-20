@@ -1,6 +1,13 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
 	import { fly } from 'svelte/transition'
+	import {
+		FLY_LEFT_IN,
+		FLY_LEFT_IN_SHORT,
+		FLY_LEFT_OUT,
+		FLY_DOWN_IN,
+		FLY_DOWN_OUT
+	} from '$lib/utils/transitions'
 
 	let {
 		image,
@@ -27,22 +34,14 @@
 
 <div class="desktop-layout">
 	<div class="sidebar">
-		<div
-			class="action-buttons"
-			in:fly={{ x: -50, duration: 300, delay: 500 }}
-			out:fly={{ x: -50, duration: 300 }}
-		>
+		<div class="action-buttons" in:fly={FLY_LEFT_IN} out:fly={FLY_LEFT_OUT}>
 			{@render actionButtons()}
 		</div>
 	</div>
 
 	<div class="main-content">
 		<div class="content-grid">
-			<div
-				class="recipe-info"
-				in:fly={{ x: -50, duration: 300, delay: 300 }}
-				out:fly={{ x: -50, duration: 300 }}
-			>
+			<div class="recipe-info" in:fly={FLY_LEFT_IN_SHORT} out:fly={FLY_LEFT_OUT}>
 				<div class="tags-and-action-buttons">
 					<div class="tags">
 						{@render tags()}
@@ -58,22 +57,14 @@
 				</div>
 			</div>
 
-			<div
-				class="right-column"
-				in:fly={{ y: 50, duration: 300, delay: 300 }}
-				out:fly={{ x: -50, duration: 300 }}
-			>
+			<div class="right-column" in:fly={FLY_DOWN_IN} out:fly={FLY_LEFT_OUT}>
 				<div class="recipe-media">
 					{@render image()}
 				</div>
 				{@render instructions()}
 			</div>
 		</div>
-		<div
-			class="comments-section"
-			in:fly={{ y: 50, duration: 300, delay: 300 }}
-			out:fly={{ y: 50, duration: 300 }}
-		>
+		<div class="comments-section" in:fly={FLY_DOWN_IN} out:fly={FLY_DOWN_OUT}>
 			{@render comments()}
 		</div>
 	</div>
