@@ -1,5 +1,5 @@
 import { db } from '.'
-import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTags, tag } from './schema'
+import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
 import { eq, ilike, desc, sql, and, SQL, or } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 
@@ -91,7 +91,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     // Handle each term independently with implicit OR logic
     for (const term of searchTerms) {
       const titleCondition = ilike(recipe.title, `%${term}%`)
-      const tagCondition = sql`EXISTS (SELECT 1 FROM unnest(${recipeTags.tags}) AS t(tag) WHERE t.tag ILIKE ${'%' + term + '%'})`
+      const tagCondition = sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${recipe.tags}) AS tag WHERE tag ILIKE ${'%' + term + '%'})`
       const ingredientCondition = ilike(ingredient.name, `%${term}%`)
 
       const validConditions = [titleCondition, tagCondition, ingredientCondition].filter(Boolean)
@@ -104,8 +104,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
 
   // Tags filters
   if (tags.length > 0) {
-    const quoted = tags.map(t => `'${t}'`).join(',')
-    conditions.push(sql`${recipe.id} IN (SELECT recipe_id FROM recipe_tags WHERE tags && ARRAY[${sql.raw(quoted)}])`)
+    conditions.push(sql`${recipe.tags} ?| array[${tags.join(',')}]`)
   }
 
   // Recipe IDs filter
@@ -158,7 +157,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         title: recipe.title,
         description: recipe.description,
         instructions: recipe.instructions,
-        tags: sql<string[]>`coalesce(${recipeTags.tags}, '{}')`,
+        tags: recipe.tags,
         imageUrl: recipe.imageUrl,
         createdAt: recipe.createdAt,
         servings: recipe.servings,
@@ -187,7 +186,6 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
       .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
       .leftJoin(recipeNutrition, eq(recipe.id, recipeNutrition.recipeId))
       .leftJoin(recipeIngredient, eq(recipe.id, recipeIngredient.recipeId))
-      .leftJoin(recipeTags, eq(recipe.id, recipeTags.recipeId))
       .leftJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
 
     // Complete the query with the where condition if needed
@@ -203,6 +201,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         recipe.title,
         recipe.description,
         recipe.instructions,
+        recipe.tags,
         recipe.imageUrl,
         recipe.createdAt,
         recipe.servings,
@@ -211,8 +210,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         recipeNutrition.calories,
         recipeNutrition.protein,
         recipeNutrition.carbs,
-        recipeNutrition.fat,
-        recipeTags.tags
+        recipeNutrition.fat
       )
       .orderBy(desc(recipe.createdAt), desc(recipe.id))
       .offset(page * limit)
@@ -229,12 +227,11 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         id: recipe.id,
         title: recipe.title,
         imageUrl: recipe.imageUrl,
-        tags: sql<string[]>`coalesce(${recipeTags.tags}, '{}')`,
+        tags: recipe.tags,
         likes: sql<number>`count(${recipeLike.userId})::int`
       })
       .from(recipe)
       .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
-      .leftJoin(recipeTags, eq(recipe.id, recipeTags.recipeId))
 
     // Complete the query with the where condition if needed
     const queryWithWhere = whereCondition
@@ -243,7 +240,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
 
     // Complete query with groupBy, orderBy, and limit
     const finalQuery = queryWithWhere
-      .groupBy(recipe.id, recipeTags.tags)
+      .groupBy(recipe.id)
       .orderBy(desc(recipe.createdAt), desc(recipe.id))
       .offset(page * limit)
 
@@ -390,6 +387,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     description: recipe.description,
     instructions: recipe.instructions,
     imageUrl: recipe.imageUrl,
+    tags: recipe.tags,
     servings: recipe.servings,
     createdAt: recipe.createdAt,
     userId: recipe.userId
@@ -399,13 +397,6 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
 
   const foundRecipe = recipes[0]
   if (!foundRecipe) return null
-
-  const tagRows = await db
-    .select({ tags: recipeTags.tags })
-    .from(recipeTags)
-    .where(eq(recipeTags.recipeId, recipeId))
-
-  const tags = tagRows[0]?.tags ?? []
 
   const recipeIngredients = await db
     .select({
@@ -467,7 +458,6 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
 
   const result = {
     ...foundRecipe,
-    tags,
     ingredients,
     nutrition,
     isLiked,

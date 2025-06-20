@@ -1,6 +1,6 @@
 import { db } from '.'
-import { tag, recipeTags } from './schema'
-import { sql, eq, ilike } from 'drizzle-orm'
+import { recipe } from './schema'
+import { sql } from 'drizzle-orm'
 
 /**
  * Search for tags that match a query string
@@ -9,17 +9,22 @@ import { sql, eq, ilike } from 'drizzle-orm'
  * @returns An array of tags with their usage counts
  */
 export async function searchTags(query: string, limit: number = 10) {
-  const results = await db
-    .select({
-      name: tag.name,
-      count: sql<number>`count(*)`
-    })
-    .from(tag)
-    .innerJoin(recipeTags, sql`${tag.name} = ANY(${recipeTags.tags})`)
-    .where(ilike(tag.name, `%${query}%`))
-    .groupBy(tag.name)
-    .orderBy(sql`count(*) DESC`, tag.name)
-    .limit(limit)
+  // We need to unnest the tags array from each recipe, then count occurrences
+  // and filter by the search query
+  const results = await db.execute<{ name: string, count: number }>(sql`
+    WITH tag_counts AS (
+      SELECT 
+        tag AS name,
+        COUNT(*) AS count
+      FROM recipe, 
+        jsonb_array_elements_text(tags) AS tag
+      WHERE tag ILIKE ${`%${query}%`}
+      GROUP BY tag
+      ORDER BY count DESC, tag ASC
+      LIMIT ${limit}
+    )
+    SELECT * FROM tag_counts
+  `)
   
   return results.map(row => ({
     name: row.name,
@@ -33,16 +38,20 @@ export async function searchTags(query: string, limit: number = 10) {
  * @returns An array of the most used tags with their usage counts
  */
 export async function getPopularTags(limit: number = 10) {
-  const results = await db
-    .select({
-      name: tag.name,
-      count: sql<number>`count(*)`
-    })
-    .from(tag)
-    .innerJoin(recipeTags, sql`${tag.name} = ANY(${recipeTags.tags})`)
-    .groupBy(tag.name)
-    .orderBy(sql`count(*) DESC`, tag.name)
-    .limit(limit)
+  // Get the most frequently used tags
+  const results = await db.execute<{ name: string, count: number }>(sql`
+    WITH tag_counts AS (
+      SELECT 
+        tag AS name,
+        COUNT(*) AS count
+      FROM recipe, 
+        jsonb_array_elements_text(tags) AS tag
+      GROUP BY tag
+      ORDER BY count DESC, tag ASC
+      LIMIT ${limit}
+    )
+    SELECT * FROM tag_counts
+  `)
   
   return results.map(row => ({
     name: row.name,

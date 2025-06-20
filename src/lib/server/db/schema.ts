@@ -22,29 +22,9 @@ export const session = pgTable('session', {
 })
 
 export const ingredient = pgTable('ingredient', {
-        id: text('id').primaryKey(),
-        name: text('name').notNull().unique(),
-        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
-})
-
-export const tag = pgTable('tag', {
-        name: text('name').primaryKey(),
-        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-}, (table) => {
-        return {
-                lengthCheck: check('tag_length', sql`length(${table.name}) < 15`)
-        }
-})
-
-export const recipeTags = pgTable('recipe_tags', {
-        recipeId: text('recipe_id')
-                .primaryKey()
-                .references(() => recipe.id, { onDelete: 'cascade' }),
-        tags: text('tags').array().notNull().default(sql`'{}'::text[]`),
-}, (table) => {
-        return {
-                lengthCheck: check('recipe_tags_length', sql`cardinality(${table.tags}) <= 3`)
-        }
+	id: text('id').primaryKey(),
+	name: text('name').notNull().unique(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 })
 
 export const recipe = pgTable('recipe', {
@@ -53,16 +33,19 @@ export const recipe = pgTable('recipe', {
 		.references(() => user.id, { onDelete: 'cascade' }),
 	title: text('title').notNull(),
 	description: text('description'),
-       instructions: jsonb('instructions').$type<{
-               text: string
-               mediaUrl?: string
-               mediaType?: 'image' | 'video'
-       }[]>().notNull(),
-       imageUrl: text('image_url'),
-       servings: integer('servings').notNull().default(1),
-       createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	instructions: jsonb('instructions').$type<{
+		text: string
+		mediaUrl?: string
+		mediaType?: 'image' | 'video'
+	}[]>().notNull(),
+	tags: jsonb('tags').$type<string[]>().default([]).notNull(),
+	imageUrl: text('image_url'),
+	servings: integer('servings').notNull().default(1),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => {
-       return {}
+        return {
+                tagLengthCheck: sql`json_array_length(jsonb_path_query_array(${table.tags}, '$[*] ? (@.type() == "string" && length(@) < 15)')) = json_array_length(${table.tags})`.as('tags_length_check')
+        }
 })
 
 export const recipeNutrition = pgTable('recipe_nutrition', {
@@ -169,10 +152,6 @@ export type User = typeof user.$inferSelect
 export type Recipe = typeof recipe.$inferSelect
 
 export type IngredientRecord = typeof ingredient.$inferSelect
-
-export type Tag = typeof tag.$inferSelect
-
-export type RecipeTagsRecord = typeof recipeTags.$inferSelect
 
 export type RecipeIngredient = typeof recipeIngredient.$inferSelect
 

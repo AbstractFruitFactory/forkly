@@ -81,7 +81,7 @@ const formValidationSchema = v.object({
   ),
   tags: v.pipe(
     v.array(v.string()),
-    v.maxLength(3, 'Recipes can have at most 3 tags')
+    v.maxLength(3, 'A recipe can have at most 3 tags')
   )
 })
 

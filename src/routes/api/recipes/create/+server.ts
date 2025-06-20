@@ -29,17 +29,15 @@ const createRecipeSchema = v.object({
     carbs: v.number(),
     fat: v.number()
   }),
-  tags: v.pipe(
-    v.array(
-      v.pipe(
-        v.string(),
-        v.custom(
-          (value) => isValidTag(value as string),
-          'Tags must be less than 15 characters'
-        )
+  tags: v.array(
+    v.pipe(
+      v.string(),
+      v.custom(
+        (value) => isValidTag(value as string),
+        'Tags must be less than 15 characters'
       )
     ),
-    v.maxLength(3, 'Recipes can have at most 3 tags')
+    [v.maxLength(3, 'A recipe can have at most 3 tags')]
   ),
   imageUrl: v.optional(v.string())
 })
