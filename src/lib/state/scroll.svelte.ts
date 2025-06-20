@@ -31,15 +31,35 @@ export const scrollStore = {
 
   scrollToElement(element: HTMLElement) {
     if (!_scrollContainer) return
+    
+    let currentElement = element
+    let totalOffset = 0
+    
+    
+    while (currentElement && currentElement !== _scrollContainer) {
+      totalOffset += currentElement.offsetTop
+      currentElement = currentElement.offsetParent as HTMLElement
+    }
+    
     const containerRect = _scrollContainer.getBoundingClientRect()
     const elementRect = element.getBoundingClientRect()
-    const scrollTop = _scrollContainer.scrollTop
-    const elementTop = elementRect.top - containerRect.top + scrollTop
+    const alternativeOffset = _scrollContainer.scrollTop + elementRect.top - containerRect.top
+    
+    // Scroll to position the element at the top of the viewport with some padding
+    const scrollPosition = Math.max(0, totalOffset + 5)
 
-    _scrollContainer.scrollTo({
-      top: elementTop,
-      behavior: 'smooth'
-    })
+    // Try direct scrollTop assignment first
+    _scrollContainer.scrollTop = scrollPosition
+    
+    // Also try scrollTo as backup
+    setTimeout(() => {
+      if (_scrollContainer) {
+        _scrollContainer.scrollTo({
+          top: scrollPosition,
+          behavior: 'smooth'
+        })
+      }
+    }, 100)
   }
 }
 

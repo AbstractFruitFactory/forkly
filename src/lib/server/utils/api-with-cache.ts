@@ -12,7 +12,7 @@ export const apiWithCache = <T extends keyof typeof cache>(endpoint: T) =>
     }
 
     const result = await api(endpoint)(...params)
-    if (result.ok) {
+    if (result.isOk()) {
       await set(result.value)
     }
 

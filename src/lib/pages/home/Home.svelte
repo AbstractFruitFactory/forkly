@@ -10,6 +10,7 @@
 	import Search from '$lib/components/search/Search.svelte'
 	import { tick } from 'svelte'
 	import gsap from 'gsap'
+	import { scrollStore } from '$lib/state/scroll.svelte'
 
 	let {
 		recipes,
@@ -54,9 +55,11 @@
 	let searchbarIsSticky = $state(false)
 	let hasInitializedObserver = false
 	let sentinelNode = writable<HTMLElement | null>(null)
+	let filtersSentinelNode = writable<HTMLElement | null>(null)
 	let flipState = $state<any>(null)
 	let searchBarPosition = $state<'header' | 'filters'>('header')
 	let searchValue = $state('')
+	let filtersSentinelOutOfView = $state(false)
 
 	onMount(() => {
 		checkMobile()
@@ -67,6 +70,7 @@
 		selectedIngredients = initialIngredients
 
 		let observer: IntersectionObserver | null = null
+		let filtersObserver: IntersectionObserver | null = null
 		let unsubscribe = sentinelNode.subscribe((node) => {
 			if (observer) {
 				observer.disconnect()
@@ -87,10 +91,29 @@
 				observer.observe(node)
 			}
 		})
+
+		let filtersUnsubscribe = filtersSentinelNode.subscribe((node) => {
+			if (filtersObserver) {
+				filtersObserver.disconnect()
+				filtersObserver = null
+			}
+			if (node) {
+				filtersObserver = new window.IntersectionObserver(
+					(entries) => {
+						filtersSentinelOutOfView = entries[0].intersectionRatio < 1
+					},
+					{ root: null, threshold: 1 }
+				)
+				filtersObserver.observe(node)
+			}
+		})
+
 		return () => {
 			if (observer) observer.disconnect()
+			if (filtersObserver) filtersObserver.disconnect()
 			window.removeEventListener('resize', checkMobile)
 			unsubscribe()
+			filtersUnsubscribe()
 		}
 	})
 
@@ -137,6 +160,14 @@
 
 	const checkMobile = () => {
 		isMobile = window.innerWidth <= 768
+	}
+
+	const scrollToFiltersSentinel = () => {
+		if (filtersSentinelOutOfView && $filtersSentinelNode) {
+			if (scrollStore.scrollContainer) {
+				scrollStore.scrollToElement($filtersSentinelNode)
+			}
+		}
 	}
 
 	const removeTag = (tag: string) => {
@@ -219,10 +250,14 @@
 				searchValue = query
 				if (!isMobile) {
 					window.dispatchEvent(new CustomEvent('search', { detail: { query } }))
+					scrollToFiltersSentinel()
 				}
 			}}
 			onConfirm={() => {
 				window.dispatchEvent(new CustomEvent('search', { detail: { query: searchValue } }))
+				if (!isMobile) {
+					scrollToFiltersSentinel()
+				}
 			}}
 			{isLoading}
 			roundedCorners
@@ -244,6 +279,7 @@
 
 {#snippet content()}
 	<div class="main-layout" class:expanded={searchbarIsSticky}>
+		<div bind:this={$filtersSentinelNode} style:height="1px" style:margin-top=""></div>
 		<div class="filters" class:sticky={searchbarIsSticky}>
 			<div class="buttons">
 				<div>
