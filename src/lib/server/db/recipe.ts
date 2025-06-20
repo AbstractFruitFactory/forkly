@@ -1,5 +1,5 @@
 import { db } from '.'
-import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
+import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag, tag } from './schema'
 import { eq, ilike, desc, sql, and, SQL, or } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 
@@ -91,7 +91,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     // Handle each term independently with implicit OR logic
     for (const term of searchTerms) {
       const titleCondition = ilike(recipe.title, `%${term}%`)
-      const tagCondition = sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${recipe.tags}) AS tag WHERE tag ILIKE ${'%' + term + '%'})`
+      const tagCondition = sql`EXISTS (SELECT 1 FROM recipe_tag rt WHERE rt.recipe_id = ${recipe.id} AND rt.tag_name ILIKE ${'%' + term + '%'})`
       const ingredientCondition = ilike(ingredient.name, `%${term}%`)
 
       const validConditions = [titleCondition, tagCondition, ingredientCondition].filter(Boolean)
@@ -104,7 +104,8 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
 
   // Tags filters
   if (tags.length > 0) {
-    conditions.push(sql`${recipe.tags} ?| array[${tags.join(',')}]`)
+    const quoted = tags.map(t => `'${t}'`).join(',')
+    conditions.push(sql`${recipe.id} IN (SELECT recipe_id FROM recipe_tag WHERE tag_name IN (${sql.raw(quoted)}))`)
   }
 
   // Recipe IDs filter
@@ -157,7 +158,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         title: recipe.title,
         description: recipe.description,
         instructions: recipe.instructions,
-        tags: recipe.tags,
+        tags: sql<string[]>`coalesce(array_agg(distinct ${recipeTag.tagName}), '{}')`,
         imageUrl: recipe.imageUrl,
         createdAt: recipe.createdAt,
         servings: recipe.servings,
@@ -186,6 +187,8 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
       .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
       .leftJoin(recipeNutrition, eq(recipe.id, recipeNutrition.recipeId))
       .leftJoin(recipeIngredient, eq(recipe.id, recipeIngredient.recipeId))
+      .leftJoin(recipeTag, eq(recipe.id, recipeTag.recipeId))
+      .leftJoin(tag, eq(recipeTag.tagName, tag.name))
       .leftJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
 
     // Complete the query with the where condition if needed
@@ -201,7 +204,6 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         recipe.title,
         recipe.description,
         recipe.instructions,
-        recipe.tags,
         recipe.imageUrl,
         recipe.createdAt,
         recipe.servings,
@@ -227,11 +229,12 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         id: recipe.id,
         title: recipe.title,
         imageUrl: recipe.imageUrl,
-        tags: recipe.tags,
+        tags: sql<string[]>`coalesce(array_agg(distinct ${recipeTag.tagName}), '{}')`,
         likes: sql<number>`count(${recipeLike.userId})::int`
       })
       .from(recipe)
       .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
+      .leftJoin(recipeTag, eq(recipe.id, recipeTag.recipeId))
 
     // Complete the query with the where condition if needed
     const queryWithWhere = whereCondition
@@ -387,7 +390,6 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     description: recipe.description,
     instructions: recipe.instructions,
     imageUrl: recipe.imageUrl,
-    tags: recipe.tags,
     servings: recipe.servings,
     createdAt: recipe.createdAt,
     userId: recipe.userId
@@ -397,6 +399,13 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
 
   const foundRecipe = recipes[0]
   if (!foundRecipe) return null
+
+  const tagRows = await db
+    .select({ tag: recipeTag.tagName })
+    .from(recipeTag)
+    .where(eq(recipeTag.recipeId, recipeId))
+
+  const tags = tagRows.map(r => r.tag)
 
   const recipeIngredients = await db
     .select({
@@ -458,6 +467,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
 
   const result = {
     ...foundRecipe,
+    tags,
     ingredients,
     nutrition,
     isLiked,
