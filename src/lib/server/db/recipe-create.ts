@@ -50,24 +50,19 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
 
   // Insert tags into tag and recipeTag tables
   for (const tagName of input.tags || []) {
-    let tagId: string
     const existingTag = await db
-      .select({ id: tag.id })
+      .select({ name: tag.name })
       .from(tag)
       .where(eq(tag.name, tagName))
       .limit(1)
 
-    if (existingTag.length) {
-      tagId = existingTag[0].id
-    } else {
-      const insertedTag = await db
+    if (!existingTag.length) {
+      await db
         .insert(tag)
-        .values({ id: generateId(), name: tagName })
-        .returning({ id: tag.id })
-      tagId = insertedTag[0].id
+        .values({ name: tagName })
     }
 
-    await db.insert(recipeTag).values({ recipeId, tagId })
+    await db.insert(recipeTag).values({ recipeId, tagName })
   }
 
   await db.insert(recipeNutrition).values({

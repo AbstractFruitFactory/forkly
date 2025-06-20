@@ -42,10 +42,6 @@ export const recipe = pgTable('recipe', {
 	imageUrl: text('image_url'),
 	servings: integer('servings').notNull().default(1),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-}, (table) => {
-        return {
-                tagLengthCheck: sql`json_array_length(jsonb_path_query_array(${table.tags}, '$[*] ? (@.type() == "string" && length(@) < 15)')) = json_array_length(${table.tags})`.as('tags_length_check')
-        }
 })
 
 export const recipeNutrition = pgTable('recipe_nutrition', {
@@ -140,27 +136,26 @@ export const recipeComment = pgTable('recipe_comment', {
 })
 
 export const tag = pgTable('tag', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull().unique(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+	name: text('name').primaryKey(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 }, (table) => {
-  return {
-    nameLength: check('tag_name_length', sql`length(${table.name}) < 15`)
-  }
+	return {
+		nameLength: check('tag_name_length', sql`length(${table.name}) < 15`)
+	}
 })
 
 export const recipeTag = pgTable('recipe_tag', {
-  recipeId: text('recipe_id')
-    .notNull()
-    .references(() => recipe.id, { onDelete: 'cascade' }),
-  tagId: text('tag_id')
-    .notNull()
-    .references(() => tag.id, { onDelete: 'cascade' }),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+	recipeId: text('recipe_id')
+		.notNull()
+		.references(() => recipe.id, { onDelete: 'cascade' }),
+	tagName: text('tag_name')
+		.notNull()
+		.references(() => tag.name, { onDelete: 'cascade' }),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 }, (table) => {
-  return {
-    pk: primaryKey({ columns: [table.recipeId, table.tagId] })
-  }
+	return {
+		pk: primaryKey({ columns: [table.recipeId, table.tagName] })
+	}
 })
 
 export const emailVerification = pgTable('email_verification', {

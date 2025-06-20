@@ -15,9 +15,9 @@ export async function searchTags(query: string, limit: number = 10) {
       count: sql<number>`count(${recipeTag.recipeId})::int`
     })
     .from(tag)
-    .leftJoin(recipeTag, eq(tag.id, recipeTag.tagId))
+    .leftJoin(recipeTag, eq(tag.name, recipeTag.tagName))
     .where(ilike(tag.name, `%${query}%`))
-    .groupBy(tag.id)
+    .groupBy(tag.name)
     .orderBy(desc(sql`count(${recipeTag.recipeId})`), tag.name)
     .limit(limit)
 
@@ -36,8 +36,8 @@ export async function getPopularTags(limit: number = 10) {
       count: sql<number>`count(${recipeTag.recipeId})::int`
     })
     .from(tag)
-    .leftJoin(recipeTag, eq(tag.id, recipeTag.tagId))
-    .groupBy(tag.id)
+    .leftJoin(recipeTag, eq(tag.name, recipeTag.tagName))
+    .groupBy(tag.name)
     .orderBy(desc(sql`count(${recipeTag.recipeId})`), tag.name)
     .limit(limit)
 
