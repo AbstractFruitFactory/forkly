@@ -42,7 +42,7 @@ export const uploadMedia = async (
     options.transformation = {
       ...options.transformation,
       quality: 'auto',
-      duration: 30 // Limit videos to 30 seconds
+      duration: 10 // Limit videos to 10 seconds
     }
   }
 
