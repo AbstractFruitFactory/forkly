@@ -37,9 +37,9 @@ export type MeasurementUnit = typeof measurementUnits[number]
 
 export const defaultMeasurementUnits = measurementUnits
 
-// A tag can be any string less than 10 characters
+// A tag can be any string less than 15 characters
 export const isValidTag = (tag: string): boolean => {
-  return typeof tag === 'string' && tag.length > 0 && tag.length < 10
+  return typeof tag === 'string' && tag.length > 0 && tag.length < 15
 }
 
 export type Ingredient = {

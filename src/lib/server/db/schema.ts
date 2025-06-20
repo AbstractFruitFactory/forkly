@@ -32,7 +32,7 @@ export const tag = pgTable('tag', {
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => {
         return {
-                lengthCheck: check('tag_length', sql`length(${table.name}) < 10`)
+                lengthCheck: check('tag_length', sql`length(${table.name}) < 15`)
         }
 })
 

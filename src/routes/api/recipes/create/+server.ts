@@ -35,7 +35,7 @@ const createRecipeSchema = v.object({
         v.string(),
         v.custom(
           (value) => isValidTag(value as string),
-          'Tags must be less than 10 characters'
+          'Tags must be less than 15 characters'
         )
       )
     ),

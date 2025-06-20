@@ -1,7 +1,7 @@
 CREATE TABLE "tag" (
     "name" text PRIMARY KEY,
     "created_at" timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT "tag_length" CHECK (length("name") < 10)
+    CONSTRAINT "tag_length" CHECK (length("name") < 15)
 );
 ---> statement-breakpoint
 CREATE TABLE "recipe_tag" (
