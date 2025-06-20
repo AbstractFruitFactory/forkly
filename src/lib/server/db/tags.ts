@@ -1,5 +1,5 @@
 import { db } from '.'
-import { tag, recipeTag } from './schema'
+import { tag, recipeTags } from './schema'
 import { sql, eq, ilike } from 'drizzle-orm'
 
 /**
@@ -12,13 +12,13 @@ export async function searchTags(query: string, limit: number = 10) {
   const results = await db
     .select({
       name: tag.name,
-      count: sql<number>`count(${recipeTag.recipeId})`
+      count: sql<number>`count(*)`
     })
     .from(tag)
-    .innerJoin(recipeTag, eq(tag.name, recipeTag.tagName))
+    .innerJoin(recipeTags, sql`${tag.name} = ANY(${recipeTags.tags})`)
     .where(ilike(tag.name, `%${query}%`))
     .groupBy(tag.name)
-    .orderBy(sql`count(${recipeTag.recipeId}) DESC`, tag.name)
+    .orderBy(sql`count(*) DESC`, tag.name)
     .limit(limit)
   
   return results.map(row => ({
@@ -36,12 +36,12 @@ export async function getPopularTags(limit: number = 10) {
   const results = await db
     .select({
       name: tag.name,
-      count: sql<number>`count(${recipeTag.recipeId})`
+      count: sql<number>`count(*)`
     })
     .from(tag)
-    .innerJoin(recipeTag, eq(tag.name, recipeTag.tagName))
+    .innerJoin(recipeTags, sql`${tag.name} = ANY(${recipeTags.tags})`)
     .groupBy(tag.name)
-    .orderBy(sql`count(${recipeTag.recipeId}) DESC`, tag.name)
+    .orderBy(sql`count(*) DESC`, tag.name)
     .limit(limit)
   
   return results.map(row => ({

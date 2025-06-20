@@ -36,16 +36,14 @@ export const tag = pgTable('tag', {
         }
 })
 
-export const recipeTag = pgTable('recipe_tag', {
+export const recipeTags = pgTable('recipe_tags', {
         recipeId: text('recipe_id')
-                .notNull()
+                .primaryKey()
                 .references(() => recipe.id, { onDelete: 'cascade' }),
-        tagName: text('tag_name')
-                .notNull()
-                .references(() => tag.name, { onDelete: 'cascade' }),
+        tags: text('tags').array().notNull().default(sql`'{}'::text[]`),
 }, (table) => {
         return {
-                pk: primaryKey({ columns: [table.recipeId, table.tagName] })
+                lengthCheck: check('recipe_tags_length', sql`cardinality(${table.tags}) <= 3`)
         }
 })
 
@@ -174,7 +172,7 @@ export type IngredientRecord = typeof ingredient.$inferSelect
 
 export type Tag = typeof tag.$inferSelect
 
-export type RecipeTag = typeof recipeTag.$inferSelect
+export type RecipeTagsRecord = typeof recipeTags.$inferSelect
 
 export type RecipeIngredient = typeof recipeIngredient.$inferSelect
 

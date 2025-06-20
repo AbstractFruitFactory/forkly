@@ -64,6 +64,13 @@
       "when": 1750266068706,
       "tag": "0008_recipe_tag_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1750266068707,
+      "tag": "0009_recipe_tags_table",
+      "breakpoints": true
     }
   ]
 }
