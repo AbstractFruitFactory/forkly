@@ -55,20 +55,26 @@
 		goto(url.toString(), { keepFocus: true })
 	}
 
-	const handleSearch = async (
-		query: string,
-		filters?: { tags: string[]; ingredients: string[]; excludedIngredients: string[] }
-	) => {
-		useCookies('search').set({
-			query,
-			tags: filters?.tags || [],
-			ingredients: filters?.ingredients || [],
-			excludedIngredients: filters?.excludedIngredients || [],
-			sort: sortParam
-		})
+const handleSearch = async (
+                query: string,
+                filters?: { tags: string[]; ingredients: string[]; excludedIngredients: string[] }
+        ) => {
+                isLoading = true
+                pagination = { ...pagination, page: 0, hasMore: true, isLoading: false }
+                useCookies('search').set({
+                        query,
+                        tags: filters?.tags || [],
+                        ingredients: filters?.ingredients || [],
+                        excludedIngredients: filters?.excludedIngredients || [],
+                        sort: sortParam
+                })
 
-		invalidateAll()
-	}
+                try {
+                        await invalidateAll()
+                } finally {
+                        isLoading = false
+                }
+        }
 
 	const searchIngredients = async (query: string): Promise<{ id: string; name: string }[]> => {
 		if (!query.trim()) return []
