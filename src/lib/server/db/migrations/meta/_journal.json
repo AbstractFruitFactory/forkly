@@ -57,6 +57,13 @@
       "when": 1750266068705,
       "tag": "0007_normalize_tags",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1750266068706,
+      "tag": "0008_recipe_tag_limit",
+      "breakpoints": true
     }
   ]
 }
