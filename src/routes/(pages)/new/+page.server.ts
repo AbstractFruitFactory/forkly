@@ -79,7 +79,10 @@ const formValidationSchema = v.object({
     v.array(instructionSchema),
     v.minLength(1, 'At least one instruction is required')
   ),
-  tags: v.array(v.string())
+  tags: v.pipe(
+    v.array(v.string()),
+    v.maxLength(3, 'Recipes can have at most 3 tags')
+  )
 })
 
 type FormFields = {

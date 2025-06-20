@@ -44,7 +44,7 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
     description: input.description,
     servings: input.servings,
     instructions: input.instructions,
-    tags: input.tags || [],
+    tags: (input.tags || []).slice(0, 3),
     imageUrl: input.imageUrl
   }).returning()
 

@@ -146,13 +146,15 @@
 		return results.map((tag) => tag.name)
 	}
 
-	const handleTagSelect = (tag: string, selected: boolean) => {
-		if (selected && !selectedTags.includes(tag)) {
-			selectedTags = [...selectedTags, tag]
-		} else if (!selected && selectedTags.includes(tag)) {
-			selectedTags = selectedTags.filter((t) => t !== tag)
-		}
-	}
+        const handleTagSelect = (tag: string, selected: boolean) => {
+                if (selected && !selectedTags.includes(tag)) {
+                        if (selectedTags.length < 3) {
+                                selectedTags = [...selectedTags, tag]
+                        }
+                } else if (!selected && selectedTags.includes(tag)) {
+                        selectedTags = selectedTags.filter((t) => t !== tag)
+                }
+        }
 
 	const removeTag = (tag: string) => {
 		selectedTags = selectedTags.filter((t) => t !== tag)

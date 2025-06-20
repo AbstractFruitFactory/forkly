@@ -41,11 +41,12 @@ export const recipe = pgTable('recipe', {
 	tags: jsonb('tags').$type<string[]>().default([]).notNull(),
 	imageUrl: text('image_url'),
 	servings: integer('servings').notNull().default(1),
-	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => {
-	return {
-		tagLengthCheck: sql`json_array_length(jsonb_path_query_array(${table.tags}, '$[*] ? (@.type() == "string" && length(@) < 10)')) = json_array_length(${table.tags})`.as('tags_length_check')
-	}
+        return {
+                tagLengthCheck: sql`json_array_length(jsonb_path_query_array(${table.tags}, '$[*] ? (@.type() == "string" && length(@) < 10)')) = json_array_length(${table.tags})`.as('tags_length_check'),
+                tagCountCheck: check('max_three_tags', sql`json_array_length(${table.tags}) <= 3`)
+        }
 })
 
 export const recipeNutrition = pgTable('recipe_nutrition', {
