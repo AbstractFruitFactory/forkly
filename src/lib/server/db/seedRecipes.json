@@ -211,7 +211,7 @@
     ],
     "imageUrl": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80",
     "userId": null,
-    "tags": ["vegan", "gluten-free", "healthy", "bowl"],
+    "tags": ["vegan", "gluten-free", "healthy"],
     "servings": 2,
     "ingredients": [
       { "displayName": "cooked quinoa", "quantity": 1, "measurement": "cup" },

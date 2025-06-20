@@ -1,5 +1,5 @@
 import { db } from '.'
-import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
+import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag } from './schema'
 import { eq, ilike, desc, sql, and, SQL, or } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 
@@ -157,7 +157,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         title: recipe.title,
         description: recipe.description,
         instructions: recipe.instructions,
-        tags: recipe.tags,
+        tags: sql<string[]>`coalesce(array_agg(distinct ${recipeTag.tagName}) filter (where ${recipeTag.tagName} is not null), '{}')`,
         imageUrl: recipe.imageUrl,
         createdAt: recipe.createdAt,
         servings: recipe.servings,
@@ -187,6 +187,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
       .leftJoin(recipeNutrition, eq(recipe.id, recipeNutrition.recipeId))
       .leftJoin(recipeIngredient, eq(recipe.id, recipeIngredient.recipeId))
       .leftJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
+      .leftJoin(recipeTag, eq(recipe.id, recipeTag.recipeId))
 
     // Complete the query with the where condition if needed
     const queryWithWhere = whereCondition
@@ -227,11 +228,12 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         id: recipe.id,
         title: recipe.title,
         imageUrl: recipe.imageUrl,
-        tags: recipe.tags,
+        tags: sql<string[]>`coalesce(array_agg(distinct ${recipeTag.tagName}) filter (where ${recipeTag.tagName} is not null), '{}')`,
         likes: sql<number>`count(${recipeLike.userId})::int`
       })
       .from(recipe)
       .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
+      .leftJoin(recipeTag, eq(recipe.id, recipeTag.recipeId))
 
     // Complete the query with the where condition if needed
     const queryWithWhere = whereCondition
