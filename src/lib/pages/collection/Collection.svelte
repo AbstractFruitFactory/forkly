@@ -4,6 +4,7 @@
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	import { fly } from 'svelte/transition'
+	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
 	import ArrowLeftIcon from 'lucide-svelte/icons/arrow-left'
 	import { safeFetch } from '$lib/utils/fetch'
 	import { invalidateAll } from '$app/navigation'
@@ -59,7 +60,7 @@
 	}
 </script>
 
-<div in:fly={{ x: -50, duration: 300, delay: 500 }} out:fly={{ x: -50, duration: 300 }}>
+<div in:fly={FLY_LEFT_IN} out:fly={FLY_LEFT_OUT}>
 	<a class="back-button" href="/profile?tab=Saved recipes">
 		<ArrowLeftIcon size={18} />
 		<span>Back to saved recipes</span>
@@ -77,7 +78,10 @@
 <Popup isOpen={moveOpen} onClose={() => (moveOpen = false)} title="Move Recipe" width="300px">
 	<div class="collections-list">
 		{#each collections.filter((c) => c !== name && c !== 'All Recipes') as collection}
-			<button class="collection-item" onclick={() => selectedRecipeId && handleMove(selectedRecipeId, collection)}>
+			<button
+				class="collection-item"
+				onclick={() => selectedRecipeId && handleMove(selectedRecipeId, collection)}
+			>
 				<div class="collection-item-name">{collection}</div>
 			</button>
 		{/each}

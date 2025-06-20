@@ -5,6 +5,7 @@
 	import Bookmark from 'lucide-svelte/icons/bookmark'
 	import ArrowLeft from 'lucide-svelte/icons/arrow-left'
 	import { fly } from 'svelte/transition'
+	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
 	import { goto } from '$app/navigation'
 
 	let {
@@ -37,11 +38,7 @@
 	}
 </script>
 
-<div
-	class="profile-view"
-	in:fly={{ x: -50, duration: 300, delay: 500 }}
-	out:fly={{ x: -50, duration: 300 }}
->
+<div class="profile-view" in:fly={FLY_LEFT_IN} out:fly={FLY_LEFT_OUT}>
 	<div class="profile-card card">
 		<div class="avatar-row">{@render avatar()}</div>
 		<div class="name-row">{@render name()}</div>
@@ -72,7 +69,11 @@
 		<div class="profile-detail-header">
 			<button class="back-btn" onclick={() => open()}><ArrowLeft size={20} /></button>
 			<span class="detail-title">
-				{view === 'Profile info' ? 'Profile' : view === 'Created recipes' ? 'Created recipes' : 'Saved recipes'}
+				{view === 'Profile info'
+					? 'Profile'
+					: view === 'Created recipes'
+						? 'Created recipes'
+						: 'Saved recipes'}
 			</span>
 		</div>
 
