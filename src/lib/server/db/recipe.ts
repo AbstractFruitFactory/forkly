@@ -219,7 +219,19 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     const limitedQuery = limit ? finalQuery.limit(limit) : finalQuery
 
     const results = await limitedQuery
-    return nullToUndefined(results)
+
+    const filteredResults = query.trim()
+      ? results.filter((recipe) => {
+          const searchTerms = query.toLowerCase().trim().split(/\s+/).filter(Boolean)
+          return searchTerms.every((term) =>
+            recipe.title.toLowerCase().includes(term) ||
+            recipe.tags.some((t) => t.toLowerCase().includes(term)) ||
+            recipe.ingredients.some((ing) => ing.name.toLowerCase().includes(term))
+          )
+        })
+      : results
+
+    return nullToUndefined(filteredResults)
   } else {
     // Basic query with limited fields
     const basicRecipeQuery = db
@@ -248,7 +260,18 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     const limitedQuery = limit ? finalQuery.limit(limit) : finalQuery
 
     const results = await limitedQuery
-    return nullToUndefined(results)
+
+    const filteredResults = query.trim()
+      ? results.filter((recipe) => {
+          const searchTerms = query.toLowerCase().trim().split(/\s+/).filter(Boolean)
+          return searchTerms.every((term) =>
+            recipe.title.toLowerCase().includes(term) ||
+            recipe.tags.some((t) => t.toLowerCase().includes(term))
+          )
+        })
+      : results
+
+    return nullToUndefined(filteredResults)
   }
 }
 
