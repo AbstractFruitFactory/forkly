@@ -30,6 +30,10 @@
 		isLoading: false
 	})
 
+	$effect(() => {
+		pagination = { ...pagination, hasMore: recipes.length === pagination.limit }
+	})
+
 	onMount(() => {
 		// Listen for search events from the layout
 		window.addEventListener('search', ((e: CustomEvent) => {
@@ -102,6 +106,18 @@
 		updateUrl({ sort: sortBy })
 	}
 
+	const buildSearchParams = () => {
+		const params = new URLSearchParams()
+		if (searchValue.trim()) params.set('q', searchValue)
+		if (activeFilters.tags.length > 0) params.set('tags', activeFilters.tags.join(','))
+		if (activeFilters.ingredients.length > 0)
+			params.set('ingredients', activeFilters.ingredients.join(','))
+		if (activeFilters.excludedIngredients.length > 0)
+			params.set('excludedIngredients', activeFilters.excludedIngredients.join(','))
+		params.set('sort', sortParam)
+		return params
+	}
+
 	const loadMore = async () => {
 		if (pagination.isLoading || !pagination.hasMore) return
 
@@ -109,15 +125,10 @@
 
 		const url = new URL('/api/recipes/search', window.location.origin)
 
-		// Preserve all current query parameters
-		const currentParams = new URLSearchParams(page.url.search)
-		currentParams.forEach((value, key) => {
-			url.searchParams.set(key, value)
-		})
-
-		// Update pagination parameters
-		url.searchParams.set('limit', pagination.limit.toString())
-		url.searchParams.set('page', (pagination.page + 1).toString())
+		const params = buildSearchParams()
+		params.set('limit', pagination.limit.toString())
+		params.set('page', (pagination.page + 1).toString())
+		url.search = params.toString()
 
 		const response = await safeFetch<RecipesSearchResponse>()(url.toString())
 		let newData: RecipesSearchResponse
