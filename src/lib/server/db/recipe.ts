@@ -187,6 +187,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
       .leftJoin(recipeNutrition, eq(recipe.id, recipeNutrition.recipeId))
       .leftJoin(recipeIngredient, eq(recipe.id, recipeIngredient.recipeId))
       .leftJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
+      .leftJoin(recipeTag, eq(recipe.id, recipeTag.recipeId))
 
     // Complete the query with the where condition if needed
     const queryWithWhere = whereCondition
@@ -232,6 +233,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
       })
       .from(recipe)
       .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
+      .leftJoin(recipeTag, eq(recipe.id, recipeTag.recipeId))
 
     // Complete the query with the where condition if needed
     const queryWithWhere = whereCondition
