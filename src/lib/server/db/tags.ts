@@ -1,6 +1,6 @@
 import { db } from '.'
-import { recipe } from './schema'
-import { sql } from 'drizzle-orm'
+import { recipeTag, tag } from './schema'
+import { sql, ilike, desc, eq } from 'drizzle-orm'
 
 /**
  * Search for tags that match a query string
@@ -9,27 +9,19 @@ import { sql } from 'drizzle-orm'
  * @returns An array of tags with their usage counts
  */
 export async function searchTags(query: string, limit: number = 10) {
-  // We need to unnest the tags array from each recipe, then count occurrences
-  // and filter by the search query
-  const results = await db.execute<{ name: string, count: number }>(sql`
-    WITH tag_counts AS (
-      SELECT 
-        tag AS name,
-        COUNT(*) AS count
-      FROM recipe, 
-        jsonb_array_elements_text(tags) AS tag
-      WHERE tag ILIKE ${`%${query}%`}
-      GROUP BY tag
-      ORDER BY count DESC, tag ASC
-      LIMIT ${limit}
-    )
-    SELECT * FROM tag_counts
-  `)
-  
-  return results.map(row => ({
-    name: row.name,
-    count: Number(row.count)
-  }))
+  const results = await db
+    .select({
+      name: tag.name,
+      count: sql<number>`count(${recipeTag.recipeId})::int`
+    })
+    .from(tag)
+    .leftJoin(recipeTag, eq(tag.id, recipeTag.tagId))
+    .where(ilike(tag.name, `%${query}%`))
+    .groupBy(tag.id)
+    .orderBy(desc(sql`count(${recipeTag.recipeId})`), tag.name)
+    .limit(limit)
+
+  return results.map(row => ({ name: row.name, count: Number(row.count) }))
 }
 
 /**
@@ -38,23 +30,16 @@ export async function searchTags(query: string, limit: number = 10) {
  * @returns An array of the most used tags with their usage counts
  */
 export async function getPopularTags(limit: number = 10) {
-  // Get the most frequently used tags
-  const results = await db.execute<{ name: string, count: number }>(sql`
-    WITH tag_counts AS (
-      SELECT 
-        tag AS name,
-        COUNT(*) AS count
-      FROM recipe, 
-        jsonb_array_elements_text(tags) AS tag
-      GROUP BY tag
-      ORDER BY count DESC, tag ASC
-      LIMIT ${limit}
-    )
-    SELECT * FROM tag_counts
-  `)
-  
-  return results.map(row => ({
-    name: row.name,
-    count: Number(row.count)
-  }))
-} 
+  const results = await db
+    .select({
+      name: tag.name,
+      count: sql<number>`count(${recipeTag.recipeId})::int`
+    })
+    .from(tag)
+    .leftJoin(recipeTag, eq(tag.id, recipeTag.tagId))
+    .groupBy(tag.id)
+    .orderBy(desc(sql`count(${recipeTag.recipeId})`), tag.name)
+    .limit(limit)
+
+  return results.map(row => ({ name: row.name, count: Number(row.count) }))
+}

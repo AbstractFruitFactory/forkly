@@ -139,6 +139,30 @@ export const recipeComment = pgTable('recipe_comment', {
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
+export const tag = pgTable('tag', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => {
+  return {
+    nameLength: check('tag_name_length', sql`length(${table.name}) < 15`)
+  }
+})
+
+export const recipeTag = pgTable('recipe_tag', {
+  recipeId: text('recipe_id')
+    .notNull()
+    .references(() => recipe.id, { onDelete: 'cascade' }),
+  tagId: text('tag_id')
+    .notNull()
+    .references(() => tag.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.recipeId, table.tagId] })
+  }
+})
+
 export const emailVerification = pgTable('email_verification', {
 	userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
 	token: text('token').notNull().unique(),
@@ -160,3 +184,7 @@ export type RecipeNutrition = typeof recipeNutrition.$inferSelect
 export type RecipeComment = typeof recipeComment.$inferSelect
 
 export type Collection = typeof collection.$inferSelect
+
+export type Tag = typeof tag.$inferSelect
+
+export type RecipeTag = typeof recipeTag.$inferSelect

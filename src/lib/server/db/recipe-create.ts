@@ -1,5 +1,5 @@
 import { db } from '.'
-import { recipe, ingredient, recipeIngredient, recipeNutrition } from './schema'
+import { recipe, ingredient, recipeIngredient, recipeNutrition, tag, recipeTag } from './schema'
 import { eq } from 'drizzle-orm'
 import { generateId } from '$lib/server/id'
 
@@ -47,6 +47,28 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
     tags: input.tags || [],
     imageUrl: input.imageUrl
   }).returning()
+
+  // Insert tags into tag and recipeTag tables
+  for (const tagName of input.tags || []) {
+    let tagId: string
+    const existingTag = await db
+      .select({ id: tag.id })
+      .from(tag)
+      .where(eq(tag.name, tagName))
+      .limit(1)
+
+    if (existingTag.length) {
+      tagId = existingTag[0].id
+    } else {
+      const insertedTag = await db
+        .insert(tag)
+        .values({ id: generateId(), name: tagName })
+        .returning({ id: tag.id })
+      tagId = insertedTag[0].id
+    }
+
+    await db.insert(recipeTag).values({ recipeId, tagId })
+  }
 
   await db.insert(recipeNutrition).values({
     recipeId: recipeId,
