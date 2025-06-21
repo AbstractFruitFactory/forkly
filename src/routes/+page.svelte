@@ -5,14 +5,18 @@
 	import { safeFetch } from '$lib/utils/fetch'
 	import type { IngredientLookupResult } from './api/ingredients/lookup/[query]/+server'
 	import type { TagSearchResponse } from './api/tags/+server'
-	import type { RecipesSearchResponse } from './api/recipes/search/+server'
 	import { scrolledDownHomepageStore } from './+layout.svelte'
-	import { onMount } from 'svelte'
+	import { onMount, untrack } from 'svelte'
 	import { useCookies } from '$lib/utils/cookies'
 
 	let { data } = $props()
 
-	let recipes = $derived(data.recipes)
+	let recipes = $state(data.recipes)
+
+	$effect(() => {
+		recipes = data.loadedPage ? [...untrack(() => recipes), ...data.recipes] : data.recipes
+	})
+
 	let searchValue = $derived(data.initialState.search)
 	let isLoading = $state(false)
 	let activeFilters = $derived({
@@ -25,8 +29,6 @@
 	// Pagination state
 	let pagination = $state({
 		page: 0,
-		limit: 18,
-		hasMore: true,
 		isLoading: false
 	})
 
@@ -59,6 +61,12 @@
 		query: string,
 		filters?: { tags: string[]; ingredients: string[]; excludedIngredients: string[] }
 	) => {
+		// Reset pagination when performing a new search
+		pagination = {
+			page: 0,
+			isLoading: false
+		}
+
 		useCookies('search').set({
 			query,
 			tags: filters?.tags || [],
@@ -103,46 +111,26 @@
 	}
 
 	const loadMore = async () => {
-		if (pagination.isLoading || !pagination.hasMore) return
+		if (pagination.isLoading || !data.hasMore) return
 
 		pagination.isLoading = true
 
-		const url = new URL('/api/recipes/search', window.location.origin)
-
-		// Preserve all current query parameters
-		const currentParams = new URLSearchParams(page.url.search)
-		currentParams.forEach((value, key) => {
-			url.searchParams.set(key, value)
+		useCookies('pagination').set({
+			page: pagination.page + 1
 		})
 
-		// Update pagination parameters
-		url.searchParams.set('limit', pagination.limit.toString())
-		url.searchParams.set('page', (pagination.page + 1).toString())
-
-		const response = await safeFetch<RecipesSearchResponse>()(url.toString())
-		let newData: RecipesSearchResponse
-
-		if (response.isOk()) {
-			newData = response.value
-		} else {
-			pagination.isLoading = false
-			console.error('Failed to load more recipes:', response.error)
-			return
-		}
-
-		recipes = [...recipes, ...newData.results]
-
 		pagination = {
-			...pagination,
-			hasMore: newData.results.length === pagination.limit,
 			page: pagination.page + 1,
 			isLoading: false
 		}
+
+		invalidateAll()
 	}
 
 	const onSearchbarSticky = (isSticky: boolean) => {
 		isSticky ? scrolledDownHomepageStore.setTrue() : scrolledDownHomepageStore.setFalse()
 	}
+	$inspect(recipes.length)
 </script>
 
 <Home

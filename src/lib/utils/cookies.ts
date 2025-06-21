@@ -11,8 +11,13 @@ export type SearchCookie = {
   sort: 'popular' | 'newest' | 'easiest'
 }
 
+export type PaginationCookie = {
+  page: number
+}
+
 export const useCookies = <
-  T extends CookieEntry<'search', SearchCookie>,
+  T extends CookieEntry<'search', SearchCookie>
+  | CookieEntry<'pagination', PaginationCookie>,
   V extends T['key']
 >(
   item: V

@@ -247,7 +247,6 @@
 			placeholder="Search recipes..."
 			bind:value={searchValue}
 			onInput={(query) => {
-				searchValue = query
 				if (!isMobile) {
 					window.dispatchEvent(new CustomEvent('search', { detail: { query } }))
 					scrollToFiltersSentinel()

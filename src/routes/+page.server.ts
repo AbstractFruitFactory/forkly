@@ -2,10 +2,15 @@ import { safeFetch } from '$lib/utils/fetch'
 import { error } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import type { RecipesSearchResponse } from './api/recipes/search/+server'
-import type { SearchCookie } from '$lib/utils/cookies'
+import type { PaginationCookie, SearchCookie } from '$lib/utils/cookies'
+
+const PAGINATION_LIMIT = 18
 
 export const load: PageServerLoad = async ({ url, fetch, cookies }) => {
 	const search = JSON.parse(cookies.get('search') as string | undefined ?? '{}') as SearchCookie | undefined
+	const { page } = JSON.parse(cookies.get('pagination') as string | undefined ?? '{}') as PaginationCookie
+
+	cookies.delete('pagination', { path: '/' })
 
 	const searchParams = new URLSearchParams()
 	if (search?.query) searchParams.set('q', search.query)
@@ -14,7 +19,9 @@ export const load: PageServerLoad = async ({ url, fetch, cookies }) => {
 	if (search?.excludedIngredients?.length && search.excludedIngredients.length > 0) searchParams.set('excludedIngredients', search.excludedIngredients.join(','))
 	if (search?.sort) searchParams.set('sort', search.sort)
 
-	const recipes = (await safeFetch<RecipesSearchResponse>(fetch)('/api/recipes/search?' + searchParams.toString()))
+	const recipes = (await safeFetch<RecipesSearchResponse>(fetch)(
+		'/api/recipes/search?' + searchParams.toString() + '&page=' + page
+	))
 
 	if (recipes.isErr()) {
 		console.log(recipes.error)
@@ -22,6 +29,8 @@ export const load: PageServerLoad = async ({ url, fetch, cookies }) => {
 	}
 
 	return {
+		hasMore: recipes.value.results.length === PAGINATION_LIMIT,
+		loadedPage: page !== undefined,
 		recipes: recipes.value.results,
 		initialState: {
 			search: search?.query || '',
