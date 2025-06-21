@@ -49,6 +49,7 @@
 </BaseFilterSelect>
 
 <style lang="scss">
+       @import '$lib/global.scss';
 	.arrow {
 		display: flex;
 		align-items: center;
@@ -60,13 +61,19 @@
 		}
 	}
 
-	.item {
-		padding: var(--spacing-xs) var(--spacing-sm);
+        .item {
+                padding: var(--spacing-xs) var(--spacing-sm);
 
-		&:hover {
-			background-color: var(--color-neutral);
-		}
-	}
+                &:hover {
+                        background-color: var(--color-neutral);
+                }
+
+                @include tablet {
+                        border: 1px solid var(--color-neutral);
+                        border-radius: var(--border-radius-xl);
+                        margin: var(--spacing-md) var(--spacing-sm);
+                }
+        }
 
 	.helper-text {
 		padding: var(--spacing-sm);
