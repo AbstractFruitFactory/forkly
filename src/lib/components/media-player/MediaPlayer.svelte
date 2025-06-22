@@ -8,22 +8,27 @@
 	} = $props()
 
 	// Video player state
-	let videoElement: HTMLVideoElement
-	let currentInstructionIndex = $state(0)
-	let slideshow: ReturnType<typeof setInterval> | null = null
-	let videoLoaded = $state(false)
-	let videoError = $state(false)
+        let videoElement: HTMLVideoElement
+        let currentInstructionIndex = $state(0)
+        let slideshow: ReturnType<typeof setInterval> | null = null
+        let videoLoaded = $state(false)
+        let videoError = $state(false)
+        let preloadedVideos: Array<HTMLVideoElement | null> = []
+        let preloadedReady: boolean[] = []
 
-	function handleVideoEnded() {
-		// Move to the next instruction media
-		currentInstructionIndex = (currentInstructionIndex + 1) % instructionMedia.length
-		videoLoaded = false
-		videoError = false
+        function handleVideoEnded() {
+                // Move to the next instruction media
+                currentInstructionIndex = (currentInstructionIndex + 1) % instructionMedia.length
+                videoError = false
+                videoLoaded =
+                        instructionMedia[currentInstructionIndex].type === 'video'
+                                ? !!preloadedReady[currentInstructionIndex]
+                                : true
 
-		// If it's an image, set a timeout to move to the next one
-		if (instructionMedia[currentInstructionIndex].type === 'image') {
-			setTimeout(() => {
-				handleVideoEnded()
+                // If it's an image, set a timeout to move to the next one
+                if (instructionMedia[currentInstructionIndex].type === 'image') {
+                        setTimeout(() => {
+                                handleVideoEnded()
 			}, instructionMedia[currentInstructionIndex].duration)
 		}
 	}
@@ -38,17 +43,36 @@
 		}
 	}
 
-	function handleVideoLoaded() {
-		videoLoaded = true
-		videoError = false
-	}
+        function handleVideoLoaded() {
+                videoLoaded = true
+                videoError = false
+                if (instructionMedia[currentInstructionIndex].type === 'video') {
+                        preloadedReady[currentInstructionIndex] = true
+                }
+        }
 
-	onMount(() => {
-		// Start the slideshow if the first item is an image
-		if (instructionMedia[0].type === 'image') {
-			setTimeout(() => {
-				handleVideoEnded()
-			}, instructionMedia[0].duration)
+        onMount(() => {
+                instructionMedia.forEach((media, index) => {
+                        if (media.type === 'video') {
+                                const vid = document.createElement('video')
+                                vid.src = media.url
+                                vid.preload = 'auto'
+                                preloadedVideos[index] = vid
+                                preloadedReady[index] = vid.readyState >= 2
+                                vid.addEventListener('loadeddata', () => {
+                                        preloadedReady[index] = true
+                                })
+                        } else {
+                                preloadedVideos[index] = null
+                                preloadedReady[index] = true
+                        }
+                })
+
+                // Start the slideshow if the first item is an image
+                if (instructionMedia[0].type === 'image') {
+                        setTimeout(() => {
+                                handleVideoEnded()
+                        }, instructionMedia[0].duration)
 		}
 
 		return () => {
