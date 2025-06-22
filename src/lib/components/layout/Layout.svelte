@@ -187,7 +187,6 @@
 
 	.main-layout {
 		position: relative;
-		z-index: var(--z-dropdown);
 		margin: 0 var(--spacing-2xl);
 		margin-top: var(--spacing-lg);
 		border-radius: var(--border-radius-3xl);

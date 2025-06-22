@@ -1,7 +1,7 @@
 <script lang="ts">
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
-	import { onMount, type ComponentProps, type Snippet } from 'svelte'
+	import { onMount, type ComponentProps } from 'svelte'
 	import { setSlots } from '../../../routes/+layout.svelte'
 	import { writable } from 'svelte/store'
 	import IngredientFilter from '$lib/components/ingredient-filter/IngredientFilter.svelte'
@@ -9,7 +9,6 @@
 	import OptionFilterSelect from '$lib/components/filter-select/OptionFilterSelect.svelte'
 	import Search from '$lib/components/search/Search.svelte'
 	import { tick } from 'svelte'
-	import gsap from 'gsap'
 	import { scrollStore } from '$lib/state/scroll.svelte'
 
 	let {

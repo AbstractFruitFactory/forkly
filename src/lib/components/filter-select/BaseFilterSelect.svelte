@@ -101,17 +101,6 @@
 		{/if}
 	</Button>
 
-	<div class="mobile-only">
-		<Drawer bind:isOpen={drawerIsOpen} {title}>
-			<div class="drawer-flex-col">
-				<div class="drawer-scroll-content">
-					{@render content(handleSelect)}
-				</div>
-				<Button fullWidth onclick={() => (drawerIsOpen = false)}>Show Results</Button>
-			</div>
-		</Drawer>
-	</div>
-
 	<div class="desktop-only">
 		<Dropdown bind:isOpen={dropdownIsOpen}>
 			<div class="items-container" role="listbox" onkeydown={handleKeyDown}>
@@ -119,6 +108,17 @@
 			</div>
 		</Dropdown>
 	</div>
+</div>
+
+<div class="mobile-only">
+	<Drawer bind:isOpen={drawerIsOpen} {title}>
+		<div class="drawer-flex-col">
+			<div class="drawer-scroll-content">
+				{@render content(handleSelect)}
+			</div>
+			<Button color="primary" fullWidth onclick={() => (drawerIsOpen = false)}>Show Results</Button>
+		</div>
+	</Drawer>
 </div>
 
 <style lang="scss">
