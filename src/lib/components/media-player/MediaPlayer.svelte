@@ -8,89 +8,139 @@
 	} = $props()
 
 	// Video player state
-	let videoElement: HTMLVideoElement
 	let currentInstructionIndex = $state(0)
-	let slideshow: ReturnType<typeof setInterval> | null = null
-	let videoLoaded = $state(false)
 	let videoError = $state(false)
+	let videoElements: Array<HTMLVideoElement | null> = []
+	let preloadedReady: boolean[] = []
 
 	function handleVideoEnded() {
-		// Move to the next instruction media
-		currentInstructionIndex = (currentInstructionIndex + 1) % instructionMedia.length
-		videoLoaded = false
-		videoError = false
+		const nextIndex = (currentInstructionIndex + 1) % instructionMedia.length
+		const nextMedia = instructionMedia[nextIndex]
 
-		// If it's an image, set a timeout to move to the next one
-		if (instructionMedia[currentInstructionIndex].type === 'image') {
-			setTimeout(() => {
-				handleVideoEnded()
-			}, instructionMedia[currentInstructionIndex].duration)
+		const showNext = () => {
+			const previousIndex = currentInstructionIndex
+			currentInstructionIndex = nextIndex
+			videoError = false
+
+			if (instructionMedia[previousIndex].type === 'video') {
+				const prevVid = videoElements[previousIndex]
+				prevVid?.pause()
+				prevVid && (prevVid.currentTime = 0)
+			}
+
+			if (instructionMedia[currentInstructionIndex].type === 'video') {
+				const nextVid = videoElements[currentInstructionIndex]
+				nextVid?.play()
+			} else {
+				setTimeout(() => {
+					handleVideoEnded()
+				}, instructionMedia[currentInstructionIndex].duration)
+			}
+		}
+
+		if (nextMedia.type === 'video' && !preloadedReady[nextIndex]) {
+			const vid = videoElements[nextIndex]
+			if (vid) {
+				const onReady = () => {
+					vid.removeEventListener('loadeddata', onReady)
+					preloadedReady[nextIndex] = true
+					showNext()
+				}
+				vid.addEventListener('loadeddata', onReady)
+				vid.load()
+			}
+		} else {
+			showNext()
 		}
 	}
 
 	function handleVideoError() {
 		videoError = true
-		// Try to reload the video
-		if (videoElement) {
+		const currentVid = videoElements[currentInstructionIndex]
+		if (currentVid) {
 			setTimeout(() => {
-				videoElement.load()
+				currentVid.load()
+				currentVid.play().catch(() => {})
 			}, 1000)
 		}
 	}
 
-	function handleVideoLoaded() {
-		videoLoaded = true
+	function handleVideoLoaded(index: number) {
 		videoError = false
+		if (instructionMedia[index].type === 'video') {
+			preloadedReady[index] = true
+		}
 	}
 
 	onMount(() => {
-		// Start the slideshow if the first item is an image
+		instructionMedia.forEach((media, index) => {
+			if (media.type === 'video') {
+				const vid = videoElements[index]
+				if (vid) {
+					vid.preload = 'auto'
+					vid.load()
+					preloadedReady[index] = vid.readyState >= 2
+				}
+			} else {
+				preloadedReady[index] = true
+			}
+		})
+
 		if (instructionMedia[0].type === 'image') {
 			setTimeout(() => {
 				handleVideoEnded()
 			}, instructionMedia[0].duration)
+		} else {
+			const first = videoElements[0]
+			if (first) {
+				if (preloadedReady[0]) {
+					first.play()
+				} else {
+					const onReady = () => {
+						first.removeEventListener('loadeddata', onReady)
+						preloadedReady[0] = true
+						first.play()
+					}
+					first.addEventListener('loadeddata', onReady)
+				}
+			}
 		}
 
 		return () => {
 			// Clean up any timers when component is destroyed
-			if (slideshow) clearTimeout(slideshow);
-		};
+		}
 	})
 </script>
 
 <div class="media-player">
-	{#if instructionMedia[currentInstructionIndex].type === 'video'}
-		<video
-			bind:this={videoElement}
-			src={instructionMedia[currentInstructionIndex].url}
-			autoplay={true}
-			preload="auto"
-			muted={true}
-			loop={false}
-			playsinline
-			data-webkit-playsinline="true"
-			onended={handleVideoEnded}
-			onerror={handleVideoError}
-			onloadeddata={handleVideoLoaded}
-			onclick={(e) => e.preventDefault()}
-			class="media-content"
-		></video>
-		{#if videoError}
-			<div class="video-error">
-				<p>Video loading error. Retrying...</p>
-			</div>
+	{#each instructionMedia as media, index}
+		{#if media.type === 'video'}
+			<video
+				bind:this={videoElements[index]}
+				src={media.url}
+				playsinline
+				muted={true}
+				preload="auto"
+				loop={false}
+				onended={index === currentInstructionIndex ? handleVideoEnded : undefined}
+				onerror={index === currentInstructionIndex ? handleVideoError : undefined}
+				onloadeddata={() => handleVideoLoaded(index)}
+				style="display: {index === currentInstructionIndex ? 'block' : 'none'}"
+				class="media-content"
+			></video>
+		{:else}
+			<img
+				src={media.url}
+				alt="Cooking instruction"
+				style="display: {index === currentInstructionIndex ? 'block' : 'none'}"
+				class="media-content"
+			/>
 		{/if}
-		{#if !videoLoaded && !videoError}
-			<div class="video-loading">
-				<div class="spinner"></div>
-			</div>
-		{/if}
-	{:else if instructionMedia[currentInstructionIndex].type === 'image'}
-		<img
-			src={instructionMedia[currentInstructionIndex].url}
-			alt="Cooking instruction"
-			class="media-content"
-		/>
+	{/each}
+	{#if videoError}
+		<div class="video-error">
+			<p>Video loading error. Retrying...</p>
+		</div>
 	{/if}
 </div>
 
@@ -107,13 +157,15 @@
 	}
 
 	.media-content {
+		position: absolute;
+		top: 0;
+		left: 0;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 	}
 
-	.video-error, 
-	.video-loading {
+	.video-error {
 		position: absolute;
 		top: 0;
 		left: 0;
@@ -127,19 +179,5 @@
 		color: white;
 		text-align: center;
 		padding: 1rem;
-	}
-
-	.spinner {
-		width: 40px;
-		height: 40px;
-		border: 4px solid rgba(255, 255, 255, 0.3);
-		border-radius: 50%;
-		border-top-color: white;
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		0% { transform: rotate(0deg); }
-		100% { transform: rotate(360deg); }
 	}
 </style>
