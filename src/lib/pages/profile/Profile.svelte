@@ -27,10 +27,33 @@
 	const tabOptions = ['Profile info', 'Created recipes', 'Saved recipes']
 	let selectedTab = $state(initialTab)
 
-	function handleTabSelect(option: (typeof tabOptions)[number]) {
-		selectedTab = option
-		goto(`/profile?tab=${option}`, { replaceState: true })
-	}
+        function handleTabSelect(option: (typeof tabOptions)[number]) {
+                selectedTab = option
+                goto(`/profile?tab=${option}`, { replaceState: true })
+        }
+
+        let avatarInput: HTMLInputElement
+
+        async function handleAvatarChange(event: Event) {
+                const input = event.target as HTMLInputElement
+                const file = input.files?.[0]
+                if (!file) return
+
+                const formData = new FormData()
+                formData.append('avatar', file)
+
+                const res = await fetch('/api/avatar', {
+                        method: 'POST',
+                        body: formData
+                })
+
+                if (res.ok) {
+                        const data = await res.json()
+                        user.avatarUrl = data.avatarUrl
+                } else {
+                        console.error('Avatar upload failed')
+                }
+        }
 </script>
 
 {#snippet avatar()}
@@ -45,7 +68,14 @@
 				{user.username[0].toUpperCase()}
 			{/if}
 		</div>
-		<div class="avatar-edit-icon">
+                <input
+                        type="file"
+                        accept="image/*"
+                        class="hidden-input"
+                        bind:this={avatarInput}
+                        on:change={handleAvatarChange}
+                />
+                <div class="avatar-edit-icon" onclick={() => avatarInput.click()}>
 			<svg
 				width="24"
 				height="24"
@@ -186,19 +216,23 @@
 		border: 3px solid var(--color-background);
 	}
 
-	.avatar-edit-icon {
-		position: absolute;
-		bottom: 8px;
-		right: 8px;
-		background: var(--color-neutral-dark);
-		border-radius: 50%;
-		padding: 0.3rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border: 2px solid var(--color-background);
-		cursor: pointer;
-	}
+        .avatar-edit-icon {
+                position: absolute;
+                bottom: 8px;
+                right: 8px;
+                background: var(--color-neutral-dark);
+                border-radius: 50%;
+                padding: 0.3rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 2px solid var(--color-background);
+                cursor: pointer;
+        }
+
+        .hidden-input {
+                display: none;
+        }
 
 	.profile-title-block {
 		display: flex;

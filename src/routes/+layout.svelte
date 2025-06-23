@@ -92,7 +92,13 @@
 	{homepageHeaderTransition}
 >
 	{#snippet header()}
-		<Header loggedIn={!!data.user} newRecipeHref="/new" profileHref="/profile" loginHref="/login" />
+                <Header
+                        loggedIn={!!data.user}
+                        newRecipeHref="/new"
+                        profileHref="/profile"
+                        loginHref="/login"
+                        profilePicUrl={data.user?.avatarUrl}
+                />
 	{/snippet}
 
 	{#snippet homepageHeader()}
