@@ -95,7 +95,7 @@
 	.page-padding {
 		padding: 0 var(--spacing-2xl);
 
-		@include mobile {
+		@include tablet {
 			padding: 0 var(--spacing-md);
 		}
 	}

@@ -65,7 +65,9 @@
 		</li>
 	{/each}
 
-	<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
+	<div style:margin-top="var(--spacing-sm)">
+		<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
+	</div>
 </ul>
 
 <style lang="scss">

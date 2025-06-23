@@ -385,7 +385,7 @@
 		font-family: var(--font-serif);
 		font-size: var(--font-size-3xl);
 		font-weight: var(--font-weight-semibold);
-		margin-bottom: var(--spacing-md);
+		margin-bottom: 0;
 	}
 
 	.ingredients-header,

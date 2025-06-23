@@ -39,17 +39,11 @@
 		{@render image()}
 	</div>
 
-	<div class="tags">
-		{@render tags()}
-	</div>
-
-	<div class="bottom-container">
-		<div class="nav-buttons">
-			{@render navButtons()}
+	<div class="header">
+		<div class="tags">
+			{@render tags()}
 		</div>
-	</div>
 
-	<div class="recipe-content">
 		<div class="title">
 			{@render title()}
 		</div>
@@ -57,15 +51,17 @@
 		<div class="action-buttons">
 			{@render actionButtons()}
 		</div>
+	</div>
 
+	<div class="content">
 		{@render description()}
 		{@render nutrition()}
 		{@render ingredients()}
 		{@render instructions()}
 
 		<div style:margin-bottom="var(--spacing-2xl)">
-      {@render comments()}
-    </div>
+			{@render comments()}
+		</div>
 	</div>
 </div>
 
@@ -73,16 +69,14 @@
 	@import '$lib/global.scss';
 
 	.recipe {
-		@include tablet {
-			display: block;
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100dvh;
-			overflow-y: auto;
-			background: var(--color-neutral-dark);
-		}
+		position: relative;
+	}
+
+	.header {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+		margin: var(--spacing-lg) 0;
 	}
 
 	.back-button {
@@ -119,22 +113,12 @@
 	}
 
 	.recipe-image {
-		position: relative;
-		width: 100%;
-		height: auto;
 		max-height: 80dvh;
-		background: transparent;
-		z-index: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
 
 		:global(img) {
 			width: 100%;
-			height: 100%;
 			object-fit: cover;
-			border-bottom-left-radius: var(--border-radius-xl);
-			border-bottom-right-radius: var(--border-radius-xl);
+			border-radius: var(--border-radius-xl);
 		}
 	}
 
@@ -148,7 +132,6 @@
 		flex-wrap: wrap;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-md) var(--spacing-lg);
-		padding-bottom: 0;
 	}
 
 	.action-buttons {
@@ -157,29 +140,9 @@
 		gap: var(--spacing-xl);
 	}
 
-	.bottom-container {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		background: rgba(53, 47, 52, 0.8);
-		z-index: var(--z-sticky);
-		border-top: 1px solid rgba(255, 255, 255, 0.08);
-		padding-bottom: env(safe-area-inset-bottom);
-		margin: var(--spacing-sm);
-		border-radius: var(--border-radius-lg);
-	}
-
-	.nav-buttons {
-		display: flex;
-		justify-content: space-around;
-		padding: var(--spacing-sm) var(--spacing-md);
-	}
-
-	.recipe-content {
-		padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-lg);
+	.content {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-xl);
+		gap: var(--spacing-lg);
 	}
 </style>
