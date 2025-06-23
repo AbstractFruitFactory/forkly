@@ -8,10 +8,9 @@
 	} = $props()
 
 	// Video player state
-        let videoElement: HTMLVideoElement
-        let currentInstructionIndex = $state(0)
+       let currentInstructionIndex = $state(0)
        let videoError = $state(false)
-       let preloadedVideos: Array<HTMLVideoElement | null> = []
+       let videoElements: Array<HTMLVideoElement | null> = []
        let preloadedReady: boolean[] = []
 
        function handleVideoEnded() {
@@ -19,10 +18,20 @@
                const nextMedia = instructionMedia[nextIndex]
 
                const showNext = () => {
+                       const previousIndex = currentInstructionIndex
                        currentInstructionIndex = nextIndex
                        videoError = false
 
-                       if (instructionMedia[currentInstructionIndex].type === 'image') {
+                       if (instructionMedia[previousIndex].type === 'video') {
+                               const prevVid = videoElements[previousIndex]
+                               prevVid?.pause()
+                               prevVid && (prevVid.currentTime = 0)
+                       }
+
+                       if (instructionMedia[currentInstructionIndex].type === 'video') {
+                               const nextVid = videoElements[currentInstructionIndex]
+                               nextVid?.play()
+                       } else {
                                setTimeout(() => {
                                        handleVideoEnded()
                                }, instructionMedia[currentInstructionIndex].duration)
@@ -30,7 +39,7 @@
                }
 
                if (nextMedia.type === 'video' && !preloadedReady[nextIndex]) {
-                       const vid = preloadedVideos[nextIndex]
+                       const vid = videoElements[nextIndex]
                        if (vid) {
                                const onReady = () => {
                                        vid.removeEventListener('loadeddata', onReady)
@@ -38,53 +47,64 @@
                                        showNext()
                                }
                                vid.addEventListener('loadeddata', onReady)
+                               vid.load()
                        }
                } else {
                        showNext()
                }
        }
 
-	function handleVideoError() {
-		videoError = true
-		// Try to reload the video
-		if (videoElement) {
-			setTimeout(() => {
-				videoElement.load()
-			}, 1000)
-		}
-	}
+       function handleVideoError() {
+               videoError = true
+               const currentVid = videoElements[currentInstructionIndex]
+               if (currentVid) {
+                       setTimeout(() => {
+                               currentVid.load()
+                               currentVid.play().catch(() => {})
+                       }, 1000)
+               }
+       }
 
-       function handleVideoLoaded() {
+       function handleVideoLoaded(index: number) {
                videoError = false
-               if (instructionMedia[currentInstructionIndex].type === 'video') {
-                       preloadedReady[currentInstructionIndex] = true
+               if (instructionMedia[index].type === 'video') {
+                       preloadedReady[index] = true
                }
        }
 
        onMount(() => {
                instructionMedia.forEach((media, index) => {
                        if (media.type === 'video') {
-                               const vid = document.createElement('video')
-                               vid.src = media.url
-                               vid.preload = 'auto'
-                               vid.load()
-                               preloadedVideos[index] = vid
-                               preloadedReady[index] = vid.readyState >= 2
-                               vid.addEventListener('loadeddata', () => {
-                                       preloadedReady[index] = true
-                               })
+                               const vid = videoElements[index]
+                               if (vid) {
+                                       vid.preload = 'auto'
+                                       vid.load()
+                                       preloadedReady[index] = vid.readyState >= 2
+                               }
                        } else {
-                               preloadedVideos[index] = null
                                preloadedReady[index] = true
                        }
                })
 
-                // Start the slideshow if the first item is an image
-                if (instructionMedia[0].type === 'image') {
-                        setTimeout(() => {
-                                handleVideoEnded()
-                        }, instructionMedia[0].duration)
-		}
+               if (instructionMedia[0].type === 'image') {
+                       setTimeout(() => {
+                               handleVideoEnded()
+                       }, instructionMedia[0].duration)
+               } else {
+                       const first = videoElements[0]
+                       if (first) {
+                               if (preloadedReady[0]) {
+                                       first.play()
+                               } else {
+                                       const onReady = () => {
+                                               first.removeEventListener('loadeddata', onReady)
+                                               preloadedReady[0] = true
+                                               first.play()
+                                       }
+                                       first.addEventListener('loadeddata', onReady)
+                               }
+                       }
+               }
 
                return () => {
                        // Clean up any timers when component is destroyed
@@ -93,34 +113,35 @@
 </script>
 
 <div class="media-player">
-	{#if instructionMedia[currentInstructionIndex].type === 'video'}
-		<video
-			bind:this={videoElement}
-			src={instructionMedia[currentInstructionIndex].url}
-			autoplay={true}
-			preload="auto"
-			muted={true}
-			loop={false}
-			playsinline
-			data-webkit-playsinline="true"
-			onended={handleVideoEnded}
-			onerror={handleVideoError}
-			onloadeddata={handleVideoLoaded}
-			onclick={(e) => e.preventDefault()}
-			class="media-content"
-		></video>
-               {#if videoError}
-                       <div class="video-error">
-                               <p>Video loading error. Retrying...</p>
-                       </div>
-               {/if}
-       {:else if instructionMedia[currentInstructionIndex].type === 'image'}
-		<img
-			src={instructionMedia[currentInstructionIndex].url}
-			alt="Cooking instruction"
-			class="media-content"
-		/>
-	{/if}
+        {#each instructionMedia as media, index}
+                {#if media.type === 'video'}
+                        <video
+                                bind:this={videoElements[index]}
+                                src={media.url}
+                                playsinline
+                                muted={true}
+                                preload="auto"
+                                loop={false}
+                                onended={index === currentInstructionIndex ? handleVideoEnded : undefined}
+                                onerror={index === currentInstructionIndex ? handleVideoError : undefined}
+                                onloadeddata={() => handleVideoLoaded(index)}
+                                style="display: {index === currentInstructionIndex ? 'block' : 'none'}"
+                                class="media-content"
+                        ></video>
+                {:else}
+                        <img
+                                src={media.url}
+                                alt="Cooking instruction"
+                                style="display: {index === currentInstructionIndex ? 'block' : 'none'}"
+                                class="media-content"
+                        />
+                {/if}
+        {/each}
+        {#if videoError}
+                <div class="video-error">
+                        <p>Video loading error. Retrying...</p>
+                </div>
+        {/if}
 </div>
 
 <style>
@@ -135,11 +156,14 @@
 		align-items: center;
 	}
 
-	.media-content {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
+       .media-content {
+               position: absolute;
+               top: 0;
+               left: 0;
+               width: 100%;
+               height: 100%;
+               object-fit: cover;
+       }
 
         .video-error {
                 position: absolute;
