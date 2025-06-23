@@ -84,8 +84,14 @@
 	}
 
 	onMount(() => {
-		const handleResize = () => {
+		const checkIsMobile = () => {
 			isMobile = window.innerWidth <= 768
+		}
+
+		checkIsMobile()
+
+		const handleResize = () => {
+			checkIsMobile()
 		}
 		window.addEventListener('resize', handleResize)
 

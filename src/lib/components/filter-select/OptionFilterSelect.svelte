@@ -35,7 +35,6 @@
 					<button
 						class="item"
 						onclick={() => {
-							console.log('heyyyy')
 							handleSelect(option.label, option)
 							isOpen = false
 						}}
