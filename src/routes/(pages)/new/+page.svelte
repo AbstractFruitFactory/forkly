@@ -8,6 +8,8 @@
 	} from '$lib/state/unitPreference.svelte'
 	import type { TagSearchResponse } from '../../api/tags/+server'
 	import { safeFetch } from '$lib/utils/fetch'
+	import { fly } from 'svelte/transition'
+	import { FLY_DOWN_IN, FLY_DOWN_OUT } from '$lib/utils/transitions'
 
 	let { form, data } = $props()
 
@@ -57,15 +59,17 @@
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
-{#if form?.success}
-	<RecipeSuccess recipeId={form.recipeId!} />
-{:else}
-	<NewRecipe
-		errors={form?.errors}
-		onSearchIngredients={handleSearchIngredients}
-		onSearchTags={handleSearchTags}
-		availableTags={data?.availableTags ?? []}
-		{unitSystem}
-		onUnitChange={handleUnitChange}
-	/>
-{/if}
+<div in:fly={FLY_DOWN_IN} out:fly={FLY_DOWN_OUT}>
+	{#if form?.success}
+		<RecipeSuccess recipeId={form.recipeId!} />
+	{:else}
+		<NewRecipe
+			errors={form?.errors}
+			onSearchIngredients={handleSearchIngredients}
+			onSearchTags={handleSearchTags}
+			availableTags={data?.availableTags ?? []}
+			{unitSystem}
+			onUnitChange={handleUnitChange}
+		/>
+	{/if}
+</div>

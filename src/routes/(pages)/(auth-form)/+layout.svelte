@@ -1,8 +1,11 @@
 <script lang="ts">
+	import { FLY_DOWN_IN, FLY_DOWN_OUT } from '$lib/utils/transitions'
+	import { fly } from 'svelte/transition'
+
 	let { children } = $props()
 </script>
 
-<div>
+<div in:fly={FLY_DOWN_IN} out:fly={FLY_DOWN_OUT}>
 	{@render children()}
 </div>
 
