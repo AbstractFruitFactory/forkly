@@ -30,7 +30,11 @@
 
 <div class="layout" class:homepage>
 	<header class="header page-padding" class:homepage class:wide-header={wideHeader}>
-		<div class="header-background" class:transparent={homepage && wideHeader}></div>
+		<div
+			class="header-background"
+			class:transparent={homepage && wideHeader}
+			class:border={!homepage}
+		></div>
 		{@render header()}
 	</header>
 
@@ -132,6 +136,11 @@
 		background: var(--color-primary);
 		width: 100vw;
 		margin-left: calc(-50vw + 50%);
+		transition: border 1s ease-out;
+
+		&.border {
+			border-bottom: var(--border-width-thin) solid var(--color-neutral);
+		}
 
 		&.transparent {
 			background: transparent;
