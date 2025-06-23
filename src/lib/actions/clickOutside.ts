@@ -1,6 +1,7 @@
 export function clickOutside(node: HTMLElement, { callback }: { callback: () => void }) {
 	const handleClick = (event: MouseEvent) => {
 		if (node && !node.contains(event.target as Node) && !event.defaultPrevented) {
+			event.stopPropagation()
 			callback()
 		}
 	}
