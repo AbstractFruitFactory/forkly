@@ -1,12 +1,12 @@
 <script lang="ts">
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
-       import Dropdown from '$lib/components/dropdown/Dropdown.svelte'
-       import MoreVertical from 'lucide-svelte/icons/more-vertical'
-       import Pill from '$lib/components/pill/Pill.svelte'
-       import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
-       import { navigating } from '$app/state'
-       import type { DetailedRecipe } from '$lib/server/db/recipe'
+	import Dropdown from '$lib/components/dropdown/Dropdown.svelte'
+	import MoreVertical from 'lucide-svelte/icons/more-vertical'
+	import Pill from '$lib/components/pill/Pill.svelte'
+	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
+	import { navigating } from '$app/state'
+	import type { DetailedRecipe } from '$lib/server/db/recipe'
 
 	let {
 		recipe,
@@ -22,16 +22,16 @@
 		}
 	} = $props()
 
-       let isNavigating = $state(false)
-       let menuOpen = $state(false)
-       let menuButton: HTMLButtonElement
-       let dropdownPosition = $state({ top: 0, left: 0 })
-       let showSlideshow = $state(false)
-       let hoverTimeout: ReturnType<typeof setTimeout> | null = null
+	let isNavigating = $state(false)
+	let menuOpen = $state(false)
+	let menuButton: HTMLButtonElement
+	let dropdownPosition = $state({ top: 0, left: 0 })
+	let showSlideshow = $state(false)
+	let hoverTimeout: ReturnType<typeof setTimeout> | null = null
 
-       const videoMedia = $derived(
-               recipe?.instructions.filter((i) => i.mediaType === 'video' && i.mediaUrl) ?? []
-       )
+	const videoMedia = $derived(
+		recipe?.instructions.filter((i) => i.mediaType === 'video' && i.mediaUrl) ?? []
+	)
 
 	const handleClick = (event: MouseEvent) => {
 		if (!recipe) return
@@ -54,27 +54,27 @@
 		}
 	}
 
-       const handleMenuToggle = (e: MouseEvent) => {
-               e.preventDefault()
-               e.stopPropagation()
-               menuOpen = !menuOpen
-               if (menuOpen) {
-                       updateDropdownPosition()
-               }
-       }
+	const handleMenuToggle = (e: MouseEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		menuOpen = !menuOpen
+		if (menuOpen) {
+			updateDropdownPosition()
+		}
+	}
 
-       function handleMouseEnter() {
-               if (videoMedia.length === 0) return
-               hoverTimeout = setTimeout(() => {
-                       showSlideshow = true
-               }, 500)
-       }
+	function handleMouseEnter() {
+		if (videoMedia.length === 0) return
+		hoverTimeout = setTimeout(() => {
+			showSlideshow = true
+		}, 500)
+	}
 
-       function handleMouseLeave() {
-               if (hoverTimeout) clearTimeout(hoverTimeout)
-               hoverTimeout = null
-               showSlideshow = false
-       }
+	function handleMouseLeave() {
+		if (hoverTimeout) clearTimeout(hoverTimeout)
+		hoverTimeout = null
+		showSlideshow = false
+	}
 
 	$effect(() => {
 		if (menuOpen) {
@@ -84,32 +84,32 @@
 </script>
 
 <a
-        href={recipe ? `/recipe/${recipe.id}` : undefined}
-        class="recipe-card"
-        class:skeleton={loading || isNavigating}
-        class:small={size === 'small'}
-        aria-labelledby={recipe ? `recipe-title-${recipe.id}` : undefined}
-        onclick={handleClick}
-        on:mouseenter={handleMouseEnter}
-        on:mouseleave={handleMouseLeave}
+	href={recipe ? `/recipe/${recipe.id}` : undefined}
+	class="recipe-card"
+	class:skeleton={loading || isNavigating}
+	class:small={size === 'small'}
+	aria-labelledby={recipe ? `recipe-title-${recipe.id}` : undefined}
+	onclick={handleClick}
+	onmouseenter={handleMouseEnter}
+	onmouseleave={handleMouseLeave}
 >
 	<div class="image-container" class:no-image={recipe && !recipe.imageUrl}>
-                {#if loading}
-                        <div class="gradient-animate"></div>
-                {:else if showSlideshow && videoMedia.length > 0}
-                        <RecipeMediaDisplay
-                                mainImageUrl={recipe?.imageUrl}
-                                media={videoMedia}
-                                aspectRatio="auto"
-                                autoplay={true}
-                        />
-                {:else if recipe?.imageUrl}
-                        <img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
-                {:else}
-                        <div class="placeholder">
-                                <Utensils size={32} strokeWidth={1.5} />
-                        </div>
-                {/if}
+		{#if loading}
+			<div class="gradient-animate"></div>
+		{:else if showSlideshow && videoMedia.length > 0}
+			<RecipeMediaDisplay
+				mainImageUrl={recipe?.imageUrl}
+				media={videoMedia}
+				aspectRatio="auto"
+				autoplay={true}
+			/>
+		{:else if recipe?.imageUrl}
+			<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+		{:else}
+			<div class="placeholder">
+				<Utensils size={32} strokeWidth={1.5} />
+			</div>
+		{/if}
 		<div class="action-buttons">
 			{#if recipe}
 				<LikeButton count={recipe.likes} />
