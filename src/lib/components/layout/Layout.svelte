@@ -238,7 +238,6 @@
 	}
 
 	.main-content {
-		position: relative;
 		max-width: $max-width;
 		margin: 0 auto;
 		padding-top: var(--spacing-lg);
