@@ -525,6 +525,7 @@
 			align-items: center;
 			justify-content: space-between;
 			transition: transform 0.2s ease-in-out;
+			z-index: var(--z-elevated);
 
 			> * {
 				display: flex;
