@@ -110,16 +110,14 @@
 	</div>
 </div>
 
-<div class="mobile-only">
-	<Drawer bind:isOpen={drawerIsOpen} {title}>
-		<div class="drawer-flex-col">
-			<div class="drawer-scroll-content">
-				{@render content(handleSelect)}
-			</div>
-			<Button color="primary" fullWidth onclick={() => (drawerIsOpen = false)}>Show Results</Button>
+<Drawer bind:isOpen={drawerIsOpen} {title} mobileOnly>
+	<div class="drawer-flex-col">
+		<div class="drawer-scroll-content">
+			{@render content(handleSelect)}
 		</div>
-	</Drawer>
-</div>
+		<Button color="primary" fullWidth onclick={() => (drawerIsOpen = false)}>Show Results</Button>
+	</div>
+</Drawer>
 
 <style lang="scss">
 	@import '$lib/global.scss';
@@ -131,12 +129,6 @@
 	.items-container {
 		max-height: 300px;
 		overflow-y: auto;
-	}
-
-	.mobile-only {
-		@include desktop {
-			display: none;
-		}
 	}
 
 	.desktop-only {

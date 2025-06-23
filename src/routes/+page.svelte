@@ -130,7 +130,6 @@
 	const onSearchbarSticky = (isSticky: boolean) => {
 		isSticky ? scrolledDownHomepageStore.setTrue() : scrolledDownHomepageStore.setFalse()
 	}
-	$inspect(recipes.length)
 </script>
 
 <Home

@@ -1,18 +1,29 @@
 <script lang="ts">
 	import { fade, slide } from 'svelte/transition'
-	import type { Snippet } from 'svelte'
+	import { onMount, type Snippet } from 'svelte'
 
 	let {
 		isOpen = $bindable(false),
 		title,
-		children
+		children,
+		mobileOnly = false
 	}: {
 		isOpen?: boolean
 		title?: string
 		children: Snippet
+		mobileOnly?: boolean
 	} = $props()
 
 	let drawer: HTMLDivElement
+	let drawerContainer: HTMLDivElement
+
+	onMount(() => {
+		document.body.appendChild(drawerContainer)
+
+		return () => {
+			document.body.removeChild(drawerContainer)
+		}
+	})
 
 	const handleClickOutside = (e: MouseEvent) => {
 		if (drawer && !drawer.contains(e.target as Node) && isOpen) {
@@ -29,40 +40,49 @@
 
 <svelte:document onmousedown={handleClickOutside} onkeydown={handleKeydown} />
 
-{#if isOpen}
-	<div class="drawer-overlay" transition:fade={{ duration: 200 }} />
-	<div class="drawer-container" bind:this={drawer} transition:slide={{ duration: 300 }}>
-		<div class="drawer-header">
-			<div>
-				{#if title}
-					<h3 class="drawer-title">{title}</h3>
-				{/if}
+<div bind:this={drawerContainer} class:mobile-only={mobileOnly}>
+	{#if isOpen}
+		<div class="drawer-overlay" transition:fade={{ duration: 200 }} />
+		<div class="drawer-container" bind:this={drawer} transition:slide={{ duration: 300 }}>
+			<div class="drawer-header">
+				<div>
+					{#if title}
+						<h3 class="drawer-title">{title}</h3>
+					{/if}
+				</div>
+				<button class="drawer-close" onclick={() => (isOpen = false)} aria-label="Close drawer">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="20"
+						height="20"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<line x1="18" y1="6" x2="6" y2="18" />
+						<line x1="6" y1="6" x2="18" y2="18" />
+					</svg>
+				</button>
 			</div>
-			<button class="drawer-close" onclick={() => (isOpen = false)} aria-label="Close drawer">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="20"
-					height="20"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-				>
-					<line x1="18" y1="6" x2="6" y2="18" />
-					<line x1="6" y1="6" x2="18" y2="18" />
-				</svg>
-			</button>
+			<div class="drawer-content">
+				{@render children()}
+			</div>
 		</div>
-		<div class="drawer-content">
-			{@render children()}
-		</div>
-	</div>
-{/if}
+	{/if}
+</div>
 
 <style lang="scss">
 	@import '$lib/global.scss';
+
+	.mobile-only {
+		display: none;
+		@include tablet {
+			display: block;
+		}
+	}
 
 	.drawer-overlay {
 		position: fixed;
