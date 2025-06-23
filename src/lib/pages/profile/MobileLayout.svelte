@@ -93,6 +93,7 @@
 	@import '$lib/global.scss';
 
 	.profile-view {
+		position: relative;
 		margin: 0 auto;
 
 		@include tablet {
