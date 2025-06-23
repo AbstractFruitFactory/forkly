@@ -150,9 +150,9 @@
 	})
 
 	const sortOptions = [
-		{ label: 'Popular', value: 'popular' },
-		{ label: 'Newest', value: 'newest' },
-		{ label: 'Easiest', value: 'easiest' }
+		{ label: 'Popular', value: 'popular', onClick: () => onSortChange('popular') },
+		{ label: 'Newest', value: 'newest', onClick: () => onSortChange('newest') },
+		{ label: 'Easiest', value: 'easiest', onClick: () => onSortChange('easiest') }
 	]
 
 	let sortBy = $derived(sortOptions.find((option) => option.value === initialSort)!)
@@ -292,18 +292,7 @@
 					</div>
 				</div>
 
-				<OptionFilterSelect label="Sort by" options={sortOptions} bind:selected={sortBy}>
-					{#snippet item(option, select)}
-						<button
-							onclick={() => {
-								select(option)
-								onSortChange(option.value as 'popular' | 'newest' | 'easiest')
-							}}
-						>
-							{option.label}
-						</button>
-					{/snippet}
-				</OptionFilterSelect>
+				<OptionFilterSelect options={sortOptions} bind:selected={sortBy} />
 			</div>
 
 			{#if selectedTags.length > 0 || selectedIngredients.length > 0}

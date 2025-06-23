@@ -3,19 +3,15 @@
 	import type { Snippet } from 'svelte'
 	import ChevronDown from 'lucide-svelte/icons/chevron-down'
 
-	type Item = $$Generic<{ label: string }>
+	type Item = $$Generic<{ label: string; onClick: () => void }>
 
 	let {
-		label,
 		options,
 		selected = $bindable<Item>(),
-		item,
 		icon
 	}: {
-		label: string
 		options: Item[]
 		selected: Item
-		item: Snippet<[option: Item, select: (item: Omit<Item, 'label'>) => void]>
 		icon?: Snippet
 	} = $props()
 
@@ -31,17 +27,21 @@
 	{/snippet}
 
 	{#snippet content(handleSelect)}
-		<div class="items-container">
+		<div class="items">
 			{#if options.length === 0}
 				<div class="helper-text">No options available</div>
 			{:else}
-				{#each options as option, i}
-					<div class="item" data-item-index={i}>
-						{@render item(option, (itemData) => {
-							handleSelect(option.label, itemData)
+				{#each options as option}
+					<button
+						class="item"
+						onclick={() => {
+							console.log('heyyyy')
+							handleSelect(option.label, option)
 							isOpen = false
-						})}
-					</div>
+						}}
+					>
+						{option.label}
+					</button>
 				{/each}
 			{/if}
 		</div>
@@ -59,6 +59,12 @@
 		&.open {
 			transform: rotate(180deg);
 		}
+	}
+
+	.items {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
 	}
 
 	.item {

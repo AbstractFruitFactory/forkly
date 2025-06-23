@@ -5,13 +5,11 @@
 	let {
 		isOpen = $bindable(false),
 		title,
-		children,
-		mobileOnly = false
+		children
 	}: {
 		isOpen?: boolean
 		title?: string
 		children: Snippet
-		mobileOnly?: boolean
 	} = $props()
 
 	let drawer: HTMLDivElement
@@ -40,7 +38,7 @@
 
 <svelte:document onmousedown={handleClickOutside} onkeydown={handleKeydown} />
 
-<div bind:this={drawerContainer} class:mobile-only={mobileOnly}>
+<div bind:this={drawerContainer}>
 	{#if isOpen}
 		<div class="drawer-overlay" transition:fade={{ duration: 200 }} />
 		<div class="drawer-container" bind:this={drawer} transition:slide={{ duration: 300 }}>
@@ -76,13 +74,6 @@
 
 <style lang="scss">
 	@import '$lib/global.scss';
-
-	.mobile-only {
-		display: none;
-		@include tablet {
-			display: block;
-		}
-	}
 
 	.drawer-overlay {
 		position: fixed;

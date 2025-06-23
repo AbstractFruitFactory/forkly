@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Dropdown from '../dropdown/Dropdown.svelte'
-	import type { Snippet } from 'svelte'
+	import { onMount, type Snippet } from 'svelte'
 	import Button from '../button/Button.svelte'
 	import Drawer from '../drawer/Drawer.svelte'
 
@@ -25,13 +25,10 @@
 	} = $props()
 
 	let selectedIndex = $state(-1)
-	let drawerIsOpen = $state(false)
-	let dropdownIsOpen = $state(false)
 
 	const toggleDropdown = () => {
-		drawerIsOpen = !drawerIsOpen
-		dropdownIsOpen = !dropdownIsOpen
-		if (drawerIsOpen || dropdownIsOpen) {
+		isOpen = !isOpen
+		if (isOpen) {
 			selectedIndex = -1
 		}
 	}
@@ -55,7 +52,7 @@
 	}
 
 	const handleKeyDown = (event: KeyboardEvent) => {
-		if (!drawerIsOpen && !dropdownIsOpen) return
+		if (!isOpen) return
 
 		switch (event.key) {
 			case 'ArrowDown':
@@ -81,11 +78,23 @@
 				break
 			case 'Escape':
 				event.preventDefault()
-				drawerIsOpen = false
-				dropdownIsOpen = false
+				isOpen = false
 				break
 		}
 	}
+
+	onMount(() => {
+		const handleResize = () => {
+			isMobile = window.innerWidth <= 768
+		}
+		window.addEventListener('resize', handleResize)
+
+		return () => {
+			window.removeEventListener('resize', handleResize)
+		}
+	})
+
+	let isMobile = $state(false)
 </script>
 
 <div class="filter-select">
@@ -101,23 +110,25 @@
 		{/if}
 	</Button>
 
-	<div class="desktop-only">
-		<Dropdown bind:isOpen={dropdownIsOpen}>
+	{#if !isMobile}
+		<Dropdown bind:isOpen>
 			<div class="items-container" role="listbox" onkeydown={handleKeyDown}>
 				{@render content(handleSelect)}
 			</div>
 		</Dropdown>
-	</div>
+	{/if}
 </div>
 
-<Drawer bind:isOpen={drawerIsOpen} {title} mobileOnly>
-	<div class="drawer-flex-col">
-		<div class="drawer-scroll-content">
-			{@render content(handleSelect)}
+{#if isMobile}
+	<Drawer bind:isOpen {title}>
+		<div class="drawer-flex-col">
+			<div class="drawer-scroll-content">
+				{@render content(handleSelect)}
+			</div>
+			<Button color="primary" fullWidth onclick={() => (isOpen = false)}>Show Results</Button>
 		</div>
-		<Button color="primary" fullWidth onclick={() => (drawerIsOpen = false)}>Show Results</Button>
-	</div>
-</Drawer>
+	</Drawer>
+{/if}
 
 <style lang="scss">
 	@import '$lib/global.scss';
@@ -129,12 +140,6 @@
 	.items-container {
 		max-height: 300px;
 		overflow-y: auto;
-	}
-
-	.desktop-only {
-		@include tablet {
-			display: none;
-		}
 	}
 
 	.drawer-flex-col {
