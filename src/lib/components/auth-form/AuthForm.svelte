@@ -22,81 +22,67 @@
 	const alternateLinkText = mode === 'login' ? 'Register' : 'Login'
 </script>
 
-<div class="auth-container">
-	<div class="auth-box">
-		<h1>{title}</h1>
-		<form method="POST" use:enhance>
+<div class="auth-form card">
+	<h1>{title}</h1>
+	<form method="POST" use:enhance>
+		<div class="form-group">
+			<label for="username">Username</label>
+			<Input>
+				<input id="username" name="username" type="text" placeholder="Enter username" required />
+			</Input>
+		</div>
+
+		<div class="form-group">
+			<label for="password">Password</label>
+			<Input>
+				<input
+					id="password"
+					name="password"
+					type="password"
+					placeholder="Enter password"
+					required
+				/>
+			</Input>
+		</div>
+
+		{#if mode === 'signup'}
 			<div class="form-group">
-				<label for="username">Username</label>
+				<label for="email">Email</label>
 				<Input>
-					<input id="username" name="username" type="text" placeholder="Enter username" required />
+					<input id="email" name="email" type="email" placeholder="Enter email" required />
 				</Input>
 			</div>
+		{/if}
 
-			<div class="form-group">
-				<label for="password">Password</label>
-				<Input>
-					<input
-						id="password"
-						name="password"
-						type="password"
-						placeholder="Enter password"
-						required
-					/>
-				</Input>
-			</div>
+		{#if error}
+			<p class="error">{error}</p>
+		{/if}
 
-			{#if mode === 'signup'}
-				<div class="form-group">
-					<label for="email">Email</label>
-					<Input>
-						<input id="email" name="email" type="email" placeholder="Enter email" required />
-					</Input>
-				</div>
-			{/if}
+		<Button color="primary" type="submit" fullWidth disabled={loading}>
+			{loading ? `${submitText}...` : submitText}
+		</Button>
 
-			{#if error}
-				<p class="error">{error}</p>
-			{/if}
+		{#if mode === 'login'}
+			<a href="/login/google" style="display: block; margin-top: 1rem; text-align: center;">
+				<button
+					type="button"
+					style="width: 100%; padding: 0.75em; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5em;"
+				>
+					<GoogleIcon />
+					Sign in with Google
+				</button>
+			</a>
+		{/if}
+	</form>
 
-			<Button color="primary" type="submit" fullWidth disabled={loading}>
-				{loading ? `${submitText}...` : submitText}
-			</Button>
-
-			{#if mode === 'login'}
-				<a href="/login/google" style="display: block; margin-top: 1rem; text-align: center;">
-					<button
-						type="button"
-						style="width: 100%; padding: 0.75em; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5em;"
-					>
-						<GoogleIcon />
-						Sign in with Google
-					</button>
-				</a>
-			{/if}
-		</form>
-
-		<p class="alternate-link">
-			{alternateText}
-			<Button variant="text" href={alternateHref}>{alternateLinkText}</Button>
-		</p>
-	</div>
+	<p class="alternate-link">
+		{alternateText}
+		<Button variant="text" href={alternateHref}>{alternateLinkText}</Button>
+	</p>
 </div>
 
 <style lang="scss">
-	.auth-container {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		min-height: calc(100vh - var(--spacing-2xl));
-		padding: var(--spacing-lg);
-	}
-
-	.auth-box {
-		background: var(--color-neutral-dark);
-		padding: var(--spacing-lg);
-		border-radius: var(--border-radius-lg);
-		box-shadow: var(--shadow-md);
+	.auth-form {
 		width: 100%;
 		max-width: 400px;
 	}
