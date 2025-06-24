@@ -211,7 +211,11 @@
 	<div bind:this={instructionsSection}>
 		<div class="instructions-header">
 			<h3 style="margin-bottom: 0;">Instructions</h3>
-			<Switch bind:checked={hideImages} label="Hide media" />
+                        <Switch
+                                class="hide-media-toggle"
+                                bind:checked={hideImages}
+                                label="Hide media"
+                        />
 		</div>
 		<RecipeInstructions instructions={recipe.instructions} bind:hideImages />
 	</div>
@@ -415,10 +419,10 @@
 		}
 	}
 
-	.nav-button {
-		flex: 1;
-		background: none;
-		border: none;
+        .nav-button {
+                flex: 1;
+                background: none;
+                border: none;
 		padding: var(--spacing-sm) var(--spacing-xs);
 		font-size: var(--font-size-sm);
 		cursor: pointer;
@@ -439,12 +443,18 @@
 			color: var(--color-primary);
 			opacity: 1;
 			background: rgba(255, 255, 255, 0.08);
-		}
-	}
+                }
+        }
 
-	.collections-list {
-		display: flex;
-		flex-direction: column;
+        .hide-media-toggle {
+                @include mobile {
+                        display: none;
+                }
+        }
+
+        .collections-list {
+                display: flex;
+                flex-direction: column;
 		gap: var(--spacing-sm);
 		margin-top: var(--spacing-md);
 		margin-bottom: var(--spacing-md);

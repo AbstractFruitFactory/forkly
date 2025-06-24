@@ -19,15 +19,15 @@
 </script>
 
 <label class="switch" aria-checked={checked} aria-disabled={disabled}>
-	<input
-		type="checkbox"
-		{checked}
-		{disabled}
-		onchange={handleToggle}
-		class="switch-input"
-		aria-hidden="true"
-		tabindex="-1"
-	/>
+        <input
+                type="checkbox"
+                {checked}
+                {disabled}
+                on:change={handleToggle}
+                class="switch-input"
+                aria-hidden="true"
+                tabindex="-1"
+        />
 	{#if label}
 		<span class="switch-label">{label}</span>
 	{/if}
