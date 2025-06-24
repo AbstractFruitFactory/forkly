@@ -113,12 +113,15 @@
 	}
 
 	.recipe-image {
+		min-height: 200px;
 		max-height: 80dvh;
+		border-radius: var(--border-radius-lg);
+		overflow: hidden;
 
 		:global(img) {
 			width: 100%;
 			object-fit: cover;
-			border-radius: var(--border-radius-xl);
+			border-radius: var(--border-radius-lg);
 		}
 	}
 

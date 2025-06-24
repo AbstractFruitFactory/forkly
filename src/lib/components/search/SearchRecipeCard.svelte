@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Utensils from 'lucide-svelte/icons/utensils'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
+	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
 
 	type Recipe = {
 		id: string
@@ -32,9 +32,7 @@
 		{#if recipe.imageUrl}
 			<img src={recipe.imageUrl} alt={recipe.title} loading="lazy" decoding="async" />
 		{:else}
-			<div class="placeholder">
-				<Utensils size={24} strokeWidth={1.5} />
-			</div>
+			<RecipeImagePlaceholder size="small" />
 		{/if}
 	</div>
 
@@ -142,15 +140,6 @@
 			rgba(0, 0, 0, 0.4) 100%
 		);
 		opacity: 0.8;
-	}
-
-	.placeholder {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: rgba(255, 255, 255, 0.3);
-		height: 100%;
-		width: 100%;
 	}
 
 	.content {

@@ -1,28 +1,31 @@
 <script lang="ts">
-	import type { NutritionInfo } from '$lib/server/food-api'
-	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import type { RecipeData } from '$lib/types'
-	import DesktopLayout from './DesktopLayout.svelte'
-	import MobileLayout from './MobileLayout.svelte'
-	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
-	import Pill from '$lib/components/pill/Pill.svelte'
-	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
-	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
-	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
+	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+	import type { NutritionInfo } from '$lib/server/food-api'
+	import type { RecipeComment, User } from '$lib/server/db/schema'
+	import Recipe from '$lib/pages/recipe/Recipe.svelte'
+	import DesktopLayout from '$lib/pages/recipe/DesktopLayout.svelte'
+	import MobileLayout from '$lib/pages/recipe/MobileLayout.svelte'
 	import FloatingLikeButton from '$lib/components/floating-action-button/FloatingLikeButton.svelte'
 	import FloatingSaveButton from '$lib/components/floating-action-button/FloatingSaveButton.svelte'
 	import FloatingShareButton from '$lib/components/floating-action-button/FloatingShareButton.svelte'
 	import SharePopup from '$lib/components/share-button/SharePopup.svelte'
-	import CommentList from '$lib/components/comment/CommentList.svelte'
-	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
-	import RecipeInstructions from '$lib/components/recipe-instructions/RecipeInstructions.svelte'
-	import Description from '$lib/components/Description.svelte'
-	import { onMount, type Snippet } from 'svelte'
-	import MessageSquare from 'lucide-svelte/icons/message-square'
-	import Toast from '$lib/components/toast/Toast.svelte'
-	import Switch from '$lib/components/Switch.svelte'
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import CirclePlus from 'lucide-svelte/icons/circle-plus'
+	import MessageSquare from 'lucide-svelte/icons/message-square'
+	import Description from '$lib/components/Description.svelte'
+	import Pill from '$lib/components/pill/Pill.svelte'
+	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
+	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
+	import RecipeInstructions from '$lib/components/recipe-instructions/RecipeInstructions.svelte'
+	import CommentList from '$lib/components/comment/CommentList.svelte'
+	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
+	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
+	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
+	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
+	import Switch from '$lib/components/Switch.svelte'
+	import { onMount, type Snippet } from 'svelte'
+	import Toast from '$lib/components/toast/Toast.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import Input from '$lib/components/input/Input.svelte'
 
@@ -126,20 +129,7 @@
 	{#if recipe.imageUrl}
 		{@render img()}
 	{:else}
-		<div class="image-placeholder">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 24 24"
-				fill="currentColor"
-				aria-hidden="true"
-			>
-				<path
-					fill-rule="evenodd"
-					d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06l4.47-4.47a.75.75 0 011.06 0l3.97 3.97 3.97-3.97a.75.75 0 011.06 0l4.47 4.47V6a.75.75 0 00-.75-.75H3.75A.75.75 0 003 6v10.06zM11.25 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
-					clip-rule="evenodd"
-				/>
-			</svg>
-		</div>
+		<RecipeImagePlaceholder size="large" />
 	{/if}
 {/snippet}
 
@@ -397,21 +387,6 @@
 
 		h3 {
 			margin-bottom: 0;
-		}
-	}
-
-	.image-placeholder {
-		width: 100%;
-		height: 100%;
-		background-color: var(--color-neutral-dark);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--color-neutral);
-
-		svg {
-			width: 48px;
-			height: 48px;
 		}
 	}
 

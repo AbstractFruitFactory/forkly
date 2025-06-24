@@ -1,11 +1,11 @@
 <script lang="ts">
-	import Utensils from 'lucide-svelte/icons/utensils'
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import Dropdown from '$lib/components/dropdown/Dropdown.svelte'
 	import MoreVertical from 'lucide-svelte/icons/more-vertical'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
 	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
+	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
 	import { navigating } from '$app/state'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 
@@ -107,9 +107,7 @@
 		{:else if recipe?.imageUrl}
 			<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
 		{:else}
-			<div class="placeholder">
-				<Utensils size={32} strokeWidth={1.5} />
-			</div>
+			<RecipeImagePlaceholder size="medium" />
 		{/if}
 		<div class="action-buttons">
 			{#if recipe}
@@ -307,19 +305,6 @@
 			object-fit: cover;
 			transition: transform var(--transition-fast) var(--ease-out);
 			will-change: transform;
-		}
-	}
-
-	.placeholder {
-		position: absolute;
-		inset: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: rgba(255, 255, 255, 0.5);
-
-		:global(svg) {
-			filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 		}
 	}
 
