@@ -1,22 +1,25 @@
 <script lang="ts">
+	import Button from '$lib/components/button/Button.svelte'
+
 	let { recipeId }: { recipeId: string } = $props()
 </script>
 
 <div class="success-container">
-	<div class="success-content">
+	<div class="success-content card">
 		<div class="success-icon">✓</div>
 		<h1>Recipe Created!</h1>
 		<p>Your recipe has been successfully created.</p>
 		<div class="button-group">
-			<a href="/recipe/{recipeId}" class="button primary">View Recipe</a>
-			<a href="/new" class="button secondary">Create Another</a>
-			<a href="/" class="button secondary">Go Home</a>
+			<Button href="/recipe/{recipeId}" fullWidth color="primary">View Recipe</Button>
+			<Button href="/new" fullWidth color="neutral" variant="border">Create Another</Button>
+			<Button href="/" fullWidth color="neutral" variant="border">Go Home</Button>
 		</div>
 	</div>
 </div>
 
 <style lang="scss">
 	.success-container {
+		position: relative;
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -25,11 +28,8 @@
 	}
 
 	.success-content {
-		background: var(--color-neutral-dark);
-		padding: var(--spacing-xl);
-		border-radius: var(--border-radius-lg);
 		text-align: center;
-		box-shadow: var(--shadow-md);
+
 		max-width: 500px;
 		width: 100%;
 	}
