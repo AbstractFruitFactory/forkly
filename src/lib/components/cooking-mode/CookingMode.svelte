@@ -2,6 +2,8 @@
 	import type { RecipeData } from '$lib/types'
 	import Button from '$lib/components/button/Button.svelte'
 	import Popup from '$lib/components/popup/Popup.svelte'
+	import ChevronLeft from 'lucide-svelte/icons/chevron-left'
+	import ChevronRight from 'lucide-svelte/icons/chevron-right'
 
 	let {
 		instructions,
@@ -80,18 +82,6 @@
 
 <Popup bind:isOpen onClose={() => (isOpen = false)} width="800px">
 	<div class="cooking-mode">
-		<div class="cooking-progress">
-			<div class="cooking-progress-text">
-				Step {currentStep + 1} of {instructions.length}
-			</div>
-			<div class="cooking-progress-bar">
-				<div
-					class="cooking-progress-fill"
-					style="width: {((currentStep + 1) / instructions.length) * 100}%"
-				></div>
-			</div>
-		</div>
-
 		<div
 			class="cooking-content"
 			ontouchstart={handleCookingTouchStart}
@@ -134,32 +124,26 @@
 				</div>
 			{/if}
 
-			<div class="cooking-instruction">
-				<p class="cooking-instruction-text">{instructions[currentStep].text}</p>
+			<div>
+				<h3>Step {currentStep + 1}</h3>
+				<p>{instructions[currentStep].text}</p>
 			</div>
 		</div>
 
 		<div class="cooking-navigation">
-			{#if currentStep > 0}
-				<Button variant="text" onclick={prevStep}>
-					<svg width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
-						<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-					</svg>
-					Previous
-				</Button>
-			{:else}
-				<div class="cooking-nav-button"></div>
-			{/if}
-			<Button
-				color={currentStep === instructions.length - 1 ? 'secondary' : undefined}
-				variant="text"
-				onclick={nextStep}
-			>
-				{currentStep === instructions.length - 1 ? 'Done' : 'Next'}
+			<Button color="primary" onclick={prevStep} disabled={currentStep === 0}>
+				<ChevronLeft color="black" />
+			</Button>
+
+			<div class="cooking-step-text">
+				Step {currentStep + 1} of {instructions.length}
+			</div>
+
+			<Button color="primary" onclick={nextStep}>
 				{#if currentStep < instructions.length - 1}
-					<svg width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
-						<path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-					</svg>
+					<ChevronRight color="black" />
+				{:else}
+					Done
 				{/if}
 			</Button>
 		</div>
@@ -176,33 +160,9 @@
 		background: var(--color-background);
 
 		@include mobile {
-			height: 100dvh;
+			height: 100%;
+			justify-content: space-between;
 		}
-	}
-
-	.cooking-progress {
-		padding: var(--spacing-md);
-		background: var(--color-neutral-darker);
-		border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-	}
-
-	.cooking-progress-text {
-		font-size: var(--font-size-sm);
-		color: var(--color-neutral-light);
-		margin-bottom: var(--spacing-xs);
-	}
-
-	.cooking-progress-bar {
-		height: 2px;
-		background: rgba(255, 255, 255, 0.2);
-		border-radius: var(--border-radius-full);
-		overflow: hidden;
-	}
-
-	.cooking-progress-fill {
-		height: 100%;
-		background: var(--color-primary);
-		transition: width 0.3s ease;
 	}
 
 	.cooking-content {
@@ -233,24 +193,10 @@
 		object-fit: cover;
 	}
 
-	.cooking-instruction {
-		display: flex;
-		gap: var(--spacing-md);
-		padding: var(--spacing-md);
-		background: var(--color-neutral-darker);
-		border-radius: var(--border-radius-lg);
-		min-height: 100px;
-	}
-
-	.cooking-instruction-text {
-		font-size: var(--font-size-md);
-		color: var(--color-neutral-light);
-		line-height: 1.6;
-	}
-
 	.cooking-navigation {
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
 		padding: var(--spacing-md);
 		border-top: 1px solid var(--color-neutral-dark);
 		background: var(--color-neutral-dark);
@@ -266,6 +212,12 @@
 		:global(.nav-icon) {
 			fill: currentColor;
 		}
+	}
+
+	.cooking-step-text {
+		font-size: var(--font-size-sm);
+		color: var(--color-neutral-light);
+		font-weight: var(--font-weight-medium);
 	}
 
 	.cooking-nav-button {

@@ -19,7 +19,6 @@
 	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
 	import RecipeInstructions from '$lib/components/recipe-instructions/RecipeInstructions.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
-	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
 	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
 	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
 	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
@@ -63,7 +62,6 @@
 	let isLiked = $state(recipe.isLiked)
 	let isSaved = $state(recipe.isSaved)
 	let isSharePopupOpen = $state(false)
-	let isCookingMode = $state(false)
 	let shareUrl = $state('')
 	let toastType = $state<'like' | 'save'>()
 	let toastRef: Toast
@@ -273,8 +271,6 @@
 		{/snippet}
 	</MobileLayout>
 </div>
-
-<CookingMode isOpen={isCookingMode} instructions={recipe.instructions} />
 
 <SharePopup
 	isOpen={isSharePopupOpen}

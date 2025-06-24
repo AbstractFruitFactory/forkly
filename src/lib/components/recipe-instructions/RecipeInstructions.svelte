@@ -15,65 +15,63 @@
 	let isCookingMode = $state(false)
 </script>
 
-{#if isCookingMode}
-	<CookingMode {instructions} bind:isOpen={isCookingMode} />
-{:else}
-	<div class="instructions card">
-		<div style:margin-bottom="var(--spacing-lg)">
-			<Button color="primary" onclick={() => (isCookingMode = true)} fullWidth>
-				Step by Step Mode
-			</Button>
-		</div>
-		{#each instructions as instruction, i (i)}
-			<div class="instruction-item">
-				<div class="instruction-header">
-					<div class="instruction-content">
-						<div class="instruction-text">
-							<h5 class="step-number">Step {i + 1}</h5>
-							{#each parseTemperature(instruction.text) as part}
-								{#if part.isTemperature && part.value !== undefined && part.unit}
-									<span class="temperature-wrapper">
-										<Popover triggerOn="hover" placement="top">
-											{#snippet trigger()}
-												<span class="temperature">{part.text}</span>
-											{/snippet}
-											{#snippet content()}
-												<span class="conversion">
-													{getConversionText(part.value as number, part.unit as TemperatureUnit)}
-												</span>
-											{/snippet}
-										</Popover>
-									</span>
-								{:else}
-									<span>{part.text}</span>
-								{/if}
-							{/each}
-						</div>
-						{#if instruction.mediaUrl}
-							<div class="instruction-media desktop-only">
-								{#if instruction.mediaType === 'image'}
-									{#if !hideImages}
-										<img
-											src={instruction.mediaUrl}
-											alt={`Step ${i + 1} visual`}
-											loading="lazy"
-											decoding="async"
-										/>
-									{/if}
-								{:else if instruction.mediaType === 'video'}
-									<InstructionVideo src={instruction.mediaUrl} stepNumber={i + 1} />
-								{/if}
-							</div>
-						{/if}
+<CookingMode {instructions} bind:isOpen={isCookingMode} />
+
+<div class="instructions card">
+	<div style:margin-bottom="var(--spacing-lg)">
+		<Button color="primary" onclick={() => (isCookingMode = true)} fullWidth>
+			Step by Step Mode
+		</Button>
+	</div>
+	{#each instructions as instruction, i (i)}
+		<div class="instruction-item">
+			<div class="instruction-header">
+				<div class="instruction-content">
+					<div class="instruction-text">
+						<h5 class="step-number">Step {i + 1}</h5>
+						{#each parseTemperature(instruction.text) as part}
+							{#if part.isTemperature && part.value !== undefined && part.unit}
+								<span class="temperature-wrapper">
+									<Popover triggerOn="hover" placement="top">
+										{#snippet trigger()}
+											<span class="temperature">{part.text}</span>
+										{/snippet}
+										{#snippet content()}
+											<span class="conversion">
+												{getConversionText(part.value as number, part.unit as TemperatureUnit)}
+											</span>
+										{/snippet}
+									</Popover>
+								</span>
+							{:else}
+								<span>{part.text}</span>
+							{/if}
+						{/each}
 					</div>
+					{#if instruction.mediaUrl}
+						<div class="instruction-media desktop-only">
+							{#if instruction.mediaType === 'image'}
+								{#if !hideImages}
+									<img
+										src={instruction.mediaUrl}
+										alt={`Step ${i + 1} visual`}
+										loading="lazy"
+										decoding="async"
+									/>
+								{/if}
+							{:else if instruction.mediaType === 'video'}
+								<InstructionVideo src={instruction.mediaUrl} stepNumber={i + 1} />
+							{/if}
+						</div>
+					{/if}
 				</div>
 			</div>
-			{#if i < instructions.length - 1}
-				<hr class="divider" />
-			{/if}
-		{/each}
-	</div>
-{/if}
+		</div>
+		{#if i < instructions.length - 1}
+			<hr class="divider" />
+		{/if}
+	{/each}
+</div>
 
 <style lang="scss">
 	@import '$lib/global.scss';
