@@ -64,6 +64,7 @@
 	@import '$lib/global.scss';
 
 	.profile-container {
+		position: relative;
 		max-width: 900px;
 		margin: 2rem auto;
 	}

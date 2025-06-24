@@ -5,6 +5,7 @@
 	import MoreVertical from 'lucide-svelte/icons/more-vertical'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
+	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
 	import { navigating } from '$app/state'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 
@@ -126,24 +127,14 @@
 			{/if}
 		</div>
 	</div>
-	{#if loading}
-		<div class="avatar">
-			<div class="gradient-animate"></div>
-		</div>
-	{:else if recipe?.user}
-		<div
-			class="avatar"
-			style="background: {recipe.user.avatarUrl
-				? `url(${recipe.user.avatarUrl}) center/cover`
-				: `var(--color-${recipe.user.username!.charCodeAt(0) % 5})`}"
-		>
-			{#if !recipe.user.avatarUrl}
-				{recipe.user.username?.[0]?.toUpperCase()}
-			{/if}
-		</div>
-	{/if}
 
 	<div class="content">
+		{#if recipe?.user && !loading}
+			<div class="avatar">
+				<ProfilePic profilePicUrl={recipe.user.avatarUrl} size="sm" />
+			</div>
+		{/if}
+
 		<div>
 			<div class="tags">
 				{#if loading}
@@ -231,11 +222,8 @@
 			height: 300px;
 			grid-template-rows: 55% auto;
 
-			.avatar {
-				width: 24px;
-				height: 24px;
+			.avatar-wrapper {
 				bottom: -12px;
-				font-size: var(--font-size-xs);
 			}
 
 			.content {
@@ -337,21 +325,9 @@
 
 	.avatar {
 		position: absolute;
-		bottom: -16px;
+		top: -16px;
 		right: var(--spacing-md);
-		width: 32px;
-		height: 32px;
-		border-radius: 50%;
-		color: white;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: var(--font-size-sm);
-		font-weight: 600;
-		background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-		box-shadow: var(--shadow-md);
-		border: 2px solid var(--color-background);
-		z-index: 2;
+		z-index: var(--z-index-elevated);
 	}
 
 	.recipe-card:hover .image-container img {
@@ -359,12 +335,12 @@
 	}
 
 	.content {
+		position: relative;
 		padding: var(--spacing-md);
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
 		gap: var(--spacing-sm);
-		overflow: hidden;
 		min-width: 0;
 	}
 
@@ -408,19 +384,6 @@
 		aspect-ratio: 16 / 9;
 		overflow: hidden;
 		background: var(--color-neutral-darker);
-	}
-
-	.skeleton .avatar {
-		position: absolute;
-		bottom: -16px;
-		right: var(--spacing-md);
-		width: 32px;
-		height: 32px;
-		border-radius: 50%;
-		overflow: hidden;
-		background: var(--color-neutral-darker);
-		border: 2px solid var(--color-background);
-		z-index: 2;
 	}
 
 	.skeleton .like-button {

@@ -8,7 +8,8 @@
 	import CollectionCard from '$lib/components/collection-card/CollectionCard.svelte'
 	import DesktopLayout from './DesktopLayout.svelte'
 	import MobileLayout from './MobileLayout.svelte'
-	import { goto } from '$app/navigation'
+	import { goto, invalidateAll } from '$app/navigation'
+	import { safeFetch } from '$lib/utils/fetch'
 
 	let {
 		user,
@@ -31,6 +32,28 @@
 		selectedTab = option
 		goto(`/profile?tab=${option}`, { replaceState: true })
 	}
+
+	let avatarInput: HTMLInputElement
+
+	async function handleAvatarChange(event: Event) {
+		const input = event.target as HTMLInputElement
+		const file = input.files?.[0]
+		if (!file) return
+
+		const formData = new FormData()
+		formData.append('avatar', file)
+
+		const res = await safeFetch<{ avatarUrl: string }>()('/api/avatar', {
+			method: 'POST',
+			body: formData
+		})
+
+		if (res.isOk()) {
+			invalidateAll()
+		} else {
+			console.error('Avatar upload failed')
+		}
+	}
 </script>
 
 {#snippet avatar()}
@@ -45,7 +68,14 @@
 				{user.username[0].toUpperCase()}
 			{/if}
 		</div>
-		<div class="avatar-edit-icon">
+		<input
+			type="file"
+			accept="image/*"
+			class="hidden-input"
+			bind:this={avatarInput}
+			onchange={handleAvatarChange}
+		/>
+		<div class="avatar-edit-icon" onclick={() => avatarInput.click()}>
 			<svg
 				width="24"
 				height="24"
@@ -198,6 +228,10 @@
 		justify-content: center;
 		border: 2px solid var(--color-background);
 		cursor: pointer;
+	}
+
+	.hidden-input {
+		display: none;
 	}
 
 	.profile-title-block {

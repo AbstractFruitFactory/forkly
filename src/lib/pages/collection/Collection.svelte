@@ -60,7 +60,7 @@
 	}
 </script>
 
-<div in:fly={FLY_LEFT_IN} out:fly={FLY_LEFT_OUT}>
+<div class="collection" in:fly={FLY_LEFT_IN} out:fly={FLY_LEFT_OUT}>
 	<a class="back-button" href="/profile?tab=Saved recipes">
 		<ArrowLeftIcon size={18} />
 		<span>Back to saved recipes</span>
@@ -89,6 +89,10 @@
 </Popup>
 
 <style lang="scss">
+	.collection {
+		position: relative;
+	}
+
 	.back-button {
 		display: flex;
 		align-items: center;
