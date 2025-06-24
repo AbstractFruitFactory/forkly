@@ -6,7 +6,7 @@ import type { PaginationCookie, SearchCookie } from '$lib/utils/cookies'
 
 const PAGINATION_LIMIT = 18
 
-export const load: PageServerLoad = async ({ url, fetch, cookies }) => {
+export const load: PageServerLoad = async ({ fetch, cookies }) => {
 	const search = JSON.parse(cookies.get('search') as string | undefined ?? '{}') as SearchCookie | undefined
 	const { page } = JSON.parse(cookies.get('pagination') as string | undefined ?? '{}') as PaginationCookie
 

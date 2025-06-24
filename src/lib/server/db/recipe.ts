@@ -1,6 +1,6 @@
 import { db } from '.'
 import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag } from './schema'
-import { eq, ilike, desc, sql, and, SQL, or } from 'drizzle-orm'
+import { eq, ilike, desc, sql, and, SQL, or, asc } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 
 function escapeSqlString(str: string): string {
@@ -55,6 +55,7 @@ export type RecipeFilterBase = {
   userId?: string
   limit?: number
   page?: number
+  sort?: 'popular' | 'newest' | 'easiest'
 }
 
 export type BasicRecipeFilter = RecipeFilterBase & { detailed?: false }
@@ -73,7 +74,8 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     userId,
     limit = 18,
     page = 0,
-    detailed = false
+    detailed = false,
+    sort
   } = filters
 
   // Early return if all filters are empty unless explicitly searching for all recipes
@@ -148,6 +150,30 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     ? undefined
     : (conditions.length === 1 ? conditions[0] : and(...conditions))
 
+  // Helper function to determine ordering based on sort parameter
+  const getOrderBy = () => {
+    switch (sort) {
+      case 'newest':
+        return [desc(recipe.createdAt), desc(recipe.id)]
+      case 'easiest':
+        // For easiest, we'll order by fewer ingredients and instructions
+        // We need to count ingredients and instructions in a subquery
+        return [
+          asc(sql`(
+            SELECT COUNT(*) 
+            FROM recipe_ingredient ri 
+            WHERE ri.recipe_id = ${recipe.id}
+          )`),
+          asc(sql`jsonb_array_length(${recipe.instructions})`),
+          desc(recipe.createdAt)
+        ]
+      case 'popular':
+      default:
+        // For popular, we'll order by likes count, then by recency
+        return [desc(sql`count(DISTINCT ${recipeLike.userId})`), desc(recipe.createdAt), desc(recipe.id)]
+    }
+  }
+
   if (detailed) {
     // Build detailed query
     const detailedRecipeQuery = db
@@ -213,7 +239,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         recipeNutrition.carbs,
         recipeNutrition.fat
       )
-      .orderBy(desc(recipe.createdAt), desc(recipe.id))
+      .orderBy(...getOrderBy())
       .offset(page * limit)
 
     // Apply limit if provided
@@ -243,7 +269,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     // Complete query with groupBy, orderBy, and limit
     const finalQuery = queryWithWhere
       .groupBy(recipe.id)
-      .orderBy(desc(recipe.createdAt), desc(recipe.id))
+      .orderBy(...getOrderBy())
       .offset(page * limit)
 
     // Apply limit if provided

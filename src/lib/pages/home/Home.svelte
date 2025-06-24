@@ -187,34 +187,6 @@
 		})
 	}
 
-	const calculatePopularityScore = (recipe: (typeof recipes)[number]): number => {
-		const engagementScore = recipe.likes
-
-		const ageInDays = (Date.now() - new Date(recipe.createdAt).getTime()) / (1000 * 60 * 60 * 24)
-		const recencyBoost = Math.max(0, 10 - Math.min(10, ageInDays / 30))
-
-		return engagementScore + recencyBoost
-	}
-
-	const sortedRecipes = $derived(
-		[...recipes].sort((a, b) => {
-			switch (sortBy.value) {
-				case 'popular':
-					return calculatePopularityScore(b) - calculatePopularityScore(a)
-				case 'newest':
-					return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-				case 'easiest':
-					return (
-						a.ingredients.length +
-						a.instructions.length -
-						(b.ingredients.length + b.instructions.length)
-					)
-				default:
-					return 0
-			}
-		})
-	)
-
 	const loadTags = async (query: string): Promise<string[]> => {
 		const tags = await searchTags(query)
 		availableTags = tags
@@ -325,7 +297,7 @@
 			{#snippet recipeGrid(size: 'large' | 'small')}
 				<div class="recipe-grid">
 					<RecipeGrid
-						recipes={sortedRecipes}
+						recipes={recipes}
 						emptyMessage={emptyStateMessage}
 						{isLoading}
 						{loadMore}

@@ -36,6 +36,7 @@
 						class="item"
 						onclick={() => {
 							handleSelect(option.label, option)
+							option.onClick()
 							isOpen = false
 						}}
 					>

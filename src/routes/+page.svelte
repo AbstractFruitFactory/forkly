@@ -45,18 +45,6 @@
 		}
 	})
 
-	const updateUrl = (params: Record<string, string>) => {
-		const url = new URL(page.url)
-		Object.entries(params).forEach(([key, value]) => {
-			if (value === '') {
-				url.searchParams.delete(key)
-			} else {
-				url.searchParams.set(key, value)
-			}
-		})
-		goto(url.toString(), { keepFocus: true })
-	}
-
 	const handleSearch = async (
 		query: string,
 		filters?: { tags: string[]; ingredients: string[]; excludedIngredients: string[] }
@@ -107,7 +95,10 @@
 
 	const handleSortChange = (sortBy: 'popular' | 'newest' | 'easiest') => {
 		sortParam = sortBy
-		updateUrl({ sort: sortBy })
+		useCookies('search').set({
+			...useCookies('search').get(),
+			sort: sortBy
+		})
 	}
 
 	const loadMore = async () => {

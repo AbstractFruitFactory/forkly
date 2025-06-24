@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit'
-import { getRecipes, type DetailedRecipe, type RecipeFilter } from '$lib/server/db/recipe'
+import { getRecipes, type DetailedRecipe, type DetailedRecipeFilter } from '$lib/server/db/recipe'
 
 export type RecipesSearchResponse = {
   results: DetailedRecipe[]
@@ -15,6 +15,7 @@ export const GET = async ({ url }) => {
   const query = url.searchParams.get('q') || ''
   const limit = parseInt(url.searchParams.get('limit') || '18', 10)
   const page = parseInt(url.searchParams.get('page') || '0', 10)
+  const sort = (url.searchParams.get('sort') || 'popular') as 'popular' | 'newest' | 'easiest'
 
   // Parse tags from query params (comma-separated list)
   const tagsParam = url.searchParams.get('tags') || ''
@@ -28,14 +29,15 @@ export const GET = async ({ url }) => {
   const excludedIngredientsParam = url.searchParams.get('excludedIngredients') || ''
   const excludedIngredients = excludedIngredientsParam ? excludedIngredientsParam.split(',').filter(Boolean) : []
 
-  const filters: RecipeFilter = {
+  const filters: DetailedRecipeFilter = {
     query,
     tags,
     ingredients,
     excludedIngredients,
     limit,
     page,
-    detailed: true
+    detailed: true,
+    sort
   }
 
   const results = await getRecipes(filters)
