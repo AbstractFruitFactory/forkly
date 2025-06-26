@@ -9,7 +9,8 @@
 		isLoading = false,
 		useAnimation = true,
 		loadMore,
-		size = 'large'
+		size = 'large',
+		onRecipeClick
 	}: {
 		recipes: NonNullable<ComponentProps<typeof RecipeCard>['recipe']>[]
 		emptyMessage?: string
@@ -17,6 +18,7 @@
 		loadMore?: () => Promise<void>
 		useAnimation?: boolean
 		size?: 'large' | 'small'
+		onRecipeClick?: (id: string, e: MouseEvent) => void
 	} = $props()
 
 	let loadMoreTrigger: HTMLElement
@@ -59,9 +61,9 @@
 <CardGrid items={renderedItems} {emptyMessage} {useAnimation} {size}>
 	{#snippet item(recipe)}
 		{#if recipe.loading}
-			<RecipeCard loading size={size} />
+			<RecipeCard loading {size} />
 		{:else}
-			<RecipeCard {size} {recipe} />
+			<RecipeCard {size} {recipe} on:click={(e) => onRecipeClick?.(recipe.id, e)} />
 		{/if}
 	{/snippet}
 </CardGrid>

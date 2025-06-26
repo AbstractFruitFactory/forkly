@@ -10,6 +10,9 @@
 	import Search from '$lib/components/search/Search.svelte'
 	import { tick } from 'svelte'
 	import { scrollStore } from '$lib/state/scroll.svelte'
+	import RecipePopup from '$lib/components/recipe-popup/RecipePopup.svelte'
+	import { preloadData, pushState, goto } from '$app/navigation'
+	import { page } from '$app/state'
 
 	let {
 		recipes,
@@ -199,6 +202,25 @@
 		return ingredients.map((ingredient) => ingredient.name)
 	}
 
+	const openRecipePopup = async (id: string, e: MouseEvent) => {
+		if (innerWidth < 640 || e.shiftKey || e.metaKey || e.ctrlKey || e.button === 1) return
+
+		e.preventDefault()
+
+		const href = `/recipe/${id}`
+		const result = await preloadData(href)
+
+		if (result.type === 'loaded' && result.status === 200) {
+			pushState(href, { recipeModal: result.data })
+		} else {
+			goto(href)
+		}
+	}
+
+	const closePopup = () => {
+		history.back()
+	}
+
 	const emptyStateMessage = $derived(
 		selectedTags.length > 0 || selectedIngredients.length > 0
 			? 'No recipes found matching your criteria. Try different search terms or filters, or browse all recipes.'
@@ -297,11 +319,12 @@
 			{#snippet recipeGrid(size: 'large' | 'small')}
 				<div class="recipe-grid">
 					<RecipeGrid
-						recipes={recipes}
+						{recipes}
 						emptyMessage={emptyStateMessage}
 						{isLoading}
 						{loadMore}
 						{size}
+						onRecipeClick={openRecipePopup}
 					/>
 				</div>
 			{/snippet}
@@ -316,6 +339,12 @@
 		</div>
 	</div>
 {/snippet}
+
+<RecipePopup
+	data={$page.state.recipeModal}
+	isOpen={$page.state.recipeModal !== undefined}
+	onClose={closePopup}
+/>
 
 <style lang="scss">
 	@import '$lib/global.scss';
