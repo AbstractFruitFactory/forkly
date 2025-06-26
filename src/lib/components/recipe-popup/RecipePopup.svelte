@@ -3,6 +3,7 @@
 	import ExternalLink from 'lucide-svelte/icons/external-link'
 	import RecipePage from '../../../routes/(pages)/recipe/[id]/+page.svelte'
 	import { goto } from '$app/navigation'
+	import { page } from '$app/state'
 
 	export let data: any
 	export let isOpen = false
@@ -11,21 +12,18 @@
 
 	let popupEl: HTMLDivElement | null = null
 
-	const url = data ? `/recipe/${data.id}` : ''
-
 	const openFullPage = (e: MouseEvent) => {
-		if (!url) return
 		if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return
 		e.preventDefault()
-		goto(url, { replaceState: true })
+		goto(window.location.href, { replaceState: false })
 	}
 </script>
 
 <Popup {isOpen} {onClose} width="90vw" bind:containerEl={popupEl} openFrom={animateFrom}>
 	{#snippet headerActions()}
-		<a href={url} aria-label="Open full page" class="fullscreen-link" onclick={openFullPage}>
+		<button aria-label="Open full page" class="fullscreen-link" onclick={openFullPage}>
 			<ExternalLink size={20} />
-		</a>
+		</button>
 	{/snippet}
 	<RecipePage {data} />
 </Popup>
