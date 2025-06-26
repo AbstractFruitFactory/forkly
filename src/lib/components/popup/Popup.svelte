@@ -57,24 +57,27 @@
 							<h3 class="popup-title">{title}</h3>
 						{/if}
 					</div>
-					{#if showCloseButton}
-						<button class="popup-close" onclick={handleClose} aria-label="Close popup">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="20"
-								height="20"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<line x1="18" y1="6" x2="6" y2="18" />
-								<line x1="6" y1="6" x2="18" y2="18" />
-							</svg>
-						</button>
-					{/if}
+					<div class="popup-actions">
+						<slot name="header-actions" />
+						{#if showCloseButton}
+							<button class="popup-close" onclick={handleClose} aria-label="Close popup">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="20"
+									height="20"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<line x1="18" y1="6" x2="6" y2="18" />
+									<line x1="6" y1="6" x2="18" y2="18" />
+								</svg>
+							</button>
+						{/if}
+					</div>
 				</div>
 			{/if}
 			<div class="popup-content">
@@ -129,6 +132,12 @@
 		justify-content: space-between;
 		padding: var(--spacing-lg);
 		padding-bottom: 0;
+	}
+
+	.popup-actions {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
 	}
 
 	.popup-title {
