@@ -7,38 +7,33 @@
 
 	let {
 		isOpen = $bindable(false),
-		title,
-		showCloseButton = true,
-		closeOnClickOutside = true,
-		width = '400px',
-		onClose,
-		children,
-		openFrom = null,
-		containerEl = null
-		openFrom?: DOMRect | null
-		containerEl?: HTMLDivElement | null
-	$: containerEl = popupWrapper
+		title = $bindable(''),
+		showCloseButton = $bindable(true),
+		closeOnClickOutside = $bindable(true),
+		width = $bindable('400px'),
+		onClose = $bindable<(() => void) | undefined>(undefined),
+		children = $bindable<Snippet | undefined>(undefined),
+		headerActions = $bindable<Snippet | undefined>(undefined),
+		openFrom = $bindable<DOMRect | null>(null),
+	} = $props()
 
+	let popupWrapper: HTMLDivElement | null = $state(null)
 
 	async function animateOpen(rect: DOMRect) {
+		console.log('animateOpen', rect)
 		await tick()
 		if (!popupWrapper) return
-		const endRect = popupWrapper.getBoundingClientRect()
 
-		gsap.fromTo(
+		const startX = rect.left
+		const startY = rect.top
+		
+		gsap.from(
 			popupWrapper,
 			{
-				x: rect.left - endRect.left,
-				y: rect.top - endRect.top,
+				x: startX,
+				y: startY,
 				width: rect.width,
 				height: rect.height,
-				scale: 1
-			},
-			{
-				x: 0,
-				y: 0,
-				width: endRect.width,
-				height: endRect.height,
 				duration: 0.3,
 				ease: 'power1.inOut',
 				clearProps: 'width,height,transform'
@@ -46,22 +41,11 @@
 		)
 	}
 
-	$: if (isOpen && openFrom) {
-		animateOpen(openFrom)
-	}
-			transition:scale={openFrom ? null : { duration: 300, easing: quintOut, start: 0.95 }}
-	}: {
-		isOpen?: boolean
-		title?: string
-		showCloseButton?: boolean
-		closeOnClickOutside?: boolean
-		width?: string
-		onClose?: () => void
-		children?: Snippet
-		headerActions?: Snippet
-	} = $props()
-
-	let popupWrapper: HTMLDivElement | null = $state(null)
+	$effect(() => {
+		if (isOpen && openFrom) {
+			animateOpen(openFrom)
+		}
+	})
 
 	const handleClose = () => {
 		onClose?.()
@@ -87,7 +71,7 @@
 		<div
 			class="popup-container"
 			bind:this={popupWrapper}
-			transition:scale={{ duration: 300, easing: quintOut, start: 0.95 }}
+			transition:scale={openFrom ? undefined : { duration: 300, easing: quintOut, start: 0.95 }}
 			style="max-width: {width};"
 		>
 			{#if title || showCloseButton}
@@ -129,7 +113,7 @@
 
 <style lang="scss">
 	@import '$lib/global.scss';
-		transform-origin: top left;
+
 	.popup-overlay {
 		position: fixed;
 		top: 0;
@@ -142,6 +126,7 @@
 		justify-content: center;
 		z-index: var(--z-modal);
 		padding: var(--spacing-md);
+		transform-origin: top left;
 
 		@include mobile {
 			padding: 0;

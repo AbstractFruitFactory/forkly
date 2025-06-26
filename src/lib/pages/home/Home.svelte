@@ -202,10 +202,7 @@
 		return ingredients.map((ingredient) => ingredient.name)
 	}
 
-	let popupFromRect: DOMRect | null = null
-
-		popupFromRect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-		popupFromRect = null
+	
 	let resolveRecipePopup: (value: void) => void
 
 	const openRecipePopup = async (recipe: DetailedRecipe, e: MouseEvent) => {
@@ -213,11 +210,23 @@
 
 		e.preventDefault()
 
+		// Capture the bounding rectangle of the clicked element
+		const clickedElement = e.currentTarget as HTMLElement
+		const rect = clickedElement.getBoundingClientRect()
+		
+		// Convert DOMRect to plain object for serialization
+		const serializableRect = {
+			left: rect.left,
+			top: rect.top,
+			width: rect.width,
+			height: rect.height
+		}
+		
 		const href = `/recipe/${recipe.id}`
 		const result = await preloadData(href)
 
 		if (result.type === 'loaded' && result.status === 200) {
-			pushState(href, { recipeModal: result.data })
+			pushState(href, { recipeModal: result.data, animateFrom: serializableRect })
 		} else {
 			goto(href)
 		}
@@ -231,6 +240,7 @@
 
 	const closePopup = () => {
 		page.state.recipeModal = undefined
+		page.state.animateFrom = undefined
 		resolveRecipePopup()
 
 		history.back()
@@ -323,7 +333,6 @@
 							<Pill
 								text={`-${ingredient.label}`}
 								onRemove={() => removeIngredient(ingredient.label)}
-	animateFrom={popupFromRect}
 							/>
 						{/each}
 					</div>
@@ -360,6 +369,7 @@
 	data={page.state.recipeModal}
 	isOpen={page.state.recipeModal !== undefined}
 	onClose={closePopup}
+	animateFrom={page.state.animateFrom}
 />
 
 <style lang="scss">
