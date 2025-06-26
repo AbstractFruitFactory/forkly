@@ -2,6 +2,7 @@
 	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
 	import CardGrid from '$lib/components/card-grid/CardGrid.svelte'
 	import { onMount, type ComponentProps } from 'svelte'
+	import type { DetailedRecipe } from '$lib/server/db/recipe'
 
 	let {
 		recipes = [],
@@ -18,7 +19,7 @@
 		loadMore?: () => Promise<void>
 		useAnimation?: boolean
 		size?: 'large' | 'small'
-		onRecipeClick?: (id: string, e: MouseEvent) => void
+		onRecipeClick?: (recipe: DetailedRecipe, event: MouseEvent) => Promise<void>
 	} = $props()
 
 	let loadMoreTrigger: HTMLElement
@@ -63,7 +64,7 @@
 		{#if recipe.loading}
 			<RecipeCard loading {size} />
 		{:else}
-			<RecipeCard {size} {recipe} on:click={(e) => onRecipeClick?.(recipe.id, e)} />
+			<RecipeCard {size} {recipe} {onRecipeClick} />
 		{/if}
 	{/snippet}
 </CardGrid>

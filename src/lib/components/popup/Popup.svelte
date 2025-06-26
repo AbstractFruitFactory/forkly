@@ -10,7 +10,8 @@
 		closeOnClickOutside = true,
 		width = '400px',
 		onClose,
-		children
+		children,
+		headerActions
 	}: {
 		isOpen?: boolean
 		title?: string
@@ -19,6 +20,7 @@
 		width?: string
 		onClose?: () => void
 		children?: Snippet
+		headerActions?: Snippet
 	} = $props()
 
 	let popupWrapper: HTMLDivElement | null = $state(null)
@@ -58,7 +60,7 @@
 						{/if}
 					</div>
 					<div class="popup-actions">
-						<slot name="header-actions" />
+						{@render headerActions?.()}
 						{#if showCloseButton}
 							<button class="popup-close" onclick={handleClose} aria-label="Close popup">
 								<svg

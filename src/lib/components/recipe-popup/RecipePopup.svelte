@@ -19,14 +19,12 @@
 </script>
 
 <Popup {isOpen} {onClose} width="90vw">
-	{#if data}
-		<svelte:fragment slot="header-actions">
-			<a href={url} aria-label="Open full page" class="fullscreen-link" on:click={openFullPage}>
-				<ExternalLink size={20} />
-			</a>
-		</svelte:fragment>
-		<RecipePage {data} />
-	{/if}
+	{#snippet headerActions()}
+		<a href={url} aria-label="Open full page" class="fullscreen-link" onclick={openFullPage}>
+			<ExternalLink size={20} />
+		</a>
+	{/snippet}
+	<RecipePage {data} />
 </Popup>
 
 <style lang="scss">

@@ -13,7 +13,7 @@
 	import RecipePopup from '$lib/components/recipe-popup/RecipePopup.svelte'
 	import { preloadData, pushState, goto } from '$app/navigation'
 	import { page } from '$app/state'
-
+	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	let {
 		recipes,
 		isLoading = false,
@@ -202,12 +202,14 @@
 		return ingredients.map((ingredient) => ingredient.name)
 	}
 
-	const openRecipePopup = async (id: string, e: MouseEvent) => {
+	let resolveRecipePopup: (value: void) => void
+
+	const openRecipePopup = async (recipe: DetailedRecipe, e: MouseEvent) => {
 		if (innerWidth < 640 || e.shiftKey || e.metaKey || e.ctrlKey || e.button === 1) return
 
 		e.preventDefault()
 
-		const href = `/recipe/${id}`
+		const href = `/recipe/${recipe.id}`
 		const result = await preloadData(href)
 
 		if (result.type === 'loaded' && result.status === 200) {
@@ -215,9 +217,18 @@
 		} else {
 			goto(href)
 		}
+
+		const { promise, resolve } = Promise.withResolvers<void>()
+
+		resolveRecipePopup = resolve
+
+		return promise
 	}
 
 	const closePopup = () => {
+		page.state.recipeModal = undefined
+		resolveRecipePopup()
+
 		history.back()
 	}
 
@@ -341,8 +352,8 @@
 {/snippet}
 
 <RecipePopup
-	data={$page.state.recipeModal}
-	isOpen={$page.state.recipeModal !== undefined}
+	data={page.state.recipeModal}
+	isOpen={page.state.recipeModal !== undefined}
 	onClose={closePopup}
 />
 

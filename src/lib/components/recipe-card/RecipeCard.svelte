@@ -13,7 +13,8 @@
 		recipe,
 		loading = false,
 		size = 'large',
-		menu
+		menu,
+		onRecipeClick
 	}: {
 		recipe?: DetailedRecipe
 		loading?: boolean
@@ -21,6 +22,7 @@
 		menu?: {
 			options: { [key: string]: () => void }
 		}
+		onRecipeClick?: (recipe: DetailedRecipe, event: MouseEvent) => Promise<void>
 	} = $props()
 
 	let isNavigating = $state(false)
@@ -37,6 +39,9 @@
 	const handleClick = (event: MouseEvent) => {
 		if (!recipe) return
 		isNavigating = true
+		onRecipeClick?.(recipe, event).then(() => {
+			isNavigating = false
+		})
 	}
 
 	$effect(() => {
