@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
-	import { fade, scale } from 'svelte/transition'
-	import { quintOut } from 'svelte/easing'
+	import { fade } from 'svelte/transition'
 	import gsap from 'gsap'
 	import { tick } from 'svelte'
 
@@ -14,40 +13,80 @@
 		onClose = $bindable<(() => void) | undefined>(undefined),
 		children = $bindable<Snippet | undefined>(undefined),
 		headerActions = $bindable<Snippet | undefined>(undefined),
-		openFrom = $bindable<DOMRect | null>(null),
+		openFrom = $bindable<DOMRect | null>(null)
 	} = $props()
 
 	let popupWrapper: HTMLDivElement | null = $state(null)
 
+	// Animate opening: from card‐rect → final popup rect
 	async function animateOpen(rect: DOMRect) {
-		console.log('animateOpen', rect)
-		await tick()
+		await tick() // wait for DOM to render
 		if (!popupWrapper) return
 
-		const startX = rect.left
-		const startY = rect.top
-		
-		gsap.from(
-			popupWrapper,
-			{
-				x: startX,
-				y: startY,
-				width: rect.width,
-				height: rect.height,
-				duration: 0.3,
-				ease: 'power1.inOut',
-				clearProps: 'width,height,transform'
-			}
-		)
+		// 1. measure the *final* bounding box
+		const finalRect = popupWrapper.getBoundingClientRect()
+
+		// 2. compute the deltas
+		const scaleX = rect.width / finalRect.width
+		const scaleY = rect.height / finalRect.height
+		const x = rect.left - finalRect.left
+		const y = rect.top - finalRect.top
+
+		// 3. snap into place
+		gsap.set(popupWrapper, {
+			transformOrigin: 'top left',
+			x,
+			y,
+			scaleX,
+			scaleY
+		})
+
+		// 4. animate back to identity (final CSS position/size)
+		gsap.to(popupWrapper, {
+			duration: 0.3,
+			x: 0,
+			y: 0,
+			scaleX: 1,
+			scaleY: 1,
+			ease: 'power1.inOut',
+			clearProps: 'transform'
+		})
 	}
 
+	// Animate closing: final popup rect → card‐rect
+	function animateClose(rect: DOMRect) {
+		if (!popupWrapper) return Promise.resolve()
+		const finalRect = popupWrapper.getBoundingClientRect()
+		const scaleX = rect.width / finalRect.width
+		const scaleY = rect.height / finalRect.height
+		const x = rect.left - finalRect.left
+		const y = rect.top - finalRect.top
+
+		return new Promise<void>((resolve) => {
+			gsap.to(popupWrapper!, {
+				duration: 0.3,
+				x,
+				y,
+				scaleX,
+				scaleY,
+				ease: 'power1.inOut',
+				onComplete: resolve
+			})
+		})
+	}
+
+	// when isOpen & openFrom change → animate open
 	$effect(() => {
 		if (isOpen && openFrom) {
 			animateOpen(openFrom)
 		}
 	})
 
-	const handleClose = () => {
+	// close handler: reverse‐animate then call onClose
+	const handleClose = async () => {
+		if (openFrom && popupWrapper) {
+			await animateClose(openFrom)
+		}
 		onClose?.()
 	}
 
@@ -65,15 +104,9 @@
 </script>
 
 <svelte:document onmousedown={handleClickOutside} onkeydown={handleKeydown} />
-
 {#if isOpen}
-	<div class="popup-overlay" transition:fade={{ duration: 200 }}>
-		<div
-			class="popup-container"
-			bind:this={popupWrapper}
-			transition:scale={openFrom ? undefined : { duration: 300, easing: quintOut, start: 0.95 }}
-			style="max-width: {width};"
-		>
+	<div class="popup-overlay" transition:fade={{ duration: openFrom ? 0 : 200 }}>
+		<div class="popup-container" bind:this={popupWrapper} style="max-width: {width};">
 			{#if title || showCloseButton}
 				<div class="popup-header">
 					<div>
@@ -116,24 +149,17 @@
 
 	.popup-overlay {
 		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
+		inset: 0;
 		background-color: rgba(0, 0, 0, 0.8);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		z-index: var(--z-modal);
 		padding: var(--spacing-md);
-		transform-origin: top left;
-
-		@include mobile {
-			padding: 0;
-		}
 	}
 
 	.popup-container {
+		position: relative;
 		background-color: var(--color-background);
 		border-radius: var(--border-radius-lg);
 		box-shadow: var(--shadow-lg);
