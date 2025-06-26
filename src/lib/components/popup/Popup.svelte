@@ -2,6 +2,8 @@
 	import type { Snippet } from 'svelte'
 	import { fade, scale } from 'svelte/transition'
 	import { quintOut } from 'svelte/easing'
+	import gsap from 'gsap'
+	import { tick } from 'svelte'
 
 	let {
 		isOpen = $bindable(false),
@@ -11,7 +13,43 @@
 		width = '400px',
 		onClose,
 		children,
-		headerActions
+		openFrom = null,
+		containerEl = null
+		openFrom?: DOMRect | null
+		containerEl?: HTMLDivElement | null
+	$: containerEl = popupWrapper
+
+
+	async function animateOpen(rect: DOMRect) {
+		await tick()
+		if (!popupWrapper) return
+		const endRect = popupWrapper.getBoundingClientRect()
+
+		gsap.fromTo(
+			popupWrapper,
+			{
+				x: rect.left - endRect.left,
+				y: rect.top - endRect.top,
+				width: rect.width,
+				height: rect.height,
+				scale: 1
+			},
+			{
+				x: 0,
+				y: 0,
+				width: endRect.width,
+				height: endRect.height,
+				duration: 0.3,
+				ease: 'power1.inOut',
+				clearProps: 'width,height,transform'
+			}
+		)
+	}
+
+	$: if (isOpen && openFrom) {
+		animateOpen(openFrom)
+	}
+			transition:scale={openFrom ? null : { duration: 300, easing: quintOut, start: 0.95 }}
 	}: {
 		isOpen?: boolean
 		title?: string
@@ -91,6 +129,7 @@
 
 <style lang="scss">
 	@import '$lib/global.scss';
+		transform-origin: top left;
 	.popup-overlay {
 		position: fixed;
 		top: 0;

@@ -7,6 +7,9 @@
 	export let data: any
 	export let isOpen = false
 	export let onClose: () => void = () => {}
+	export let animateFrom: DOMRect | null = null
+
+	let popupEl: HTMLDivElement | null = null
 
 	const url = data ? `/recipe/${data.id}` : ''
 
@@ -18,7 +21,7 @@
 	}
 </script>
 
-<Popup {isOpen} {onClose} width="90vw">
+<Popup {isOpen} {onClose} width="90vw" bind:containerEl={popupEl} openFrom={animateFrom}>
 	{#snippet headerActions()}
 		<a href={url} aria-label="Open full page" class="fullscreen-link" onclick={openFullPage}>
 			<ExternalLink size={20} />

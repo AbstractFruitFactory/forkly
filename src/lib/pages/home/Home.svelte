@@ -202,6 +202,10 @@
 		return ingredients.map((ingredient) => ingredient.name)
 	}
 
+	let popupFromRect: DOMRect | null = null
+
+		popupFromRect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+		popupFromRect = null
 	let resolveRecipePopup: (value: void) => void
 
 	const openRecipePopup = async (recipe: DetailedRecipe, e: MouseEvent) => {
@@ -319,6 +323,7 @@
 							<Pill
 								text={`-${ingredient.label}`}
 								onRemove={() => removeIngredient(ingredient.label)}
+	animateFrom={popupFromRect}
 							/>
 						{/each}
 					</div>
