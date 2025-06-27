@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte'
 	import { fade } from 'svelte/transition'
 	import gsap from 'gsap'
-	import { tick } from 'svelte'
+	import { onMount, tick } from 'svelte'
 
 	let {
 		isOpen = $bindable(false),
@@ -17,6 +17,7 @@
 	} = $props()
 
 	let popupWrapper: HTMLDivElement | null = $state(null)
+	let showContent = $state(true)
 
 	// Animate opening: from card‐rect → final popup rect
 	async function animateOpen(rect: DOMRect) {
@@ -80,10 +81,14 @@
 		if (isOpen && openFrom) {
 			animateOpen(openFrom)
 		}
+		if (isOpen) {
+			showContent = true
+		}
 	})
 
 	// close handler: reverse‐animate then call onClose
 	const handleClose = async () => {
+		showContent = false
 		if (openFrom && popupWrapper) {
 			await animateClose(openFrom)
 		}
@@ -104,6 +109,7 @@
 </script>
 
 <svelte:document onmousedown={handleClickOutside} onkeydown={handleKeydown} />
+
 {#if isOpen}
 	<div class="popup-overlay" transition:fade={{ duration: openFrom ? 0 : 200 }}>
 		<div class="popup-container" bind:this={popupWrapper} style="max-width: {width};">
@@ -137,9 +143,11 @@
 					</div>
 				</div>
 			{/if}
-			<div class="popup-content">
-				{@render children?.()}
-			</div>
+			{#if showContent}
+				<div class="popup-content">
+					{@render children?.()}
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -220,8 +228,9 @@
 
 	.popup-content {
 		padding: var(--spacing-lg);
-		overflow-y: auto;
+		overflow-y: scroll;
 		height: 100%;
+		scrollbar-width: thin;
 
 		@include mobile {
 			padding: var(--spacing-md);

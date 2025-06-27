@@ -9,17 +9,17 @@
 		mediaType?: 'image' | 'video'
 	}
 
-        let {
-                mainImageUrl,
-                media,
-                aspectRatio = '1/1',
-                autoplay = false
-        } = $props<{
-                mainImageUrl?: string
-                media: Media[]
-                aspectRatio?: string
-                autoplay?: boolean
-        }>()
+	let {
+		mainImageUrl,
+		media,
+		aspectRatio = '1/1',
+		autoplay = false
+	} = $props<{
+		mainImageUrl?: string
+		media: Media[]
+		aspectRatio?: string
+		autoplay?: boolean
+	}>()
 
 	// Video player and slideshow state
 	let videoPlayerVisible = $state(false)
@@ -49,16 +49,16 @@
 	])
 
 	// Check if we only have images (including main recipe image)
-        const hasOnlyImages = $derived(instructionMedia.every((media) => media.type === 'image'))
-        const hasVideos = $derived(instructionMedia.some((media) => media.type === 'video'))
+	const hasOnlyImages = $derived(instructionMedia.every((media) => media.type === 'image'))
+	const hasVideos = $derived(instructionMedia.some((media) => media.type === 'video'))
 
-        $effect(() => {
-                if (autoplay && hasVideos) {
-                        videoPlayerVisible = true
-                } else if (!autoplay) {
-                        videoPlayerVisible = false
-                }
-        })
+	$effect(() => {
+		if (autoplay && hasVideos) {
+			videoPlayerVisible = true
+		} else if (!autoplay) {
+			videoPlayerVisible = false
+		}
+	})
 
 	function toggleVideoPlayer() {
 		videoPlayerVisible = !videoPlayerVisible
@@ -133,11 +133,11 @@
 				<div class="slide">
 					<img src={instructionMedia[0].url} alt="Recipe" />
 				</div>
-                                {#if hasVideos && !autoplay}
-                                        <button class="play-button" onclick={toggleVideoPlayer}>
-                                                <svelte:component this={Play} size={28} color="white" />
-                                        </button>
-                                {/if}
+				{#if hasVideos && !autoplay}
+					<button class="play-button" onclick={toggleVideoPlayer}>
+						<svelte:component this={Play} size={28} color="white" />
+					</button>
+				{/if}
 			{/if}
 		</div>
 	{/if}
