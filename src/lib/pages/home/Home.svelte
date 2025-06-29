@@ -11,7 +11,7 @@
 	import { tick } from 'svelte'
 	import { scrollStore } from '$lib/state/scroll.svelte'
 	import RecipePopup from '$lib/components/recipe-popup/RecipePopup.svelte'
-	import { preloadData, pushState, goto } from '$app/navigation'
+	import { preloadData, pushState, goto, replaceState } from '$app/navigation'
 	import { page } from '$app/state'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	let {
@@ -202,31 +202,18 @@
 		return ingredients.map((ingredient) => ingredient.name)
 	}
 
-	
 	let resolveRecipePopup: (value: void) => void
 
 	const openRecipePopup = async (recipe: DetailedRecipe, e: MouseEvent) => {
-		if (innerWidth < 640 || e.shiftKey || e.metaKey || e.ctrlKey || e.button === 1) return
+		if (e.shiftKey || e.metaKey || e.ctrlKey || e.button === 1) return
 
 		e.preventDefault()
 
-		// Capture the bounding rectangle of the clicked element
-		const clickedElement = e.currentTarget as HTMLElement
-		const rect = clickedElement.getBoundingClientRect()
-		
-		// Convert DOMRect to plain object for serialization
-		const serializableRect = {
-			left: rect.left,
-			top: rect.top,
-			width: rect.width,
-			height: rect.height
-		}
-		
 		const href = `/recipe/${recipe.id}`
 		const result = await preloadData(href)
 
 		if (result.type === 'loaded' && result.status === 200) {
-			pushState(href, { recipeModal: result.data, animateFrom: serializableRect })
+			pushState(href, { recipeModal: result.data })
 		} else {
 			goto(href)
 		}
@@ -240,10 +227,8 @@
 
 	const closePopup = () => {
 		page.state.recipeModal = undefined
-		page.state.animateFrom = undefined
 		resolveRecipePopup()
-
-		history.back()
+		replaceState('/', { recipeModal: undefined })
 	}
 
 	const emptyStateMessage = $derived(
@@ -251,6 +236,17 @@
 			? 'No recipes found matching your criteria. Try different search terms or filters, or browse all recipes.'
 			: 'No recipes yet! Be the first to create one.'
 	)
+
+	onMount(() => {
+		const callback = () => {
+			closePopup()
+		}
+		window.addEventListener('popstate', callback)
+
+		return () => {
+			window.removeEventListener('popstate', callback)
+		}
+	})
 
 	setSlots({ homepageHeader, content })
 </script>

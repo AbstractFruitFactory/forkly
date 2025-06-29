@@ -3,20 +3,12 @@
 	import ExternalLink from 'lucide-svelte/icons/external-link'
 	import RecipePage from '../../../routes/(pages)/recipe/[id]/+page.svelte'
 	import { goto } from '$app/navigation'
-	import { page } from '$app/state'
 
 	let {
 		data = $bindable<any>(undefined),
 		isOpen = $bindable(false),
-		onClose = $bindable<(() => void)>(() => {}),
-		animateFrom = $bindable<{ left: number; top: number; width: number; height: number } | null>(null)
+		onClose = $bindable<() => void>(() => {})
 	} = $props()
-
-	// Convert plain object back to DOMRect for the Popup component
-	const domRect = $derived(() => {
-		if (!animateFrom) return null
-		return new DOMRect(animateFrom.left, animateFrom.top, animateFrom.width, animateFrom.height)
-	})
 
 	const openFullPage = (e: MouseEvent) => {
 		if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return
@@ -25,7 +17,7 @@
 	}
 </script>
 
-<Popup {isOpen} {onClose} width="90vw" openFrom={domRect()}>
+<Popup {isOpen} {onClose} width="90vw">
 	{#snippet headerActions()}
 		<button aria-label="Open full page" class="fullscreen-link" onclick={openFullPage}>
 			<ExternalLink size={20} />

@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
 	import { fade } from 'svelte/transition'
-	import gsap from 'gsap'
-	import { onMount, tick } from 'svelte'
 
 	let {
 		isOpen = $bindable(false),
@@ -12,91 +10,15 @@
 		width = $bindable('400px'),
 		onClose = $bindable<(() => void) | undefined>(undefined),
 		children = $bindable<Snippet | undefined>(undefined),
-		headerActions = $bindable<Snippet | undefined>(undefined),
-		openFrom = $bindable<DOMRect | null>(null)
+		headerActions = $bindable<Snippet | undefined>(undefined)
 	} = $props()
 
-	let popupWrapper: HTMLDivElement | null = $state(null)
-	let showContent = $state(true)
-
-	// Animate opening: from card‐rect → final popup rect
-	async function animateOpen(rect: DOMRect) {
-		await tick() // wait for DOM to render
-		if (!popupWrapper) return
-
-		// 1. measure the *final* bounding box
-		const finalRect = popupWrapper.getBoundingClientRect()
-
-		// 2. compute the deltas
-		const scaleX = rect.width / finalRect.width
-		const scaleY = rect.height / finalRect.height
-		const x = rect.left - finalRect.left
-		const y = rect.top - finalRect.top
-
-		// 3. snap into place
-		gsap.set(popupWrapper, {
-			transformOrigin: 'top left',
-			x,
-			y,
-			scaleX,
-			scaleY
-		})
-
-		// 4. animate back to identity (final CSS position/size)
-		gsap.to(popupWrapper, {
-			duration: 0.3,
-			x: 0,
-			y: 0,
-			scaleX: 1,
-			scaleY: 1,
-			ease: 'power1.inOut',
-			clearProps: 'transform'
-		})
-	}
-
-	// Animate closing: final popup rect → card‐rect
-	function animateClose(rect: DOMRect) {
-		if (!popupWrapper) return Promise.resolve()
-		const finalRect = popupWrapper.getBoundingClientRect()
-		const scaleX = rect.width / finalRect.width
-		const scaleY = rect.height / finalRect.height
-		const x = rect.left - finalRect.left
-		const y = rect.top - finalRect.top
-
-		return new Promise<void>((resolve) => {
-			gsap.to(popupWrapper!, {
-				duration: 0.3,
-				x,
-				y,
-				scaleX,
-				scaleY,
-				ease: 'power1.inOut',
-				onComplete: resolve
-			})
-		})
-	}
-
-	// when isOpen & openFrom change → animate open
-	$effect(() => {
-		if (isOpen && openFrom) {
-			animateOpen(openFrom)
-		}
-		if (isOpen) {
-			showContent = true
-		}
-	})
-
-	// close handler: reverse‐animate then call onClose
-	const handleClose = async () => {
-		showContent = false
-		if (openFrom && popupWrapper) {
-			await animateClose(openFrom)
-		}
+	const handleClose = () => {
 		onClose?.()
 	}
 
 	const handleClickOutside = (e: MouseEvent) => {
-		if (closeOnClickOutside && popupWrapper && !popupWrapper.contains(e.target as Node) && isOpen) {
+		if (closeOnClickOutside && e.target === e.currentTarget && isOpen) {
 			handleClose()
 		}
 	}
@@ -108,11 +30,13 @@
 	}
 </script>
 
-<svelte:document onmousedown={handleClickOutside} onkeydown={handleKeydown} />
+<svelte:document onkeydown={handleKeydown} />
 
 {#if isOpen}
-	<div class="popup-overlay" transition:fade={{ duration: openFrom ? 0 : 200 }}>
-		<div class="popup-container" bind:this={popupWrapper} style="max-width: {width};">
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div class="popup-overlay" transition:fade={{ duration: 200 }} onclick={handleClickOutside}>
+		<div class="popup-container" style="max-width: {width};">
 			{#if title || showCloseButton}
 				<div class="popup-header">
 					<div>
@@ -143,11 +67,9 @@
 					</div>
 				</div>
 			{/if}
-			{#if showContent}
-				<div class="popup-content">
-					{@render children?.()}
-				</div>
-			{/if}
+			<div class="popup-content">
+				{@render children?.()}
+			</div>
 		</div>
 	</div>
 {/if}
@@ -176,14 +98,6 @@
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
-
-		@include mobile {
-			width: 100vw;
-			height: 100dvh;
-			border-radius: 0;
-			box-shadow: none;
-			max-height: none;
-		}
 	}
 
 	.popup-header {
@@ -191,7 +105,6 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: var(--spacing-lg);
-		padding-bottom: 0;
 	}
 
 	.popup-actions {
