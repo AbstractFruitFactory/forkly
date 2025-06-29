@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
-	import { fade } from 'svelte/transition'
+	import { quintOut } from 'svelte/easing'
+	import { fade, scale } from 'svelte/transition'
 
 	let {
 		isOpen = $bindable(false),
@@ -45,7 +46,11 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="popup-overlay" transition:fade={{ duration: 200 }} onclick={handleClickOutside}>
-		<div class="popup-container" style="max-width: {width};">
+		<div
+			class="popup-container"
+			style="max-width: {width};"
+			transition:scale={{ duration: 300, easing: quintOut, start: 0.7 }}
+		>
 			{#if title || showCloseButton}
 				<div class="popup-header">
 					<div>
