@@ -1,16 +1,33 @@
 <script lang="ts">
-	import { onMount } from 'svelte'
-	import { goto } from '$app/navigation'
-	let { data }: { data: { success: boolean; message: string } } = $props()
+       import { onMount } from 'svelte'
+       import { goto } from '$app/navigation'
+       import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
+       let { data } = $props()
 
-	onMount(() => {
-		if (data.success) setTimeout(() => goto('/'), 2000)
-	})
+       let result: Awaited<ReturnType<typeof data.verification>> | null = null
+       let isLoading = $state(true)
+
+       $effect(() => {
+               const p = data.verification
+               isLoading = true
+               p.then((r) => {
+                       result = r
+                       isLoading = false
+               })
+       })
+
+       onMount(() => {
+               if (result?.success) setTimeout(() => goto('/'), 2000)
+       })
 </script>
 
 <div class="verify-email-container">
-	<h1>{data.success ? 'Email Verified' : 'Verification Failed'}</h1>
-	<p>{data.message}</p>
+        {#if isLoading || !result}
+                <Skeleton height="4rem" />
+        {:else}
+                <h1>{result.success ? 'Email Verified' : 'Verification Failed'}</h1>
+                <p>{result.message}</p>
+        {/if}
 </div>
 
 <style>

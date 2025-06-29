@@ -3,11 +3,11 @@ import type { Actions, PageServerLoad } from './$types'
 import * as auth from '$lib/server/auth'
 import * as v from 'valibot'
 
-export const load: PageServerLoad = async ({ locals }) => {
-	if (locals.user) {
-		throw redirect(302, '/')
-	}
-	return {}
+export const load: PageServerLoad = ({ locals }) => {
+        if (locals.user) {
+                throw redirect(302, '/')
+        }
+        return {}
 }
 
 const loginSchema = v.object({

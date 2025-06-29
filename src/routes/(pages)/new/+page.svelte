@@ -7,11 +7,24 @@
 		type UnitSystem
 	} from '$lib/state/unitPreference.svelte'
 	import type { TagSearchResponse } from '../../api/tags/+server'
-	import { safeFetch } from '$lib/utils/fetch'
-	import { fly } from 'svelte/transition'
-	import { FLY_DOWN_IN, FLY_DOWN_OUT } from '$lib/utils/transitions'
+       import { safeFetch } from '$lib/utils/fetch'
+       import { fly } from 'svelte/transition'
+       import { FLY_DOWN_IN, FLY_DOWN_OUT } from '$lib/utils/transitions'
+       import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 
-	let { form, data } = $props()
+       let { form, data } = $props()
+
+       let availableTags: Awaited<ReturnType<typeof data.availableTags>> = []
+       let isTagsLoading = $state(true)
+
+       $effect(() => {
+               const tagsPromise = data.availableTags
+               isTagsLoading = true
+               tagsPromise.then((tags) => {
+                       availableTags = tags
+                       isTagsLoading = false
+               })
+       })
 
 	let searchTimeout: ReturnType<typeof setTimeout>
 	let tagSearchTimeout: ReturnType<typeof setTimeout>
@@ -56,20 +69,24 @@
 		}
 	}
 
-	const unitSystem = $derived(unitPreferenceStore.unitSystem)
+       const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
 <div in:fly={FLY_DOWN_IN} out:fly={FLY_DOWN_OUT}>
 	{#if form?.success}
 		<RecipeSuccess recipeId={form.recipeId!} />
 	{:else}
-		<NewRecipe
-			errors={form?.errors}
-			onSearchIngredients={handleSearchIngredients}
-			onSearchTags={handleSearchTags}
-			availableTags={data?.availableTags ?? []}
-			{unitSystem}
-			onUnitChange={handleUnitChange}
-		/>
+               {#if isTagsLoading}
+                       <Skeleton height="10rem" />
+               {:else}
+                       <NewRecipe
+                               errors={form?.errors}
+                               onSearchIngredients={handleSearchIngredients}
+                               onSearchTags={handleSearchTags}
+                               availableTags={availableTags}
+                               {unitSystem}
+                               onUnitChange={handleUnitChange}
+                       />
+               {/if}
 	{/if}
 </div>

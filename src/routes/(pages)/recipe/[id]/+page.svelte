@@ -7,9 +7,30 @@
 	import type { RecipesLikeResponse } from '../../../api/recipes/like/+server.js'
 	import type { RecipesSaveResponse } from '../../../api/recipes/save/+server.js'
 	import type { RecipeData } from '$lib/types'
-	import type { CollectionsResponse } from '../../../api/collections/+server.js'
+import type { CollectionsResponse } from '../../../api/collections/+server.js'
+import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 
-	let { data } = $props()
+       let { data } = $props()
+
+       let recipe: Awaited<ReturnType<typeof data.recipe>> | null = null
+       let comments: Awaited<ReturnType<typeof data.comments>> = []
+       let collections: Awaited<ReturnType<typeof data.collections>> | undefined = undefined
+       let isLoading = $state(true)
+
+       $effect(() => {
+               const recipePromise = data.recipe
+               const commentsPromise = data.comments
+               const collectionsPromise = data.collections
+               isLoading = true
+               Promise.all([recipePromise, commentsPromise, collectionsPromise]).then(
+                       ([r, c, cols]) => {
+                               recipe = r
+                               comments = c
+                               collections = cols
+                               isLoading = false
+                       }
+               )
+       })
 
 	const handleLike = async () => {
 		await safeFetch<RecipesLikeResponse>()(`/api/recipes/like`, {
@@ -49,44 +70,52 @@
 		}
 	}
 
-	const unitSystem = $derived(unitPreferenceStore.unitSystem)
+       const unitSystem = $derived(unitPreferenceStore.unitSystem)
 
-	// Ensure createdAt is a string
-	const createdAtStr =
-		typeof data.createdAt === 'string'
-			? data.createdAt
-			: data.createdAt instanceof Date
-				? data.createdAt.toISOString()
-				: new Date().toISOString()
+       let recipeData: RecipeData | null = null
 
-	const recipeData: RecipeData = {
-		...data,
-		createdAt: createdAtStr,
-		ingredients: data.ingredients,
-		user: data.user
-			? {
-					username: data.user.username,
-					avatarUrl: data.user.avatarUrl || undefined
-				}
-			: undefined
-	}
+       $effect(() => {
+               if (!recipe) return
+               const createdAtStr =
+                       typeof recipe.createdAt === 'string'
+                               ? recipe.createdAt
+                               : recipe.createdAt instanceof Date
+                                       ? recipe.createdAt.toISOString()
+                                       : new Date().toISOString()
+
+               recipeData = {
+                       ...recipe,
+                       createdAt: createdAtStr,
+                       ingredients: recipe.ingredients,
+                       user: recipe.user
+                               ? {
+                                               username: recipe.user.username,
+                                               avatarUrl: recipe.user.avatarUrl || undefined
+                                       }
+                               : undefined
+               }
+       })
 </script>
 
 <div class="recipe-page" data-page="recipe">
-	<Recipe
-		recipe={recipeData}
-		nutritionInfo={{
-			totalNutrition: data.nutrition,
-			hasCustomIngredients: false
-		}}
-		{unitSystem}
-		onUnitChange={handleUnitChange}
-		onLike={handleLike}
-		onSave={handleSave}
-		onBackClick={() => goto('/')}
-		onCreateCollection={createCollection}
-		user={data.user ? { collections: data.collections!.map((c) => c.name) } : undefined}
-		recipeComments={data.comments}
-		formError={page.form?.error}
-	/>
+        {#if isLoading || !recipeData}
+                <Skeleton height="20rem" />
+        {:else}
+                <Recipe
+                        recipe={recipeData}
+                        nutritionInfo={{
+                                totalNutrition: recipeData.nutrition,
+                                hasCustomIngredients: false
+                        }}
+                        {unitSystem}
+                        onUnitChange={handleUnitChange}
+                        onLike={handleLike}
+                        onSave={handleSave}
+                        onBackClick={() => goto('/')}
+                        onCreateCollection={createCollection}
+                        user={recipeData.user ? { collections: collections?.map((c) => c.name) } : undefined}
+                        recipeComments={comments}
+                        formError={page.form?.error}
+                />
+        {/if}
 </div>

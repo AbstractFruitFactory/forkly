@@ -4,26 +4,29 @@ import { db } from '$lib/server/db'
 import * as table from '$lib/server/db/schema'
 import { eq, and } from 'drizzle-orm'
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = ({ params }) => {
     const { token } = params
-    if (!token) return { success: false, message: 'Invalid verification link.' }
+    if (!token) return { verification: Promise.resolve({ success: false, message: 'Invalid verification link.' }) }
 
-    const record = await db
+    const verification = db
         .select()
         .from(table.emailVerification)
         .where(eq(table.emailVerification.token, token))
         .then(results => results[0])
+        .then(async (record) => {
+            if (!record) return { success: false, message: 'Invalid or expired verification link.' }
+            if (record.expiresAt < new Date()) {
+                await db.delete(table.emailVerification).where(eq(table.emailVerification.token, token))
+                return { success: false, message: 'Verification link has expired.' }
+            }
 
-    if (!record) return { success: false, message: 'Invalid or expired verification link.' }
-    if (record.expiresAt < new Date()) {
-        await db.delete(table.emailVerification).where(eq(table.emailVerification.token, token))
-        return { success: false, message: 'Verification link has expired.' }
-    }
+            await db.update(table.user)
+                .set({ emailVerified: true })
+                .where(eq(table.user.id, record.userId))
+            await db.delete(table.emailVerification).where(eq(table.emailVerification.token, token))
 
-    await db.update(table.user)
-        .set({ emailVerified: true })
-        .where(eq(table.user.id, record.userId))
-    await db.delete(table.emailVerification).where(eq(table.emailVerification.token, token))
+            return { success: true, message: 'Your email has been verified, and you will be redirected to the home page shortly.' }
+        })
 
-    return { success: true, message: 'Your email has been verified, and you will be redirected to the home page shortly.' }
-} 
+    return { verification }
+}
