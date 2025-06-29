@@ -7,8 +7,8 @@ import type { PaginationCookie, SearchCookie } from '$lib/utils/cookies'
 const PAGINATION_LIMIT = 18
 
 export const load: PageServerLoad = ({ fetch, cookies }) => {
-        const search = JSON.parse(cookies.get('search') as string | undefined ?? '{}') as SearchCookie | undefined
-        const { page } = JSON.parse(cookies.get('pagination') as string | undefined ?? '{}') as PaginationCookie
+	const search = JSON.parse(cookies.get('search') as string | undefined ?? '{}') as SearchCookie | undefined
+	const { page } = JSON.parse(cookies.get('pagination') as string | undefined ?? '{}') as PaginationCookie
 
 	cookies.delete('pagination', { path: '/' })
 
@@ -19,28 +19,28 @@ export const load: PageServerLoad = ({ fetch, cookies }) => {
 	if (search?.excludedIngredients?.length && search.excludedIngredients.length > 0) searchParams.set('excludedIngredients', search.excludedIngredients.join(','))
 	if (search?.sort) searchParams.set('sort', search.sort)
 
-        const resultPromise = safeFetch<RecipesSearchResponse>(fetch)(
-                '/api/recipes/search?' + searchParams.toString() + '&page=' + page
-        )
+	const resultPromise = safeFetch<RecipesSearchResponse>(fetch)(
+		'/api/recipes/search?' + searchParams.toString() + '&page=' + page
+	)
 
-        const recipesPromise = resultPromise.then((recipes) => {
-                if (recipes.isErr()) {
-                        console.log(recipes.error)
-                        throw error(500, 'Failed to fetch recipes')
-                }
-                return recipes.value.results
-        })
+	const recipesPromise = resultPromise.then((recipes) => {
+		if (recipes.isErr()) {
+			console.log(recipes.error)
+			throw error(500, 'Failed to fetch recipes')
+		}
+		return recipes.value.results
+	})
 
-        return {
-                hasMore: recipesPromise.then((r) => r.length === PAGINATION_LIMIT),
-                loadedPage: page !== undefined,
-                recipes: recipesPromise,
-                initialState: {
-                        search: search?.query || '',
-                        tags: search?.tags || [],
-                        ingredients: search?.ingredients || [],
-                        excludedIngredients: search?.excludedIngredients || [],
-                        sort: search?.sort || 'popular'
-                }
-        }
+	return {
+		hasMore: recipesPromise.then((r) => r.length === PAGINATION_LIMIT),
+		loadedPage: page !== undefined,
+		recipes: recipesPromise,
+		initialState: {
+			search: search?.query || '',
+			tags: search?.tags || [],
+			ingredients: search?.ingredients || [],
+			excludedIngredients: search?.excludedIngredients || [],
+			sort: search?.sort || 'popular'
+		}
+	}
 }
