@@ -7,7 +7,7 @@
 	let {
 		data = $bindable<any>(undefined),
 		isOpen = $bindable(false),
-		onClose = $bindable<() => void>(() => {})
+		onClose = $bindable<() => void>(undefined)
 	} = $props()
 
 	const openFullPage = (e: MouseEvent) => {
