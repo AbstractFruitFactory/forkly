@@ -9,16 +9,21 @@
 	import { onMount, untrack } from 'svelte'
 	import { useCookies } from '$lib/utils/cookies'
 
-	let { data } = $props()
+        let { data } = $props()
 
-	let recipes = $state(data.recipes)
+        let recipes: Awaited<ReturnType<typeof data.recipes>> = []
+        let isLoading = $state(true)
 
-	$effect(() => {
-		recipes = data.loadedPage ? [...untrack(() => recipes), ...data.recipes] : data.recipes
-	})
+        $effect(() => {
+                const recipesPromise = data.recipes
+                isLoading = true
+                recipesPromise.then((r) => {
+                        recipes = data.loadedPage ? [...untrack(() => recipes), ...r] : r
+                        isLoading = false
+                })
+        })
 
-	let searchValue = $derived(data.initialState.search)
-	let isLoading = $state(false)
+        let searchValue = $derived(data.initialState.search)
 	let activeFilters = $derived({
 		tags: data.initialState.tags,
 		ingredients: data.initialState.ingredients,
