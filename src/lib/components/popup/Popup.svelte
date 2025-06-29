@@ -4,13 +4,22 @@
 
 	let {
 		isOpen = $bindable(false),
-		title = $bindable(''),
-		showCloseButton = $bindable(true),
-		closeOnClickOutside = $bindable(true),
-		width = $bindable('400px'),
-		onClose = $bindable<(() => void) | undefined>(undefined),
-		children = $bindable<Snippet | undefined>(undefined),
-		headerActions = $bindable<Snippet | undefined>(undefined)
+		title,
+		showCloseButton = true,
+		closeOnClickOutside = true,
+		width = '400px',
+		onClose,
+		children,
+		headerActions
+	}: {
+		isOpen?: boolean
+		title?: string
+		showCloseButton?: boolean
+		closeOnClickOutside?: boolean
+		width?: string
+		onClose?: () => void
+		children?: Snippet
+		headerActions?: Snippet
 	} = $props()
 
 	const handleClose = () => {

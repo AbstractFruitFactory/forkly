@@ -8,7 +8,6 @@ declare global {
 		}
 		interface PageState {
 			recipeModal?: unknown
-			animateFrom?: { left: number; top: number; width: number; height: number }
 		}
 	}
 }
