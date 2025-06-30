@@ -6,31 +6,9 @@
 	import { safeFetch } from '$lib/utils/fetch.js'
 	import type { RecipesLikeResponse } from '../../../api/recipes/like/+server.js'
 	import type { RecipesSaveResponse } from '../../../api/recipes/save/+server.js'
-	import type { RecipeData } from '$lib/types'
-import type { CollectionsResponse } from '../../../api/collections/+server.js'
-import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
+	import type { CollectionsResponse } from '../../../api/collections/+server.js'
 
-       let { data } = $props()
-
-       let recipe: Awaited<ReturnType<typeof data.recipe>> | null = null
-       let comments: Awaited<ReturnType<typeof data.comments>> = []
-       let collections: Awaited<ReturnType<typeof data.collections>> | undefined = undefined
-       let isLoading = $state(true)
-
-       $effect(() => {
-               const recipePromise = data.recipe
-               const commentsPromise = data.comments
-               const collectionsPromise = data.collections
-               isLoading = true
-               Promise.all([recipePromise, commentsPromise, collectionsPromise]).then(
-                       ([r, c, cols]) => {
-                               recipe = r
-                               comments = c
-                               collections = cols
-                               isLoading = false
-                       }
-               )
-       })
+	let { data } = $props()
 
 	const handleLike = async () => {
 		await safeFetch<RecipesLikeResponse>()(`/api/recipes/like`, {
@@ -70,52 +48,24 @@ import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 		}
 	}
 
-       const unitSystem = $derived(unitPreferenceStore.unitSystem)
-
-       let recipeData: RecipeData | null = null
-
-       $effect(() => {
-               if (!recipe) return
-               const createdAtStr =
-                       typeof recipe.createdAt === 'string'
-                               ? recipe.createdAt
-                               : recipe.createdAt instanceof Date
-                                       ? recipe.createdAt.toISOString()
-                                       : new Date().toISOString()
-
-               recipeData = {
-                       ...recipe,
-                       createdAt: createdAtStr,
-                       ingredients: recipe.ingredients,
-                       user: recipe.user
-                               ? {
-                                               username: recipe.user.username,
-                                               avatarUrl: recipe.user.avatarUrl || undefined
-                                       }
-                               : undefined
-               }
-       })
+	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
 <div class="recipe-page" data-page="recipe">
-        {#if isLoading || !recipeData}
-                <Skeleton height="20rem" />
-        {:else}
-                <Recipe
-                        recipe={recipeData}
-                        nutritionInfo={{
-                                totalNutrition: recipeData.nutrition,
-                                hasCustomIngredients: false
-                        }}
-                        {unitSystem}
-                        onUnitChange={handleUnitChange}
-                        onLike={handleLike}
-                        onSave={handleSave}
-                        onBackClick={() => goto('/')}
-                        onCreateCollection={createCollection}
-                        user={recipeData.user ? { collections: collections?.map((c) => c.name) } : undefined}
-                        recipeComments={comments}
-                        formError={page.form?.error}
-                />
-        {/if}
+	<Recipe
+		recipe={data.recipe}
+		nutritionInfo={{
+			totalNutrition: data.recipe.nutrition,
+			hasCustomIngredients: false
+		}}
+		{unitSystem}
+		onUnitChange={handleUnitChange}
+		onLike={handleLike}
+		onSave={handleSave}
+		onBackClick={() => goto('/')}
+		onCreateCollection={createCollection}
+		user={data.user}
+		recipeComments={data.comments}
+		formError={page.form?.error}
+	/>
 </div>

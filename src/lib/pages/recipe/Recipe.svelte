@@ -2,8 +2,6 @@
 	import type { RecipeData } from '$lib/types'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import type { NutritionInfo } from '$lib/server/food-api'
-	import type { RecipeComment, User } from '$lib/server/db/schema'
-	import Recipe from '$lib/pages/recipe/Recipe.svelte'
 	import DesktopLayout from '$lib/pages/recipe/DesktopLayout.svelte'
 	import MobileLayout from '$lib/pages/recipe/MobileLayout.svelte'
 	import FloatingLikeButton from '$lib/components/floating-action-button/FloatingLikeButton.svelte'
@@ -20,13 +18,14 @@
 	import RecipeInstructions from '$lib/components/recipe-instructions/RecipeInstructions.svelte'
 	import CommentList from '$lib/components/comment/CommentList.svelte'
 	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
-	import RecipeMediaDisplay from '$lib/components/recipe-media/RecipeMediaDisplay.svelte'
 	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
 	import Switch from '$lib/components/Switch.svelte'
-	import { onMount, type Snippet } from 'svelte'
+	import { onMount } from 'svelte'
 	import Toast from '$lib/components/toast/Toast.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import Input from '$lib/components/input/Input.svelte'
+	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
+	import type { DetailedRecipe } from '$lib/server/db/recipe'
 
 	let {
 		recipe,
@@ -41,7 +40,7 @@
 		recipeComments = [],
 		formError
 	}: {
-		recipe: RecipeData
+		recipe: Promise<DetailedRecipe>
 		nutritionInfo: {
 			totalNutrition: Omit<NutritionInfo, 'servingSize'>
 			hasCustomIngredients: boolean
@@ -59,8 +58,8 @@
 		formError?: string
 	} = $props()
 
-	let isLiked = $state(recipe.isLiked)
-	let isSaved = $state(recipe.isSaved)
+	let isLiked = $derived.by(() => recipe.then((r) => r.isLiked))
+	let isSaved = $derived.by(() => recipe.then((r) => r.isSaved))
 	let isSharePopupOpen = $state(false)
 	let shareUrl = $state('')
 	let toastType = $state<'like' | 'save'>()
@@ -81,25 +80,27 @@
 		shareUrl = `${window.location.origin}${window.location.pathname}`
 	})
 
-	const handleLike = () => {
+	const handleLike = async () => {
 		if (!user) {
 			toastType = 'like'
 			if (toastRef) toastRef.trigger()
 			return
 		}
 		if (!onLike) return
-		isLiked = !isLiked
+		const currentLiked = await isLiked
+		isLiked = Promise.resolve(!currentLiked)
 		onLike()
 	}
 
-	const handleSave = (collectionName?: string) => {
+	const handleSave = async (collectionName?: string) => {
 		if (!user) {
 			toastType = 'save'
 			if (toastRef) toastRef.trigger()
 			return
 		}
 		if (!onSave) return
-		isSaved = !isSaved
+		const currentSaved = await isSaved
+		isSaved = Promise.resolve(!currentSaved)
 		onSave(collectionName)
 	}
 
@@ -115,93 +116,141 @@
 		section.scrollIntoView({ behavior: 'smooth' })
 	}
 
-	const singleServingNutrition = $derived({
-		calories: nutritionInfo.totalNutrition.calories / recipe.servings,
-		protein: nutritionInfo.totalNutrition.protein / recipe.servings,
-		carbs: nutritionInfo.totalNutrition.carbs / recipe.servings,
-		fat: nutritionInfo.totalNutrition.fat / recipe.servings
-	})
+	const singleServingNutrition = $derived(
+		recipe.then((r) => {
+			if (!nutritionInfo.totalNutrition) {
+				return undefined
+			}
+			return {
+				calories: nutritionInfo.totalNutrition.calories / r.servings,
+				protein: nutritionInfo.totalNutrition.protein / r.servings,
+				carbs: nutritionInfo.totalNutrition.carbs / r.servings,
+				fat: nutritionInfo.totalNutrition.fat / r.servings
+			}
+		})
+	)
+
+	const recipeTitle = $derived(recipe.then((r) => r.title))
 </script>
 
-{#snippet commonImage(img: Snippet)}
-	{#if recipe.imageUrl}
-		{@render img()}
-	{:else}
-		<RecipeImagePlaceholder size="large" />
-	{/if}
+{#snippet commonImage()}
+	{#await recipe}
+		<RecipeImagePlaceholder loading size="large" />
+	{:then recipe}
+		<img src={recipe.imageUrl || ''} alt={recipe.title} />
+	{/await}
 {/snippet}
 
 {#snippet tags()}
-	{#if recipe.tags}
-		{#each recipe.tags as tag}
-			<Pill text={tag} />
-		{/each}
-	{/if}
+	{#await recipe}
+		<Skeleton />
+	{:then recipe}
+		{#if recipe.tags}
+			{#each recipe.tags as tag}
+				<Pill text={tag} />
+			{/each}
+		{/if}
+	{/await}
 {/snippet}
 
 {#snippet title()}
-	<h1>{recipe.title}</h1>
+	{#await recipe}
+		<Skeleton width="20rem" height="2rem" />
+	{:then recipe}
+		<h1>{recipe.title}</h1>
+	{/await}
 {/snippet}
 
 {#snippet actionButtons()}
-	<FloatingLikeButton isActive={isLiked} onClick={handleLike} />
-	<FloatingSaveButton
-		isActive={isSaved}
-		onClick={() => {
-			if (isSaved) {
-				handleSave()
-			} else {
-				savePopupOpen = true
-			}
-		}}
-	/>
-	<FloatingShareButton onClick={toggleSharePopup} />
+	{#await Promise.all([isLiked, isSaved])}
+		<FloatingLikeButton loading />
+		<FloatingSaveButton loading />
+		<FloatingShareButton loading />
+	{:then [isLiked, isSaved]}
+		<FloatingLikeButton isActive={isLiked} onClick={handleLike} />
+		<FloatingSaveButton
+			isActive={isSaved}
+			onClick={() => {
+				if (isSaved) {
+					handleSave()
+				} else {
+					savePopupOpen = true
+				}
+			}}
+		/>
+		<FloatingShareButton onClick={toggleSharePopup} />
+	{/await}
 {/snippet}
 
 {#snippet commonDescription(card: boolean)}
-	<Description
-		description={recipe.description || ''}
-		username={recipe.user?.username}
-		userId={recipe.userId}
-		profilePicUrl={recipe.user?.avatarUrl}
-		{card}
-	/>
+	{#await recipe}
+		<Description
+			description=""
+			username={undefined}
+			userId={undefined}
+			profilePicUrl={undefined}
+			{card}
+			loading={true}
+		/>
+	{:then recipe}
+		<Description
+			description={recipe.description || ''}
+			username={recipe.user?.username}
+			userId={recipe.userId}
+			profilePicUrl={recipe.user?.avatarUrl}
+			{card}
+		/>
+	{/await}
 {/snippet}
 
 {#snippet nutrition()}
-	{#if singleServingNutrition}
-		<div>
-			<h3>Nutrition Per Serving</h3>
-			<div class="card">
-				<NutritionFacts nutrition={singleServingNutrition} />
+	{#await singleServingNutrition}
+		<Skeleton />
+	{:then singleServingNutrition}
+		{#if singleServingNutrition}
+			<div>
+				<h3>Nutrition Per Serving</h3>
+				<div class="card">
+					<NutritionFacts nutrition={singleServingNutrition} />
+				</div>
 			</div>
-		</div>
-	{/if}
+		{/if}
+	{/await}
 {/snippet}
 
 {#snippet ingredients()}
-	{#if recipe.ingredients && recipe.ingredients.length > 0}
-		<div class="ingredients-section" bind:this={ingredientsSection}>
-			<div class="ingredients-header">
-				<h3>Ingredients</h3>
+	<div class="ingredients-section" bind:this={ingredientsSection}>
+		<div class="ingredients-header">
+			<h3>Ingredients</h3>
+			{#await recipe then _}
 				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
-			</div>
+			{/await}
+		</div>
+		{#await recipe}
+			<IngredientsList loading ingredients={[]} servings={0} originalServings={0} />
+		{:then recipe}
 			<IngredientsList
 				ingredients={recipe.ingredients}
 				servings={recipe.servings}
 				originalServings={recipe.servings}
 			/>
-		</div>
-	{/if}
+		{/await}
+	</div>
 {/snippet}
 
 {#snippet instructions()}
 	<div bind:this={instructionsSection}>
 		<div class="instructions-header">
 			<h3 style="margin-bottom: 0;">Instructions</h3>
-			<Switch bind:checked={hideImages} label="Hide media" />
+			{#await recipe then _}
+				<Switch bind:checked={hideImages} label="Hide media" />
+			{/await}
 		</div>
-		<RecipeInstructions instructions={recipe.instructions} bind:hideImages />
+		{#await recipe}
+			<RecipeInstructions instructions={[]} loading />
+		{:then recipe}
+			<RecipeInstructions instructions={recipe.instructions} bind:hideImages />
+		{/await}
 	</div>
 {/snippet}
 
@@ -210,11 +259,17 @@
 		<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
 			<MessageSquare size={20} />
 			Comments
-			<span style:font-size="var(--font-size-xl)" style:font-weight="500"
-				>({recipeComments.length})</span
-			>
+			{#await recipe then _}
+				<span style:font-size="var(--font-size-xl)" style:font-weight="500">
+					({recipeComments.length})
+				</span>
+			{/await}
 		</h3>
-		<CommentList comments={recipeComments} isLoggedIn={!!user} recipeId={recipe.id} {formError} />
+		{#await recipe}
+			<CommentList comments={[]} isLoggedIn={!!user} recipeId="" {formError} loading={true} />
+		{:then recipe}
+			<CommentList comments={recipeComments} isLoggedIn={!!user} recipeId={recipe.id} {formError} />
+		{/await}
 	</div>
 {/snippet}
 
@@ -231,14 +286,7 @@
 <div class="recipe-desktop-view">
 	<DesktopLayout {tags} {title} {actionButtons} {nutrition} {ingredients} {instructions} {comments}>
 		{#snippet image()}
-			{#snippet img()}
-				<RecipeMediaDisplay
-					mainImageUrl={recipe.imageUrl || ''}
-					media={recipe.instructions}
-					aspectRatio="auto"
-				/>
-			{/snippet}
-			{@render commonImage(img)}
+			{@render commonImage()}
 		{/snippet}
 
 		{#snippet description()}
@@ -260,10 +308,7 @@
 		{navButtons}
 	>
 		{#snippet image()}
-			{#snippet img()}
-				<img src={recipe.imageUrl || ''} alt={recipe.title} />
-			{/snippet}
-			{@render commonImage(img)}
+			{@render commonImage()}
 		{/snippet}
 
 		{#snippet description()}
@@ -272,12 +317,11 @@
 	</MobileLayout>
 </div>
 
-<SharePopup
-	isOpen={isSharePopupOpen}
-	onClose={toggleSharePopup}
-	url={shareUrl}
-	title={recipe.title}
-/>
+{#await recipeTitle}
+	<!-- Loading state for SharePopup -->
+{:then title}
+	<SharePopup isOpen={isSharePopupOpen} onClose={toggleSharePopup} url={shareUrl} {title} />
+{/await}
 
 {#if user}
 	<Popup

@@ -2,11 +2,11 @@
 	import Heart from 'lucide-svelte/icons/heart'
 	import FloatingActionButton from './FloatingActionButton.svelte'
 
-	let { isActive = false, onClick }: { isActive?: boolean; onClick?: () => void } = $props()
+	let { isActive = false, onClick, loading = false }: { isActive?: boolean; onClick?: () => void; loading?: boolean } = $props()
 </script>
 
 <div class="like-button-container">
-	<FloatingActionButton text={isActive ? 'Liked' : 'Like'} {onClick} {isActive}>
+	<FloatingActionButton text={isActive ? 'Liked' : 'Like'} {onClick} {isActive} {loading}>
 		<Heart />
 	</FloatingActionButton>
 </div>

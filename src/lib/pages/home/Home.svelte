@@ -204,6 +204,8 @@
 
 	let resolveRecipePopup: (value: void) => void
 
+	let recipeModalData = $state<ComponentProps<typeof RecipePopup>['data']>()
+
 	const openRecipePopup = async (recipe: DetailedRecipe, e: MouseEvent) => {
 		if (e.shiftKey || e.metaKey || e.ctrlKey || e.button === 1) return
 
@@ -213,7 +215,8 @@
 		const result = await preloadData(href)
 
 		if (result.type === 'loaded' && result.status === 200) {
-			pushState(href, { recipeModal: result.data })
+			recipeModalData = result.data as any
+			pushState(href, { recipeModal: true })
 		} else {
 			goto(href)
 		}
@@ -362,10 +365,9 @@
 {/snippet}
 
 <RecipePopup
-	data={page.state.recipeModal}
-	isOpen={page.state.recipeModal !== undefined}
+	data={recipeModalData}
+	isOpen={page.state.recipeModal ?? false}
 	onClose={closePopup}
-	animateFrom={page.state.animateFrom}
 />
 
 <style lang="scss">

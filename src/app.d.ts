@@ -7,7 +7,7 @@ declare global {
 			session: import('$lib/server/auth').SessionValidationResult['session']
 		}
 		interface PageState {
-			recipeModal?: unknown
+			recipeModal?: boolean
 		}
 	}
 }

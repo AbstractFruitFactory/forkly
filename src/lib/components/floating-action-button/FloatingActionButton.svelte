@@ -1,25 +1,37 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
+	import Skeleton from '../skeleton/Skeleton.svelte'
 
 	let {
 		text,
 		onClick,
 		isActive = false,
+		loading = false,
 		children
 	}: {
 		text?: string
 		onClick?: () => void
 		isActive?: boolean
+		loading?: boolean
 		children: Snippet
 	} = $props()
 </script>
 
 <div class="action-button-container">
-	<button class="action-button" class:active={isActive} onclick={onClick}>
-		{@render children()}
-	</button>
-	{#if text}
-		<span class="button-text">{text}</span>
+	{#if loading}
+		<div class="action-button-skeleton">
+			<Skeleton width="50px" height="50px" round={true} />
+		</div>
+		{#if text}
+			<Skeleton width="40px" height="12px" />
+		{/if}
+	{:else}
+		<button class="action-button" class:active={isActive} onclick={onClick}>
+			{@render children()}
+		</button>
+		{#if text}
+			<span class="button-text">{text}</span>
+		{/if}
 	{/if}
 </div>
 

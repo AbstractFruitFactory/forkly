@@ -7,7 +7,7 @@ import * as v from 'valibot'
 import { getCollections } from '$lib/server/db/save'
 
 export const load: PageServerLoad = ({ params, locals }) => {
-  const recipePromise = getRecipeWithDetails(params.id, locals.user?.id).then(
+  const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(
     (result) => {
       if (!result) throw error(404, 'Recipe not found')
       return result
@@ -20,7 +20,7 @@ export const load: PageServerLoad = ({ params, locals }) => {
     : Promise.resolve(undefined)
 
   return {
-    recipe: recipePromise,
+    recipe,
     comments,
     collections
   }

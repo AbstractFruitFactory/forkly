@@ -2,6 +2,7 @@ import { db } from '.'
 import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag } from './schema'
 import { eq, ilike, desc, sql, and, SQL, or, asc } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
+import type { MeasurementUnit } from '$lib/types'
 
 function escapeSqlString(str: string): string {
   return str.replace(/'/g, "''")
@@ -31,8 +32,9 @@ export type DetailedRecipe = {
     id: string
     name: string
     quantity: number
-    measurement: string
+    measurement: MeasurementUnit
     custom?: boolean
+    displayName: string
   }>
   nutrition?: {
     calories: number
@@ -43,7 +45,9 @@ export type DetailedRecipe = {
   user?: {
     username?: string
     avatarUrl?: string
-  }
+  },
+  isLiked: boolean
+  isSaved: boolean
 }
 
 export type RecipeFilterBase = {
@@ -424,7 +428,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     .where(eq(recipe.id, recipeId))
 
   const foundRecipe = recipes[0]
-  if (!foundRecipe) return null
+  if (!foundRecipe) return undefined
 
   const recipeIngredients = await db
     .select({

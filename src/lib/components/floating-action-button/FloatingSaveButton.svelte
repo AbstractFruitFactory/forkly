@@ -2,11 +2,11 @@
 	import Bookmark from 'lucide-svelte/icons/bookmark'
 	import FloatingActionButton from './FloatingActionButton.svelte'
 
-	let { isActive = false, onClick }: { isActive?: boolean; onClick?: () => void } = $props()
+	let { isActive = false, onClick, loading = false }: { isActive?: boolean; onClick?: () => void; loading?: boolean } = $props()
 </script>
 
 <div class="save-button-container">
-	<FloatingActionButton text={isActive ? 'Saved' : 'Save'} {onClick} {isActive}>
+	<FloatingActionButton text={isActive ? 'Saved' : 'Save'} {onClick} {isActive} {loading}>
 		<Bookmark />
 	</FloatingActionButton>
 </div>

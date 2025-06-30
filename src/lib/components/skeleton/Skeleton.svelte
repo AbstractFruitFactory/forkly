@@ -1,9 +1,8 @@
 <script lang="ts">
-	export let width: string | number = '100%'
-	export let height: string | number = '1rem'
+	let { width = '100%', height = '1rem', round = false }: { width?: string; height?: string; round?: boolean } = $props()
 </script>
 
-<div class="skeleton" style="width:{width};height:{height};"></div>
+<div class="skeleton" class:round style:width style:height></div>
 
 <style lang="scss">
 	@import '$lib/global.scss';
@@ -11,6 +10,9 @@
 		position: relative;
 		overflow: hidden;
 		background: var(--color-neutral-darker);
+	}
+	.skeleton.round {
+		border-radius: 50%;
 	}
 	.skeleton::before {
 		content: '';

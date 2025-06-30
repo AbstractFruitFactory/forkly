@@ -3,11 +3,16 @@
 	import ExternalLink from 'lucide-svelte/icons/external-link'
 	import RecipePage from '../../../routes/(pages)/recipe/[id]/+page.svelte'
 	import { goto } from '$app/navigation'
+	import type { ComponentProps } from 'svelte'
 
 	let {
-		data = $bindable<any>(undefined),
+		data,
 		isOpen = $bindable(false),
-		onClose = $bindable<() => void>(undefined)
+		onClose
+	}: {
+		data?: ComponentProps<typeof RecipePage>['data']
+		isOpen: boolean
+		onClose: () => void
 	} = $props()
 
 	const openFullPage = (e: MouseEvent) => {
@@ -23,7 +28,9 @@
 			<ExternalLink size={20} />
 		</button>
 	{/snippet}
-	<RecipePage {data} />
+	{#if data}
+		<RecipePage {data} />
+	{/if}
 </Popup>
 
 <style lang="scss">

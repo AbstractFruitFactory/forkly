@@ -6,11 +6,17 @@
 	import type { RecipeData } from '$lib/types'
 	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
 	import Button from '../button/Button.svelte'
+	import Skeleton from '../skeleton/Skeleton.svelte'
 
 	let {
 		instructions,
-		hideImages = $bindable(false)
-	}: { instructions: RecipeData['instructions']; hideImages?: boolean } = $props()
+		hideImages = $bindable(false),
+		loading = false
+	}: {
+		instructions: RecipeData['instructions']
+		hideImages?: boolean
+		loading?: boolean
+	} = $props()
 
 	let isCookingMode = $state(false)
 </script>
@@ -19,58 +25,83 @@
 
 <div class="instructions card">
 	<div style:margin-bottom="var(--spacing-lg)">
-		<Button color="primary" onclick={() => (isCookingMode = true)} fullWidth>
+		<Button disabled={loading} color="primary" onclick={() => (isCookingMode = true)} fullWidth>
 			Step by Step Mode
 		</Button>
 	</div>
-	{#each instructions as instruction, i (i)}
-		<div class="instruction-item">
-			<div class="instruction-header">
-				<div class="instruction-content">
-					<div class="instruction-text">
-						<h5 class="step-number">Step {i + 1}</h5>
-						{#each parseTemperature(instruction.text) as part}
-							{#if part.isTemperature && part.value !== undefined && part.unit}
-								<span class="temperature-wrapper">
-									<Popover triggerOn="hover" placement="top">
-										{#snippet trigger()}
-											<span class="temperature">{part.text}</span>
-										{/snippet}
-										{#snippet content()}
-											<span class="conversion">
-												{getConversionText(part.value as number, part.unit as TemperatureUnit)}
-											</span>
-										{/snippet}
-									</Popover>
-								</span>
-							{:else}
-								<span>{part.text}</span>
-							{/if}
-						{/each}
-					</div>
-					{#if instruction.mediaUrl}
-						<div class="instruction-media desktop-only">
-							{#if instruction.mediaType === 'image'}
-								{#if !hideImages}
-									<img
-										src={instruction.mediaUrl}
-										alt={`Step ${i + 1} visual`}
-										loading="lazy"
-										decoding="async"
-									/>
-								{/if}
-							{:else if instruction.mediaType === 'video'}
-								<InstructionVideo src={instruction.mediaUrl} stepNumber={i + 1} />
-							{/if}
+	{#if loading}
+		{#each Array(5) as _, i}
+			<div class="instruction-item">
+				<div class="instruction-header">
+					<div class="instruction-content">
+						<div class="instruction-text">
+							<h5 class="step-number"><Skeleton width="5rem" height="1.5rem" /></h5>
+							<div class="instruction-text-skeleton">
+								<Skeleton width="100%" height="1.5rem" />
+								<Skeleton width="90%" height="1.5rem" />
+								<Skeleton width="80%" height="1.5rem" />
+							</div>
 						</div>
-					{/if}
+						<div class="instruction-media desktop-only">
+							<Skeleton width="100%" height="150px" />
+						</div>
+					</div>
 				</div>
 			</div>
-		</div>
-		{#if i < instructions.length - 1}
-			<hr class="divider" />
-		{/if}
-	{/each}
+			{#if i < 2}
+				<hr class="divider" />
+			{/if}
+		{/each}
+	{:else}
+		{#each instructions as instruction, i (i)}
+			<div class="instruction-item">
+				<div class="instruction-header">
+					<div class="instruction-content">
+						<div class="instruction-text">
+							<h5 class="step-number">Step {i + 1}</h5>
+							{#each parseTemperature(instruction.text) as part}
+								{#if part.isTemperature && part.value !== undefined && part.unit}
+									<span class="temperature-wrapper">
+										<Popover triggerOn="hover" placement="top">
+											{#snippet trigger()}
+												<span class="temperature">{part.text}</span>
+											{/snippet}
+											{#snippet content()}
+												<span class="conversion">
+													{getConversionText(part.value as number, part.unit as TemperatureUnit)}
+												</span>
+											{/snippet}
+										</Popover>
+									</span>
+								{:else}
+									<span>{part.text}</span>
+								{/if}
+							{/each}
+						</div>
+						{#if instruction.mediaUrl}
+							<div class="instruction-media desktop-only">
+								{#if instruction.mediaType === 'image'}
+									{#if !hideImages}
+										<img
+											src={instruction.mediaUrl}
+											alt={`Step ${i + 1} visual`}
+											loading="lazy"
+											decoding="async"
+										/>
+									{/if}
+								{:else if instruction.mediaType === 'video'}
+									<InstructionVideo src={instruction.mediaUrl} stepNumber={i + 1} />
+								{/if}
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
+			{#if i < instructions.length - 1}
+				<hr class="divider" />
+			{/if}
+		{/each}
+	{/if}
 </div>
 
 <style lang="scss">
@@ -149,6 +180,12 @@
 		line-height: 1.6;
 		font-size: var(--font-size-md);
 		padding: var(--spacing-md) var(--spacing-lg) var(--spacing-md) 0;
+	}
+
+	.instruction-text-skeleton {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
 	}
 
 	.instruction-text span {
