@@ -13,52 +13,52 @@
 </script>
 
 <script lang="ts">
-       import type { Ingredient } from '$lib/types'
-       import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
-       import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
-       import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-       import { convertMeasurement, formatMeasurement } from '$lib/utils/unitConversion'
+	import type { Ingredient } from '$lib/types'
+	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
+	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
+	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+	import { convertMeasurement, formatMeasurement } from '$lib/utils/unitConversion'
 
-       let {
-               ingredients,
-               servings,
-               originalServings,
-               onServingsChange,
-               unitSystem = 'imperial',
-               loading = false
-       }: {
-               ingredients: Ingredient[]
-               servings: number
-               originalServings: number
-               onServingsChange?: (newServings: number) => void
-               unitSystem?: UnitSystem
-               loading?: boolean
-       } = $props()
+	let {
+		ingredients,
+		servings,
+		originalServings,
+		onServingsChange,
+		unitSystem = 'imperial',
+		loading = false
+	}: {
+		ingredients: Ingredient[]
+		servings: number
+		originalServings: number
+		onServingsChange?: (newServings: number) => void
+		unitSystem?: UnitSystem
+		loading?: boolean
+	} = $props()
 
 	let currentServings = $state(servings)
 
-       let scaledIngredients = $derived(
-               ingredients.map((ingredient: Ingredient) =>
-                       scaleIngredientQuantity(ingredient, currentServings, originalServings)
-               )
-       )
+	let scaledIngredients = $derived(
+		ingredients.map((ingredient: Ingredient) =>
+			scaleIngredientQuantity(ingredient, currentServings, originalServings)
+		)
+	)
 
-       let displayIngredients = $derived(
-               scaledIngredients.map((ingredient: Ingredient) => {
-                       if (ingredient.quantity && ingredient.measurement) {
-                               const { quantity, unit } = convertMeasurement(
-                                       ingredient.quantity,
-                                       ingredient.measurement,
-                                       unitSystem
-                               )
-                               return {
-                                       ...ingredient,
-                                       displayMeasurement: formatMeasurement(quantity, unit)
-                               }
-                       }
-                       return { ...ingredient, displayMeasurement: undefined }
-               })
-       )
+	let displayIngredients = $derived(
+		scaledIngredients.map((ingredient: Ingredient) => {
+			if (ingredient.quantity && ingredient.measurement) {
+				const { quantity, unit } = convertMeasurement(
+					ingredient.quantity,
+					ingredient.measurement,
+					unitSystem
+				)
+				return {
+					...ingredient,
+					displayMeasurement: formatMeasurement(quantity, unit)
+				}
+			}
+			return { ...ingredient, displayMeasurement: undefined }
+		})
+	)
 
 	const handleServingsChange = (newServings: number) => {
 		currentServings = newServings
@@ -67,8 +67,8 @@
 </script>
 
 <ul class="ingredients-list card">
-       {#if loading}
-               {#each Array(10) as _, i}
+	{#if loading}
+		{#each Array(10) as _, i}
 			<li>
 				<div class="quantity">
 					<Skeleton width="3rem" height="1rem" />
@@ -81,16 +81,16 @@
 				</div>
 			</li>
 		{/each}
-       {:else}
-               {#each displayIngredients as ingredient}
-                       <li>
-                               {#if ingredient.displayMeasurement}
-                                       <span class="measurement">{ingredient.displayMeasurement}</span>
-                               {/if}
-                               <span class="ingredient-name">{ingredient.displayName}</span>
-                       </li>
-               {/each}
-       {/if}
+	{:else}
+		{#each displayIngredients as ingredient}
+			<li>
+				{#if ingredient.displayMeasurement}
+					<span class="measurement">{ingredient.displayMeasurement}</span>
+				{/if}
+				<span class="ingredient-name">{ingredient.displayName}</span>
+			</li>
+		{/each}
+	{/if}
 
 	{#if !loading}
 		<div style:margin-top="var(--spacing-sm)">
