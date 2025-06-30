@@ -16,18 +16,22 @@
 	import type { Ingredient } from '$lib/types'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
+	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+	import { convertMeasurement, formatMeasurement } from '$lib/utils/unitConversion'
 
 	let {
 		ingredients,
 		servings,
 		originalServings,
 		onServingsChange,
+		unitSystem = 'imperial',
 		loading = false
 	}: {
 		ingredients: Ingredient[]
 		servings: number
 		originalServings: number
 		onServingsChange?: (newServings: number) => void
+		unitSystem?: UnitSystem
 		loading?: boolean
 	} = $props()
 
@@ -37,6 +41,23 @@
 		ingredients.map((ingredient: Ingredient) =>
 			scaleIngredientQuantity(ingredient, currentServings, originalServings)
 		)
+	)
+
+	let displayIngredients = $derived(
+		scaledIngredients.map((ingredient: Ingredient) => {
+			if (ingredient.quantity && ingredient.measurement) {
+				const { quantity, unit } = convertMeasurement(
+					ingredient.quantity,
+					ingredient.measurement,
+					unitSystem
+				)
+				return {
+					...ingredient,
+					displayMeasurement: formatMeasurement(quantity, unit)
+				}
+			}
+			return { ...ingredient, displayMeasurement: undefined }
+		})
 	)
 
 	const handleServingsChange = (newServings: number) => {
@@ -61,25 +82,12 @@
 			</li>
 		{/each}
 	{:else}
-		{#each scaledIngredients as ingredient}
+		{#each displayIngredients as ingredient}
 			<li>
-				{#if ingredient.quantity}
-					<span class="quantity">
-						{ingredient.quantity}
-					</span>
-					{#if ingredient.measurement}
-						<span class="measurement">
-							{ingredient.measurement}
-						</span>
-					{/if}
-					<span class="ingredient-name">
-						{ingredient.displayName}
-					</span>
-				{:else}
-					<span class="ingredient-name">
-						{ingredient.displayName}
-					</span>
+				{#if ingredient.displayMeasurement}
+					<span class="measurement">{ingredient.displayMeasurement}</span>
 				{/if}
+				<span class="ingredient-name">{ingredient.displayName}</span>
 			</li>
 		{/each}
 	{/if}

@@ -227,12 +227,13 @@
 			{/await}
 		</div>
 		{#await recipe}
-			<IngredientsList loading ingredients={[]} servings={0} originalServings={0} />
+			<IngredientsList loading ingredients={[]} servings={0} originalServings={0} {unitSystem} />
 		{:then recipe}
 			<IngredientsList
 				ingredients={recipe.ingredients}
 				servings={recipe.servings}
 				originalServings={recipe.servings}
+				{unitSystem}
 			/>
 		{/await}
 	</div>
