@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Share2 from 'lucide-svelte/icons/share-2'
+	import Share from 'lucide-svelte/icons/share'
 	import FloatingActionButton from './FloatingActionButton.svelte'
 
-	let { onClick }: { onClick?: () => void } = $props()
+	let { onClick, loading = false }: { onClick?: () => void; loading?: boolean } = $props()
 </script>
 
-<FloatingActionButton text="Share" onClick={onClick}>
-	<Share2 />
+<FloatingActionButton text="Share" {onClick} {loading}>
+	<Share />
 </FloatingActionButton> 

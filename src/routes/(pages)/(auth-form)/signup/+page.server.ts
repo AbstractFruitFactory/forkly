@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm'
 import { hash } from '@node-rs/argon2'
 import * as auth from '$lib/server/auth'
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = ({ locals }) => {
     if (locals.user) {
         throw redirect(302, '/')
     }

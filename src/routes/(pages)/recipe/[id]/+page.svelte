@@ -6,7 +6,6 @@
 	import { safeFetch } from '$lib/utils/fetch.js'
 	import type { RecipesLikeResponse } from '../../../api/recipes/like/+server.js'
 	import type { RecipesSaveResponse } from '../../../api/recipes/save/+server.js'
-	import type { RecipeData } from '$lib/types'
 	import type { CollectionsResponse } from '../../../api/collections/+server.js'
 
 	let { data } = $props()
@@ -50,33 +49,13 @@
 	}
 
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
-
-	// Ensure createdAt is a string
-	const createdAtStr =
-		typeof data.createdAt === 'string'
-			? data.createdAt
-			: data.createdAt instanceof Date
-				? data.createdAt.toISOString()
-				: new Date().toISOString()
-
-	const recipeData: RecipeData = {
-		...data,
-		createdAt: createdAtStr,
-		ingredients: data.ingredients,
-		user: data.user
-			? {
-					username: data.user.username,
-					avatarUrl: data.user.avatarUrl || undefined
-				}
-			: undefined
-	}
 </script>
 
 <div class="recipe-page" data-page="recipe">
 	<Recipe
-		recipe={recipeData}
+		recipe={data.recipe}
 		nutritionInfo={{
-			totalNutrition: data.nutrition,
+			totalNutrition: data.recipe.nutrition,
 			hasCustomIngredients: false
 		}}
 		{unitSystem}
@@ -85,7 +64,7 @@
 		onSave={handleSave}
 		onBackClick={() => goto('/')}
 		onCreateCollection={createCollection}
-		user={data.user ? { collections: data.collections!.map((c) => c.name) } : undefined}
+		user={data.user}
 		recipeComments={data.comments}
 		formError={page.form?.error}
 	/>

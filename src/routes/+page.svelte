@@ -11,14 +11,19 @@
 
 	let { data } = $props()
 
-	let recipes = $state(data.recipes)
+	let recipes: Awaited<typeof data.recipes> = $state([])
+	let isLoading = $state(true)
 
 	$effect(() => {
-		recipes = data.loadedPage ? [...untrack(() => recipes), ...data.recipes] : data.recipes
+		const recipesPromise = data.recipes
+		isLoading = true
+		recipesPromise.then((r) => {
+			recipes = data.loadedPage ? [...untrack(() => recipes), ...r] : r
+			isLoading = false
+		})
 	})
 
 	let searchValue = $derived(data.initialState.search)
-	let isLoading = $state(false)
 	let activeFilters = $derived({
 		tags: data.initialState.tags,
 		ingredients: data.initialState.ingredients,

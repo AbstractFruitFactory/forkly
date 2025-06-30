@@ -94,4 +94,18 @@
 			/>
 		</div>
 	{/snippet}
+</Story>
+
+<Story name="Loading State">
+	{#snippet children(args)}
+		<div style="width: 600px; padding: 20px; background-color: #1a1a1a;">
+			<CommentList
+				comments={[]}
+				isLoggedIn={true}
+				recipeId="recipe123"
+				loading={true}
+				{...args}
+			/>
+		</div>
+	{/snippet}
 </Story> 

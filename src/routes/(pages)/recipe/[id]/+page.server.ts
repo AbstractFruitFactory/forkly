@@ -6,20 +6,21 @@ import { uploadImage } from '$lib/server/cloudinary'
 import * as v from 'valibot'
 import { getCollections } from '$lib/server/db/save'
 
-export const load: PageServerLoad = async ({ params, locals }) => {
-  const result = await getRecipeWithDetails(params.id, locals.user?.id)
-  if (!result) throw error(404, 'Recipe not found')
+export const load: PageServerLoad = ({ params, locals }) => {
+  const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(
+    (result) => {
+      if (!result) throw error(404, 'Recipe not found')
+      return result
+    }
+  )
 
-  const comments = await getComments(params.id)
-
-  let collections: Awaited<ReturnType<typeof getCollections>> | undefined = undefined
-
-  if (locals.user) {
-    collections = await getCollections(locals.user.id)
-  }
+  const comments = getComments(params.id)
+  const collections = locals.user
+    ? getCollections(locals.user.id)
+    : Promise.resolve(undefined)
 
   return {
-    ...result,
+    recipe,
     comments,
     collections
   }

@@ -1,12 +1,15 @@
 <script lang="ts">
 	import Utensils from 'lucide-svelte/icons/utensils'
+	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 
 	let {
 		size = 'medium',
-		className = ''
+		className = '',
+		loading = false
 	}: {
 		size?: 'small' | 'medium' | 'large'
 		className?: string
+		loading?: boolean
 	} = $props()
 
 	const iconSize = $derived(
@@ -24,7 +27,11 @@
 	class:medium={size === 'medium'}
 	class:large={size === 'large'}
 >
-	<Utensils size={iconSize} strokeWidth={1.5} />
+	{#if loading}
+		<Skeleton width="100%" height="100%" />
+	{:else}
+		<Utensils size={iconSize} strokeWidth={1.5} />
+	{/if}
 </div>
 
 <style lang="scss">
