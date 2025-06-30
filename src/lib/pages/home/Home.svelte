@@ -14,6 +14,7 @@
 	import { preloadData, pushState, goto, replaceState } from '$app/navigation'
 	import { page } from '$app/state'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
+	
 	let {
 		recipes,
 		isLoading = false,

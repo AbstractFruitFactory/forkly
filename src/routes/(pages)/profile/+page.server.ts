@@ -21,7 +21,7 @@ const updateProfileSchema = v.object({
 export const load: PageServerLoad = ({ locals, fetch, url }) => {
   if (!locals.user) error(401, 'Unauthorized')
 
-  const recipesPromise = safeFetch<UserRecipes>(fetch)('/api/recipes/user').then((r) => {
+  const recipes = safeFetch<UserRecipes>(fetch)('/api/recipes/user').then((r) => {
     if (r.isErr()) error(500, 'Failed to load recipes')
     return r.value.created
   })
@@ -32,7 +32,7 @@ export const load: PageServerLoad = ({ locals, fetch, url }) => {
   const tab = url.searchParams.get('tab')
 
   return {
-    recipes: recipesPromise,
+    recipes,
     collections,
     user,
     initialTab: tab ?? undefined

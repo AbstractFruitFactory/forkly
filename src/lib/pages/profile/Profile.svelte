@@ -10,17 +10,18 @@
 	import MobileLayout from './MobileLayout.svelte'
 	import { goto, invalidateAll } from '$app/navigation'
 	import { safeFetch } from '$lib/utils/fetch'
+	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 
 	let {
 		user,
-		createdRecipes = [],
-		collections = [],
+		createdRecipes = Promise.resolve([]),
+		collections = Promise.resolve([]),
 		initialTab,
 		onLogout
 	}: {
-		user: Omit<User, 'passwordHash'>
-		createdRecipes?: DetailedRecipe[]
-		collections?: { name: string; count: number }[]
+		user: Promise<Omit<User, 'passwordHash'>>
+		createdRecipes?: Promise<DetailedRecipe[]>
+		collections?: Promise<{ name: string; count: number }[]>
 		initialTab?: string
 		onLogout?: () => void
 	} = $props()
@@ -58,49 +59,65 @@
 
 {#snippet avatar()}
 	<div class="avatar-container">
-		<div
-			class="avatar"
-			style="background: {user.avatarUrl
-				? `url(${user.avatarUrl}) center/cover`
-				: `var(--color-${user.username.charCodeAt(0) % 5})`}"
-		>
-			{#if !user.avatarUrl}
-				{user.username[0].toUpperCase()}
-			{/if}
-		</div>
-		<input
-			type="file"
-			accept="image/*"
-			class="hidden-input"
-			bind:this={avatarInput}
-			onchange={handleAvatarChange}
-		/>
-		<div class="avatar-edit-icon" onclick={() => avatarInput.click()}>
-			<svg
-				width="24"
-				height="24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				viewBox="0 0 24 24"
-				><path
-					d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 1 1 2.828 2.828L11.828 15.828a4 4 0 0 1-1.414.94l-4.243 1.415 1.415-4.243a4 4 0 0 1 .94-1.414z"
-				/></svg
+		{#await user}
+			<Skeleton width="120px" height="120px" round />
+		{:then user}
+			<div
+				class="avatar"
+				style="background: {user.avatarUrl
+					? `url(${user.avatarUrl}) center/cover`
+					: `var(--color-${user.username.charCodeAt(0) % 5})`}"
 			>
-		</div>
+				{#if !user.avatarUrl}
+					{user.username[0].toUpperCase()}
+				{/if}
+			</div>
+			<input
+				type="file"
+				accept="image/*"
+				class="hidden-input"
+				bind:this={avatarInput}
+				onchange={handleAvatarChange}
+			/>
+			<div class="avatar-edit-icon" onclick={() => avatarInput.click()}>
+				<svg
+					width="24"
+					height="24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					viewBox="0 0 24 24"
+					><path
+						d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 1 1 2.828 2.828L11.828 15.828a4 4 0 0 1-1.414.94l-4.243 1.415 1.415-4.243a4 4 0 0 1 .94-1.414z"
+					/></svg
+				>
+			</div>
+		{/await}
 	</div>
 {/snippet}
 
 {#snippet name()}
 	<div class="profile-title-block">
 		<div class="profile-title-row">
-			<h1>{user.username}</h1>
+			<h1>
+				{#await user}
+					<Skeleton width="100px" height="24px" />
+				{:then user}
+					{user.username}
+				{/await}
+			</h1>
 		</div>
 	</div>
 {/snippet}
 
 {#snippet email()}
-	<div class="profile-email">{user.email}</div>
+	<div class="profile-email">
+		{#await user}
+			<Skeleton width="100px" height="24px" />
+		{:then user}
+			{user.email}
+		{/await}
+	</div>
 {/snippet}
 
 {#snippet signOut(fullWidth = false)}
@@ -114,33 +131,55 @@
 	<div class="profile-info">
 		<div class="profile-info-row">
 			<div class="profile-info-label">Username</div>
-			<div class="profile-info-value">{user.username}</div>
+			<div class="profile-info-value">
+				{#await user}
+					<Skeleton width="100px" height="24px" />
+				{:then user}
+					{user.username}
+				{/await}
+			</div>
 		</div>
 		<div class="profile-info-row">
 			<div class="profile-info-label">Email</div>
-			<div class="profile-info-value">{user.email}</div>
+			<div class="profile-info-value">
+				{#await user}
+					<Skeleton width="100px" height="24px" />
+				{:then user}
+					{user.email}
+				{/await}
+			</div>
 		</div>
 		<div class="profile-info-row">
 			<div class="profile-info-label">Bio</div>
-			<div class="profile-info-value">{user.bio}</div>
+			<div class="profile-info-value">
+				{#await user}
+					<Skeleton width="100px" height="24px" />
+				{:then user}
+					{user.bio}
+				{/await}
+			</div>
 		</div>
 	</div>
 {/snippet}
 
 {#snippet _createdRecipes()}
-	<RecipeGrid
-		recipes={createdRecipes}
-		emptyMessage="You haven't created any recipes yet."
-		useAnimation={false}
-	/>
+	{#await createdRecipes then createdRecipes}
+		<RecipeGrid
+			recipes={createdRecipes}
+			emptyMessage="You haven't created any recipes yet."
+			useAnimation={false}
+		/>
+	{/await}
 {/snippet}
 
 {#snippet _savedRecipes()}
-	<CardGrid items={collections} useAnimation={false}>
-		{#snippet item(item)}
-			<CollectionCard name={item.name} count={item.count} />
-		{/snippet}
-	</CardGrid>
+	{#await collections then collections}
+		<CardGrid items={collections} useAnimation={false}>
+			{#snippet item(item)}
+				<CollectionCard name={item.name} count={item.count} />
+			{/snippet}
+		</CardGrid>
+	{/await}
 {/snippet}
 
 <div class="profile-desktop-view">
