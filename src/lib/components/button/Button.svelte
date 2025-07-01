@@ -106,7 +106,7 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			gap: var(--spacing-xs);
+			gap: var(--spacing-sm);
 		}
 
 		&.border-radius-md {
@@ -132,7 +132,7 @@
 		}
 
 		&.sm > .content {
-			padding: var(--spacing-sm) var(--spacing-md);
+			padding: var(--spacing-sm) var(--spacing-xl);
 			font-size: var(--font-size-md);
 		}
 

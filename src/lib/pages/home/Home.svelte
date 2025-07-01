@@ -14,7 +14,7 @@
 	import { preloadData, pushState, goto, replaceState } from '$app/navigation'
 	import { page } from '$app/state'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
-	
+
 	let {
 		recipes,
 		isLoading = false,
@@ -285,7 +285,7 @@
 {#snippet homepageHeader()}
 	<div class="large-header">Effortless food recipes, made by the community.</div>
 
-	<div bind:this={$sentinelNode} style="height: 60px;"></div>
+	<div bind:this={$sentinelNode} style:height="var(--spacing-2xl)"></div>
 
 	<div class="search-content">
 		{#if searchBarPosition === 'header'}
@@ -365,11 +365,7 @@
 	</div>
 {/snippet}
 
-<RecipePopup
-	data={recipeModalData}
-	isOpen={page.state.recipeModal ?? false}
-	onClose={closePopup}
-/>
+<RecipePopup data={recipeModalData} isOpen={page.state.recipeModal ?? false} onClose={closePopup} />
 
 <style lang="scss">
 	@import '$lib/global.scss';
@@ -419,7 +415,7 @@
 		font-size: 2rem;
 		font-weight: 600;
 		text-align: center;
-		padding: var(--spacing-2xl) 0;
+		padding-top: var(--spacing-2xl);
 
 		@include mobile {
 			padding: 0;
@@ -490,9 +486,8 @@
 		flex-direction: column;
 		align-items: center;
 		gap: var(--spacing-md);
-		height: 6rem;
-
 		padding: 0 var(--spacing-xl);
+		padding-bottom: var(--spacing-2xl);
 	}
 
 	.header-searchbar {
@@ -510,7 +505,7 @@
 		display: flex;
 		flex-direction: column;
 		position: sticky;
-		top: var(--spacing-xs);
+		top: 0;
 		z-index: var(--z-sticky);
 		background: var(--color-background);
 		transform-origin: center top;
@@ -518,12 +513,11 @@
 			border 0.2s ease-in-out,
 			opacity 0.2s ease-in-out;
 		padding: var(--spacing-md) 0;
-		border: var(--border-width-thin) solid transparent;
 		border-radius: var(--border-radius-xl);
 
 		&.sticky {
 			border-color: var(--color-neutral);
-			margin: var(--spacing-sm);
+			margin: calc(var(--spacing-sm) * -1);
 
 			.buttons {
 				transform: scale(0.98);
