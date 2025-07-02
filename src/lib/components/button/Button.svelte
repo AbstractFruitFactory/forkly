@@ -64,7 +64,9 @@
 	{onclick}
 	role={href ? 'button' : undefined}
 >
-	<span class="content" aria-hidden={loading}>{@render children?.()}</span>
+	<span class="content" data-flip-id="search-button" aria-hidden={loading}
+		>{@render children?.()}</span
+	>
 	{#if loading}
 		<span class="loader"></span>
 	{/if}

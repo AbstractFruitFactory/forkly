@@ -1,11 +1,13 @@
 <script lang="ts">
 	import type { ComponentProps } from 'svelte'
 	import Input from '../input/Input.svelte'
+	import SearchIcon from './SearchIcon.svelte'
 
 	let {
 		placeholder = 'Search...',
 		isLoading = false,
 		inputElement = $bindable(),
+		wrapperElement = $bindable(),
 		value = $bindable(''),
 		onInput = $bindable((newValue: string) => {}),
 		onConfirm = $bindable((value: string) => {}),
@@ -16,12 +18,16 @@
 		placeholder?: string
 		isLoading?: boolean
 		inputElement?: HTMLInputElement
+		wrapperElement?: HTMLDivElement
 		value?: string
 		onInput?: (value: string) => void
 		onConfirm?: (value: string) => void
 		actionButton?: { text: string; onClick: () => void }
 		formName?: string
 	} & Omit<ComponentProps<typeof Input>, 'children' | 'value'> = $props()
+
+	const showClear = $derived(value !== '')
+	const hideSearchIcon = $derived(isLoading)
 
 	const handleInput = (e: Event) => {
 		value = (e.target as HTMLInputElement).value
@@ -38,25 +44,21 @@
 			confirmSearch()
 		}
 	}
+
+	const clearSearch = () => {
+		value = ''
+		onInput('')
+		inputElement?.focus()
+	}
+
+	export const focus = () => {
+		inputElement?.focus()
+	}
 </script>
 
-<div class="search-wrapper">
+<div class="search-wrapper" data-flip-id="search-button" bind:this={wrapperElement}>
 	<div class="search-input-container">
-		<svg
-			class="search-icon"
-			xmlns="http://www.w3.org/2000/svg"
-			width="16"
-			height="16"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-		>
-			<circle cx="11" cy="11" r="8" />
-			<line x1="21" y1="21" x2="16.65" y2="16.65" />
-		</svg>
+		
 		<Input bind:value {actionButton} {isLoading} {...inputProps}>
 			<input
 				type="search"
@@ -69,6 +71,19 @@
 				bind:this={inputElement}
 				enterkeyhint="search"
 			/>
+
+			{#snippet clearButton()}
+				{#if !isLoading}
+					<div
+						class="search-icon-button"
+						class:clearable={showClear}
+						onclick={showClear ? clearSearch : undefined}
+						aria-label={showClear ? 'Clear search' : 'Search'}
+					>
+						<SearchIcon isClear={showClear} size={16} />
+					</div>
+				{/if}
+			{/snippet}
 		</Input>
 	</div>
 </div>
@@ -87,20 +102,7 @@
 		align-items: center;
 	}
 
-	.search-icon {
-		position: absolute;
-		left: var(--spacing-md);
-		color: var(--color-neutral);
-		pointer-events: none;
-		z-index: 1;
-	}
-
-	.clear-button {
-		position: absolute;
-		right: calc(var(--spacing-xl) * 2 + var(--spacing-xs));
-		background: none;
-		border: none;
-		padding: var(--spacing-xs);
+	.search-icon-button {
 		cursor: pointer;
 		color: var(--color-neutral);
 		display: flex;
@@ -109,15 +111,21 @@
 		z-index: 2;
 		transition: all 0.2s ease;
 		opacity: 0.7;
+		pointer-events: none;
 
-		&:hover {
-			color: var(--color-text);
-			opacity: 1;
-			background: var(--color-background-hover);
-		}
+		&.clearable {
+			pointer-events: auto;
+			opacity: 0.7;
 
-		&:active {
-			transform: scale(0.95);
+			&:hover {
+				color: var(--color-text);
+				opacity: 1;
+				background: var(--color-background-hover);
+			}
+
+			&:active {
+				transform: scale(0.95);
+			}
 		}
 	}
 
@@ -136,7 +144,7 @@
 	}
 
 	:global(.search-input-container input) {
-		padding-left: calc(var(--spacing-xl) + var(--spacing-xs)) !important;
+		padding-right: calc(var(--spacing-xl) + var(--spacing-xs)) !important;
 	}
 
 	@keyframes spin {

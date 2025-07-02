@@ -7,13 +7,15 @@
 		actionButton,
 		isLoading,
 		value = $bindable(''),
-		roundedCorners = false
+		roundedCorners = false,
+		clearButton
 	}: {
 		children: Snippet
 		actionButton?: { text: string; onClick: () => void }
 		isLoading?: boolean
 		value?: string
 		roundedCorners?: boolean
+		clearButton?: Snippet
 	} = $props()
 
 	const showClear = $derived(value !== '')
@@ -26,27 +28,26 @@
 <div
 	class="input-wrapper"
 	style:--rounded-corners={roundedCorners ? 'var(--border-radius-full)' : undefined}
-	style:--padding-right={actionButton
-		? 'calc(var(--spacing-xl) * 3 + var(--spacing-xs) * 2)'
-		: isLoading
-			? 'calc(var(--spacing-xl) + var(--spacing-xs) + 16px + var(--spacing-xs))'
-			: 'calc(var(--spacing-xl) + var(--spacing-xs))'}
 >
-	{@render children()}
-	<div class="right-elements">
-		{#if isLoading}
-			<div class="loading-spinner"></div>
-		{/if}
-		{#if showClear}
+	<div class="input-container">
+		{@render children()}
+		<div class="right-elements">
 			<button class="clear-button" onclick={onClear} aria-label="Clear input">
-				<Clear />
+				{#if clearButton}
+					{@render clearButton()}
+				{:else if showClear}
+					<Clear />
+				{/if}
+				{#if isLoading}
+					<div class="loading-spinner"></div>
+				{/if}
 			</button>
-		{/if}
-		{#if actionButton}
-			<button class="action-button" type="button" onclick={actionButton.onClick}>
-				{actionButton.text}
-			</button>
-		{/if}
+			{#if actionButton}
+				<button class="action-button" type="button" onclick={actionButton.onClick}>
+					{actionButton.text}
+				</button>
+			{/if}
+		</div>
 	</div>
 </div>
 
@@ -86,82 +87,106 @@
 	}
 
 	.input-wrapper {
-		position: relative;
 		display: flex;
 		flex-direction: column;
 		height: 100%;
 		width: 100%;
-		.right-elements {
-			position: absolute;
-			right: var(--spacing-md);
-			top: 50%;
-			transform: translateY(-50%);
-			display: flex;
-			align-items: center;
-			gap: var(--spacing-xs);
-			z-index: 2;
+	}
+
+	.input-container {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-items: center;
+		border: var(--border-width-thin) solid var(--color-neutral);
+		border-radius: var(--rounded-corners, var(--border-radius-md));
+		background-color: var(--color-neutral-dark);
+		transition: all var(--transition-fast) var(--ease-in-out);
+
+		&:hover {
+			border-color: var(--color-primary);
 		}
 
-		.clear-button {
-			background: none;
+		&:focus-within {
+			border-color: var(--color-primary);
+			box-shadow: 0 0 0 var(--border-width-thin) var(--color-primary-light);
+		}
+	}
+
+	.right-elements {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		padding-right: var(--spacing-md);
+	}
+
+	.clear-button {
+		background: none;
+		border: none;
+		padding: var(--spacing-xs);
+		cursor: pointer;
+		color: var(--color-neutral);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.2s ease;
+		opacity: 0.7;
+
+		&:hover {
+			color: var(--color-text);
+			opacity: 1;
+			background: var(--color-background-hover);
+		}
+
+		&:active {
+			transform: scale(0.95);
+		}
+	}
+
+	.loading-spinner {
+		width: 16px;
+		height: 16px;
+		border: 2px solid var(--color-neutral);
+		border-top-color: var(--color-primary);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+		pointer-events: none;
+	}
+
+	.action-button {
+		background: none;
+		border: none;
+		color: var(--color-primary);
+		cursor: pointer;
+		font-size: var(--font-size-sm);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
+		border-radius: var(--border-radius-sm);
+
+		&:hover {
+			color: var(--color-primary-dark);
+		}
+	}
+
+	:global(input),
+	:global(textarea) {
+		@include input-base;
+		border: none;
+		background: none;
+		border-radius: 0;
+		padding-right: var(--spacing-md);
+
+		&:hover,
+		&:focus {
 			border: none;
-			padding: var(--spacing-xs);
-			cursor: pointer;
-			color: var(--color-neutral);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			transition: all 0.2s ease;
-			opacity: 0.7;
-
-			&:hover {
-				color: var(--color-text);
-				opacity: 1;
-				background: var(--color-background-hover);
-			}
-
-			&:active {
-				transform: scale(0.95);
-			}
+			box-shadow: none;
 		}
+	}
 
-		.loading-spinner {
-			width: 16px;
-			height: 16px;
-			border: 2px solid var(--color-neutral);
-			border-top-color: var(--color-primary);
-			border-radius: 50%;
-			animation: spin 1s linear infinite;
-			pointer-events: none;
-		}
-
-		.action-button {
-			background: none;
-			border: none;
-			color: var(--color-primary);
-			cursor: pointer;
-			font-size: var(--font-size-sm);
-			padding: var(--spacing-xs) var(--spacing-sm);
-			background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
-			border-radius: var(--border-radius-sm);
-
-			&:hover {
-				color: var(--color-primary-dark);
-			}
-		}
-
-		:global(input),
-		:global(textarea) {
-			@include input-base;
-			padding-right: var(--padding-right);
-		}
-
-		:global(textarea) {
-			resize: none;
-			height: 100%;
-			padding: var(--spacing-md);
-			line-height: 1.5;
-		}
+	:global(textarea) {
+		resize: none;
+		height: 100%;
+		padding: var(--spacing-md);
+		line-height: 1.5;
 	}
 
 	@keyframes spin {
