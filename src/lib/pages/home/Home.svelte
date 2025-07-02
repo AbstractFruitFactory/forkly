@@ -14,6 +14,8 @@
 	import { preloadData, pushState, goto, replaceState } from '$app/navigation'
 	import { page } from '$app/state'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
+	import SearchButton from '$lib/components/search-button/SearchButton.svelte'
+	import { fade } from 'svelte/transition'
 
 	let {
 		recipes,
@@ -63,6 +65,23 @@
 	let searchBarPosition = $state<'header' | 'filters'>('header')
 	let searchValue = $state('')
 	let filtersSentinelOutOfView = $state(false)
+	let mobileSearchExpanded = $state(false)
+
+	const searchProps = {
+		placeholder: 'Search recipes...',
+		isLoading,
+		roundedCorners: true,
+		onInput: (query: string) => {
+			if (!isMobile) {
+				window.dispatchEvent(new CustomEvent('search', { detail: { query } }))
+				scrollToFiltersSentinel()
+			}
+		},
+		onConfirm: () => {
+			window.dispatchEvent(new CustomEvent('search', { detail: { query: searchValue } }))
+			scrollToFiltersSentinel()
+		}
+	}
 
 	onMount(() => {
 		checkMobile()
@@ -124,6 +143,7 @@
 		if (searchbarIsSticky) {
 			handleFlip('filters')
 		} else {
+			mobileSearchExpanded = false
 			handleFlip('header')
 		}
 	})
@@ -163,6 +183,11 @@
 
 	const checkMobile = () => {
 		isMobile = window.innerWidth <= 768
+	}
+
+	const closeMobileSearch = () => {
+		mobileSearchExpanded = false
+		searchValue = ''
 	}
 
 	const scrollToFiltersSentinel = () => {
@@ -261,24 +286,7 @@
 		class:filters-searchbar={placement === 'filters'}
 		data-flip-id="searchbar"
 	>
-		<Search
-			placeholder="Search recipes..."
-			bind:value={searchValue}
-			onInput={(query) => {
-				if (!isMobile) {
-					window.dispatchEvent(new CustomEvent('search', { detail: { query } }))
-					scrollToFiltersSentinel()
-				}
-			}}
-			onConfirm={() => {
-				window.dispatchEvent(new CustomEvent('search', { detail: { query: searchValue } }))
-				if (!isMobile) {
-					scrollToFiltersSentinel()
-				}
-			}}
-			{isLoading}
-			roundedCorners
-		/>
+		<Search bind:value={searchValue} {...searchProps} />
 	</div>
 {/snippet}
 
@@ -286,12 +294,6 @@
 	<div class="large-header">Effortless food recipes, made by the community.</div>
 
 	<div bind:this={$sentinelNode} style:height="var(--spacing-2xl)"></div>
-
-	<div class="search-content">
-		{#if searchBarPosition === 'header'}
-			{@render search('header')}
-		{/if}
-	</div>
 {/snippet}
 
 {#snippet content()}
@@ -299,44 +301,62 @@
 		<div bind:this={$filtersSentinelNode} style:height="1px" style:margin-top=""></div>
 		<div class="filters" class:sticky={searchbarIsSticky}>
 			<div class="buttons">
-				<div>
-					<IngredientFilter onSearch={loadIngredients} bind:selected={selectedIngredients} />
-
-					<TagFilter onSearch={loadTags} bind:selected={selectedTags} />
-
-					<div class="filters-search">
-						{#if searchBarPosition === 'filters'}
+				<div class="left-section">
+					{#if isMobile}
+						<div class="mobile-searchbar" style:width={mobileSearchExpanded ? '100%' : ''}>
+							<SearchButton
+								bind:expanded={mobileSearchExpanded}
+								{...searchProps}
+								bind:value={searchValue}
+							/>
+						</div>
+					{:else}
+						<div class="filters-search">
 							{@render search('filters')}
-						{/if}
-					</div>
+						</div>
+					{/if}
+
+					{#if !mobileSearchExpanded}
+						<div in:fade={{ duration: 300, delay: 300 }}>
+							<IngredientFilter onSearch={loadIngredients} bind:selected={selectedIngredients} />
+						</div>
+
+						<div in:fade={{ duration: 300, delay: 300 }}>
+							<TagFilter onSearch={loadTags} bind:selected={selectedTags} />
+						</div>
+					{/if}
 				</div>
 
-				<OptionFilterSelect options={sortOptions} bind:selected={sortBy} />
+				<div class="right-section">
+					<OptionFilterSelect options={sortOptions} bind:selected={sortBy} />
+				</div>
 			</div>
 
 			{#if selectedTags.length > 0 || selectedIngredients.length > 0}
-				<div
-					class="selected-pills"
-					class:sticky={searchbarIsSticky}
-					class:has-content={selectedTags.length > 0 || selectedIngredients.length > 0}
-				>
-					<div>
-						{#each selectedTags as tag (tag.label)}
-							<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
-						{/each}
+				{#if !(mobileSearchExpanded && isMobile)}
+					<div
+						class="selected-pills"
+						class:sticky={searchbarIsSticky}
+						class:has-content={selectedTags.length > 0 || selectedIngredients.length > 0}
+					>
+						<div>
+							{#each selectedTags as tag (tag.label)}
+								<Pill text={tag.label} onRemove={() => removeTag(tag.label)} />
+							{/each}
 
-						{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
-							<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
-						{/each}
+							{#each selectedIngredients.filter((i) => i.include) as ingredient (ingredient.label)}
+								<Pill text={ingredient.label} onRemove={() => removeIngredient(ingredient.label)} />
+							{/each}
 
-						{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
-							<Pill
-								text={`-${ingredient.label}`}
-								onRemove={() => removeIngredient(ingredient.label)}
-							/>
-						{/each}
+							{#each selectedIngredients.filter((i) => !i.include) as ingredient (ingredient.label)}
+								<Pill
+									text={`-${ingredient.label}`}
+									onRemove={() => removeIngredient(ingredient.label)}
+								/>
+							{/each}
+						</div>
 					</div>
-				</div>
+				{/if}
 			{/if}
 		</div>
 
@@ -490,11 +510,6 @@
 		padding-bottom: var(--spacing-2xl);
 	}
 
-	.header-searchbar {
-		width: 100%;
-		max-width: 30rem;
-	}
-
 	.pill-selectors {
 		display: flex;
 		gap: var(--spacing-sm);
@@ -505,7 +520,7 @@
 		display: flex;
 		flex-direction: column;
 		position: sticky;
-		top: 0;
+		top: var(--spacing-xs);
 		z-index: var(--z-sticky);
 		background: var(--color-background);
 		transform-origin: center top;
@@ -513,17 +528,28 @@
 			border 0.2s ease-in-out,
 			opacity 0.2s ease-in-out;
 		padding: var(--spacing-md) 0;
+		border: var(--border-width-thin) solid transparent;
 		border-radius: var(--border-radius-xl);
+
+		@include mobile {
+			border: unset;
+			border-radius: unset;
+			top: 0;
+		}
 
 		&.sticky {
 			border-color: var(--color-neutral);
-			margin: calc(var(--spacing-sm) * -1);
+			margin: var(--spacing-sm);
+
+			@include mobile {
+				margin: unset;
+			}
 
 			.buttons {
 				transform: scale(0.98);
 
 				@include mobile {
-					transform: scale(0.94);
+					transform: unset;
 				}
 			}
 		}
@@ -536,15 +562,19 @@
 			transition: transform 0.2s ease-in-out;
 			z-index: var(--z-elevated);
 
-			> * {
+			.left-section {
 				display: flex;
 				gap: var(--spacing-md);
 				min-width: 0;
+				flex: 1;
 			}
 
-			> *:first-child {
-				flex: 1;
+			.right-section {
+				display: flex;
+				gap: var(--spacing-md);
+				align-items: center;
 				min-width: 0;
+				flex-shrink: 0;
 			}
 		}
 	}
@@ -776,14 +806,5 @@
 
 	.header-searchbar {
 		will-change: transform;
-	}
-
-	.filters-searchbar {
-		width: 100%;
-		min-width: 0;
-	}
-
-	:global(.filters-searchbar .search-input-container input) {
-		border-color: var(--color-primary) !important;
 	}
 </style>
