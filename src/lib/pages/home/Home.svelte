@@ -185,11 +185,6 @@
 		isMobile = window.innerWidth <= 768
 	}
 
-	const closeMobileSearch = () => {
-		mobileSearchExpanded = false
-		searchValue = ''
-	}
-
 	const scrollToFiltersSentinel = () => {
 		if (filtersSentinelOutOfView && $filtersSentinelNode) {
 			if (scrollStore.scrollContainer) {
@@ -261,7 +256,7 @@
 	}
 
 	const emptyStateMessage = $derived(
-		selectedTags.length > 0 || selectedIngredients.length > 0
+		selectedTags.length > 0 || selectedIngredients.length > 0 || searchValue.length > 0
 			? 'No recipes found matching your criteria. Try different search terms or filters, or browse all recipes.'
 			: 'No recipes yet! Be the first to create one.'
 	)

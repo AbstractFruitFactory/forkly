@@ -94,6 +94,8 @@
 	.homepage-header {
 		position: relative;
 		z-index: var(--z-sticky);
+
+		margin: 0 var(--spacing-md);
 	}
 
 	.page-padding {
@@ -211,8 +213,8 @@
 		}
 
 		@include mobile {
-			margin-left: var(--spacing-xs);
-			margin-right: var(--spacing-xs);
+			margin-left: 0;
+			margin-right: 0;
 			margin-top: var(--spacing-sm);
 		}
 	}
@@ -228,7 +230,6 @@
 		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 		&.expanded {
-			top: calc(-1 * (var(--spacing-3xl) + 6rem));
 			left: calc(-1 * var(--spacing-2xl));
 			right: calc(-1 * var(--spacing-2xl));
 			border-radius: 0;
@@ -236,12 +237,6 @@
 			@include tablet {
 				left: calc(-1 * var(--spacing-xl));
 				right: calc(-1 * var(--spacing-xl));
-			}
-
-			@include mobile {
-				top: calc(-1 * (var(--spacing-xl) + 6rem));
-				left: calc(-1 * var(--spacing-xs));
-				right: calc(-1 * var(--spacing-xs));
 			}
 		}
 	}

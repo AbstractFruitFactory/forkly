@@ -12,11 +12,10 @@
 	let { data } = $props()
 
 	let recipes: Awaited<typeof data.recipes> = $state([])
-	let isLoading = $state(true)
+	let isLoading = $state(false)
 
 	$effect(() => {
 		const recipesPromise = data.recipes
-		isLoading = true
 		recipesPromise.then((r) => {
 			recipes = data.loadedPage ? [...untrack(() => recipes), ...r] : r
 			isLoading = false
@@ -31,14 +30,12 @@
 	})
 	let sortParam = $derived(data.initialState.sort)
 
-	// Pagination state
 	let pagination = $state({
 		page: 0,
 		isLoading: false
 	})
 
 	onMount(() => {
-		// Listen for search events from the layout
 		window.addEventListener('search', ((e: CustomEvent) => {
 			handleSearchChange(e.detail.query)
 		}) as EventListener)
@@ -54,11 +51,12 @@
 		query: string,
 		filters?: { tags: string[]; ingredients: string[]; excludedIngredients: string[] }
 	) => {
-		// Reset pagination when performing a new search
 		pagination = {
 			page: 0,
 			isLoading: false
 		}
+
+		isLoading = true
 
 		useCookies('search').set({
 			query,
@@ -100,6 +98,7 @@
 
 	const handleSortChange = (sortBy: 'popular' | 'newest' | 'easiest') => {
 		sortParam = sortBy
+		isLoading = true
 		useCookies('search').set({
 			...useCookies('search').get(),
 			sort: sortBy
@@ -107,9 +106,13 @@
 	}
 
 	const loadMore = async () => {
-		if (pagination.isLoading || !data.hasMore) return
+		if (pagination.isLoading) return
+		
+		const hasMore = await data.hasMore
+		if (!hasMore) return
 
 		pagination.isLoading = true
+		isLoading = true
 
 		useCookies('pagination').set({
 			page: pagination.page + 1
