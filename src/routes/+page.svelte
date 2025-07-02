@@ -1,23 +1,26 @@
 <script lang="ts">
 	import Home from '$lib/pages/home/Home.svelte'
-	import { goto, invalidateAll } from '$app/navigation'
-	import { page } from '$app/state'
+	import { invalidateAll } from '$app/navigation'
 	import { safeFetch } from '$lib/utils/fetch'
 	import type { IngredientLookupResult } from './api/ingredients/lookup/[query]/+server'
 	import type { TagSearchResponse } from './api/tags/+server'
 	import { scrolledDownHomepageStore } from './+layout.svelte'
-	import { onMount, untrack } from 'svelte'
+	import { onMount } from 'svelte'
 	import { useCookies } from '$lib/utils/cookies'
 
 	let { data } = $props()
 
-	let recipes: Awaited<typeof data.recipes> = $state([])
+	let recipes: typeof data.recipes = $state(Promise.resolve([]))
 	let isLoading = $state(false)
 
 	$effect(() => {
-		const recipesPromise = data.recipes
-		recipesPromise.then((r) => {
-			recipes = data.loadedPage ? [...untrack(() => recipes), ...r] : r
+		data.recipes.then(async (r) => {
+			if (data.loadedPage) {
+				const existingRecipes = await recipes
+				recipes = Promise.resolve([...existingRecipes, ...r])
+			} else {
+				recipes = Promise.resolve(r)
+			}
 			isLoading = false
 		})
 	})
@@ -107,7 +110,7 @@
 
 	const loadMore = async () => {
 		if (pagination.isLoading) return
-		
+
 		const hasMore = await data.hasMore
 		if (!hasMore) return
 
@@ -133,7 +136,6 @@
 
 <Home
 	{recipes}
-	{isLoading}
 	onSearchChange={handleSearchChange}
 	onFiltersChange={handleFiltersChange}
 	onSortChange={handleSortChange}

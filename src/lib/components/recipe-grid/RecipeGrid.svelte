@@ -1,21 +1,23 @@
 <script lang="ts">
 	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
 	import CardGrid from '$lib/components/card-grid/CardGrid.svelte'
-	import { onMount, type ComponentProps } from 'svelte'
+	import { onMount, untrack, type ComponentProps } from 'svelte'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 
+	type RecipeItem = NonNullable<ComponentProps<typeof RecipeCard>['recipe']>
+	type LoadingItem = { loading: true }
+	type GridItem = RecipeItem | LoadingItem
+
 	let {
-		recipes = [],
+		recipes,
 		emptyMessage = 'No recipes found.',
-		isLoading = false,
 		useAnimation = true,
 		loadMore,
 		size = 'large',
 		onRecipeClick
 	}: {
-		recipes: NonNullable<ComponentProps<typeof RecipeCard>['recipe']>[]
+		recipes: Promise<RecipeItem[]>
 		emptyMessage?: string
-		isLoading?: boolean
 		loadMore?: () => Promise<void>
 		useAnimation?: boolean
 		size?: 'large' | 'small'
@@ -25,13 +27,37 @@
 	let loadMoreTrigger: HTMLElement
 	let observer: IntersectionObserver
 
+	let isLoading = $state(true)
+	let resolvedRecipes = $state<RecipeItem[]>([])
+
+	$effect(() => {
+		recipes.then((recipeArray) => {
+			resolvedRecipes = recipeArray
+			isLoading = false
+		})
+	})
+
+	let renderedItems = $derived.by(() => {
+		if (isLoading) {
+			return [
+				...resolvedRecipes.map((recipe) => ({ ...recipe, loading: false })),
+				...Array(18).fill({ loading: true })
+			] as GridItem[]
+		}
+		return resolvedRecipes as GridItem[]
+	})
+
 	onMount(() => {
 		if (!loadMore) return
 
 		observer = new IntersectionObserver(
 			(entries) => {
 				if (entries[0].isIntersecting && !isLoading) {
-					loadMore()
+					isLoading = true
+
+					loadMore().then(() => {
+						isLoading = false
+					})
 				}
 			},
 			{ threshold: 0.5, rootMargin: '100px' }
@@ -48,23 +74,15 @@
 		}
 	})
 
-	let renderedItems = $derived.by(() => {
-		if (isLoading) {
-			return [
-				...recipes.map((recipe) => ({ ...recipe, loading: false })),
-				...Array(18).fill({ loading: true })
-			]
-		}
-		return recipes
-	})
+	$inspect(isLoading)
 </script>
 
 <CardGrid items={renderedItems} {emptyMessage} {useAnimation} {size}>
 	{#snippet item(recipe)}
-		{#if recipe.loading}
+		{#if 'loading' in recipe && recipe.loading}
 			<RecipeCard loading {size} />
 		{:else}
-			<RecipeCard {size} {recipe} {onRecipeClick} />
+			<RecipeCard {size} recipe={recipe as RecipeItem} {onRecipeClick} />
 		{/if}
 	{/snippet}
 </CardGrid>

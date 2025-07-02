@@ -16,7 +16,7 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ id: data.id })
+			body: JSON.stringify({ id: (await data.recipe).id })
 		})
 	}
 
@@ -26,7 +26,7 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ id: data.id, collectionName })
+			body: JSON.stringify({ id: (await data.recipe).id, collectionName })
 		})
 	}
 

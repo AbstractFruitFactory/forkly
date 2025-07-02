@@ -10,14 +10,14 @@ export const load: PageServerLoad = ({ fetch, cookies }) => {
         const search = JSON.parse(cookies.get('search') as string | undefined ?? '{}') as SearchCookie | undefined
         const { page } = JSON.parse(cookies.get('pagination') as string | undefined ?? '{}') as PaginationCookie
 
-	cookies.delete('pagination', { path: '/' })
+        cookies.delete('pagination', { path: '/' })
 
-	const searchParams = new URLSearchParams()
-	if (search?.query) searchParams.set('q', search.query)
-	if (search?.tags?.length && search.tags.length > 0) searchParams.set('tags', search.tags.join(','))
-	if (search?.ingredients?.length && search.ingredients.length > 0) searchParams.set('ingredients', search.ingredients.join(','))
-	if (search?.excludedIngredients?.length && search.excludedIngredients.length > 0) searchParams.set('excludedIngredients', search.excludedIngredients.join(','))
-	if (search?.sort) searchParams.set('sort', search.sort)
+        const searchParams = new URLSearchParams()
+        if (search?.query) searchParams.set('q', search.query)
+        if (search?.tags?.length && search.tags.length > 0) searchParams.set('tags', search.tags.join(','))
+        if (search?.ingredients?.length && search.ingredients.length > 0) searchParams.set('ingredients', search.ingredients.join(','))
+        if (search?.excludedIngredients?.length && search.excludedIngredients.length > 0) searchParams.set('excludedIngredients', search.excludedIngredients.join(','))
+        if (search?.sort) searchParams.set('sort', search.sort)
 
         const resultPromise = safeFetch<RecipesSearchResponse>(fetch)(
                 '/api/recipes/search?' + searchParams.toString() + '&page=' + page
@@ -28,7 +28,22 @@ export const load: PageServerLoad = ({ fetch, cookies }) => {
                         console.log(recipes.error)
                         throw error(500, 'Failed to fetch recipes')
                 }
-                return recipes.value.results
+                
+                // Debug: Check for duplicate ingredients
+                const results = recipes.value.results
+                results.forEach((recipe, index) => {
+                        const ingredientIds = recipe.ingredients.map(ing => ing.id)
+                        const uniqueIds = new Set(ingredientIds)
+                        if (ingredientIds.length !== uniqueIds.size) {
+                                console.log(`Recipe ${index} (${recipe.title}) has duplicate ingredients:`, {
+                                        total: ingredientIds.length,
+                                        unique: uniqueIds.size,
+                                        duplicates: ingredientIds.filter((id, i) => ingredientIds.indexOf(id) !== i)
+                                })
+                        }
+                })
+                
+                return results
         })
 
         return {

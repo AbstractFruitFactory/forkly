@@ -192,14 +192,23 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         createdAt: recipe.createdAt,
         servings: recipe.servings,
         likes: sql<number>`count(DISTINCT ${recipeLike.userId})::int`,
-        ingredients: sql<Array<{ id: string, name: string, quantity: number, measurement: string, custom?: boolean }>>`json_agg(
-          json_build_object(
-            'id', ${ingredient.id},
-            'name', ${ingredient.name},
-            'quantity', ${recipeIngredient.quantity},
-            'measurement', ${recipeIngredient.measurement}
+        ingredients: sql<Array<{ id: string, name: string, quantity: number, measurement: string, custom?: boolean, displayName: string }>>`(
+          SELECT json_agg(
+            json_build_object(
+              'id', i.id,
+              'name', i.name,
+              'quantity', ri.quantity,
+              'measurement', ri.measurement,
+              'displayName', ri.display_name
+            )
           )
-        ) filter (where ${ingredient.id} is not null)`,
+          FROM (
+            SELECT DISTINCT ri.ingredient_id, ri.quantity, ri.measurement, ri.display_name
+            FROM recipe_ingredient ri
+            WHERE ri.recipe_id = ${recipe.id}
+          ) ri
+          JOIN ingredient i ON i.id = ri.ingredient_id
+        )`,
         nutrition: sql<{ calories: number, protein: number, carbs: number, fat: number }>`json_build_object(
           'calories', ${recipeNutrition.calories},
           'protein', ${recipeNutrition.protein},
@@ -215,8 +224,6 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
       .leftJoin(user, eq(recipe.userId, user.id))
       .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
       .leftJoin(recipeNutrition, eq(recipe.id, recipeNutrition.recipeId))
-      .leftJoin(recipeIngredient, eq(recipe.id, recipeIngredient.recipeId))
-      .leftJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
       .leftJoin(recipeTag, eq(recipe.id, recipeTag.recipeId))
 
     // Complete the query with the where condition if needed

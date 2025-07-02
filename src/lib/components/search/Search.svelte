@@ -27,7 +27,6 @@
 	} & Omit<ComponentProps<typeof Input>, 'children' | 'value'> = $props()
 
 	const showClear = $derived(value !== '')
-	const hideSearchIcon = $derived(isLoading)
 
 	const handleInput = (e: Event) => {
 		value = (e.target as HTMLInputElement).value

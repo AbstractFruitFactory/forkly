@@ -19,7 +19,6 @@
 
 	let {
 		recipes,
-		isLoading = false,
 		onFiltersChange = (filters: {
 			tags: string[]
 			ingredients: string[]
@@ -35,7 +34,6 @@
 		onSearchbarSticky = (isSticky: boolean) => {}
 	}: {
 		recipes: ComponentProps<typeof RecipeGrid>['recipes']
-		isLoading?: boolean
 		onSearchChange?: (query: string) => void
 		onFiltersChange?: (filters: {
 			tags: string[]
@@ -69,7 +67,6 @@
 
 	const searchProps = {
 		placeholder: 'Search recipes...',
-		isLoading,
 		roundedCorners: true,
 		onInput: (query: string) => {
 			if (!isMobile) {
@@ -286,7 +283,7 @@
 {/snippet}
 
 {#snippet homepageHeader()}
-	<div class="large-header">Effortless food recipes, made by the community.</div>
+	<h1 class="large-header">Effortless food recipes, made by the community.</h1>
 
 	<div bind:this={$sentinelNode} style:height="var(--spacing-2xl)"></div>
 {/snippet}
@@ -356,25 +353,14 @@
 		</div>
 
 		<div class="home-container">
-			{#snippet recipeGrid(size: 'large' | 'small')}
-				<div class="recipe-grid">
-					<RecipeGrid
-						{recipes}
-						emptyMessage={emptyStateMessage}
-						{isLoading}
-						{loadMore}
-						{size}
-						onRecipeClick={openRecipePopup}
-					/>
-				</div>
-			{/snippet}
-
-			<div class="desktop-only">
-				{@render recipeGrid('large')}
-			</div>
-
-			<div class="mobile-only">
-				{@render recipeGrid('small')}
+			<div class="recipe-grid">
+				<RecipeGrid
+					{recipes}
+					emptyMessage={emptyStateMessage}
+					{loadMore}
+					size="large"
+					onRecipeClick={openRecipePopup}
+				/>
 			</div>
 		</div>
 	</div>
@@ -427,8 +413,6 @@
 
 	.large-header {
 		color: black;
-		font-size: 2rem;
-		font-weight: 600;
 		text-align: center;
 		padding-top: var(--spacing-2xl);
 
