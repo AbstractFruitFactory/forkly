@@ -42,13 +42,13 @@
 	.pill-content {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-xs);
+		justify-content: center;
+		gap: var(--spacing-sm);
 		background-color: var(--pill-color-dark, var(--color-primary-dark));
-		padding: var(--spacing-xs) var(--spacing-sm);
+		padding: var(--spacing-sm);
 		border-radius: var(--border-radius-full);
 		transition: all 0.2s ease;
-		border: 2px solid var(--pill-color, #3b404e);
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+		border: 1px solid #656771;
 	}
 
 	.pill-text {

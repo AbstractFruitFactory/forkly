@@ -56,8 +56,6 @@
 		width: 100%;
 		height: 37px;
 		padding: 0 var(--spacing-lg);
-		border: var(--border-width-thin) solid var(--color-neutral);
-		border-radius: var(--rounded-corners, var(--border-radius-md));
 		font-family: var(--font-sans);
 		font-size: var(--font-size-sm);
 		color: var(--color-neutral-light);
@@ -67,10 +65,6 @@
 		&::placeholder {
 			color: var(--color-neutral-light);
 			opacity: 0.5;
-		}
-
-		&:hover {
-			border-color: var(--color-primary);
 		}
 
 		&:focus {
@@ -98,13 +92,9 @@
 		grid-template-columns: 1fr auto;
 		align-items: center;
 		border: var(--border-width-thin) solid var(--color-neutral);
-		border-radius: var(--rounded-corners, var(--border-radius-md));
+		border-radius: var(--rounded-corners, var(--border-radius-lg));
 		background-color: var(--color-neutral-dark);
 		transition: all var(--transition-fast) var(--ease-in-out);
-
-		&:hover {
-			border-color: var(--color-primary);
-		}
 
 		&:focus-within {
 			border-color: var(--color-primary);

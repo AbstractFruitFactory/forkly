@@ -11,7 +11,7 @@
 		buttonColor,
 		size = 'md',
 		type = 'button',
-		borderRadius = 'md',
+		borderRadius = 'xl',
 		bold = false,
 		fullWidth = false,
 		disabled = false,
@@ -120,7 +120,7 @@
 		}
 
 		&.border-radius-xl {
-			border-radius: var(--border-radius-xl);
+			border-radius: var(--border-radius-2xl);
 		}
 
 		&.border-radius-full {
@@ -179,6 +179,10 @@
 
 		&.neutral {
 			background-color: var(--color-neutral-2);
+
+			&:hover:not(:disabled) {
+				background-color: color-mix(in srgb, var(--color-neutral-2), black 15%);
+			}
 		}
 
 		&.text {

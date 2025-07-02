@@ -82,7 +82,6 @@
 				placeholder={searchPlaceholder}
 				bind:value={searchQuery}
 				onInput={handleSearchInput}
-				roundedCorners
 				{isLoading}
 			/>
 		</div>

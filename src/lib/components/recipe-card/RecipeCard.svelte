@@ -2,6 +2,9 @@
 	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import Dropdown from '$lib/components/dropdown/Dropdown.svelte'
 	import MoreVertical from 'lucide-svelte/icons/more-vertical'
+	import Carrot from 'lucide-svelte/icons/carrot'
+	import List from 'lucide-svelte/icons/list'
+	import Heart from 'lucide-svelte/icons/heart'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
 	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
@@ -84,18 +87,15 @@
 			<RecipeImagePlaceholder size="medium" />
 		{/if}
 		<div class="action-buttons">
-			{#if recipe}
-				<LikeButton count={recipe.likes} />
-				{#if menu}
-					<button
-						bind:this={menuButton}
-						class="menu-btn"
-						onclick={handleMenuToggle}
-						aria-label="Recipe menu"
-					>
-						<MoreVertical size={16} />
-					</button>
-				{/if}
+			{#if recipe && menu}
+				<button
+					bind:this={menuButton}
+					class="menu-btn"
+					onclick={handleMenuToggle}
+					aria-label="Recipe menu"
+				>
+					<MoreVertical size={16} />
+				</button>
 			{/if}
 		</div>
 	</div>
@@ -128,7 +128,7 @@
 						<div class="gradient-animate"></div>
 					</div>
 				{:else if recipe}
-					<h4 class="recipe-title" style:margin="0">{recipe.title}</h4>
+					<h3 class="recipe-title" style:margin="0">{recipe.title}</h3>
 				{/if}
 			</div>
 		</div>
@@ -138,9 +138,20 @@
 					<div class="gradient-animate"></div>
 				</span>
 			{:else if recipe}
-				<span
-					>{recipe.ingredients.length} ingredients &nbsp;|&nbsp; {recipe.instructions.length} steps</span
-				>
+				<span class="meta-content">
+					<span class="meta-item">
+						<Carrot size={16} />
+						{recipe.ingredients.length}
+					</span>
+					<span class="meta-item">
+						<List size={16} />
+						{recipe.instructions.length}
+					</span>
+					<span class="meta-item likes">
+						<Heart size={16} />
+						{recipe.likes}
+					</span>
+				</span>
 			{/if}
 		</div>
 	</div>
@@ -175,10 +186,10 @@
 <style lang="scss">
 	.recipe-card {
 		display: grid;
-		grid-template-rows: 50% auto;
-		height: 400px;
+		grid-template-rows: 60% auto;
+		height: 435px;
 		width: 100%;
-		border-radius: var(--border-radius-lg);
+		border-radius: var(--border-radius-2xl);
 		background: var(--color-surface);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		box-shadow: var(--shadow-sm);
@@ -200,12 +211,6 @@
 
 			.content {
 				padding: var(--spacing-sm);
-			}
-
-			.recipe-title {
-				font-size: var(--font-size-sm);
-				word-break: normal;
-				overflow-wrap: break-word;
 			}
 
 			.meta-single > span {
@@ -247,6 +252,20 @@
 			outline: 2px solid var(--color-primary);
 			outline-offset: 2px;
 		}
+	}
+
+	.recipe-title {
+		font-family: var(--font-serif);
+		word-break: break-word;
+		overflow-wrap: break-word;
+		hyphens: auto;
+		white-space: normal;
+		word-wrap: break-word;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
 	}
 
 	.image-container {
@@ -423,6 +442,28 @@
 		span {
 			font-size: var(--font-size-sm);
 		}
+	}
+
+	.meta-content {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+		justify-content: space-between;
+	}
+
+	.meta-item {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+	}
+
+	.meta-item.likes {
+		margin-left: auto;
+	}
+
+	.separator {
+		color: var(--color-neutral);
+		opacity: 0.5;
 	}
 
 	.spinner-overlay {

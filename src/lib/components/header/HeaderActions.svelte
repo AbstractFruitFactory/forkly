@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/button/Button.svelte'
 	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
+	import LogInIcon from 'lucide-svelte/icons/log-in'
 	import PlusIcon from 'lucide-svelte/icons/plus'
 
 	let {
@@ -20,9 +21,9 @@
 
 <div class="header-actions">
 	<div>
-		<Button href={newRecipeHref} variant="border" size="sm">
-			<PlusIcon size={16} color="black" />
-			<span class="new-recipe-text">New Recipe</span>
+		<Button href={newRecipeHref} color="neutral" size="sm">
+			<PlusIcon size={16} />
+			New Recipe
 		</Button>
 	</div>
 
@@ -32,7 +33,10 @@
 				<ProfilePic {profilePicUrl} size="sm" />
 			</a>
 		{:else}
-			<Button href={loginHref} variant="dotted" color="primary" size="sm">Login</Button>
+			<Button href={loginHref} variant="border" color="primary" size="sm">
+				<LogInIcon color="black" size={16} />
+				Sign in
+			</Button>
 		{/if}
 	</nav>
 </div>
@@ -63,15 +67,6 @@
 			color: var(--color-primary);
 			background: var(--color-neutral-dark-hover, rgba(255, 255, 255, 0.1));
 			outline: none;
-		}
-	}
-
-	.new-recipe-text {
-		color: black;
-		font-size: var(--font-size-sm);
-
-		@include tablet {
-			display: none;
 		}
 	}
 </style>

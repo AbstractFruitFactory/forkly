@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { RecipeData } from '$lib/types'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import type { NutritionInfo } from '$lib/server/food-api'
 	import DesktopLayout from '$lib/pages/recipe/DesktopLayout.svelte'
