@@ -2,6 +2,12 @@ import type { Preview } from '@storybook/svelte'
 import { themes } from '@storybook/theming'
 import '../src/lib/global.scss'
 import './storybook-global.scss'
+import gsap from 'gsap'
+
+// Register GSAP Flip plugin for stories
+import('gsap/Flip').then(({ Flip }) => {
+  gsap.registerPlugin(Flip)
+})
 
 const preview: Preview = {
   parameters: {
