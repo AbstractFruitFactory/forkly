@@ -138,11 +138,6 @@
 		background: var(--color-primary);
 		width: 100vw;
 		margin-left: calc(-50vw + 50%);
-		transition: border 1s ease-out;
-
-		&.border {
-			border-bottom: var(--border-width-thin) solid var(--color-neutral);
-		}
 
 		&.transparent {
 			background: transparent;
@@ -199,7 +194,6 @@
 	.main-layout {
 		position: relative;
 		margin: 0 var(--spacing-2xl);
-		margin-top: var(--spacing-lg);
 		border-radius: var(--border-radius-3xl);
 		min-height: calc(100dvh - $header-height);
 		will-change: margin, border-radius;
