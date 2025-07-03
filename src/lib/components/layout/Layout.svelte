@@ -120,8 +120,8 @@
 		transition: max-width 0.25s ease-out;
 
 		&.wide-header {
-			width: 100vw;
-			max-width: 100vw;
+			width: 100%;
+			max-width: calc(100vw - var(--spacing-xl));
 		}
 
 		@include mobile {
@@ -178,6 +178,7 @@
 		overflow-y: auto;
 		scrollbar-width: thin;
 		transition: margin-left 0.25s ease-out;
+		scrollbar-gutter: stable both-edges;
 
 		&.home-page {
 			overflow-y: unset;
