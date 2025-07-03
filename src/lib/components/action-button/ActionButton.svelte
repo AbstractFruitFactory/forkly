@@ -67,9 +67,9 @@
 	button.action-button {
 		cursor: pointer;
 
-		&:hover {
-			background: rgba(255, 255, 255, 0.12);
-			color: #ffffff;
+                &:hover {
+                        background: rgba(255, 255, 255, 0.12);
+                        color: var(--color-text-on-surface);
 
 			:global(svg) {
 				opacity: 1;

@@ -121,11 +121,11 @@
 		transition: all 0.2s ease;
 		opacity: 0.7;
 
-		&:hover {
-			color: var(--color-text);
-			opacity: 1;
-			background: var(--color-background-hover);
-		}
+                &:hover {
+                        color: var(--color-text-on-surface);
+                        opacity: 1;
+                        background: var(--color-background-hover);
+                }
 
 		&:active {
 			transform: scale(0.95);

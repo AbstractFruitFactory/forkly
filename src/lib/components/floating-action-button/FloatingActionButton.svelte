@@ -49,8 +49,8 @@
 		width: 50px;
 		height: 50px;
 		border-radius: var(--border-radius-full);
-		background: var(--color-neutral-2);
-		color: var(--color-text);
+                background: var(--color-neutral-2);
+                color: var(--color-text-on-surface);
 		display: flex;
 		align-items: center;
 		justify-content: center;

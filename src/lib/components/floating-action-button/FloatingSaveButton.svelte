@@ -13,8 +13,8 @@
 
 <style lang="scss">
 	.save-button-container {
-		:global(.action-button.active > svg) {
-			fill: var(--color-text);
-		}
+                :global(.action-button.active > svg) {
+                        fill: var(--color-text-on-surface);
+                }
 	}
 </style>

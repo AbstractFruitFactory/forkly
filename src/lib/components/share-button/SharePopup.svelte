@@ -195,10 +195,10 @@
 		gap: var(--spacing-md);
 	}
 
-	.share-description {
-		margin: 0 0 var(--spacing-sm);
-		color: var(--color-text);
-	}
+        .share-description {
+                margin: 0 0 var(--spacing-sm);
+                color: var(--color-text-on-surface);
+        }
 
 	.share-item-preview {
 		background: var(--color-hover);

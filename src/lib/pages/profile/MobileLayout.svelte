@@ -113,11 +113,11 @@
 		margin-bottom: var(--spacing-md);
 	}
 
-	.name-row {
-		font-size: var(--font-size-xl);
-		font-weight: 600;
-		color: white;
-	}
+        .name-row {
+                font-size: var(--font-size-xl);
+                font-weight: 600;
+                color: var(--color-text-on-primary);
+        }
 
 	.email-row {
 		font-size: var(--font-size-md);
@@ -185,8 +185,8 @@
 		border-radius: 50%;
 		width: 50px;
 		height: 50px;
-		font-size: 1.5rem;
-		color: white;
+                font-size: 1.5rem;
+                color: var(--color-text-on-primary);
 		cursor: pointer;
 		display: flex;
 		align-items: center;
@@ -194,8 +194,8 @@
 		margin-bottom: var(--spacing-sm);
 	}
 
-	.detail-title {
-		font-size: var(--font-size-2xl);
-		color: white;
-	}
+        .detail-title {
+                font-size: var(--font-size-2xl);
+                color: var(--color-text-on-primary);
+        }
 </style>

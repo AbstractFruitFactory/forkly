@@ -41,10 +41,10 @@
 			box-shadow: var(--shadow-md);
 		}
 
-		h3 {
-			margin: 0 0 1rem;
-			color: white;
-		}
+                h3 {
+                        margin: 0 0 1rem;
+                        color: var(--color-text-on-surface);
+                }
 	}
 
 	.content {

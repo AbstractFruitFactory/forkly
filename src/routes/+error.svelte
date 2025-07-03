@@ -39,8 +39,8 @@
 		transition: all var(--transition-fast) var(--ease-in-out);
 	}
 
-	a:hover {
-		background-color: var(--color-primary);
-		color: white;
-	}
+        a:hover {
+                background-color: var(--color-primary);
+                color: var(--color-text-on-primary);
+        }
 </style>
