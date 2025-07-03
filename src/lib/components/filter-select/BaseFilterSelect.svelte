@@ -19,7 +19,12 @@
 		selected: Item | Item[]
 		icon?: Snippet
 		count?: number
-		content: Snippet<[handleSelect: (itemLabel: string, itemData: Omit<Item, 'label'>) => void]>
+		content: Snippet<
+			[
+				handleSelect: (itemLabel: string, itemData: Omit<Item, 'label'>) => void,
+				item?: (itemContent: Snippet) => ReturnType<Snippet>
+			]
+		>
 		isOpen?: boolean
 		title?: string
 	} = $props()
@@ -118,9 +123,11 @@
 
 	{#if !isMobile}
 		<Dropdown bind:isOpen>
-			<div class="items-container" role="listbox" onkeydown={handleKeyDown}>
-				{@render content(handleSelect)}
-			</div>
+			{#snippet dropdownContent(item)}
+				<div class="items-container" role="listbox" onkeydown={handleKeyDown}>
+					{@render content(handleSelect, item)}
+				</div>
+			{/snippet}
 		</Dropdown>
 	{/if}
 </div>

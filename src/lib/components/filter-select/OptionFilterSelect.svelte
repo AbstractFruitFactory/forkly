@@ -26,22 +26,24 @@
 		</div>
 	{/snippet}
 
-	{#snippet content(handleSelect)}
+	{#snippet content(handleSelect, item)}
 		<div class="items">
 			{#if options.length === 0}
 				<div class="helper-text">No options available</div>
 			{:else}
 				{#each options as option}
-					<button
-						class="item"
-						onclick={() => {
-							handleSelect(option.label, option)
-							option.onClick()
-							isOpen = false
-						}}
-					>
-						{option.label}
-					</button>
+					{#snippet _item()}
+						<button
+							onclick={() => {
+								handleSelect(option.label, option)
+								option.onClick()
+								isOpen = false
+							}}
+						>
+							{option.label}
+						</button>
+					{/snippet}
+					{@render item?.(_item)}
 				{/each}
 			{/if}
 		</div>
@@ -65,20 +67,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
-	}
-
-	.item {
-		padding: var(--spacing-xs) var(--spacing-sm);
-
-		&:hover {
-			background-color: var(--color-neutral);
-		}
-
-		@include tablet {
-			border: 1px solid var(--color-neutral);
-			border-radius: var(--border-radius-xl);
-			margin: var(--spacing-md) var(--spacing-sm);
-		}
+		padding: var(--spacing-sm) 0;
 	}
 
 	.helper-text {

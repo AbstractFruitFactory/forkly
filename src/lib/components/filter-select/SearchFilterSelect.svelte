@@ -14,7 +14,7 @@
 		searchPlaceholder,
 		onSearch,
 		selected = $bindable<Item[]>([]),
-		item,
+		filterItem,
 		icon,
 		initialResults = [],
 		isLoading: externalIsLoading = false,
@@ -24,7 +24,7 @@
 		searchPlaceholder: string
 		onSearch: (query: string) => Promise<SearchResult[]>
 		selected: Item[]
-		item: Snippet<[searchResult: SearchResult, select: (item: Omit<Item, 'label'>) => void]>
+		filterItem: Snippet<[searchResult: SearchResult, select: (item: Omit<Item, 'label'>) => void]>
 		icon?: Snippet
 		initialResults?: SearchResult[]
 		isLoading?: boolean
@@ -76,7 +76,7 @@
 		</div>
 	{/snippet}
 
-	{#snippet content(handleSelect)}
+	{#snippet content(handleSelect, item)}
 		<div class="search-container">
 			<Search
 				placeholder={searchPlaceholder}
@@ -103,15 +103,21 @@
 				out:send={{ key: result.label }}
 				animate:flip={{ duration: 200 }}
 			>
-				{@render item(result, (itemData) => {
-					handleSelect(result.label, itemData)
-				})}
+				{#snippet _item()}
+					{@render filterItem(result, (itemData) => {
+						handleSelect(result.label, itemData)
+					})}
+				{/snippet}
+				{@render item?.(_item)}
 			</div>
 		{/each}
 
 		{#each searchResults as result, i}
 			<div class="item desktop-only" data-item-index={i} role="option">
-				{@render item(result, (itemData) => handleSelect(result.label, itemData))}
+				{#snippet _item()}
+					{@render filterItem(result, (itemData) => handleSelect(result.label, itemData))}
+				{/snippet}
+				{@render item?.(_item)}
 			</div>
 		{/each}
 
@@ -146,20 +152,6 @@
 	.label {
 		@include tablet {
 			display: none;
-		}
-	}
-
-	.item {
-		padding: var(--spacing-xs) var(--spacing-sm);
-
-		&:hover {
-			background-color: var(--color-neutral);
-		}
-
-		@include tablet {
-			border: 1px solid var(--color-neutral);
-			border-radius: var(--border-radius-xl);
-			margin: var(--spacing-md) var(--spacing-sm);
 		}
 	}
 

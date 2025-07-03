@@ -50,7 +50,7 @@
 			<TagIcon size={16} />
 		{/snippet}
 
-		{#snippet item(result, select)}
+		{#snippet filterItem(result, select)}
 			{@const isSelected = selected.find((s: Tag) => s.label === result.label)?.selected ?? false}
 
 			<div class="tag-item">
@@ -84,12 +84,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: var(--spacing-xs) var(--spacing-sm);
-		cursor: pointer;
-
-		&:hover {
-			background-color: var(--color-neutral);
-		}
 	}
 
 	.tag-label {

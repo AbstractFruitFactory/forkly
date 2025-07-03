@@ -5,10 +5,10 @@
 
 	let {
 		isOpen = $bindable(false),
-		children
+		dropdownContent
 	}: {
 		isOpen?: boolean
-		children: Snippet
+		dropdownContent: Snippet<[item: (itemContent: Snippet) => ReturnType<Snippet>]>
 	} = $props()
 
 	const closeDropdown = () => {
@@ -22,9 +22,15 @@
 		use:clickOutside={{ callback: closeDropdown }}
 		transition:fly={{ y: 10, duration: 200 }}
 	>
-		{@render children()}
+		{@render dropdownContent(item)}
 	</div>
 {/if}
+
+{#snippet item(itemContent: Snippet)}
+	<div class="item">
+		{@render itemContent()}
+	</div>
+{/snippet}
 
 <style lang="scss">
 	.dropdown {
@@ -37,7 +43,19 @@
 		z-index: 10;
 		margin-top: var(--spacing-sm);
 		overflow: hidden;
-		border: 1px solid var(--color-neutral);
+		border: 1px solid var(--color-neutral-2);
 		min-width: 200px;
+	}
+
+	.item {
+		padding: var(--spacing-sm) var(--spacing-md);
+		margin: 0 var(--spacing-md);
+		border-radius: var(--border-radius-lg);
+		transition: background-color 0.2s ease;
+		cursor: pointer;
+		
+		&:hover {
+			background-color: var(--color-neutral-2);
+		}
 	}
 </style>

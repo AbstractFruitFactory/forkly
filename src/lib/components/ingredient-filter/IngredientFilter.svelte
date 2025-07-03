@@ -30,7 +30,7 @@
 		{#snippet icon()}
 			<Carrot size={16} />
 		{/snippet}
-		{#snippet item(result: { label: string }, select: (item: { include: boolean }) => void)}
+		{#snippet filterItem(result: { label: string }, select: (item: { include: boolean }) => void)}
 			{@const state = selected.find((s: IngredientFilter) => s.label === result.label)}
 			<div class="ingredient-item">
 				<span class="ingredient-label" class:excluded={state?.include === false}>
@@ -70,7 +70,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: var(--spacing-xs) var(--spacing-sm);
 	}
 
 	.ingredient-label {
