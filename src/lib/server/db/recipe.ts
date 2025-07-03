@@ -98,7 +98,11 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     for (const term of searchTerms) {
       const titleCondition = ilike(recipe.title, `%${term}%`)
       const tagCondition = sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${recipe.tags}) AS tag WHERE tag ILIKE ${'%' + term + '%'})`
-      const ingredientCondition = ilike(ingredient.name, `%${term}%`)
+      const ingredientCondition = sql`EXISTS (
+        SELECT 1 FROM recipe_ingredient ri
+        JOIN ingredient i ON ri.ingredient_id = i.id
+        WHERE ri.recipe_id = ${recipe.id} AND i.name ILIKE ${'%' + term + '%'}
+      )`
 
       const validConditions = [titleCondition, tagCondition, ingredientCondition].filter(Boolean)
 
