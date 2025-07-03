@@ -14,20 +14,9 @@
 		isOpen: boolean
 		onClose: () => void
 	} = $props()
-
-	const openFullPage = (e: MouseEvent) => {
-		if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return
-		e.preventDefault()
-		goto(window.location.href, { replaceState: false })
-	}
 </script>
 
 <Popup {isOpen} {onClose} width="90vw">
-	{#snippet headerActions()}
-		<button aria-label="Open full page" class="fullscreen-link" onclick={openFullPage}>
-			<ExternalLink size={20} />
-		</button>
-	{/snippet}
 	{#if data}
 		<RecipePage {data} />
 	{/if}
