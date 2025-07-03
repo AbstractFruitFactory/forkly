@@ -154,7 +154,7 @@
 	}
 
 	.popup-content {
-		padding: var(--spacing-lg);
+		padding: var(--spacing-lg) var(--spacing-2xl);
 		overflow-y: scroll;
 		height: 100%;
 		scrollbar-width: thin;
