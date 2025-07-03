@@ -223,11 +223,15 @@
 	let resolveRecipePopup: (value: void) => void
 
 	let recipeModalData = $state<ComponentProps<typeof RecipePopup>['data']>()
+	let animateFromElement = $state<HTMLElement | null>(null)
 
 	const openRecipePopup = async (recipe: DetailedRecipe, e: MouseEvent) => {
 		if (e.shiftKey || e.metaKey || e.ctrlKey || e.button === 1) return
 
 		e.preventDefault()
+
+		const clickedElement = e.currentTarget as HTMLElement
+		animateFromElement = clickedElement
 
 		const href = `/recipe/${recipe.id}`
 		const result = await preloadData(href)
@@ -247,7 +251,10 @@
 	}
 
 	const closePopup = () => {
+		if (!resolveRecipePopup) return
+
 		page.state.recipeModal = undefined
+		animateFromElement = null
 		resolveRecipePopup()
 		replaceState('/', { recipeModal: undefined })
 	}
@@ -366,7 +373,7 @@
 	</div>
 {/snippet}
 
-<RecipePopup data={recipeModalData} isOpen={page.state.recipeModal ?? false} onClose={closePopup} />
+<RecipePopup data={recipeModalData} isOpen={page.state.recipeModal ?? false} onClose={closePopup} animateFrom={animateFromElement} />
 
 <style lang="scss">
 	@import '$lib/global.scss';

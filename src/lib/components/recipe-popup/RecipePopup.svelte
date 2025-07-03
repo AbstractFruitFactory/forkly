@@ -1,22 +1,32 @@
 <script lang="ts">
 	import Popup from '../popup/Popup.svelte'
-	import ExternalLink from 'lucide-svelte/icons/external-link'
 	import RecipePage from '../../../routes/(pages)/recipe/[id]/+page.svelte'
-	import { goto } from '$app/navigation'
 	import type { ComponentProps } from 'svelte'
-
+	import { untrack } from 'svelte'
 	let {
 		data,
 		isOpen = $bindable(false),
-		onClose
+		onClose,
+		animateFrom = null
 	}: {
 		data?: ComponentProps<typeof RecipePage>['data']
 		isOpen: boolean
 		onClose: () => void
+		animateFrom?: HTMLElement | null
 	} = $props()
+
+	$effect(() => {
+		if (isOpen) {
+			untrack(popup.open)
+		} else {
+			untrack(popup.close)
+		}
+	})
+
+	let popup: Popup
 </script>
 
-<Popup {isOpen} {onClose} width="90vw">
+<Popup {onClose} width="90vw" {animateFrom} bind:this={popup}>
 	{#if data}
 		<RecipePage {data} />
 	{/if}

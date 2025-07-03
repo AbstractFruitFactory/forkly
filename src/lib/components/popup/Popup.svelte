@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
-	import { quintOut } from 'svelte/easing'
-	import { fade, scale } from 'svelte/transition'
+	import { fade } from 'svelte/transition'
+	import { onMount, tick } from 'svelte'
+	import gsap from 'gsap'
 
 	let {
 		isOpen = $bindable(false),
@@ -11,7 +12,8 @@
 		width = '400px',
 		onClose,
 		children,
-		headerActions
+		headerActions,
+		animateFrom = null
 	}: {
 		isOpen?: boolean
 		title?: string
@@ -21,10 +23,98 @@
 		onClose?: () => void
 		children?: Snippet
 		headerActions?: Snippet
+		animateFrom?: HTMLElement | null
 	} = $props()
 
-	const handleClose = () => {
-		onClose?.()
+	export const open = () => {
+		handleOpen()
+	}
+
+	export const close = () => {
+		handleClose()
+	}
+
+	let ANIMATION_DURATION = 0.4
+
+	let popupContainer: HTMLDivElement
+
+	const handleOpen = async () => {
+		if (animateFrom) {
+			const flip = (await import('gsap/Flip')).Flip
+			if (!flip) return
+
+			gsap.set(animateFrom, { opacity: 0, pointerEvents: 'none' })
+
+			isOpen = true
+			await tick()
+
+			flip.fit(popupContainer, animateFrom)
+
+			const state = flip.getState(popupContainer)
+
+			gsap.set(popupContainer, {
+				clearProps: true
+			})
+
+			const content = popupContainer.querySelector('.popup-content') as HTMLElement
+
+			flip.from(state, {
+				duration: ANIMATION_DURATION,
+				ease: 'power2.inOut',
+				scale: true,
+				onStart: () => {
+					gsap.set(content, {
+						opacity: 0
+					})
+				},
+				onComplete: () => {
+					gsap.to(content, {
+						opacity: 1,
+						clearProps: true,
+						duration: 0.1
+					})
+				}
+			})
+		} else {
+			isOpen = true
+		}
+	}
+
+	const handleClose = async () => {
+		if (animateFrom) {
+			const flip = (await import('gsap/Flip')).Flip
+			if (!flip) return
+
+			const state = flip.getState(popupContainer)
+
+			const content = popupContainer.querySelector('.popup-content') as HTMLElement
+			const header = popupContainer.querySelector('.popup-header') as HTMLElement
+
+			gsap.set(animateFrom, { clearProps: true })
+
+			flip.fit(popupContainer, animateFrom)
+
+			flip.from(state, {
+				duration: ANIMATION_DURATION,
+				ease: 'power2.inOut',
+				scale: true,
+				onStart: () => {
+					gsap.set(content, {
+						opacity: 0
+					})
+					gsap.set(header, {
+						opacity: 0
+					})
+				},
+				onComplete: () => {
+					isOpen = false
+					onClose?.()
+				}
+			})
+		} else {
+			isOpen = false
+			onClose?.()
+		}
 	}
 
 	const handleClickOutside = (e: MouseEvent) => {
@@ -45,12 +135,12 @@
 {#if isOpen}
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="popup-overlay" transition:fade={{ duration: 200 }} onclick={handleClickOutside}>
-		<div
-			class="popup-container"
-			style="max-width: {width};"
-			transition:scale={{ duration: 300, easing: quintOut, start: 0.7 }}
-		>
+	<div
+		class="popup-overlay"
+		transition:fade={{ duration: animateFrom ? 0 : 200 }}
+		onclick={handleClickOutside}
+	>
+		<div bind:this={popupContainer} class="popup-container" style="width: {width};">
 			{#if title || showCloseButton}
 				<div class="popup-header">
 					<div>
@@ -105,9 +195,11 @@
 	.popup-container {
 		position: relative;
 		background-color: var(--color-background);
-		border-radius: var(--border-radius-lg);
+		border-radius: var(--border-radius-3xl);
 		box-shadow: var(--shadow-lg);
 		width: 100%;
+		margin: 0 var(--spacing-2xl);
+		max-width: 1200px;
 		max-height: 90dvh;
 		overflow: hidden;
 		display: flex;
