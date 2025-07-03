@@ -250,20 +250,20 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-                background: rgba(0, 0, 0, 0.7);
-                color: var(--color-text-on-surface);
-                text-align: center;
-                padding: 1rem;
-        }
+		background: rgba(0, 0, 0, 0.7);
+		color: var(--color-text-on-surface);
+		text-align: center;
+		padding: 1rem;
+	}
 
 	.spinner {
 		width: 40px;
 		height: 40px;
-                border: 4px solid rgba(255, 255, 255, 0.3);
-                border-radius: 50%;
-                border-top-color: var(--color-text-on-surface);
-                animation: spin 1s linear infinite;
-        }
+		border: 4px solid rgba(255, 255, 255, 0.3);
+		border-radius: 50%;
+		border-top-color: var(--color-text-on-surface);
+		animation: spin 1s linear infinite;
+	}
 
 	@keyframes spin {
 		0% {

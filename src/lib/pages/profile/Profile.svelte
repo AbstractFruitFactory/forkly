@@ -244,7 +244,7 @@
 		width: 100%;
 		height: 100%;
 		border-radius: 50%;
-                color: var(--color-text-on-primary);
+		color: var(--color-text-on-primary);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -284,11 +284,11 @@
 		align-items: center;
 	}
 
-        .profile-title-row h1 {
-                margin: 0;
-                font-size: var(--font-size-2xl);
-                color: var(--color-text-on-primary);
-        }
+	.profile-title-row h1 {
+		margin: 0;
+		font-size: var(--font-size-2xl);
+		color: var(--color-text-on-primary);
+	}
 
 	.profile-email {
 		color: var(--color-neutral-light);
@@ -319,12 +319,12 @@
 		font-size: var(--font-size-md);
 	}
 
-        .profile-info-value {
-                flex: 1;
-                color: var(--color-text-on-primary);
-                font-size: var(--font-size-md);
-                display: flex;
-                align-items: center;
+	.profile-info-value {
+		flex: 1;
+		color: var(--color-text-on-primary);
+		font-size: var(--font-size-md);
+		display: flex;
+		align-items: center;
 		gap: 1rem;
 	}
 

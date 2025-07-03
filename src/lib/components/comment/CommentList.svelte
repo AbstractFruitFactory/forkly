@@ -101,7 +101,11 @@
 
 			<div class="form-actions">
 				<div class="image-upload">
-					<label for="image-upload" class="image-upload-label" class:disabled={isSubmitting || loading}>
+					<label
+						for="image-upload"
+						class="image-upload-label"
+						class:disabled={isSubmitting || loading}
+					>
 						<ImageIcon size={18} />
 						<span>Add Image</span>
 					</label>
@@ -285,10 +289,10 @@
 			width: 24px;
 			height: 24px;
 			border-radius: 50%;
-                        background-color: rgba(0, 0, 0, 0.6);
-                        color: var(--color-text-on-surface);
-                        border: none;
-                        display: flex;
+			background-color: rgba(0, 0, 0, 0.6);
+			color: var(--color-text-on-surface);
+			border: none;
+			display: flex;
 			align-items: center;
 			justify-content: center;
 			font-size: var(--font-size-md);

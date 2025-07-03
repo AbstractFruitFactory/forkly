@@ -444,11 +444,11 @@
 		font-weight: var(--font-weight-bold);
 		border-radius: var(--border-radius-sm);
 
-                &:hover {
-                        color: var(--color-text-on-surface);
-                        opacity: 1;
-                        background: rgba(255, 255, 255, 0.05);
-                }
+		&:hover {
+			color: var(--color-text-on-surface);
+			opacity: 1;
+			background: rgba(255, 255, 255, 0.05);
+		}
 
 		&:active {
 			color: var(--color-primary);

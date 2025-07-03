@@ -292,11 +292,11 @@
 		transition: opacity var(--transition-fast) var(--ease-in-out);
 		z-index: 2;
 
-                span {
-                        color: var(--color-text-on-surface);
-                        font-weight: 500;
-                        font-size: var(--font-size-sm);
-                }
+		span {
+			color: var(--color-text-on-surface);
+			font-weight: 500;
+			font-size: var(--font-size-sm);
+		}
 	}
 
 	img,

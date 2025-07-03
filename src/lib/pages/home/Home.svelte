@@ -766,11 +766,11 @@
 		cursor: pointer;
 		outline: none;
 
-                &.active {
-                        background: var(--color-secondary);
-                        color: var(--color-neutral-dark);
-                }
-        }
+		&.active {
+			background: var(--color-secondary);
+			color: var(--color-neutral-dark);
+		}
+	}
 
 	.sticky-header {
 		position: sticky;

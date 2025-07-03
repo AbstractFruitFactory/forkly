@@ -102,7 +102,7 @@
 		border-radius: var(--border-radius-md);
 		box-shadow: var(--shadow-md);
 		z-index: var(--z-toast, 1000);
-                color: var(--color-text-on-primary);
+		color: var(--color-text-on-primary);
 		max-width: 90%;
 		text-align: center;
 	}

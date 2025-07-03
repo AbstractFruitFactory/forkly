@@ -2,7 +2,11 @@
 	import Bookmark from 'lucide-svelte/icons/bookmark'
 	import FloatingActionButton from './FloatingActionButton.svelte'
 
-	let { isActive = false, onClick, loading = false }: { isActive?: boolean; onClick?: () => void; loading?: boolean } = $props()
+	let {
+		isActive = false,
+		onClick,
+		loading = false
+	}: { isActive?: boolean; onClick?: () => void; loading?: boolean } = $props()
 </script>
 
 <div class="save-button-container">
@@ -13,8 +17,8 @@
 
 <style lang="scss">
 	.save-button-container {
-                :global(.action-button.active > svg) {
-                        fill: var(--color-text-on-surface);
-                }
+		:global(.action-button.active > svg) {
+			fill: var(--color-text-on-surface);
+		}
 	}
 </style>

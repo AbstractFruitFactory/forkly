@@ -175,9 +175,9 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-                background: rgba(0, 0, 0, 0.7);
-                color: var(--color-text-on-surface);
-                text-align: center;
-                padding: 1rem;
-        }
+		background: rgba(0, 0, 0, 0.7);
+		color: var(--color-text-on-surface);
+		text-align: center;
+		padding: 1rem;
+	}
 </style>

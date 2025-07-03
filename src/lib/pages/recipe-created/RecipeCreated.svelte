@@ -67,9 +67,9 @@
 		font-weight: 500;
 		transition: all var(--transition-fast) var(--ease-in-out);
 
-                &.primary {
-                        background: var(--color-primary);
-                        color: var(--color-text-on-primary);
+		&.primary {
+			background: var(--color-primary);
+			color: var(--color-text-on-primary);
 
 			&:hover {
 				background: var(--color-primary-dark);

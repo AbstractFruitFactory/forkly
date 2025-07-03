@@ -57,7 +57,6 @@
 
 <div class="search-wrapper" data-flip-id="search-button" bind:this={wrapperElement}>
 	<div class="search-input-container">
-		
 		<Input bind:value {actionButton} {isLoading} {...inputProps}>
 			<input
 				type="search"
@@ -116,11 +115,11 @@
 			pointer-events: auto;
 			opacity: 0.7;
 
-                        &:hover {
-                                color: var(--color-text-on-surface);
-                                opacity: 1;
-                                background: var(--color-background-hover);
-                        }
+			&:hover {
+				color: var(--color-text-on-surface);
+				opacity: 1;
+				background: var(--color-background-hover);
+			}
 
 			&:active {
 				transform: scale(0.95);
