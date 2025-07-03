@@ -69,7 +69,7 @@
 
 		&:hover {
 			background: rgba(255, 255, 255, 0.12);
-			color: #ffffff;
+			color: var(--color-text-on-surface);
 
 			:global(svg) {
 				opacity: 1;
@@ -98,7 +98,7 @@
 		font-weight: 500;
 		color: inherit;
 	}
-	
+
 	.label {
 		font-size: 12px;
 		font-weight: 400;

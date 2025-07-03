@@ -116,7 +116,7 @@
 	.name-row {
 		font-size: var(--font-size-xl);
 		font-weight: 600;
-		color: white;
+		color: var(--color-text-on-primary);
 	}
 
 	.email-row {
@@ -186,7 +186,7 @@
 		width: 50px;
 		height: 50px;
 		font-size: 1.5rem;
-		color: white;
+		color: var(--color-text-on-primary);
 		cursor: pointer;
 		display: flex;
 		align-items: center;
@@ -196,6 +196,6 @@
 
 	.detail-title {
 		font-size: var(--font-size-2xl);
-		color: white;
+		color: var(--color-text-on-primary);
 	}
 </style>

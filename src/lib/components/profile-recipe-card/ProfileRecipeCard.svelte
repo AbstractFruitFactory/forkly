@@ -43,7 +43,7 @@
 
 		h3 {
 			margin: 0 0 1rem;
-			color: white;
+			color: var(--color-text-on-surface);
 		}
 	}
 

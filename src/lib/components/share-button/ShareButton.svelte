@@ -37,12 +37,12 @@
 	<Toast bind:this={toast} message="Link copied to clipboard!" type="success" />
 </div>
 
-<SharePopup 
-	isOpen={isPopupOpen} 
-	onClose={togglePopup} 
-	{url} 
-	{title} 
-	onLinkCopied={handleLinkCopied} 
+<SharePopup
+	isOpen={isPopupOpen}
+	onClose={togglePopup}
+	{url}
+	{title}
+	onLinkCopied={handleLinkCopied}
 />
 
 <style lang="scss">
@@ -65,7 +65,7 @@
 
 	.share-description {
 		margin: 0 0 var(--spacing-sm);
-		color: var(--color-text);
+		color: var(--color-text-on-surface);
 	}
 
 	.share-item-preview {

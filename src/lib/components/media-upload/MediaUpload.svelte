@@ -293,7 +293,7 @@
 		z-index: 2;
 
 		span {
-			color: white;
+			color: var(--color-text-on-surface);
 			font-weight: 500;
 			font-size: var(--font-size-sm);
 		}

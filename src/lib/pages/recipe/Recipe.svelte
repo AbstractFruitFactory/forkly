@@ -445,7 +445,7 @@
 		border-radius: var(--border-radius-sm);
 
 		&:hover {
-			color: white;
+			color: var(--color-text-on-surface);
 			opacity: 1;
 			background: rgba(255, 255, 255, 0.05);
 		}

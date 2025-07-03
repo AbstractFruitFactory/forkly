@@ -74,7 +74,7 @@
 		span {
 			font-size: 13px;
 			font-weight: 500;
-			color: #222;
+			color: var(--color-neutral-dark);
 		}
 	}
 
@@ -90,7 +90,7 @@
 
 	.add-recipe-btn {
 		background: #222;
-		color: #fff;
+		color: var(--color-text-on-surface);
 		border-radius: 50%;
 		width: 64px;
 		height: 64px;
@@ -113,7 +113,7 @@
 		align-items: center;
 		pointer-events: none;
 		span {
-			color: #222;
+			color: var(--color-neutral-dark);
 		}
 	}
 </style>

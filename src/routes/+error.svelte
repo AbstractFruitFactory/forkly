@@ -41,6 +41,6 @@
 
 	a:hover {
 		background-color: var(--color-primary);
-		color: white;
+		color: var(--color-text-on-primary);
 	}
 </style>

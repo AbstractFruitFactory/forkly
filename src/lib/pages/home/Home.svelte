@@ -768,7 +768,7 @@
 
 		&.active {
 			background: var(--color-secondary);
-			color: #22232e;
+			color: var(--color-neutral-dark);
 		}
 	}
 

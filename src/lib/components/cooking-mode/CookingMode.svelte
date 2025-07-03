@@ -251,7 +251,7 @@
 		justify-content: center;
 		align-items: center;
 		background: rgba(0, 0, 0, 0.7);
-		color: white;
+		color: var(--color-text-on-surface);
 		text-align: center;
 		padding: 1rem;
 	}
@@ -261,7 +261,7 @@
 		height: 40px;
 		border: 4px solid rgba(255, 255, 255, 0.3);
 		border-radius: 50%;
-		border-top-color: white;
+		border-top-color: var(--color-text-on-surface);
 		animation: spin 1s linear infinite;
 	}
 

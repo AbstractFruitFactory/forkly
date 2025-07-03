@@ -244,7 +244,7 @@
 		width: 100%;
 		height: 100%;
 		border-radius: 50%;
-		color: white;
+		color: var(--color-text-on-primary);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -287,7 +287,7 @@
 	.profile-title-row h1 {
 		margin: 0;
 		font-size: var(--font-size-2xl);
-		color: white;
+		color: var(--color-text-on-primary);
 	}
 
 	.profile-email {
@@ -321,7 +321,7 @@
 
 	.profile-info-value {
 		flex: 1;
-		color: white;
+		color: var(--color-text-on-primary);
 		font-size: var(--font-size-md);
 		display: flex;
 		align-items: center;

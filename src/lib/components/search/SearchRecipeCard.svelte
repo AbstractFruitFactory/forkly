@@ -45,7 +45,7 @@
 			<div class="action-container">
 				<LikeButton count={recipe.likes ?? 0} interactive={false} />
 			</div>
-			
+
 			{#if recipe.tags && recipe.tags.length > 0}
 				<div class="diet-tags">
 					{#each recipe.tags.slice(0, 2) as tag}
@@ -159,7 +159,7 @@
 		font-weight: 600;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		color: white;
+		color: var(--color-text-on-surface);
 		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 		letter-spacing: 0.01em;
 		margin-bottom: var(--spacing-md);
@@ -192,7 +192,7 @@
 
 	.more-diets {
 		font-size: var(--font-size-xs);
-		color: white;
+		color: var(--color-text-on-surface);
 		background: rgba(255, 255, 255, 0.2);
 		padding: 0 var(--spacing-xs);
 		border-radius: var(--border-radius-xs);
@@ -203,7 +203,7 @@
 		display: flex;
 		gap: var(--spacing-xs);
 		filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
-		
+
 		:global(.like-button) {
 			background: rgba(0, 0, 0, 0.3);
 			backdrop-filter: blur(4px);

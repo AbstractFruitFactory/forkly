@@ -3,7 +3,7 @@
 	import Popup from '../popup/Popup.svelte'
 
 	let {
-		isOpen = false, 
+		isOpen = false,
 		onClose,
 		url,
 		title,
@@ -68,7 +68,7 @@
 	}
 </script>
 
-<Popup {isOpen} onClose={onClose} title="Share" width="350px">
+<Popup {isOpen} {onClose} title="Share" width="350px">
 	<div class="share-popup-content">
 		{#if url || title}
 			<div class="share-item-preview">
@@ -197,7 +197,7 @@
 
 	.share-description {
 		margin: 0 0 var(--spacing-sm);
-		color: var(--color-text);
+		color: var(--color-text-on-surface);
 	}
 
 	.share-item-preview {
@@ -323,4 +323,4 @@
 		justify-content: flex-end;
 		margin-top: var(--spacing-md);
 	}
-</style> 
+</style>

@@ -69,7 +69,7 @@
 
 		&.primary {
 			background: var(--color-primary);
-			color: white;
+			color: var(--color-text-on-primary);
 
 			&:hover {
 				background: var(--color-primary-dark);

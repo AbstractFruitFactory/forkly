@@ -122,7 +122,7 @@
 		opacity: 0.7;
 
 		&:hover {
-			color: var(--color-text);
+			color: var(--color-text-on-surface);
 			opacity: 1;
 			background: var(--color-background-hover);
 		}
