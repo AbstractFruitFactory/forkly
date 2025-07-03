@@ -225,13 +225,13 @@
 		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 		&.expanded {
-			left: calc(-1 * var(--spacing-2xl));
-			right: calc(-1 * var(--spacing-2xl));
+			left: calc(-1 * var(--spacing-4xl));
+			right: calc(-1 * var(--spacing-4xl));
 			border-radius: 0;
 
 			@include tablet {
-				left: calc(-1 * var(--spacing-xl));
-				right: calc(-1 * var(--spacing-xl));
+				left: calc(-1 * var(--spacing-3xl));
+				right: calc(-1 * var(--spacing-3xl));
 			}
 		}
 	}
