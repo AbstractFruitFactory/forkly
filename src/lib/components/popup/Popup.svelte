@@ -204,6 +204,10 @@
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
+
+		@include mobile {
+			margin: 0;
+		}
 	}
 
 	.popup-header {
