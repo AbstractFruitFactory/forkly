@@ -109,7 +109,7 @@
 </script>
 
 <div class="filter-select">
-	<Button variant="pill" color="neutral" onclick={toggleDropdown} size="sm">
+	<Button variant="pill" onclick={toggleDropdown} size="sm">
 		{@render icon?.()}
 		{#if typeof label === 'string'}
 			{label}

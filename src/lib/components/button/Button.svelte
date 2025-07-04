@@ -7,7 +7,7 @@
 
 	let {
 		variant,
-		color,
+		color = 'neutral',
 		buttonColor,
 		size = 'md',
 		type = 'button',
@@ -89,6 +89,7 @@
 		width: fit-content;
 		min-width: fit-content;
 		font-variation-settings: 'wght' var(--font-weight-normal);
+		box-shadow: var(--shadow-sm);
 
 		&:disabled {
 			opacity: 0.6;
@@ -161,7 +162,7 @@
 			}
 
 			.content {
-				color: var(--color-neutral-2);
+				color: var(--color-text-on-primary);
 			}
 		}
 
@@ -178,10 +179,10 @@
 		}
 
 		&.neutral {
-			background-color: var(--color-neutral-2);
+			background-color: var(--color-surface);
 
 			&:hover:not(:disabled) {
-				background-color: color-mix(in srgb, var(--color-neutral-2), black 15%);
+				background-color: color-mix(in srgb, var(--color-surface), black 15%);
 			}
 		}
 

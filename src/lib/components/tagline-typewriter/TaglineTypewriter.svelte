@@ -1,10 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte'
 
-	let { 
-		tags = [],
-		onSelect = (tag: string) => {}
-	} = $props()
+	let { tags = [], onSelect = (tag: string) => {} } = $props()
 
 	const prefix = 'Simple '
 	const suffix = ' recipes, made by the community.'
@@ -64,21 +61,21 @@
 			prefixText += char
 			await delay(typingSpeed)
 		}
-		
+
 		for (const char of initialWord) {
 			if (!running) return
 			initialWordText += char
 			await delay(typingSpeed)
 		}
-		
+
 		for (const char of suffix) {
 			if (!running) return
 			suffixText += char
 			await delay(typingSpeed)
 		}
-		
+
 		await delay(pauseDelay)
-		
+
 		if (tags.length > 0) {
 			await deleteInitialWord()
 			await typeTag(tags[0])
@@ -130,11 +127,11 @@
 	{#if initialWordText.length > 0}
 		<h1>{initialWordText}</h1>
 	{:else}
-		<h1 
-			class="tag" 
-			on:click={handleTagClick}
-			on:mouseenter={handleMouseEnter}
-			on:mouseleave={handleMouseLeave}
+		<h1
+			class="tag"
+			onclick={handleTagClick}
+			onmouseenter={handleMouseEnter}
+			onmouseleave={handleMouseLeave}
 		>
 			{currentTag}
 		</h1>
@@ -145,12 +142,12 @@
 <style lang="scss">
 	.typewriter {
 		white-space: nowrap;
-		color: black;
 	}
 
 	h1 {
-		color: black;
+		color: var(--color-text-on-background);
 		display: inline-block;
+		margin: 0;
 	}
 
 	.tag {

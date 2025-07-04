@@ -146,7 +146,7 @@
 	{:then recipe}
 		{#if recipe.tags}
 			{#each recipe.tags as tag}
-				<Pill text={tag} />
+				<Pill text={tag} color="var(--color-text-on-background)" />
 			{/each}
 		{/if}
 	{/await}

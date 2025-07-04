@@ -1,7 +1,7 @@
 <script lang="ts">
 	const sizeMap = {
 		sm: '32px',
-		lg: '48px'
+		lg: '40px'
 	} as const
 
 	let {

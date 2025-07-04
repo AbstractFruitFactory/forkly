@@ -284,7 +284,7 @@
 	})
 
 	const handleTaglineTagSelect = (tag: string) => {
-		const tagExists = selectedTags.find(t => t.label === tag)
+		const tagExists = selectedTags.find((t) => t.label === tag)
 		if (!tagExists) {
 			selectedTags = [...selectedTags, { label: tag, selected: true }]
 			notifyFiltersChanged()
@@ -305,9 +305,9 @@
 {/snippet}
 
 {#snippet homepageHeader()}
-	<h1 class="large-header">
+	<div class="large-header">
 		<TaglineTypewriter tags={taglineTags} onSelect={handleTaglineTagSelect} />
-	</h1>
+	</div>
 
 	<div bind:this={$sentinelNode} style:height="var(--spacing-2xl)"></div>
 {/snippet}
@@ -441,9 +441,9 @@
 	}
 
 	.large-header {
-		color: black;
-		text-align: center;
-		padding-top: var(--spacing-2xl);
+		display: flex;
+		justify-content: center;
+		padding: var(--spacing-4xl) 0;
 
 		@include mobile {
 			padding: 0;
@@ -530,11 +530,12 @@
 		position: sticky;
 		top: var(--spacing-xs);
 		z-index: var(--z-sticky);
-		background: var(--color-background);
 		transform-origin: center top;
 		transition:
 			border 0.2s ease-in-out,
+			background 0.1s ease-in-out,
 			opacity 0.2s ease-in-out;
+
 		padding: var(--spacing-md) 0;
 		border: var(--border-width-thin) solid transparent;
 		border-radius: var(--border-radius-xl);
@@ -548,6 +549,7 @@
 		&.sticky {
 			border-color: var(--color-neutral);
 			margin: var(--spacing-sm);
+			background: var(--color-background);
 
 			@include mobile {
 				margin: unset;

@@ -117,7 +117,7 @@
 					{/each}
 				{:else if recipe?.tags && recipe.tags.length > 0}
 					{#each recipe.tags as tag}
-						<Pill text={tag} />
+						<Pill text={tag} color="var(--color-text-on-surface)" />
 					{/each}
 				{/if}
 			</div>
@@ -191,7 +191,6 @@
 		width: 100%;
 		border-radius: var(--border-radius-2xl);
 		background: var(--color-surface);
-		border: 1px solid rgba(255, 255, 255, 0.1);
 		box-shadow: var(--shadow-sm);
 		text-decoration: none;
 		overflow: hidden;
@@ -264,6 +263,7 @@
 		text-overflow: ellipsis;
 		overflow: hidden;
 		display: -webkit-box;
+		color: var(--color-text-on-surface);
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 	}
@@ -436,11 +436,15 @@
 	}
 
 	.meta-single {
-		color: var(--color-neutral-light);
 		opacity: 0.8;
 
 		span {
+			color: var(--color-text-on-surface);
 			font-size: var(--font-size-sm);
+
+			:global(svg) {
+				stroke: var(--color-text-on-surface);
+			}
 		}
 	}
 

@@ -30,15 +30,12 @@
 
 <div class="layout" class:homepage>
 	<header class="header page-padding" class:homepage class:wide-header={wideHeader}>
-		<div
-			class="header-background"
-			class:transparent={homepage && wideHeader}
-			class:border={!homepage}
-		></div>
+		<div class="header-background" class:border={!homepage}></div>
 		{@render header()}
 	</header>
 
 	<main class="main" class:homepage bind:this={mainElement}>
+		<div class="main-page-header-background"></div>
 		{#if homepage}
 			<div
 				class="homepage-header"
@@ -94,7 +91,6 @@
 	.homepage-header {
 		position: relative;
 		z-index: var(--z-sticky);
-
 		margin: 0 var(--spacing-md);
 	}
 
@@ -135,13 +131,9 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background: var(--color-primary);
+		background: var(--color-background-dark);
 		width: 100vw;
 		margin-left: calc(-50vw + 50%);
-
-		&.transparent {
-			background: transparent;
-		}
 	}
 
 	.mobile-bottom-bar {
@@ -220,13 +212,14 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background: var(--color-background);
 		border-radius: var(--border-radius-3xl);
 		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		background: var(--color-background);
 
 		&.expanded {
 			left: calc(-1 * var(--spacing-4xl));
 			right: calc(-1 * var(--spacing-4xl));
+			margin-top: calc(var(--spacing-2xl) * -1);
 			border-radius: 0;
 
 			@include tablet {

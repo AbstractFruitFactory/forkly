@@ -36,7 +36,7 @@
 				{#if clearButton}
 					{@render clearButton()}
 				{:else if showClear}
-					<Clear />
+					<Clear color="var(--color-text-on-surface)" />
 				{/if}
 				{#if isLoading}
 					<div class="loading-spinner"></div>
@@ -54,12 +54,10 @@
 <style lang="scss">
 	@mixin input-base {
 		width: 100%;
-		height: 37px;
+		height: 34px;
 		padding: 0 var(--spacing-lg);
 		font-family: var(--font-sans);
 		font-size: var(--font-size-sm);
-		color: var(--color-neutral-light);
-		background-color: var(--color-neutral-dark);
 		transition: all var(--transition-fast) var(--ease-in-out);
 
 		&::placeholder {
@@ -93,7 +91,7 @@
 		align-items: center;
 		border: var(--border-width-thin) solid var(--color-neutral);
 		border-radius: var(--rounded-corners, var(--border-radius-lg));
-		background-color: var(--color-neutral-dark);
+		background-color: var(--color-surface);
 		transition: all var(--transition-fast) var(--ease-in-out);
 
 		&:focus-within {

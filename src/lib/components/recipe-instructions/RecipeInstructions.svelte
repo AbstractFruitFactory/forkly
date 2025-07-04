@@ -191,10 +191,12 @@
 	.instruction-text span {
 		display: inline;
 		word-break: break-word;
+		color: var(--color-text-on-surface);
 	}
 
 	.step-number {
 		font-weight: var(--font-weight-bold);
+		color: var(--color-text-on-surface);
 	}
 
 	.instruction-media {
@@ -252,8 +254,8 @@
 
 	.divider {
 		height: 2px;
-		background: var(--color-neutral-light);
-		opacity: 0.1;
+		background: var(--color-text-on-surface);
+		opacity: 0.2;
 		margin: 0 calc(var(--spacing-lg) * -1);
 	}
 </style>

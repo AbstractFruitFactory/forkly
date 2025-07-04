@@ -2,13 +2,15 @@
 	import { tweened } from 'svelte/motion'
 	import { cubicOut } from 'svelte/easing'
 
-	interface Props {
+	let {
+		isClear = false,
+		size = 24,
+		color = 'var(--color-text-on-surface)'
+	}: {
 		isClear?: boolean
 		size?: number
 		color?: string
-	}
-
-	let { isClear = false, size = 24 }: Props = $props()
+	} = $props()
 
 	const morphProgress = tweened(0, {
 		duration: 300,
@@ -68,7 +70,7 @@
 >
 	<path
 		d={morphCircleToCross($morphProgress)}
-		stroke={'white'}
+		stroke={color}
 		stroke-width="2"
 		stroke-linecap="round"
 		stroke-linejoin="round"
@@ -76,7 +78,7 @@
 	{#if $morphProgress < 0.5}
 		<path
 			d={morphHandle($morphProgress)}
-			stroke={'white'}
+			stroke={color}
 			stroke-width="2"
 			stroke-linecap="round"
 			stroke-linejoin="round"

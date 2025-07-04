@@ -21,8 +21,8 @@
 
 <div class="header-actions">
 	<div>
-		<Button href={newRecipeHref} color="neutral" size="sm">
-			<PlusIcon size={16} />
+		<Button href={newRecipeHref} color="primary" size="sm">
+			<PlusIcon color="var(--color-text-on-primary)" size={16} />
 			New Recipe
 		</Button>
 	</div>
@@ -30,7 +30,7 @@
 	<nav class="main-nav">
 		{#if loggedIn}
 			<a href={profileHref} class="profile-link">
-				<ProfilePic {profilePicUrl} size="sm" />
+				<ProfilePic {profilePicUrl} size="lg" />
 			</a>
 		{:else}
 			<Button href={loginHref} variant="border" color="primary" size="sm">
@@ -47,26 +47,16 @@
 	.header-actions {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-sm);
+		gap: var(--spacing-lg);
 	}
 
 	.main-nav {
 		display: flex;
+		
 		align-items: center;
 	}
 
 	.profile-link {
 		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-		padding: var(--spacing-sm);
-		border-radius: var(--border-radius-sm);
-		transition: all var(--transition-fast) var(--ease-in-out);
-		&:hover,
-		&:focus-visible {
-			color: var(--color-primary);
-			background: var(--color-neutral-dark-hover, rgba(255, 255, 255, 0.1));
-			outline: none;
-		}
 	}
 </style>

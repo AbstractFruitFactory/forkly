@@ -106,10 +106,11 @@
 		li {
 			list-style: none;
 			padding: var(--spacing-md) 0;
-			border-bottom: 2px dotted rgba(255, 255, 255, 0.1);
+			border-bottom: 2px dotted var(--color-text-on-surface);
 			display: flex;
 			font-size: var(--font-size-sm);
 			width: 100%;
+			color: var(--color-text-on-surface);
 
 			&:nth-last-child(2),
 			&:last-child {
@@ -122,6 +123,7 @@
 	.measurement {
 		margin-right: var(--spacing-sm);
 		font-weight: var(--font-weight-semibold);
+		color: var(--color-text-on-surface);
 	}
 
 	.ingredient-name {

@@ -78,7 +78,7 @@
 						onclick={showClear ? clearSearch : undefined}
 						aria-label={showClear ? 'Clear search' : 'Search'}
 					>
-						<SearchIcon isClear={showClear} size={16} />
+						<SearchIcon isClear={showClear} size={16} color="var(--color-text-on-surface)" />
 					</div>
 				{/if}
 			{/snippet}

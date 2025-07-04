@@ -124,7 +124,7 @@
 	@import '$lib/global.scss';
 
 	:global(body) {
-		background: var(--color-primary);
+		background: var(--color-background-dark);
 	}
 
 	:global(.recipe-page) {

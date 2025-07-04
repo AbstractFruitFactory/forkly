@@ -4,7 +4,7 @@
 	let {
 		text,
 		onRemove,
-		color = ''
+		color
 	}: {
 		text: string
 		onRemove?: () => void
@@ -57,7 +57,7 @@
 		line-height: 1;
 		display: flex;
 		align-items: center;
-		color: var(--color-neutral-light);
+		color: var(--pill-color, var(--color-text-on-surface));
 		text-wrap: nowrap;
 	}
 
