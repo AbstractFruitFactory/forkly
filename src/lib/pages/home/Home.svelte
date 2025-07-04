@@ -14,9 +14,9 @@
 	import { preloadData, pushState, goto, replaceState } from '$app/navigation'
 	import { page } from '$app/state'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
-        import SearchButton from '$lib/components/search-button/SearchButton.svelte'
-        import { fade } from 'svelte/transition'
-        import TaglineTypewriter from '$lib/components/tagline-typewriter/TaglineTypewriter.svelte'
+	import SearchButton from '$lib/components/search-button/SearchButton.svelte'
+	import { fade } from 'svelte/transition'
+	import TaglineTypewriter from '$lib/components/tagline-typewriter/TaglineTypewriter.svelte'
 
 	let {
 		recipes,
@@ -63,9 +63,9 @@
 	let flipState = $state<any>(null)
 	let searchBarPosition = $state<'header' | 'filters'>('header')
 	let searchValue = $state('')
-        let filtersSentinelOutOfView = $state(false)
-        let mobileSearchExpanded = $state(false)
-        let taglineTags = $state<string[]>([])
+	let filtersSentinelOutOfView = $state(false)
+	let mobileSearchExpanded = $state(false)
+	let taglineTags = $state<string[]>([])
 
 	const searchProps = {
 		placeholder: 'Search recipes...',
@@ -86,14 +86,14 @@
 		checkMobile()
 		window.addEventListener('resize', checkMobile)
 
-                // Initialize selected values
-                selectedTags = initialTags.map((tag) => ({ label: tag, selected: true }))
-                selectedIngredients = initialIngredients
+		// Initialize selected values
+		selectedTags = initialTags.map((tag) => ({ label: tag, selected: true }))
+		selectedIngredients = initialIngredients
 
-                // Load popular tags for tagline effect
-                searchTags('').then((results) => {
-                        taglineTags = ['food', ...results.map((t) => t.name)]
-                })
+		// Load popular tags for tagline effect
+		searchTags('').then((results) => {
+			taglineTags = [...results.map((t) => t.name)]
+		})
 
 		let observer: IntersectionObserver | null = null
 		let filtersObserver: IntersectionObserver | null = null
@@ -283,6 +283,14 @@
 		}
 	})
 
+	const handleTaglineTagSelect = (tag: string) => {
+		const tagExists = selectedTags.find(t => t.label === tag)
+		if (!tagExists) {
+			selectedTags = [...selectedTags, { label: tag, selected: true }]
+			notifyFiltersChanged()
+		}
+	}
+
 	setSlots({ homepageHeader, content })
 </script>
 
@@ -297,9 +305,9 @@
 {/snippet}
 
 {#snippet homepageHeader()}
-        <h1 class="large-header">
-                <TaglineTypewriter tags={taglineTags} />
-        </h1>
+	<h1 class="large-header">
+		<TaglineTypewriter tags={taglineTags} onSelect={handleTaglineTagSelect} />
+	</h1>
 
 	<div bind:this={$sentinelNode} style:height="var(--spacing-2xl)"></div>
 {/snippet}
@@ -382,7 +390,12 @@
 	</div>
 {/snippet}
 
-<RecipePopup data={recipeModalData} isOpen={page.state.recipeModal ?? false} onClose={closePopup} animateFrom={animateFromElement} />
+<RecipePopup
+	data={recipeModalData}
+	isOpen={page.state.recipeModal ?? false}
+	onClose={closePopup}
+	animateFrom={animateFromElement}
+/>
 
 <style lang="scss">
 	@import '$lib/global.scss';
