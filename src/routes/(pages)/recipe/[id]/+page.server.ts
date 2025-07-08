@@ -17,7 +17,7 @@ export const load: PageServerLoad = ({ params, locals }) => {
   const comments = getComments(params.id)
   const collections = locals.user
     ? getCollections(locals.user.id)
-    : Promise.resolve(undefined)
+    : Promise.resolve([])
 
   return {
     recipe,

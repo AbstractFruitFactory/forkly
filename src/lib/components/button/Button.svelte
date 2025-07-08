@@ -225,6 +225,7 @@
 		&.text {
 			background: none;
 			padding: 0;
+			box-shadow: none;
 
 			&:hover:not(:disabled) {
 				text-decoration: underline;

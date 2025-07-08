@@ -170,24 +170,24 @@ export async function deleteCollection(userId: string, name: string) {
 		.where(and(eq(collection.userId, userId), eq(collection.name, name)))
 		.returning()
 
-        return deleted.length > 0
+	return deleted.length > 0
 }
 
 /**
  * Move a saved recipe to a different collection
  */
 export async function moveRecipeSave(
-        userId: string,
-        recipeId: string,
-        collectionName?: string
+	userId: string,
+	recipeId: string,
+	collectionName?: string
 ) {
-        await db
-                .update(recipeBookmark)
-                .set({ collectionName })
-                .where(
-                        and(
-                                eq(recipeBookmark.userId, userId),
-                                eq(recipeBookmark.recipeId, recipeId)
-                        )
-                )
+	await db
+		.update(recipeBookmark)
+		.set({ collectionName })
+		.where(
+			and(
+				eq(recipeBookmark.userId, userId),
+				eq(recipeBookmark.recipeId, recipeId)
+			)
+		)
 }

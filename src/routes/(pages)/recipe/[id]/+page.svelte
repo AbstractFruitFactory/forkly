@@ -64,7 +64,8 @@
 		onSave={handleSave}
 		onBackClick={() => goto('/')}
 		onCreateCollection={createCollection}
-		user={data.user}
+		isLoggedIn={!!data.user}
+		collections={data.collections.then((c) => c.map((c) => c.name))}
 		recipeComments={data.comments}
 		formError={page.form?.error}
 	/>

@@ -8,12 +8,14 @@
 		item,
 		items,
 		emptyMessage = 'No items found.',
-		size = 'large'
+		size = 'large',
+		useAnimation = true
 	}: {
 		item: Snippet<[item: Item]>
 		items: Item[]
 		emptyMessage?: string
 		size?: 'large' | 'small'
+		useAnimation?: boolean
 	} = $props()
 
 	let cardGrid: HTMLElement
@@ -22,7 +24,7 @@
 	let previousCardsCount = $state(0)
 
 	$effect(() => {
-		if (items.length > previousCardsCount) {
+		if (items.length > previousCardsCount && useAnimation) {
 			const newCards = cards.slice(previousCardsCount)
 
 			gsap.set(newCards, { y: 50, opacity: 0 })

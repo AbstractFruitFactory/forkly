@@ -172,7 +172,7 @@
 
 {#snippet _savedRecipes()}
 	{#await collections then collections}
-		<CardGrid items={collections} useAnimation={false}>
+		<CardGrid items={collections} useAnimation={false} emptyMessage="You haven't saved any collections yet.">
 			{#snippet item(item)}
 				<CollectionCard name={item.name} count={item.count} />
 			{/snippet}

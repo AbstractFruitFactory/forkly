@@ -24,7 +24,10 @@
 	import Button from '$lib/components/button/Button.svelte'
 	import Input from '$lib/components/input/Input.svelte'
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
+	import WarningBox from '$lib/components/warning-box/WarningBox.svelte'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
+	import { scale } from 'svelte/transition'
+	import { flip } from 'svelte/animate'
 
 	let {
 		recipe,
@@ -33,7 +36,8 @@
 		onSave,
 		unitSystem,
 		onUnitChange,
-		user,
+		collections,
+		isLoggedIn,
 		onCreateCollection,
 		onBackClick,
 		recipeComments = [],
@@ -48,9 +52,8 @@
 		onSave?: (collectionName?: string) => void
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
-		user?: {
-			collections: string[]
-		}
+		collections: Promise<string[]>
+		isLoggedIn: boolean
 		onCreateCollection: (name: string) => Promise<void>
 		onBackClick?: () => void
 		recipeComments?: any[]
@@ -68,10 +71,21 @@
 	let isCreatingCollection = $state(false)
 	let newCollectionName = $state('')
 	let localCollections = $state<string[]>([])
+	let selectedCollection = $state<string | null>(null)
+	let showDuplicateWarning = $state(false)
 
 	$effect(() => {
-		if (user?.collections) {
-			localCollections = [...user.collections]
+		collections.then((c) => {
+			localCollections = [...c]
+		})
+	})
+
+	$effect(() => {
+		if (newCollectionName.trim() && showDuplicateWarning) {
+			const trimmedName = newCollectionName.trim()
+			if (!localCollections.includes(trimmedName)) {
+				showDuplicateWarning = false
+			}
 		}
 	})
 
@@ -80,7 +94,7 @@
 	})
 
 	const handleLike = async () => {
-		if (!user) {
+		if (!isLoggedIn) {
 			toastType = 'like'
 			if (toastRef) toastRef.trigger()
 			return
@@ -92,7 +106,7 @@
 	}
 
 	const handleSave = async (collectionName?: string) => {
-		if (!user) {
+		if (!isLoggedIn) {
 			toastType = 'save'
 			if (toastRef) toastRef.trigger()
 			return
@@ -103,8 +117,49 @@
 		onSave(collectionName)
 	}
 
+	const handleSaveToCollections = async () => {
+		if (!isLoggedIn) {
+			toastType = 'save'
+			if (toastRef) toastRef.trigger()
+			return
+		}
+		if (!onSave) return
+
+		const currentSaved = await isSaved
+		isSaved = Promise.resolve(!currentSaved)
+
+		if (selectedCollection === null) {
+			onSave()
+		} else {
+			onSave(selectedCollection)
+		}
+
+		savePopupOpen = false
+		selectedCollection = null
+	}
+
+	const selectCollection = (collection: string) => {
+		selectedCollection = selectedCollection === collection ? null : collection
+	}
+
 	const toggleSharePopup = () => {
 		isSharePopupOpen = !isSharePopupOpen
+	}
+
+	const handleCreateCollection = async () => {
+		if (newCollectionName.trim()) {
+			const trimmedName = newCollectionName.trim()
+			if (localCollections.includes(trimmedName)) {
+				showDuplicateWarning = true
+				return false
+			}
+			await onCreateCollection(trimmedName)
+			localCollections = [...localCollections, trimmedName]
+			isCreatingCollection = false
+			newCollectionName = ''
+			return true
+		}
+		return false
 	}
 
 	let ingredientsSection: HTMLElement
@@ -266,9 +321,9 @@
 			{/await}
 		</h3>
 		{#await recipe}
-			<CommentList comments={[]} isLoggedIn={!!user} recipeId="" {formError} loading={true} />
+			<CommentList comments={[]} {isLoggedIn} recipeId="" {formError} loading={true} />
 		{:then recipe}
-			<CommentList comments={recipeComments} isLoggedIn={!!user} recipeId={recipe.id} {formError} />
+			<CommentList comments={recipeComments} {isLoggedIn} recipeId={recipe.id} {formError} />
 		{/await}
 	</div>
 {/snippet}
@@ -282,6 +337,8 @@
 	</button>
 	<button class="nav-button" onclick={() => scrollToSection(commentsSection)}> Comments </button>
 {/snippet}
+
+
 
 <div class="recipe-desktop-view">
 	<DesktopLayout {tags} {title} {actionButtons} {nutrition} {ingredients} {instructions} {comments}>
@@ -323,65 +380,61 @@
 	<SharePopup isOpen={isSharePopupOpen} onClose={toggleSharePopup} url={shareUrl} {title} />
 {/await}
 
-{#if user}
+{#if isLoggedIn}
 	<Popup
 		isOpen={savePopupOpen}
+		title="Save recipe"
 		onClose={() => {
 			savePopupOpen = false
 			isCreatingCollection = false
 			newCollectionName = ''
+			selectedCollection = null
 		}}
 	>
+		<div class="save-popup-header">
+			<p>Select a collection to save to, or save to "All Recipes" if none selected</p>
+		</div>
+
 		<div class="collections-list">
-			{#each localCollections as collection}
-				<div class="collection-item">
+			{#each localCollections.filter((c) => c !== 'All Recipes') as collection (collection)}
+				<button
+					class="collection-item"
+					animate:flip
+					in:scale
+					onclick={() => selectCollection(collection)}
+				>
 					<div class="collection-item-name">{collection}</div>
-					<div class="collection-item-icon">
-						<CirclePlus
-							size={16}
-							onclick={() => {
-								handleSave(collection)
-								savePopupOpen = false
-							}}
+					<div class="collection-item-checkbox">
+						<input
+							type="radio"
+							name="collection-selection"
+							value={collection}
+							checked={selectedCollection === collection}
+							onclick={(e) => e.stopPropagation()}
 						/>
 					</div>
-				</div>
+				</button>
 			{/each}
 		</div>
 
 		<div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
-			{#if isCreatingCollection}
-				<Input
-					bind:value={newCollectionName}
-					actionButton={{
-						text: 'Save',
-						onClick: async () => {
-							if (newCollectionName.trim()) {
-								await onCreateCollection(newCollectionName)
-								localCollections = [...localCollections, newCollectionName]
-								isCreatingCollection = false
-								newCollectionName = ''
-							}
-						}
-					}}
-				>
-					<input bind:value={newCollectionName} type="text" placeholder="Collection name" />
-				</Input>
-			{:else}
-				<Button fullWidth color="primary" onclick={() => (isCreatingCollection = true)}>
-					Create New Collection
-				</Button>
-			{/if}
-			<Button
-				fullWidth
-				color="primary"
-				onclick={() => {
-					handleSave()
-					savePopupOpen = false
+			<Input
+				bind:value={newCollectionName}
+				actionButton={{
+					text: 'Create',
+					onClick: async () => {
+						await handleCreateCollection()
+					}
 				}}
 			>
-				Save
-			</Button>
+				<input bind:value={newCollectionName} type="text" placeholder="Collection name" />
+			</Input>
+
+			{#if showDuplicateWarning}
+				<WarningBox message="A collection with this name already exists." />
+			{/if}
+
+			<Button fullWidth color="primary" onclick={handleSaveToCollections}>Save</Button>
 		</div>
 	</Popup>
 {/if}
@@ -457,12 +510,28 @@
 		}
 	}
 
+	.save-popup-header {
+		margin-bottom: var(--spacing-md);
+
+		h3 {
+			margin-bottom: var(--spacing-xs);
+		}
+
+		p {
+			font-size: var(--font-size-sm);
+			color: var(--color-text-secondary);
+			margin: 0;
+		}
+	}
+
 	.collections-list {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
 		margin-top: var(--spacing-md);
 		margin-bottom: var(--spacing-md);
+		max-height: 200px;
+		overflow-y: auto;
 	}
 
 	.collection-item {
@@ -472,6 +541,7 @@
 		padding: var(--spacing-sm);
 		border-radius: var(--border-radius-md);
 		transition: background var(--transition-fast) var(--ease-in-out);
+		cursor: pointer;
 
 		&:hover {
 			background: var(--color-neutral);
@@ -481,11 +551,17 @@
 			font-size: var(--font-size-sm);
 		}
 
-		.collection-item-icon {
+		.collection-item-checkbox {
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			cursor: pointer;
+
+			input[type='radio'] {
+				width: 18px;
+				height: 18px;
+				cursor: pointer;
+				accent-color: var(--color-primary);
+			}
 		}
 	}
 </style>

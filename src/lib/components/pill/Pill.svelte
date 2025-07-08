@@ -1,12 +1,15 @@
 <script lang="ts">
+	import { type Snippet } from 'svelte'
 	import { fly, scale } from 'svelte/transition'
 
 	let {
 		text,
 		onRemove,
-		color
+		color,
+		children
 	}: {
 		text: string
+		children?: Snippet
 		onRemove?: () => void
 		color?: string
 	} = $props()
@@ -21,7 +24,11 @@
 >
 	<span class="pill-content">
 		<span class="pill-text">
-			{text}
+			{#if typeof text === 'string'}
+				{text}
+			{:else}
+				{@render children?.()}
+			{/if}
 		</span>
 		{#if onRemove}
 			<button type="button" class="remove-button" onclick={onRemove} aria-label="Remove {text}">
