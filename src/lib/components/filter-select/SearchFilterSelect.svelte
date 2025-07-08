@@ -150,6 +150,7 @@
 	}
 
 	.label {
+		color: var(--color-text-on-surface);
 		@include tablet {
 			display: none;
 		}
@@ -157,7 +158,7 @@
 
 	.helper-text {
 		padding: var(--spacing-sm);
-		color: var(--color-neutral-light);
+		color: var(--color-text-on-surface);
 		text-align: center;
 		font-size: var(--font-size-sm);
 	}

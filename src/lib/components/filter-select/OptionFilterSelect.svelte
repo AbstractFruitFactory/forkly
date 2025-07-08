@@ -22,7 +22,7 @@
 	{#snippet label()}
 		{selected.label}
 		<div class="arrow" class:open={isOpen}>
-			<ChevronDown size={16} />
+			<ChevronDown size={16} color="var(--color-text-on-surface)" />
 		</div>
 	{/snippet}
 
@@ -34,6 +34,7 @@
 				{#each options as option}
 					{#snippet _item()}
 						<button
+							style:color="var(--color-text-on-surface)"
 							onclick={() => {
 								handleSelect(option.label, option)
 								option.onClick()
@@ -72,7 +73,7 @@
 
 	.helper-text {
 		padding: var(--spacing-sm);
-		color: var(--color-neutral-light);
+		color: var(--color-text-on-surface);
 		text-align: center;
 		font-size: var(--font-size-sm);
 	}

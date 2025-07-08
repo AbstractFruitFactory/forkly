@@ -21,7 +21,7 @@
 
 <div class="header-actions">
 	<div>
-		<Button href={newRecipeHref} color="primary" size="sm">
+		<Button href={newRecipeHref} color="gradient" size="sm">
 			<PlusIcon color="var(--color-text-on-primary)" size={16} />
 			New Recipe
 		</Button>
@@ -33,8 +33,8 @@
 				<ProfilePic {profilePicUrl} size="lg" />
 			</a>
 		{:else}
-			<Button href={loginHref} variant="border" color="primary" size="sm">
-				<LogInIcon color="black" size={16} />
+			<Button href={loginHref} variant="border" size="sm">
+				<LogInIcon color="var(--color-text-on-primary)" size={16} />
 				Sign in
 			</Button>
 		{/if}
@@ -52,7 +52,7 @@
 
 	.main-nav {
 		display: flex;
-		
+
 		align-items: center;
 	}
 

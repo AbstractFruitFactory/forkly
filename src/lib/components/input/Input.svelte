@@ -61,8 +61,13 @@
 		transition: all var(--transition-fast) var(--ease-in-out);
 
 		&::placeholder {
-			color: var(--color-neutral-light);
-			opacity: 0.5;
+			color: var(--color-primary);
+			opacity: 0.7;
+			font-weight: var(--font-weight-medium);
+			background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+			background-clip: text;
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
 		}
 
 		&:focus {
@@ -74,7 +79,6 @@
 		&:disabled {
 			opacity: 0.5;
 			cursor: not-allowed;
-			background-color: var(--color-neutral-darker, var(--color-neutral-dark));
 		}
 	}
 
@@ -86,13 +90,15 @@
 	}
 
 	.input-container {
+		height: 100%;
 		display: grid;
 		grid-template-columns: 1fr auto;
 		align-items: center;
-		border: var(--border-width-thin) solid var(--color-neutral);
-		border-radius: var(--rounded-corners, var(--border-radius-lg));
+		border-radius: var(--rounded-corners, var(--border-radius-2xl));
+		padding: var(--spacing-xs);
 		background-color: var(--color-surface);
 		transition: all var(--transition-fast) var(--ease-in-out);
+		box-shadow: var(--shadow-sm);
 
 		&:focus-within {
 			border-color: var(--color-primary);
@@ -155,26 +161,29 @@
 		}
 	}
 
-	:global(input),
-	:global(textarea) {
-		@include input-base;
-		border: none;
-		background: none;
-		border-radius: 0;
-		padding-right: var(--spacing-md);
-
-		&:hover,
-		&:focus {
+	.input-wrapper {
+		:global(input),
+		:global(textarea) {
+			@include input-base;
 			border: none;
-			box-shadow: none;
-		}
-	}
+			background: none;
+			border-radius: 0;
+			padding-right: var(--spacing-md);
+			color: var(--color-text-on-surface);
 
-	:global(textarea) {
-		resize: none;
-		height: 100%;
-		padding: var(--spacing-md);
-		line-height: 1.5;
+			&:hover,
+			&:focus {
+				border: none;
+				box-shadow: none;
+			}
+		}
+
+		:global(textarea) {
+			resize: none;
+			height: 100%;
+			padding: var(--spacing-md);
+			line-height: 1.5;
+		}
 	}
 
 	@keyframes spin {

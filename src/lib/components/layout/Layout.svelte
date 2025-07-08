@@ -91,7 +91,8 @@
 	.homepage-header {
 		position: relative;
 		z-index: var(--z-sticky);
-		margin: 0 var(--spacing-md);
+		padding: 0 var(--spacing-md);
+		background: var(--color-secondary);
 	}
 
 	.page-padding {
@@ -106,6 +107,7 @@
 		position: absolute;
 		left: 50%;
 		transform: translateX(-50%);
+		margin-left: calc(-1 * var(--spacing-xs));
 		top: 0;
 		height: $header-height;
 		z-index: var(--z-sticky);
@@ -131,7 +133,7 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background: var(--color-background-dark);
+		background: var(--color-secondary);
 		width: 100vw;
 		margin-left: calc(-50vw + 50%);
 	}
@@ -170,7 +172,8 @@
 		overflow-y: auto;
 		scrollbar-width: thin;
 		transition: margin-left 0.25s ease-out;
-		scrollbar-gutter: stable both-edges;
+		scrollbar-color: var(--color-primary) var(--color-background);
+		overflow-x: hidden;
 
 		&.home-page {
 			overflow-y: unset;
@@ -186,7 +189,7 @@
 
 	.main-layout {
 		position: relative;
-		margin: 0 var(--spacing-2xl);
+		padding-top: var(--spacing-3xl);
 		border-radius: var(--border-radius-3xl);
 		min-height: calc(100dvh - $header-height);
 		will-change: margin, border-radius;
@@ -194,14 +197,7 @@
 			margin 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 			border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-		@include tablet {
-			margin-left: var(--spacing-xl);
-			margin-right: var(--spacing-xl);
-		}
-
 		@include mobile {
-			margin-left: 0;
-			margin-right: 0;
 			margin-top: var(--spacing-sm);
 		}
 	}
@@ -233,6 +229,7 @@
 		max-width: $max-width;
 		margin: 0 auto;
 		padding-top: var(--spacing-lg);
+		position: relative;
 
 		@include mobile {
 			padding-top: var(--spacing-md);

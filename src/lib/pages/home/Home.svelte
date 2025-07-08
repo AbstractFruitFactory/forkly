@@ -444,6 +444,7 @@
 		display: flex;
 		justify-content: center;
 		padding: var(--spacing-4xl) 0;
+		min-height: 11rem;
 
 		@include mobile {
 			padding: 0;
@@ -567,7 +568,7 @@
 		.buttons {
 			display: flex;
 			gap: var(--spacing-md);
-			align-items: center;
+			align-items: stretch;
 			justify-content: space-between;
 			transition: transform 0.2s ease-in-out;
 			z-index: var(--z-elevated);

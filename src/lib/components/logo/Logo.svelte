@@ -35,7 +35,7 @@
 			font-weight: 500;
 			transition: opacity var(--transition-fast) var(--ease-in-out);
 			white-space: nowrap;
-			color: var(--color-text-on-background);
+			color: var(--color-text-on-primary);
 
 			&.logo-mobile {
 				font-size: var(--font-size-2xl);

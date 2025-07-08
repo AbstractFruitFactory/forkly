@@ -163,13 +163,11 @@
 {/snippet}
 
 {#snippet _createdRecipes()}
-	{#await createdRecipes then createdRecipes}
-		<RecipeGrid
-			recipes={createdRecipes}
-			emptyMessage="You haven't created any recipes yet."
-			useAnimation={false}
-		/>
-	{/await}
+	<RecipeGrid
+		recipes={createdRecipes}
+		emptyMessage="You haven't created any recipes yet."
+		useAnimation={false}
+	/>
 {/snippet}
 
 {#snippet _savedRecipes()}
@@ -244,12 +242,6 @@
 		width: 100%;
 		height: 100%;
 		border-radius: 50%;
-		color: var(--color-text-on-primary);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 3rem;
-		font-weight: 600;
 		background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
 		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 		border: 3px solid var(--color-background);
@@ -259,7 +251,7 @@
 		position: absolute;
 		bottom: 8px;
 		right: 8px;
-		background: var(--color-neutral-dark);
+		background: var(--color-text-on-primary);
 		border-radius: 50%;
 		padding: 0.3rem;
 		display: flex;
@@ -287,11 +279,11 @@
 	.profile-title-row h1 {
 		margin: 0;
 		font-size: var(--font-size-2xl);
-		color: var(--color-text-on-primary);
+		color: var(--color-text-on-surface);
 	}
 
 	.profile-email {
-		color: var(--color-neutral-light);
+		color: var(--color-text-on-surface);
 		font-size: var(--font-size-md);
 	}
 
@@ -314,14 +306,14 @@
 
 	.profile-info-label {
 		flex: 0 0 180px;
-		color: var(--color-neutral-light);
+		color: var(--color-text-on-surface);
 		font-weight: 600;
 		font-size: var(--font-size-md);
 	}
 
 	.profile-info-value {
 		flex: 1;
-		color: var(--color-text-on-primary);
+		color: var(--color-text-on-surface);
 		font-size: var(--font-size-md);
 		display: flex;
 		align-items: center;

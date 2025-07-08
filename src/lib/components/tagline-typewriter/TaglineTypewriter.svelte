@@ -22,14 +22,6 @@
 		return new Promise((resolve) => setTimeout(resolve, ms))
 	}
 
-	async function typeString(str: string, target: string, speed = typingSpeed) {
-		for (const char of str) {
-			if (!running) return
-			target += char
-			await delay(speed)
-		}
-	}
-
 	async function typeTag(tag: string, speed = typingSpeed) {
 		currentTag = ''
 		for (const char of tag) {
@@ -127,6 +119,8 @@
 	{#if initialWordText.length > 0}
 		<h1>{initialWordText}</h1>
 	{:else}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<h1
 			class="tag"
 			onclick={handleTagClick}
@@ -145,13 +139,13 @@
 	}
 
 	h1 {
-		color: var(--color-text-on-background);
+		color: var(--color-text-on-primary);
 		display: inline-block;
 		margin: 0;
 	}
 
 	.tag {
-		color: var(--color-secondary);
+		color: var(--color-primary);
 		cursor: pointer;
 		transition: opacity 0.2s ease-in-out;
 

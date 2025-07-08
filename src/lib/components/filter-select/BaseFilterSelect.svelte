@@ -109,7 +109,7 @@
 </script>
 
 <div class="filter-select">
-	<Button variant="pill" onclick={toggleDropdown} size="sm">
+	<Button variant="pill" onclick={toggleDropdown} size="sm" fullHeight>
 		{@render icon?.()}
 		{#if typeof label === 'string'}
 			{label}
@@ -148,6 +148,7 @@
 	.filter-select {
 		position: relative;
 		display: inline-block;
+		height: 100%;
 	}
 
 	.items-container {

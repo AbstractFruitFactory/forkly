@@ -28,7 +28,7 @@
 		title="Add/remove ingredients"
 	>
 		{#snippet icon()}
-			<Carrot size={16} />
+			<Carrot size={16} color="var(--color-text-on-surface)" />
 		{/snippet}
 		{#snippet filterItem(result: { label: string }, select: (item: { include: boolean }) => void)}
 			{@const state = selected.find((s: IngredientFilter) => s.label === result.label)}
@@ -58,12 +58,13 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		height: 100%;
 	}
 
 	.count {
 		margin-left: var(--spacing-xs);
 		font-size: var(--font-size-sm);
-		color: var(--color-neutral-light);
+		color: var(--color-text-on-surface);
 	}
 
 	.ingredient-item {
@@ -73,7 +74,7 @@
 	}
 
 	.ingredient-label {
-		color: var(--color-white);
+		color: var(--color-text-on-surface);
 		font-size: var(--font-size-sm);
 
 		&.excluded {

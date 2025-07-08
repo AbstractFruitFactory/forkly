@@ -72,7 +72,7 @@
 
 <a
 	href={recipe ? `/recipe/${recipe.id}` : undefined}
-	class="recipe-card"
+	class="recipe-card card"
 	class:skeleton={loading || isNavigating}
 	class:small={size === 'small'}
 	aria-labelledby={recipe ? `recipe-title-${recipe.id}` : undefined}
@@ -190,11 +190,10 @@
 		height: 435px;
 		width: 100%;
 		border-radius: var(--border-radius-2xl);
-		background: var(--color-surface);
-		box-shadow: var(--shadow-sm);
 		text-decoration: none;
 		overflow: hidden;
 		position: relative;
+		padding: 0;
 		transition:
 			transform var(--transition-fast) var(--ease-out),
 			box-shadow var(--transition-fast) var(--ease-out),

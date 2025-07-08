@@ -53,7 +53,8 @@
 		border-radius: var(--border-radius-full);
 		overflow: hidden;
 		width: fit-content;
-		background-color: var(--color-neutral-2);
+		background-color: var(--color-surface);
+		border: var(--border-width-thin) solid var(--color-neutral);
 	}
 
 	.toggle-button {
@@ -79,7 +80,6 @@
 	}
 
 	.active {
-		color: black;
-		
+		color: var(--color-text-on-primary);
 	}
 </style>

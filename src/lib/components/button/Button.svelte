@@ -2,11 +2,11 @@
 	import type { Snippet } from 'svelte'
 
 	type Variant = 'text' | 'dotted' | 'border' | 'pill'
-	type Color = 'primary' | 'secondary' | 'neutral'
+	type Color = 'primary' | 'secondary' | 'neutral' | 'gradient'
 	type Size = 'xs' | 'sm' | 'md' | 'lg'
 
 	let {
-		variant,
+		variant = 'border',
 		color = 'neutral',
 		buttonColor,
 		size = 'md',
@@ -18,7 +18,8 @@
 		onclick,
 		href,
 		children,
-		loading = false
+		loading = false,
+		fullHeight = false
 	}: {
 		variant?: Variant
 		color?: Color
@@ -33,6 +34,7 @@
 		href?: string
 		children?: Snippet
 		loading?: boolean
+		fullHeight?: boolean
 	} = $props()
 </script>
 
@@ -46,6 +48,7 @@
 	class:primary={color === 'primary'}
 	class:secondary={color === 'secondary'}
 	class:neutral={color === 'neutral'}
+	class:gradient={color === 'gradient'}
 	class:text={variant === 'text'}
 	class:dotted={variant === 'dotted'}
 	class:border={variant === 'border'}
@@ -61,6 +64,7 @@
 	class:border-radius-full={borderRadius === 'full'}
 	class:full-width={fullWidth}
 	class:loading
+	class:full-height={fullHeight}
 	{onclick}
 	role={href ? 'button' : undefined}
 >
@@ -90,6 +94,10 @@
 		min-width: fit-content;
 		font-variation-settings: 'wght' var(--font-weight-normal);
 		box-shadow: var(--shadow-sm);
+
+		&.full-height {
+			height: 100%;
+		}
 
 		&:disabled {
 			opacity: 0.6;
@@ -174,7 +182,31 @@
 			}
 
 			.content {
-				color: var(--color-neutral-2);
+				color: var(--color-text-on-primary);
+			}
+		}
+
+		&.gradient {
+			background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+			border: var(--border-width-thin) solid var(--color-primary-dark) !important;
+
+			&:hover:not(:disabled) {
+				background: linear-gradient(
+					135deg,
+					var(--color-primary-light) 0%,
+					var(--color-secondary) 100%
+				);
+				transform: translateY(-2px);
+				box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+			}
+
+			&:active:not(:disabled) {
+				transform: translateY(0);
+			}
+
+			.content {
+				color: var(--color-text-on-primary);
+				font-weight: var(--font-weight-bold);
 			}
 		}
 
@@ -183,6 +215,10 @@
 
 			&:hover:not(:disabled) {
 				background-color: color-mix(in srgb, var(--color-surface), black 15%);
+			}
+
+			.content {
+				color: var(--color-text-on-surface);
 			}
 		}
 

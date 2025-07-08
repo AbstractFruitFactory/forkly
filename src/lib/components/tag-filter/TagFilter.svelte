@@ -47,7 +47,7 @@
 		title="Add tags"
 	>
 		{#snippet icon()}
-			<TagIcon size={16} />
+			<TagIcon size={16} color="var(--color-text-on-surface)" />
 		{/snippet}
 
 		{#snippet filterItem(result, select)}
@@ -72,12 +72,13 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		height: 100%;
 	}
 
 	.count {
 		margin-left: var(--spacing-xs);
 		font-size: var(--font-size-sm);
-		color: var(--color-neutral-light);
+		color: var(--color-text-on-surface);
 	}
 
 	.tag-item {
@@ -87,7 +88,7 @@
 	}
 
 	.tag-label {
-		color: var(--color-white);
+		color: var(--color-text-on-surface);
 		font-size: var(--font-size-sm);
 	}
 </style>

@@ -44,20 +44,21 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--spacing-sm);
-		background-color: var(--pill-color-dark, var(--color-primary-dark));
+		background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-secondary) 100%);
 		padding: var(--spacing-sm);
 		border-radius: var(--border-radius-full);
 		transition: all 0.2s ease;
-		border: 1px solid #656771;
+		border: 1px solid var(--color-primary-dark);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.pill-text {
 		font-size: var(--font-size-xs);
-		font-weight: 500;
+		font-weight: var(--font-weight-bold);
 		line-height: 1;
 		display: flex;
 		align-items: center;
-		color: var(--pill-color, var(--color-text-on-surface));
+		color: var(--color-text-on-primary);
 		text-wrap: nowrap;
 	}
 
