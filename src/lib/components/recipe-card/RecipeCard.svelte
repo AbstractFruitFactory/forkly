@@ -14,13 +14,11 @@
 	let {
 		recipe,
 		loading = false,
-		size = 'large',
 		menu,
 		onRecipeClick
 	}: {
 		recipe?: DetailedRecipe
 		loading?: boolean
-		size?: 'large' | 'small'
 		menu?: {
 			options: { [key: string]: () => void }
 		}
@@ -74,7 +72,6 @@
 	href={recipe ? `/recipe/${recipe.id}` : undefined}
 	class="recipe-card card"
 	class:skeleton={loading || isNavigating}
-	class:small={size === 'small'}
 	aria-labelledby={recipe ? `recipe-title-${recipe.id}` : undefined}
 	onclick={handleClick}
 >
@@ -186,6 +183,7 @@
 {/if}
 
 <style lang="scss">
+	@import '$lib/global.scss';
 	.recipe-card {
 		display: grid;
 		grid-template-rows: 60% auto;
@@ -201,7 +199,7 @@
 			box-shadow var(--transition-fast) var(--ease-out),
 			border-color var(--transition-fast) var(--ease-out);
 
-		&.small {
+		@include mobile {
 			height: 300px;
 			grid-template-rows: 55% auto;
 

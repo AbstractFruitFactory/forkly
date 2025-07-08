@@ -8,13 +8,11 @@
 		item,
 		items,
 		emptyMessage = 'No items found.',
-		size = 'large',
 		useAnimation = true
 	}: {
 		item: Snippet<[item: Item]>
 		items: Item[]
 		emptyMessage?: string
-		size?: 'large' | 'small'
 		useAnimation?: boolean
 	} = $props()
 
@@ -47,7 +45,7 @@
 			<p>{emptyMessage}</p>
 		</div>
 	{:else}
-		<div bind:this={cardGrid} class="card-grid" class:small={size === 'small'}>
+		<div bind:this={cardGrid} class="card-grid">
 			{#each items as _item, index (index)}
 				<div bind:this={cards[index]} class="card-wrapper">
 					{@render item(_item)}
@@ -72,17 +70,14 @@
 		justify-content: center;
 		place-items: center;
 
-		&.small {
+		@include mobile {
 			grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 			gap: var(--spacing-md);
+			overflow-y: auto;
 		}
 
 		&:last-child {
 			padding-bottom: var(--spacing-lg);
-		}
-
-		@include mobile {
-			overflow-y: auto;
 		}
 	}
 
@@ -99,10 +94,8 @@
 		.card-grid {
 			grid-template-columns: 1fr;
 
-			&.small {
-				grid-template-columns: repeat(2, 1fr);
-				gap: var(--spacing-sm);
-			}
+			grid-template-columns: repeat(2, 1fr);
+			gap: var(--spacing-sm);
 		}
 	}
 </style>

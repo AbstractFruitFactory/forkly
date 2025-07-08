@@ -449,6 +449,7 @@
 		@include mobile {
 			padding: 0;
 			padding-top: var(--spacing-xl);
+			min-height: 9rem;
 		}
 	}
 

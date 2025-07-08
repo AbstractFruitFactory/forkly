@@ -135,7 +135,7 @@
 
 <style lang="scss">
 	.typewriter {
-		white-space: nowrap;
+		text-align: center;
 	}
 
 	h1 {

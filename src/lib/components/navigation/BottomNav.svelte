@@ -24,12 +24,8 @@
 		<Home size={28} color="black" />
 		<span>Explore recipes</span>
 	</a>
-	<div class="add-recipe-float-wrapper">
-		<a href={newRecipeHref} class="add-recipe-btn">
-			<Plus size={32} color="white" />
-		</a>
-	</div>
-	<a class="nav-item add-recipe-label-item">
+	<a href={newRecipeHref} class="nav-item">
+		<Plus size={28} color="black" />
 		<span>Add recipe</span>
 	</a>
 	<a href={loggedIn ? profileHref : loginHref} class="nav-item">
@@ -48,7 +44,8 @@
 		bottom: 0;
 		left: 0;
 		right: 0;
-		background: var(--color-primary);
+		background: var(--color-secondary);
+		border-radius: var(--border-radius-2xl) var(--border-radius-2xl) 0 0;
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-end;
@@ -74,45 +71,6 @@
 		span {
 			font-size: 13px;
 			font-weight: 500;
-			color: var(--color-neutral-dark);
-		}
-	}
-
-	.add-recipe-float-wrapper {
-		position: absolute;
-		left: 50%;
-		transform: translateX(-50%);
-		top: -24px;
-		width: 64px;
-		display: flex;
-		justify-content: center;
-	}
-
-	.add-recipe-btn {
-		background: #222;
-		color: var(--color-text-on-surface);
-		border-radius: 50%;
-		width: 64px;
-		height: 64px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-		border: var(--border-width-normal) solid #ffe55c;
-		transition: background 0.2s;
-		-webkit-tap-highlight-color: transparent;
-	}
-
-	.add-recipe-btn:hover {
-		background: #444;
-	}
-
-	.add-recipe-label-item {
-		flex: 1 1 0;
-		justify-content: flex-end;
-		align-items: center;
-		pointer-events: none;
-		span {
 			color: var(--color-neutral-dark);
 		}
 	}

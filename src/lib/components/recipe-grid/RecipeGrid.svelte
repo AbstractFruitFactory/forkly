@@ -13,14 +13,12 @@
 		emptyMessage = 'No recipes found.',
 		useAnimation = true,
 		loadMore,
-		size = 'large',
 		onRecipeClick
 	}: {
 		recipes: Promise<RecipeItem[]>
 		emptyMessage?: string
 		loadMore?: () => Promise<void>
 		useAnimation?: boolean
-		size?: 'large' | 'small'
 		onRecipeClick?: (recipe: DetailedRecipe, event: MouseEvent) => Promise<void>
 	} = $props()
 
@@ -76,12 +74,12 @@
 </script>
 
 {#if resolvedRecipes}
-	<CardGrid items={renderedItems} {emptyMessage} {useAnimation} {size}>
+	<CardGrid items={renderedItems} {emptyMessage} {useAnimation}>
 		{#snippet item(recipe)}
 			{#if 'loading' in recipe && recipe.loading}
-				<RecipeCard loading {size} />
+				<RecipeCard loading />
 			{:else}
-				<RecipeCard {size} recipe={recipe as RecipeItem} {onRecipeClick} />
+				<RecipeCard recipe={recipe as RecipeItem} {onRecipeClick} />
 			{/if}
 		{/snippet}
 	</CardGrid>
