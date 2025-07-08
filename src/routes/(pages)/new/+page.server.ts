@@ -103,15 +103,18 @@ type RecipeApiResponse = {
   [key: string]: any
 }
 
-const parseIngredients = (formData: FormData): Ingredient[] => {
-  const ingredientEntries = Array.from(formData.entries())
-    .filter(([key]) => key.split('-')[0] === 'ingredient')
+const parseIngredientOrInstruction = (formData: FormData, keyPrefix: string) =>
+  Array.from(formData.entries())
+    .filter(([key]) => key.startsWith(keyPrefix))
     .map(([key, value]) => {
-      const [_, index, field] = key.split('-')
-      return { index: parseInt(index), field, value: value.toString() }
+      const [_, id, field] = key.split('-')
+      return { id, field, value: value.toString() }
     })
 
-  const byIndex = groupBy(entry => entry.index.toString(), ingredientEntries)
+const parseIngredients = (formData: FormData): Ingredient[] => {
+  const ingredientEntries = parseIngredientOrInstruction(formData, 'ingredient')
+
+  const byIndex = groupBy(entry => entry.id, ingredientEntries)
 
   return Object.values(byIndex).map(entries => {
     let quantity: number | undefined = undefined
@@ -140,22 +143,28 @@ const parseIngredients = (formData: FormData): Ingredient[] => {
 const parseFormData = (formData: FormData): FormFields => {
   const tags = formData.getAll('tags').map(value => value.toString())
 
-  // Parse instructions
-  const instructions: FormFields['instructions'] = []
-  let i = 0
-  while (formData.has(`instructions-${i}-text`)) {
-    const text = formData.get(`instructions-${i}-text`) as string
-    const mediaFile = formData.get(`instructions-${i}-media`) as File | null
+  console.log(formData)
 
-    if (text) {
-      instructions.push({
-        text,
-        mediaUrl: undefined,
-        mediaType: mediaFile ? (mediaFile.type.startsWith('video/') ? 'video' : 'image') : undefined
-      })
+  // Parse instructions
+  const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')
+  const instructionById = groupBy(entry => entry.id, instructionEntries)
+
+  const instructions: FormFields['instructions'] = Object.values(instructionById).map(entries => {
+    let text = ''
+
+    for (const entry of entries!) {
+      const { field, value } = entry
+      if (field === 'text') {
+        text = value
+      }
     }
-    i++
-  }
+
+    return {
+      text,
+      mediaUrl: undefined,
+      mediaType: undefined
+    }
+  })
 
   return {
     title: formData.get('title')?.toString() ?? '',
@@ -173,9 +182,15 @@ export const actions = {
     const recipeData = parseFormData(formData)
     const imageFile = formData.get('image') as File | undefined
 
+    // Parse instructions again to get the IDs for media lookup
+    const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')
+    const instructionById = groupBy(entry => entry.id, instructionEntries)
+
     const instructionsWithMedia = await Promise.all(
       recipeData.instructions.map(async (instruction, index) => {
-        const mediaFile = formData.get(`instructions-${index}-media`) as File | undefined
+        // Find the instruction ID from the parsed data
+        const instructionId = Object.keys(instructionById)[index]
+        const mediaFile = formData.get(`instructions-${instructionId}-media`) as File | undefined
 
         if (mediaFile && mediaFile.size > 0) {
           const arrayBuffer = await mediaFile.arrayBuffer()

@@ -1,195 +1,181 @@
-<script lang="ts">
-	import Input from '$lib/components/input/Input.svelte'
-	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
-	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
-	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import { enhance } from '$app/forms'
-	import { browser } from '$app/environment'
-	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
-	import Button from '$lib/components/button/Button.svelte'
-	import IngredientInput from '$lib/components/ingredient-input/IngredientInput.svelte'
-	import Pill from '$lib/components/pill/Pill.svelte'
-	import FilterSelector from '$lib/components/filter-selector/FilterSelector.svelte'
-	import { fly } from 'svelte/transition'
-	import { NEW_RECIPE_STEP_IN, NEW_RECIPE_STEP_OUT } from '$lib/utils/transitions'
+<script lang="ts" module>
+	export type IngredientRow = { id: string; name: string; amount: string; unit: string }
+	export type InstructionRow = { id: string; text: string; media?: File }
+</script>
 
-	type T = $$Generic<{ name: string; custom: false }>
-	type Ingredient = T | { name: string; custom: true }
+<script lang="ts">
+	type Ingredient = { id?: string; name: string }
+	import { enhance } from '$app/forms'
+	import { onMount } from 'svelte'
+	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+	import DesktopLayout from './DesktopLayout.svelte'
+	import MobileLayout from './MobileLayout.svelte'
 
 	let {
 		errors,
-		onSearchIngredients,
-		onIngredientSelect,
 		unitSystem = 'imperial',
-		onUnitChange = (system: UnitSystem) => {},
-		availableTags = [],
-		onSearchTags
+		onSearchTags,
+		onSearchIngredients
 	}: {
 		errors?: { path: string; message: string }[]
-		onSearchIngredients?: (query: string) => Promise<T[]>
-		onIngredientSelect?: (ingredient: T) => Promise<void>
+		onSearchIngredients?: (query: string) => Promise<Ingredient[]>
 		unitSystem?: UnitSystem
-		onUnitChange?: (system: UnitSystem) => void
-		availableTags?: { name: string; count: number }[]
 		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 	} = $props()
 
-	let currentStep = $state(1)
-	let ingredientCount = $state(1)
-	let instructionCount = $state(1)
+	const generateId = () => Math.random().toString(36).slice(2)
+
+	let ingredients = $state<IngredientRow[]>([{ id: generateId(), name: '', amount: '', unit: '' }])
+	let instructions = $state<InstructionRow[]>([{ id: generateId(), text: '', media: undefined }])
 	let servings = $state(1)
-	let inputValues = $state<Record<number, string>>({})
-	let suggestions = $state<Record<number, T[]>>({})
-	let isLoading = $state<Record<number, boolean>>({})
-	let showCustomInput = $state<Record<number, boolean>>({})
-	let selectedLookupIngredients = $state<Record<number, Ingredient>>({})
 	let selectedTags = $state<string[]>([])
 
-	const TOTAL_STEPS = 3
+	let isMobileView = $state(false)
+	let mobileLayoutElement: HTMLElement
+	let desktopLayoutElement: HTMLElement
 
-	const nextStep = () => {
-		if (currentStep < TOTAL_STEPS) {
-			currentStep++
-		}
+	const checkViewport = () => {
+		isMobileView = window.innerWidth <= 480
+		disableInactiveInputs()
 	}
 
-	const previousStep = () => {
-		if (currentStep > 1) {
-			currentStep--
-		}
-	}
-
-	const addIngredient = () => {
-		ingredientCount++
-	}
-
-	const removeIngredient = (index: number) => {
-		if (ingredientCount > 1) {
-			delete inputValues[index]
-			delete suggestions[index]
-			delete isLoading[index]
-			delete showCustomInput[index]
-			delete selectedLookupIngredients[index]
-
-			for (let i = index; i < ingredientCount - 1; i++) {
-				inputValues[i] = inputValues[i + 1]
-				suggestions[i] = suggestions[i + 1]
-				isLoading[i] = isLoading[i + 1]
-				showCustomInput[i] = showCustomInput[i + 1]
-				selectedLookupIngredients[i] = selectedLookupIngredients[i + 1]
-			}
-
-			delete inputValues[ingredientCount - 1]
-			delete suggestions[ingredientCount - 1]
-			delete isLoading[ingredientCount - 1]
-			delete showCustomInput[ingredientCount - 1]
-			delete selectedLookupIngredients[ingredientCount - 1]
-
-			ingredientCount--
-		}
-	}
-
-	const addInstruction = () => {
-		instructionCount++
-	}
-
-	const removeInstruction = (index: number) => {
-		if (instructionCount > 1) {
-			const form = document.querySelector('form')
-			if (form) {
-				for (let i = index; i < instructionCount - 1; i++) {
-					const nextText = form.querySelector(
-						`textarea[name="instructions-${i + 1}-text"]`
-					) as HTMLTextAreaElement
-					const currentText = form.querySelector(
-						`textarea[name="instructions-${i}-text"]`
-					) as HTMLTextAreaElement
-					if (nextText && currentText) {
-						currentText.value = nextText.value
-					}
+	const disableInactiveInputs = () => {
+		if (mobileLayoutElement && desktopLayoutElement) {
+			const mobileInputs = mobileLayoutElement.querySelectorAll('input, textarea, button, select')
+			const desktopInputs = desktopLayoutElement.querySelectorAll('input, textarea, button, select')
+			
+			// Disable mobile inputs when not in mobile view
+			mobileInputs.forEach((input) => {
+				if (isMobileView) {
+					input.removeAttribute('disabled')
+				} else {
+					input.setAttribute('disabled', 'disabled')
 				}
+			})
+			
+			// Disable desktop inputs when in mobile view
+			desktopInputs.forEach((input) => {
+				if (isMobileView) {
+					input.setAttribute('disabled', 'disabled')
+				} else {
+					input.removeAttribute('disabled')
+				}
+			})
+		}
+	}
+
+	onMount(() => {
+		checkViewport()
+		window.addEventListener('resize', checkViewport)
+		
+		return () => {
+			window.removeEventListener('resize', checkViewport)
+		}
+	})
+
+	$effect(() => {
+		disableInactiveInputs()
+	})
+
+	const addIngredient = (ingredientData?: { name?: string; amount?: string; unit?: string }) => {
+		if (ingredientData) {
+			const safeIngredient = {
+				id: generateId(),
+				name: ingredientData.name ?? '',
+				amount: ingredientData.amount ?? '',
+				unit: ingredientData.unit ?? ''
 			}
-			instructionCount--
+			ingredients = [...ingredients, safeIngredient]
+		} else {
+			ingredients = [...ingredients, { id: generateId(), name: '', amount: '', unit: '' }]
 		}
 	}
 
-	const searchIngredients = async (query: string, index: number) => {
-		if (!onSearchIngredients) return []
-
-		inputValues[index] = query
-
-		if (query.length < 3) {
-			isLoading[index] = false
-			return []
-		}
-
-		isLoading[index] = true
-		const results = await onSearchIngredients(query)
-		suggestions[index] = results
-		isLoading[index] = false
-
-		return results
-	}
-
-	const handleSelect = async (index: number, suggestion: T) => {
-		inputValues[index] = suggestion.name
-		selectedLookupIngredients[index] = suggestion
-
-		if (onIngredientSelect) {
-			await onIngredientSelect(suggestion)
+	const removeIngredient = (id: string) => {
+		if (ingredients.length > 1) {
+			ingredients = ingredients.filter((ingredient) => ingredient.id !== id)
 		}
 	}
 
-	const searchTags = async (query: string): Promise<string[]> => {
+	const updateIngredient = (
+		id: string,
+		updatedIngredient: { name?: string; amount?: string; unit?: string }
+	) => {
+		ingredients = ingredients.map((ingredient) =>
+			ingredient.id === id
+				? {
+						...ingredient,
+						name: updatedIngredient.name ?? ingredient.name ?? '',
+						amount: updatedIngredient.amount ?? ingredient.amount ?? '',
+						unit: updatedIngredient.unit ?? ingredient.unit ?? ''
+					}
+				: ingredient
+		)
+	}
+
+	const addInstruction = (instructionData?: { text: string; media?: File }) => {
+		if (instructionData) {
+			instructions = [...instructions, { id: generateId(), ...instructionData }]
+		} else {
+			instructions = [...instructions, { id: generateId(), text: '', media: undefined }]
+		}
+	}
+
+	const removeInstruction = (id: string) => {
+		if (instructions.length > 1) {
+			instructions = instructions.filter((instruction) => instruction.id !== id)
+		}
+	}
+
+	const updateInstruction = (id: string, updatedInstruction: { text: string; media?: File }) => {
+		instructions = instructions.map((instruction) =>
+			instruction.id === id ? { ...instruction, ...updatedInstruction } : instruction
+		)
+	}
+
+	const searchTags = async (query: string): Promise<{ id: string; name: string }[]> => {
 		if (!onSearchTags) return []
 
 		const results = await onSearchTags(query)
-		return results.map((tag) => tag.name)
+		return results.map((tag) => ({ id: tag.name, name: tag.name }))
 	}
 
-        const handleTagSelect = (tag: string, selected: boolean) => {
-                if (selected && !selectedTags.includes(tag)) {
-                        if (selectedTags.length < 3) {
-                                selectedTags = [...selectedTags, tag]
-                        }
-                } else if (!selected && selectedTags.includes(tag)) {
-                        selectedTags = selectedTags.filter((t) => t !== tag)
-                }
-        }
+	const searchIngredients = async (query: string): Promise<{ id: string; name: string }[]> => {
+		if (!onSearchIngredients) return []
+		const results = await onSearchIngredients(query)
+		return results.map((ingredient) => ({
+			id: ingredient.id ?? ingredient.name,
+			name: ingredient.name
+		}))
+	}
+
+	const handleTagSelect = (tag: string, selected: boolean) => {
+		if (selected && !selectedTags.includes(tag)) {
+			if (selectedTags.length < 3) {
+				selectedTags = [...selectedTags, tag]
+			}
+		} else if (!selected && selectedTags.includes(tag)) {
+			selectedTags = selectedTags.filter((t) => t !== tag)
+		}
+	}
 
 	const removeTag = (tag: string) => {
 		selectedTags = selectedTags.filter((t) => t !== tag)
+	}
+
+	const handleServingsChange = (newServings: number) => {
+		servings = newServings
 	}
 
 	let submitting = $state(false)
 </script>
 
 <div class="container">
-	<div class="progress-bar">
-		<div class="progress" style="width: {((currentStep - 1) / (TOTAL_STEPS - 1)) * 100}%" />
-		<div class="steps">
-			{#each Array(TOTAL_STEPS) as _, i}
-				<div
-					class="step"
-					class:active={currentStep === i + 1}
-					class:completed={currentStep > i + 1}
-				>
-					<div class="dot"></div>
-				</div>
-			{/each}
-		</div>
-	</div>
-
 	<form
 		method="POST"
 		enctype="multipart/form-data"
 		use:enhance={({ formData }) => {
 			submitting = true
-			Object.entries(selectedLookupIngredients).forEach(([index, ingredient]) => {
-				if (ingredient) {
-					formData.append(`ingredient-${index}-lookupdata`, JSON.stringify(ingredient))
-				}
-			})
 			formData.append('servings', servings.toString())
 
 			return async ({ update }) => {
@@ -206,374 +192,55 @@
 			</div>
 		{/if}
 
-		<div
-			class="step-content card"
-			class:hidden={currentStep !== 1}
-			in:fly={NEW_RECIPE_STEP_IN}
-			out:fly={NEW_RECIPE_STEP_OUT}
-		>
-			<h2>Basic Information</h2>
-			<MediaUpload name="image" type="image" previewAlt="Recipe preview" />
-
-			<div class="form-group">
-				<label for="title">Title</label>
-				<Input>
-					<input id="title" name="title" type="text" required placeholder="Enter recipe title" />
-				</Input>
-			</div>
-
-			<div class="form-group">
-				<label for="description">Description</label>
-				<Input>
-					<textarea id="description" name="description" placeholder="Describe your recipe" rows="3"
-					></textarea>
-				</Input>
-			</div>
-
-			<div class="form-group">
-				<label for="tags">Tags</label>
-				<div>
-					<FilterSelector
-						items={availableTags.map((tag) => tag.name)}
-						bind:selectedItems={selectedTags}
-						name="tags"
-						loadItems={searchTags}
-						onSelect={handleTagSelect}
-						label="search for tag"
-						allowCustomItems={true}
-					/>
-
-					{#if selectedTags.length > 0}
-						<div class="selected-tags">
-							{#each selectedTags as tag}
-								<Pill text={tag} onRemove={() => removeTag(tag)} />
-							{/each}
-						</div>
-					{/if}
-				</div>
-			</div>
-
-			<div class="navigation-buttons">
-				<div></div>
-				<Button color="primary" onclick={nextStep}>Next</Button>
-			</div>
+		<div class="mobile-layout" bind:this={mobileLayoutElement}>
+			<MobileLayout
+				{servings}
+				{ingredients}
+				{addIngredient}
+				{addInstruction}
+				{removeIngredient}
+				{updateIngredient}
+				{removeInstruction}
+				{updateInstruction}
+				{instructions}
+				{selectedTags}
+				{unitSystem}
+				{handleServingsChange}
+				{searchTags}
+				{searchIngredients}
+				{handleTagSelect}
+				{removeTag}
+				{submitting}
+			/>
 		</div>
-
-		<div
-			class="step-content card"
-			class:hidden={currentStep !== 2}
-			in:fly={NEW_RECIPE_STEP_IN}
-			out:fly={NEW_RECIPE_STEP_OUT}
-		>
-			<h2>Ingredients & Servings</h2>
-			<div class="form-group">
-				<label for="servings">Servings</label>
-				<Input>
-					<input
-						id="servings"
-						name="servings"
-						type="number"
-						min="1"
-						required
-						placeholder="Number of servings"
-						bind:value={servings}
-					/>
-				</Input>
-			</div>
-
-			<div class="form-group">
-				<div class="ingredients-header">
-					<label for="ingredients">Ingredients</label>
-					<div class="unit-toggle-container">
-						<UnitToggle state={unitSystem} onSelect={onUnitChange} />
-					</div>
-				</div>
-				<div id="ingredients">
-					{#each Array(ingredientCount) as _, i}
-						<div class="ingredient-group">
-							<div class="quantity-unit-wrapper">
-								<IngredientInput name={`ingredient-${i}`} {unitSystem} />
-							</div>
-
-							<div class="ingredient-input">
-								<SuggestionSearch
-									placeholder="Enter ingredient"
-									isLoading={isLoading[i]}
-									onSearch={(query) => searchIngredients(query, i)}
-									onSelect={(suggestion) => handleSelect(i, suggestion)}
-									formName={`ingredient-${i}-name`}
-								/>
-							</div>
-
-							{#if ingredientCount > 1}
-								<button type="button" class="remove-btn" onclick={() => removeIngredient(i)}>
-									✕
-								</button>
-							{/if}
-						</div>
-					{/each}
-					<Button variant="dotted" onclick={addIngredient} size="sm">Add Ingredient</Button>
-				</div>
-			</div>
-
-			<div class="navigation-buttons">
-				<Button color="secondary" onclick={previousStep}>Previous</Button>
-				<Button color="primary" onclick={nextStep}>Next</Button>
-			</div>
-		</div>
-
-		<div
-			class="step-content card"
-			class:hidden={currentStep !== 3}
-			in:fly={NEW_RECIPE_STEP_IN}
-			out:fly={NEW_RECIPE_STEP_OUT}
-		>
-			<h2>Instructions</h2>
-			<div class="form-group">
-				<div id="instructions">
-					{#each Array(instructionCount) as _, i}
-						<div class="instruction-group">
-							<div class="instruction-input">
-								<div class="instruction-text">
-									<Input>
-										<textarea
-											name={`instructions-${i}-text`}
-											placeholder="Enter instruction step"
-											rows="2"
-										></textarea>
-									</Input>
-								</div>
-								<div class="instruction-media">
-									<MediaUpload name={`instructions-${i}-media`} />
-								</div>
-							</div>
-							{#if instructionCount > 1}
-								<button type="button" class="remove-btn" onclick={() => removeInstruction(i)}>
-									✕
-								</button>
-							{/if}
-						</div>
-					{/each}
-					<Button variant="dotted" onclick={addInstruction} size="sm">Add Instruction</Button>
-				</div>
-			</div>
-
-			<div class="navigation-buttons">
-				<Button color="secondary" onclick={previousStep}>Previous</Button>
-				<Button loading={submitting} type="submit" color="primary">Create Recipe</Button>
-			</div>
+		<div class="desktop-layout" bind:this={desktopLayoutElement}>
+			<DesktopLayout
+				{servings}
+				{ingredients}
+				{addIngredient}
+				{removeIngredient}
+				{instructions}
+				{addInstruction}
+				{removeInstruction}
+				{selectedTags}
+				{unitSystem}
+				{handleServingsChange}
+				{searchTags}
+				{handleTagSelect}
+				{removeTag}
+				{submitting}
+			/>
 		</div>
 	</form>
 </div>
 
 <style lang="scss">
+	@import '../../global.scss';
+
 	.container {
-		max-width: 800px;
+		max-width: 1000px;
 		margin: 0 auto;
 		padding: var(--spacing-lg) var(--spacing-md);
-	}
-
-	.progress-bar {
-		position: relative;
-		height: 4px;
-		background-color: var(--color-neutral-darker);
-		border-radius: 2px;
-		margin-bottom: var(--spacing-xl);
-
-		.progress {
-			position: absolute;
-			height: 100%;
-			background-color: var(--color-primary);
-			border-radius: 2px;
-			transition: width 0.3s ease;
-		}
-
-		.steps {
-			position: absolute;
-			top: 50%;
-			width: 100%;
-			display: flex;
-			justify-content: space-between;
-			transform: translateY(-50%);
-		}
-
-		.step {
-			width: 24px;
-			height: 24px;
-			background-color: var(--color-neutral-darker);
-			border-radius: 50%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			transition: all 0.3s ease;
-			z-index: 1;
-
-			.dot {
-				width: 8px;
-				height: 8px;
-				background-color: var(--color-text);
-				border-radius: 50%;
-				transition: all 0.3s ease;
-			}
-
-			&.active {
-				background-color: var(--color-primary);
-
-				.dot {
-					background-color: var(--color-white);
-					width: 10px;
-					height: 10px;
-				}
-			}
-
-			&.completed {
-				background-color: var(--color-primary);
-
-				.dot {
-					background-color: var(--color-white);
-				}
-			}
-		}
-	}
-
-	.step-content {
-		margin-bottom: var(--spacing-xl);
-
-		h2 {
-			margin-bottom: var(--spacing-lg);
-			font-size: var(--font-size-xl);
-			font-weight: 600;
-		}
-	}
-
-	.card {
-		background: var(--color-neutral-dark);
-		border-radius: var(--border-radius-lg);
-		padding: var(--spacing-xl);
-		box-shadow:
-			0 4px 6px -1px rgba(0, 0, 0, 0.1),
-			0 2px 4px -1px rgba(0, 0, 0, 0.06);
-	}
-
-	.navigation-buttons {
-		display: flex;
-		justify-content: space-between;
-		gap: var(--spacing-md);
-		margin-top: var(--spacing-xl);
-		padding-top: var(--spacing-lg);
-		border-top: 1px solid var(--color-neutral-darker);
-
-		:global(button) {
-			min-width: 120px;
-		}
-	}
-
-	.form-group {
-		margin-top: var(--spacing-lg);
-	}
-
-	.ingredients-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: var(--spacing-md);
-	}
-
-	.unit-toggle-container {
-		margin-left: var(--spacing-md);
-	}
-
-	label {
-		display: block;
-		margin-bottom: var(--spacing-md);
-		font-weight: 500;
-		font-size: var(--spacing-lg);
-	}
-
-	.selected-tags {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-sm);
-		margin-top: var(--spacing-sm);
-	}
-
-	.remove-btn {
-		background: none;
-		border: none;
-		cursor: pointer;
-		padding: var(--spacing-sm);
-		transition: all var(--transition-fast) var(--ease-in-out);
-		border-radius: 50%;
-		width: var(--spacing-lg);
-		height: var(--spacing-lg);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		margin-top: var(--spacing-xs);
-
-		&:hover {
-			color: var(--color-error);
-			background-color: var(--color-error-dark);
-		}
-	}
-
-	.ingredient-group {
-		display: flex;
-		gap: var(--spacing-md);
-		margin-bottom: var(--spacing-md);
-		align-items: flex-start;
-
-		.quantity-unit-wrapper {
-			flex: 0 0 200px;
-		}
-
-		.ingredient-input {
-			flex: 1;
-			min-width: 0;
-		}
-
-		@media (max-width: 600px) {
-			flex-direction: column;
-			gap: var(--spacing-sm);
-
-			> div {
-				width: 100%;
-			}
-
-			.quantity-unit-wrapper {
-				flex: none;
-			}
-		}
-	}
-
-	.instruction-group {
-		display: flex;
-		gap: var(--spacing-md);
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.instruction-input {
-		flex: 1;
-		display: flex;
-		flex-direction: row;
-		gap: var(--spacing-md);
-
-		@media (max-width: 600px) {
-			flex-direction: column;
-
-			.instruction-media {
-				width: 100%;
-				margin-bottom: var(--spacing-sm);
-			}
-		}
-	}
-
-	.instruction-media {
-		flex-basis: 40%;
-	}
-
-	.instruction-text {
-		flex: 1;
 	}
 
 	.error-container {
@@ -589,27 +256,19 @@
 		margin: var(--spacing-xs) 0;
 	}
 
-	@media (max-width: 640px) {
-		.ingredients-header {
-			flex-direction: column;
-			align-items: flex-start;
-		}
+	.mobile-layout {
+		display: none;
 
-		.unit-toggle-container {
-			margin-left: 0;
-			margin-top: var(--spacing-sm);
-		}
-
-		.navigation-buttons {
-			flex-direction: column;
-
-			:global(button) {
-				width: 100%;
-			}
+		@include mobile {
+			display: block;
 		}
 	}
 
-	.hidden {
-		display: none;
+	.desktop-layout {
+		display: block;
+
+		@include mobile {
+			display: none;
+		}
 	}
 </style>

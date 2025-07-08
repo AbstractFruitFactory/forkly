@@ -16,6 +16,9 @@
 	 */
 	import { onDestroy } from 'svelte'
 	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
+	import { createEventDispatcher } from 'svelte'
+
+	const dispatch = createEventDispatcher()
 
 	let {
 		error,
@@ -23,7 +26,8 @@
 		type = 'both',
 		name = 'media',
 		aspectRatio = '16/9',
-		previewAlt = 'Media preview'
+		previewAlt = 'Media preview',
+		onFile
 	}: {
 		error?: string
 		id?: string
@@ -32,6 +36,7 @@
 		maxDuration?: number
 		aspectRatio?: string
 		previewAlt?: string
+		onFile?: (file: File) => void
 	} = $props()
 
 	let preview = $state('')
@@ -71,6 +76,8 @@
 			const dataTransfer = new DataTransfer()
 			dataTransfer.items.add(file)
 			inputElement.files = dataTransfer.files
+			dispatch('change', file)
+			onFile?.(file)
 		}
 	}
 
@@ -138,7 +145,7 @@
 				height="24"
 				viewBox="0 0 24 24"
 				fill="none"
-				stroke="currentColor"
+				stroke="var(--color-text-on-surface)"
 				stroke-width="2"
 			>
 				{#if type === 'video'}
@@ -179,7 +186,7 @@
 		border-radius: var(--border-radius-lg);
 		overflow: hidden;
 		cursor: pointer;
-		background: var(--color-neutral-dark);
+		background: var(--color-surface);
 		transition:
 			border-color var(--transition-fast) var(--ease-in-out),
 			transform var(--transition-fast) var(--ease-in-out);
@@ -262,7 +269,6 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--spacing-md);
-		color: var(--color-neutral);
 		transition: color var(--transition-fast) var(--ease-in-out);
 		padding: var(--spacing-md);
 		text-align: center;
@@ -278,6 +284,7 @@
 			font-size: var(--font-size-sm);
 			font-weight: 500;
 			line-height: 1.5;
+			color: var(--color-text-on-surface);
 		}
 	}
 

@@ -13,6 +13,7 @@
 		onConfirm = $bindable((value: string) => {}),
 		actionButton,
 		formName,
+		disabled = false,
 		...inputProps
 	}: {
 		placeholder?: string
@@ -24,6 +25,7 @@
 		onConfirm?: (value: string) => void
 		actionButton?: { text: string; onClick: () => void }
 		formName?: string
+		disabled?: boolean
 	} & Omit<ComponentProps<typeof Input>, 'children' | 'value'> = $props()
 
 	const showClear = $derived(value !== '')
@@ -68,6 +70,7 @@
 				name={formName}
 				bind:this={inputElement}
 				enterkeyhint="search"
+				{disabled}
 			/>
 
 			{#snippet clearButton()}

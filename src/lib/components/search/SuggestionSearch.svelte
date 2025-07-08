@@ -12,7 +12,9 @@
 		inputElement = $bindable(),
 		clearInput = false,
 		actionButton,
-		formName
+		formName,
+		disabled = false,
+		searchValue = $bindable('')
 	}: {
 		placeholder?: string
 		isLoading?: boolean
@@ -22,9 +24,10 @@
 		clearInput?: boolean
 		actionButton?: { text: string; onClick: () => void }
 		formName?: string
+		disabled?: boolean
+		searchValue?: string
 	} = $props()
 
-	let searchValue = $state('')
 	let suggestions = $state<T[]>([])
 	let showSuggestions = $state(false)
 	let searchWrapper: HTMLDivElement
@@ -79,6 +82,7 @@
 			bind:inputElement
 			onInput={handleSearch}
 			{formName}
+			{disabled}
 		/>
 	</Autocomplete>
 </div>

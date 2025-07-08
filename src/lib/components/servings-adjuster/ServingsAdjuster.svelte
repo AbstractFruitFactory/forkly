@@ -19,11 +19,11 @@
 </script>
 
 <div class="servings-pill">
-	<button class="adjust-button" onclick={decrement} disabled={servings <= 1}>
+	<button type="button" class="adjust-button" onclick={decrement} disabled={servings <= 1}>
 		<Minus size={22} color="var(--color-secondary)" />
 	</button>
 	<span class="servings-text">Serves {servings}</span>
-	<button class="adjust-button" onclick={increment}>
+	<button type="button" class="adjust-button" onclick={increment}>
 		<Plus size={22} color="var(--color-secondary)" />
 	</button>
 </div>
@@ -37,11 +37,14 @@
 		justify-content: space-between;
 		padding: var(--spacing-sm) var(--spacing-md);
 		border-radius: var(--border-radius-full);
-		background-color: var(--color-neutral-dark);
+		background-color: var(--color-surface);
+		border: var(--border-width-thin) solid var(--color-neutral);
+		height: 36px;
+		width: fit-content;
 
 		.adjust-button {
 			cursor: pointer;
-			color: var(--color-text-secondary);
+			color: var(--color-text-on-surface);
 			display: flex;
 			align-items: center;
 			justify-content: center;
@@ -58,7 +61,7 @@
 
 		.servings-text {
 			font-size: var(--font-size-sm);
-			color: var(--color-text-secondary);
+			color: var(--color-text-on-surface);
 			padding: 0 var(--spacing-sm);
 			white-space: nowrap;
 		}
