@@ -80,17 +80,17 @@
 						</div>
 						{#if instruction.mediaUrl}
 							<div class="instruction-media desktop-only">
-								{#if instruction.mediaType === 'image'}
-									{#if !hideImages}
+								{#if !hideImages}
+									{#if instruction.mediaType === 'image'}
 										<img
 											src={instruction.mediaUrl}
 											alt={`Step ${i + 1} visual`}
 											loading="lazy"
 											decoding="async"
 										/>
+									{:else if instruction.mediaType === 'video'}
+										<InstructionVideo src={instruction.mediaUrl} stepNumber={i + 1} />
 									{/if}
-								{:else if instruction.mediaType === 'video'}
-									<InstructionVideo src={instruction.mediaUrl} stepNumber={i + 1} />
 								{/if}
 							</div>
 						{/if}
