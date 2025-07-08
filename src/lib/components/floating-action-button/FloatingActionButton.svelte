@@ -49,7 +49,8 @@
 		width: 50px;
 		height: 50px;
 		border-radius: var(--border-radius-full);
-		background: var(--color-neutral-2);
+		background: var(--color-surface);
+		border: var(--border-width-thin) solid var(--color-neutral);
 		color: var(--color-text-on-surface);
 		display: flex;
 		align-items: center;
@@ -58,7 +59,7 @@
 		transition: all var(--transition-fast) var(--ease-in-out);
 
 		&:hover {
-			background: var(--color-neutral);
+			background: var(--color-secondary);
 			transform: translateY(-2px);
 		}
 
