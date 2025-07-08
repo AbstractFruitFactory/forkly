@@ -31,19 +31,24 @@ $breakpoint-xl: 1280px; // Large desktop
 }
 
 :root {
- // Primary colors
-  $primary-color: #FCDF68;
+  // Primary colors
+  $primary-color: #F45D01;
   --color-primary: #{$primary-color};
   --color-primary-light: #{lighten($primary-color, 20%)};
   --color-primary-dark: #{darken($primary-color, 20%)};
 
-  --color-secondary: #96DCFA;
+  --color-secondary: #FFC96F;
 
   // Background colors
-  --color-background: #242732;
+  $background-color: #FFE8C8;
+  --color-background: #{$background-color};
+  --color-background-dark: #{darken($background-color, 5%)};
 
   // Surface colors
-  --color-surface: #333644;
+  $surface-color: #FFE5CF;
+  --color-surface: #{$surface-color};
+  --color-surface-2: #EEE5E9;
+  --color-surface-dark: #{darken($surface-color, 10%)};
 
   // Neutral colors
   --color-neutral: #767880;
@@ -60,11 +65,11 @@ $breakpoint-xl: 1280px; // Large desktop
   --color-error-dark: #5c0e0e;
   --color-error: #9e0202;
   --color-error-light: #d84c4c;
- 
-  --color-text: #F7F0F0;
+
+  --color-text: #2D3142;
   --color-text-on-background: var(--color-text);
-  --color-text-on-surface: var(--color-text);
-  --color-text-on-primary: var(--color-neutral-2);
+  --color-text-on-surface: #2D3142;
+  --color-text-on-primary: black;
 
   // Font families
   --font-sans:  "DM Sans", sans-serif;
@@ -313,11 +318,10 @@ button {
   &:focus {
     outline: none;
   }
-
 }
 
 .card {
-  background: var(--color-neutral-2);
+  background: var(--color-surface);
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-md);
