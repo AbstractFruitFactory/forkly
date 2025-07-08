@@ -1,7 +1,5 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
-	import { fly } from 'svelte/transition'
-	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
 	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 
 	let {
@@ -29,7 +27,7 @@
 	} = $props()
 </script>
 
-<div class="profile-container" in:fly={FLY_LEFT_IN} out:fly={FLY_LEFT_OUT}>
+<div class="profile-container">
 	<div class="profile-header-row card">
 		<div class="profile-avatar-block">
 			{@render avatar()}
