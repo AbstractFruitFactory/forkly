@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { fly } from 'svelte/transition'
-	import { type Snippet } from 'svelte'
+	import { gsap } from 'gsap'
+	import { untrack, type Snippet } from 'svelte'
 
 	type Item = $$Generic
 
@@ -8,31 +8,48 @@
 		item,
 		items,
 		emptyMessage = 'No items found.',
-		useAnimation = true,
-		class: className = '',
 		size = 'large'
 	}: {
 		item: Snippet<[item: Item]>
 		items: Item[]
 		emptyMessage?: string
-		useAnimation?: boolean
-		class?: string
 		size?: 'large' | 'small'
 	} = $props()
+
+	let cardGrid: HTMLElement
+	let cards: HTMLElement[] = $state([])
+
+	let previousCardsCount = $state(0)
+
+	$effect(() => {
+		if (items.length > previousCardsCount) {
+			const newCards = cards.slice(previousCardsCount)
+
+			gsap.set(newCards, { y: 50, opacity: 0 })
+			gsap.to(newCards, {
+				y: 0,
+				opacity: 1,
+				duration: 0.4,
+				stagger: 0.05,
+				ease: 'back.out(1.7)'
+			})
+
+			previousCardsCount = items.length
+		}
+	})
 </script>
 
-<div
-	in:fly={{ y: 50, duration: useAnimation ? 300 : 0, delay: 300 }}
-	out:fly={{ y: 50, duration: useAnimation ? 300 : 0 }}
->
+<div>
 	{#if items.length === 0}
 		<div class="empty-state">
 			<p>{emptyMessage}</p>
 		</div>
 	{:else}
-		<div class="card-grid {className}" class:small={size === 'small'}>
-			{#each items as _item}
-				{@render item(_item)}
+		<div bind:this={cardGrid} class="card-grid" class:small={size === 'small'}>
+			{#each items as _item, index (index)}
+				<div bind:this={cards[index]} class="card-wrapper">
+					{@render item(_item)}
+				</div>
 			{/each}
 		</div>
 	{/if}
@@ -65,6 +82,10 @@
 		@include mobile {
 			overflow-y: auto;
 		}
+	}
+
+	.card-wrapper {
+		width: 100%;
 	}
 
 	.load-more-trigger {

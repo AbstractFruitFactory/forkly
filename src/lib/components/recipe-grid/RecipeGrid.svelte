@@ -28,7 +28,7 @@
 	let observer: IntersectionObserver
 
 	let isLoading = $state(true)
-	let resolvedRecipes = $state<RecipeItem[]>([])
+	let resolvedRecipes = $state<RecipeItem[]>()
 
 	$effect(() => {
 		recipes.then((recipeArray) => {
@@ -38,7 +38,7 @@
 	})
 
 	let renderedItems = $derived.by(() => {
-		if (isLoading) {
+		if (isLoading && resolvedRecipes) {
 			return [
 				...resolvedRecipes.map((recipe) => ({ ...recipe, loading: false })),
 				...Array(18).fill({ loading: true })
@@ -75,15 +75,17 @@
 	})
 </script>
 
-<CardGrid items={renderedItems} {emptyMessage} {useAnimation} {size}>
-	{#snippet item(recipe)}
-		{#if 'loading' in recipe && recipe.loading}
-			<RecipeCard loading {size} />
-		{:else}
-			<RecipeCard {size} recipe={recipe as RecipeItem} {onRecipeClick} />
-		{/if}
-	{/snippet}
-</CardGrid>
+{#if resolvedRecipes}
+	<CardGrid items={renderedItems} {emptyMessage} {useAnimation} {size}>
+		{#snippet item(recipe)}
+			{#if 'loading' in recipe && recipe.loading}
+				<RecipeCard loading {size} />
+			{:else}
+				<RecipeCard {size} recipe={recipe as RecipeItem} {onRecipeClick} />
+			{/if}
+		{/snippet}
+	</CardGrid>
+{/if}
 
 {#if loadMore}
 	<div bind:this={loadMoreTrigger} class="load-more-trigger"></div>
