@@ -46,26 +46,26 @@
 			<button class="menu-btn" onclick={() => (menuOpen = !menuOpen)} aria-label="Collection menu">
 				<MoreVertical size={16} />
 			</button>
-			
+
 			<Dropdown bind:isOpen={menuOpen}>
-				<button
-					class="dropdown-item"
-					onclick={() => {
+				{#snippet dropdownContent(item)}
+					{#snippet rename()}
+						Rename
+					{/snippet}
+
+					{#snippet _delete()}
+						Delete
+					{/snippet}
+
+					{@render item(rename, () => {
 						menuOpen = false
 						renameOpen = true
-					}}
-				>
-					Rename
-				</button>
-				<button
-					class="dropdown-item delete"
-					onclick={() => {
+					})}
+					{@render item(_delete, () => {
 						menuOpen = false
 						deleteOpen = true
-					}}
-				>
-					Delete
-				</button>
+					})}
+				{/snippet}
 			</Dropdown>
 		</div>
 	{/if}

@@ -169,16 +169,18 @@
 		style="position: fixed; top: {dropdownPosition.top}px; left: {dropdownPosition.left}px; z-index: 1000;"
 	>
 		<Dropdown bind:isOpen={menuOpen}>
-			{#each Object.entries(menu.options) as [label, action]}
-				<button
-					class="dropdown-item"
-					class:delete={['Delete', 'Remove'].includes(label)}
-					onclick={() => {
+			{#snippet dropdownContent(item)}
+				{#each Object.entries(menu.options) as [label, action]}
+					{#snippet menuLabel()}
+						{label}
+					{/snippet}
+
+					{@render item(menuLabel, () => {
 						menuOpen = false
 						action()
-					}}>{label}</button
-				>
-			{/each}
+					})}
+				{/each}
+			{/snippet}
 		</Dropdown>
 	</div>
 {/if}
