@@ -143,8 +143,6 @@ const parseIngredients = (formData: FormData): Ingredient[] => {
 const parseFormData = (formData: FormData): FormFields => {
   const tags = formData.getAll('tags').map(value => value.toString())
 
-  console.log(formData)
-
   // Parse instructions
   const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')
   const instructionById = groupBy(entry => entry.id, instructionEntries)

@@ -2,27 +2,73 @@ import { error, json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { createRecipe } from '$lib/server/db/recipe-create'
 import * as v from 'valibot'
-import { isValidTag } from '$lib/types'
+import { isValidTag, measurementUnits } from '$lib/types'
 
-const baseIngredientSchema = v.object({
-  name: v.string(),
-  displayName: v.string(),
-  quantity: v.optional(v.number()),
-  measurement: v.optional(v.string())
+const baseIngredientSchema = v.pipe(
+  v.object({
+    quantity: v.optional(v.number()),
+    measurement: v.optional(v.string()),
+    name: v.pipe(
+      v.string(),
+      v.transform(input => input ?? ''),
+      v.minLength(1, 'An ingredient cannot be empty')
+    ),
+    displayName: v.string()
+  }),
+  v.rawTransform(({ dataset, addIssue }) => {
+    if (
+      dataset.value.measurement !== undefined && dataset.value.measurement !== '' &&
+      (dataset.value.quantity === undefined || isNaN(dataset.value.quantity))
+    ) {
+      addIssue({
+        message: 'A quantity is required if a measurement is specified',
+        path: [
+          {
+            type: 'object',
+            origin: 'value',
+            input: dataset.value,
+            key: 'quantity',
+            value: dataset.value.quantity
+          }
+        ]
+      })
+    }
+    return dataset.value
+  })
+)
+
+const instructionSchema = v.object({
+  text: v.pipe(
+    v.string(),
+    v.transform(input => input ?? ''),
+    v.minLength(1, 'All instructions must have text')
+  ),
+  mediaUrl: v.optional(v.string()),
+  mediaType: v.optional(v.union([v.literal('image'), v.literal('video')]))
 })
 
 const createRecipeSchema = v.object({
-  title: v.pipe(v.string(), v.minLength(1)),
-  description: v.optional(v.string()),
-  servings: v.pipe(v.number(), v.minValue(1)),
-  ingredients: v.array(
-    baseIngredientSchema
+  title: v.pipe(
+    v.string(),
+    v.transform(input => input ?? ''),
+    v.minLength(1, 'Title is required')
   ),
-  instructions: v.array(v.object({
-    text: v.string(),
-    mediaUrl: v.optional(v.string()),
-    mediaType: v.optional(v.union([v.literal('image'), v.literal('video')]))
-  })),
+  description: v.pipe(
+    v.string(),
+    v.transform(input => input ?? '')
+  ),
+  servings: v.pipe(
+    v.number(),
+    v.minValue(1, 'Servings must be at least 1')
+  ),
+  ingredients: v.pipe(
+    v.array(baseIngredientSchema),
+    v.minLength(1, 'At least one ingredient is required')
+  ),
+  instructions: v.pipe(
+    v.array(instructionSchema),
+    v.minLength(1, 'At least one instruction is required')
+  ),
   nutrition: v.object({
     calories: v.number(),
     protein: v.number(),

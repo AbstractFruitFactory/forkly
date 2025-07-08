@@ -28,22 +28,8 @@ export const load: PageServerLoad = ({ fetch, cookies }) => {
                         console.log(recipes.error)
                         throw error(500, 'Failed to fetch recipes')
                 }
-                
-                // Debug: Check for duplicate ingredients
-                const results = recipes.value.results
-                results.forEach((recipe, index) => {
-                        const ingredientIds = recipe.ingredients.map(ing => ing.id)
-                        const uniqueIds = new Set(ingredientIds)
-                        if (ingredientIds.length !== uniqueIds.size) {
-                                console.log(`Recipe ${index} (${recipe.title}) has duplicate ingredients:`, {
-                                        total: ingredientIds.length,
-                                        unique: uniqueIds.size,
-                                        duplicates: ingredientIds.filter((id, i) => ingredientIds.indexOf(id) !== i)
-                                })
-                        }
-                })
-                
-                return results
+
+                return recipes.value.results
         })
 
         return {
