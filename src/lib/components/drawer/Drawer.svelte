@@ -1,15 +1,22 @@
 <script lang="ts">
-	import { fade, slide } from 'svelte/transition'
+	import { fade, slide, fly } from 'svelte/transition'
 	import { onMount, type Snippet } from 'svelte'
+	import ArrowLeft from 'lucide-svelte/icons/arrow-left'
 
 	let {
 		isOpen = $bindable(false),
 		title,
-		children
+		children,
+		position = 'bottom',
+		showBackButton = false,
+		onBack
 	}: {
 		isOpen?: boolean
 		title?: string
 		children: Snippet
+		position?: 'bottom' | 'side'
+		showBackButton?: boolean
+		onBack?: () => void
 	} = $props()
 
 	let drawer: HTMLDivElement
@@ -34,36 +41,56 @@
 			isOpen = false
 		}
 	}
+
+	const handleBack = () => {
+		if (onBack) {
+			onBack()
+		} else {
+			isOpen = false
+		}
+	}
 </script>
 
 <svelte:document onmousedown={handleClickOutside} onkeydown={handleKeydown} />
 
 <div bind:this={drawerContainer}>
 	{#if isOpen}
-		<div class="drawer-overlay" transition:fade={{ duration: 200 }} />
-		<div class="drawer-container" bind:this={drawer} transition:slide={{ duration: 300 }}>
+		<div class="drawer-overlay" transition:fade={{ duration: 200 }}></div>
+		<div 
+			class="drawer-container"
+			class:side-drawer={position === 'side'}
+			bind:this={drawer}
+			transition:fly={position === 'side' ? { x: 500, duration: 200, opacity: 1 } : { y: 300, duration: 300 }}
+		>
 			<div class="drawer-header">
-				<div>
+				<div class="header-left">
+					{#if showBackButton}
+						<button class="drawer-back" onclick={handleBack} aria-label="Go back">
+							<ArrowLeft size={20} />
+						</button>
+					{/if}
 					{#if title}
 						<h3 class="drawer-title">{title}</h3>
 					{/if}
 				</div>
-				<button class="drawer-close" onclick={() => (isOpen = false)} aria-label="Close drawer">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="20"
-						height="20"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					>
-						<line x1="18" y1="6" x2="6" y2="18" />
-						<line x1="6" y1="6" x2="18" y2="18" />
-					</svg>
-				</button>
+				{#if !showBackButton}
+					<button class="drawer-close" onclick={() => (isOpen = false)} aria-label="Close drawer">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<line x1="18" y1="6" x2="6" y2="18" />
+							<line x1="6" y1="6" x2="18" y2="18" />
+						</svg>
+					</button>
+				{/if}
 			</div>
 			<div class="drawer-content">
 				{@render children()}
@@ -108,6 +135,25 @@
 			box-shadow: none;
 			padding: 0;
 		}
+
+		&.side-drawer {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			transform: none;
+			border-radius: 0;
+			box-shadow: none;
+			max-width: none;
+			z-index: var(--z-modal);
+			padding: var(--spacing-lg);
+			overflow-y: hidden;
+
+			@include mobile {
+				width: 100%;
+			}
+		}
 	}
 
 	.drawer-header {
@@ -116,12 +162,38 @@
 		justify-content: space-between;
 		padding: var(--spacing-lg);
 		padding-bottom: 0;
+
+		.header-left {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: var(--spacing-md);
+		}
 	}
 
 	.drawer-title {
 		margin: 0;
 		font-size: var(--font-size-lg);
 		font-weight: 600;
+
+		.side-drawer & {
+			font-size: var(--font-size-2xl);
+		}
+	}
+
+	.drawer-back {
+		background: var(--color-secondary);
+		border: none;
+		border-radius: 50%;
+		width: 50px;
+		height: 50px;
+		font-size: 1.5rem;
+		color: var(--color-text-on-primary);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: var(--spacing-sm);
 	}
 
 	.drawer-close {
@@ -151,6 +223,11 @@
 
 		@include mobile {
 			padding: var(--spacing-md);
+		}
+
+		.side-drawer & {
+			padding: 0;
+			overflow-y: hidden;
 		}
 	}
 </style>

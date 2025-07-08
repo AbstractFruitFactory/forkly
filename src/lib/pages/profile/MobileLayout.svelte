@@ -3,8 +3,8 @@
 	import User from 'lucide-svelte/icons/user'
 	import SquarePlus from 'lucide-svelte/icons/square-plus'
 	import Bookmark from 'lucide-svelte/icons/bookmark'
-	import ArrowLeft from 'lucide-svelte/icons/arrow-left'
 	import { goto } from '$app/navigation'
+	import Drawer from '$lib/components/drawer/Drawer.svelte'
 
 	let {
 		avatar,
@@ -29,10 +29,24 @@
 	} = $props()
 
 	let view = $state(initialView)
+	let isDrawerOpen = $state(!!initialView)
 
 	function open(viewName?: typeof view) {
 		view = viewName
+		isDrawerOpen = !!viewName
 		goto(viewName ? `/profile?tab=${viewName}` : '/profile', { replaceState: true })
+	}
+
+	function handleBack() {
+		open()
+	}
+
+	function getDrawerTitle() {
+		return view === 'Profile info'
+			? 'Profile'
+			: view === 'Created recipes'
+				? 'Created recipes'
+				: 'Saved recipes'
 	}
 </script>
 
@@ -62,30 +76,23 @@
 	<div class="signout-row">{@render signOut(true)}</div>
 </div>
 
-{#if view}
-	<div class="profile-detail">
-		<div class="profile-detail-header">
-			<button class="back-btn" onclick={() => open()}><ArrowLeft size={20} /></button>
-			<span class="detail-title">
-				{view === 'Profile info'
-					? 'Profile'
-					: view === 'Created recipes'
-						? 'Created recipes'
-						: 'Saved recipes'}
-			</span>
+<Drawer 
+	bind:isOpen={isDrawerOpen}
+	title={getDrawerTitle()}
+	position="side"
+	showBackButton={true}
+	onBack={handleBack}
+>
+	{#if view === 'Profile info'}
+		<div class="card">
+			{@render profileInfo()}
 		</div>
-
-		{#if view === 'Profile info'}
-			<div class="card">
-				{@render profileInfo()}
-			</div>
-		{:else if view === 'Created recipes'}
-			{@render createdRecipes()}
-		{:else if view === 'Saved recipes'}
-			{@render savedRecipes()}
-		{/if}
-	</div>
-{/if}
+	{:else if view === 'Created recipes'}
+		{@render createdRecipes()}
+	{:else if view === 'Saved recipes'}
+		{@render savedRecipes()}
+	{/if}
+</Drawer>
 
 <style lang="scss">
 	@import '$lib/global.scss';
@@ -155,45 +162,5 @@
 		margin-top: var(--spacing-lg);
 		display: flex;
 		justify-content: center;
-	}
-
-	.profile-detail {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background: var(--color-background);
-		z-index: var(--z-modal);
-		padding: var(--spacing-lg);
-		overflow-y: auto;
-	}
-
-	.profile-detail-header {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: var(--spacing-md);
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.back-btn {
-		background: var(--color-neutral-2);
-		border: none;
-		border-radius: 50%;
-		width: 50px;
-		height: 50px;
-		font-size: 1.5rem;
-		color: var(--color-text-on-primary);
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		margin-bottom: var(--spacing-sm);
-	}
-
-	.detail-title {
-		font-size: var(--font-size-2xl);
-		color: var(--color-text-on-primary);
 	}
 </style>
