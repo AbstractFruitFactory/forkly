@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { type ComponentProps, type Snippet } from 'svelte'
-	import Input from '../input/Input.svelte'
+	import { type Snippet } from 'svelte'
+	import Dropdown from '../dropdown/Dropdown.svelte'
 
 	type T = $$Generic<{ name: string }>
 
@@ -8,14 +8,13 @@
 		isLoading = false,
 		suggestions = [],
 		children,
-		onSelect,
-		...props
+		onSelect
 	}: {
 		isLoading?: boolean
 		suggestions?: T[]
 		children: Snippet
 		onSelect: (suggestion: T) => void
-	} & ComponentProps<typeof Input> = $props()
+	} = $props()
 
 	const handleSelect = (suggestion: T) => {
 		onSelect(suggestion)
@@ -23,9 +22,7 @@
 </script>
 
 <div class="autocomplete-wrapper">
-	<Input {...props}>
-		{@render children()}
-	</Input>
+	{@render children()}
 
 	{#if isLoading}
 		<div class="loading-indicator" aria-live="polite">
@@ -54,17 +51,16 @@
 		</div>
 	{/if}
 
-	{#if suggestions?.length > 0}
-		<ul class="suggestions-list" role="listbox">
+	<Dropdown isOpen={suggestions.length > 0}>
+		{#snippet dropdownContent(itemContent)}
 			{#each suggestions as suggestion, i}
-				<li role="option">
-					<button type="button" onclick={() => handleSelect(suggestion)} class="suggestion-button">
-						{suggestion.name}
-					</button>
-				</li>
+				{#snippet item()}
+					{suggestion.name}
+				{/snippet}
+				{@render itemContent(item, () => handleSelect(suggestion))}
 			{/each}
-		</ul>
-	{/if}
+		{/snippet}
+	</Dropdown>
 </div>
 
 <style lang="scss">
@@ -97,64 +93,6 @@
 		overflow: hidden;
 		clip: rect(0, 0, 0, 0);
 		border: 0;
-	}
-
-	.suggestions-list {
-		position: absolute;
-		top: calc(100% + var(--spacing-xs));
-		left: 0;
-		right: 0;
-		margin: 0;
-		padding: var(--spacing-xs) 0;
-		list-style: none;
-		background: var(--color-neutral-dark);
-		border: var(--border-width-thin) solid var(--color-neutral);
-		border-radius: var(--border-radius-md);
-		box-shadow: var(--shadow-md);
-		z-index: 10;
-		max-height: calc(var(--spacing-2xl) * 4);
-		overflow-y: auto;
-		backdrop-filter: blur(8px);
-
-		&::-webkit-scrollbar {
-			width: var(--spacing-xs);
-		}
-
-		&::-webkit-scrollbar-track {
-			background: transparent;
-		}
-
-		&::-webkit-scrollbar-thumb {
-			background: var(--color-neutral);
-			border-radius: var(--border-radius-sm);
-		}
-
-		li {
-			margin: 0;
-		}
-	}
-
-	.suggestion-button {
-		width: 100%;
-		text-align: left;
-		padding: var(--spacing-sm) var(--spacing-md);
-		background: none;
-		border: none;
-		cursor: pointer;
-		font-size: var(--font-size-sm);
-		color: var(--color-neutral-light);
-		transition: all var(--transition-fast) var(--ease-in-out);
-
-		&:hover,
-		&:focus-visible {
-			background: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
-			color: var(--color-primary);
-			outline: none;
-		}
-
-		&:focus-visible {
-			box-shadow: inset 0 0 0 2px var(--color-primary);
-		}
 	}
 
 	@keyframes spin {
