@@ -73,8 +73,6 @@
 			}
 		}
 	})
-
-	$inspect(isLoading)
 </script>
 
 <CardGrid items={renderedItems} {emptyMessage} {useAnimation} {size}>

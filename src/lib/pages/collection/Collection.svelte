@@ -3,8 +3,6 @@
 	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
-	import { fly } from 'svelte/transition'
-	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
 	import ArrowLeftIcon from 'lucide-svelte/icons/arrow-left'
 	import { safeFetch } from '$lib/utils/fetch'
 	import { invalidateAll } from '$app/navigation'
@@ -60,7 +58,7 @@
 	}
 </script>
 
-<div class="collection" in:fly={FLY_LEFT_IN} out:fly={FLY_LEFT_OUT}>
+<div >
 	<a class="back-button" href="/profile?tab=Saved recipes">
 		<ArrowLeftIcon size={18} />
 		<span>Back to saved recipes</span>

@@ -73,7 +73,7 @@
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
-<div in:fly={FLY_LEFT_IN} out:fly={FLY_LEFT_OUT}>
+<div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 	{#if form?.success}
 		<RecipeSuccess recipeId={form.recipeId!} />
 	{:else if isTagsLoading}

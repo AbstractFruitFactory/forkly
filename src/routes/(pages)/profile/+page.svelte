@@ -20,7 +20,7 @@
 	}
 </script>
 
-<div in:fly={FLY_LEFT_IN} out:fly={FLY_LEFT_OUT}>
+<div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 	<Profile
 		user={form?.user ?? data.user!}
 		createdRecipes={data.recipes}

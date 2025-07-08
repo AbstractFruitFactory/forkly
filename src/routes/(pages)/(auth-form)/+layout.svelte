@@ -5,7 +5,7 @@
 	let { children } = $props()
 </script>
 
-<div in:fly={FLY_DOWN_IN} out:fly={FLY_DOWN_OUT}>
+<div in:fly|global={FLY_DOWN_IN} out:fly|global={FLY_DOWN_OUT}>
 	{@render children()}
 </div>
 
