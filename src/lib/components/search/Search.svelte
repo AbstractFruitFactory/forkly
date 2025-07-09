@@ -14,6 +14,7 @@
 		actionButton,
 		formName,
 		disabled = false,
+		showSearchIcon = true,
 		...inputProps
 	}: {
 		placeholder?: string
@@ -26,6 +27,7 @@
 		actionButton?: { text: string; onClick: () => void }
 		formName?: string
 		disabled?: boolean
+		showSearchIcon?: boolean
 	} & Omit<ComponentProps<typeof Input>, 'children' | 'value'> = $props()
 
 	const showClear = $derived(value !== '')
@@ -74,7 +76,7 @@
 			/>
 
 			{#snippet clearButton()}
-				{#if !isLoading}
+				{#if !isLoading && showSearchIcon}
 					<div
 						class="search-icon-button"
 						class:clearable={showClear}

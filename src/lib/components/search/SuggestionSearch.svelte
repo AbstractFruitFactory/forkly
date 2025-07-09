@@ -14,7 +14,8 @@
 		actionButton,
 		formName,
 		disabled = false,
-		searchValue = $bindable('')
+		searchValue = $bindable(''),
+		showSearchIcon = true
 	}: {
 		placeholder?: string
 		isLoading?: boolean
@@ -26,6 +27,7 @@
 		formName?: string
 		disabled?: boolean
 		searchValue?: string
+		showSearchIcon?: boolean
 	} = $props()
 
 	let suggestions = $state<T[]>([])
@@ -83,6 +85,7 @@
 			onInput={handleSearch}
 			{formName}
 			{disabled}
+			{showSearchIcon}
 		/>
 	</Autocomplete>
 </div>

@@ -75,6 +75,25 @@
 		ingredientId = ingredient.id
 		onIngredientSelect(ingredient)
 	}
+
+	const searchUnits = async (query: string): Promise<{ id: string; name: string }[]> => {
+		const units = getUnits(unitSystem)
+		const filteredUnits = units.filter(
+			(unit) =>
+				unit.toLowerCase().includes(query.toLowerCase()) ||
+				UNIT_DISPLAY_TEXT[unit as keyof typeof UNIT_DISPLAY_TEXT]
+					?.toLowerCase()
+					.includes(query.toLowerCase())
+		)
+		return filteredUnits.map((unit) => ({
+			id: unit,
+			name: UNIT_DISPLAY_TEXT[unit as keyof typeof UNIT_DISPLAY_TEXT] || unit
+		}))
+	}
+
+	const handleUnitSelect = (selectedUnit: { id: string; name: string }) => {
+		unit = selectedUnit.id
+	}
 </script>
 
 <div class="ingredient-input">
@@ -105,22 +124,14 @@
 	</div>
 
 	<div class="unit-input">
-		<Input>
-			<input
-				type="text"
-				list="ingredient-{id}-units"
-				name="ingredient-{id}-measurement"
-				placeholder="Unit"
-				bind:value={unit}
-			/>
-			<datalist id="ingredient-{id}-units">
-				{#each getUnits(unitSystem) as unitOption}
-					<option value={unitOption}
-						>{UNIT_DISPLAY_TEXT[unitOption as keyof typeof UNIT_DISPLAY_TEXT]}</option
-					>
-				{/each}
-			</datalist>
-		</Input>
+		<SuggestionSearch
+			placeholder="Unit"
+			onSearch={searchUnits}
+			onSelect={handleUnitSelect}
+			clearInput={false}
+			bind:searchValue={unit}
+			showSearchIcon={false}
+		/>
 	</div>
 
 	{#if canRemove}
@@ -172,28 +183,8 @@
 			border-left: none;
 		}
 
-		input {
-			width: 100%;
-		}
-
-		.unit-input {
-			position: absolute;
-			right: 0;
-			top: 0;
-			bottom: 0;
-			width: 80px;
-			border: none;
-			border-left: var(--border-width-thin) solid var(--color-neutral);
-			background-color: var(--color-neutral-darker);
-			padding-right: var(--spacing-sm);
-			padding-left: var(--spacing-sm);
-			font-size: var(--font-size-sm);
-			color: var(--color-neutral-light);
-			z-index: 1;
-
-			&:focus {
-				box-shadow: none;
-			}
+		:global(.suggestion-search-wrapper) {
+			max-width: none;
 		}
 	}
 
