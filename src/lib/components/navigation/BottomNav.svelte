@@ -21,18 +21,18 @@
 
 <nav class="bottom-nav">
 	<a href={homeHref} class="nav-item">
-		<Home size={28} color="black" />
+		<Home size={20} color="black" />
 		<span>Explore recipes</span>
 	</a>
 	<a href={newRecipeHref} class="nav-item">
-		<Plus size={28} color="black" />
+		<Plus size={20} color="black" />
 		<span>Add recipe</span>
 	</a>
 	<a href={loggedIn ? profileHref : loginHref} class="nav-item">
 		{#if loggedIn}
-			<User size={24} color="black" />
+			<User size={20} color="black" />
 		{:else}
-			<LogIn size={24} color="black" />
+			<LogIn size={20} color="black" />
 		{/if}
 		<span>{loggedIn ? 'Profile' : 'Login'}</span>
 	</a>
@@ -44,7 +44,8 @@
 		bottom: 0;
 		left: 0;
 		right: 0;
-		background: var(--color-secondary);
+		background: var(--color-background);
+		border-top: 1px solid var(--color-neutral-light);
 		border-radius: var(--border-radius-2xl) var(--border-radius-2xl) 0 0;
 		display: flex;
 		justify-content: space-between;
@@ -69,7 +70,7 @@
 		-webkit-tap-highlight-color: transparent;
 
 		span {
-			font-size: 13px;
+			font-size: var(--font-size-xs);
 			font-weight: 500;
 			color: var(--color-neutral-dark);
 		}
