@@ -46,11 +46,9 @@
 	const proteinOffset = fatOffset + fatDash + gapPixels
 
 	// Ensure gaps are visible by adjusting offsets
-	const adjustedCarbsDash = carbsDash - gapPixels
-	const adjustedFatDash = fatDash - gapPixels
-	const adjustedProteinDash = proteinDash - gapPixels
-
-	// Update stroke-dasharray with adjusted values
+	const adjustedCarbsDash = Math.max(carbsDash - gapPixels, 0)
+	const adjustedFatDash = Math.max(fatDash - gapPixels, 0)
+	const adjustedProteinDash = Math.max(proteinDash - gapPixels, 0)
 </script>
 
 <div class="nutrition-data">

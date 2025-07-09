@@ -171,14 +171,21 @@
 
 	const singleServingNutrition = $derived(
 		recipe.then((r) => {
-			if (!nutritionInfo.totalNutrition) {
+			if (!nutritionInfo?.totalNutrition) {
 				return undefined
 			}
+			
+			const { calories, protein, carbs, fat } = nutritionInfo.totalNutrition
+			
+			if (calories === 0 && protein === 0 && carbs === 0 && fat === 0) {
+				return undefined
+			}
+			
 			return {
-				calories: nutritionInfo.totalNutrition.calories / r.servings,
-				protein: nutritionInfo.totalNutrition.protein / r.servings,
-				carbs: nutritionInfo.totalNutrition.carbs / r.servings,
-				fat: nutritionInfo.totalNutrition.fat / r.servings
+				calories: calories / r.servings,
+				protein: protein / r.servings,
+				carbs: carbs / r.servings,
+				fat: fat / r.servings
 			}
 		})
 	)

@@ -52,21 +52,25 @@
 </script>
 
 <div class="recipe-page" data-page="recipe">
-	<Recipe
-		recipe={data.recipe}
-		nutritionInfo={{
-			totalNutrition: data.recipe.nutrition,
-			hasCustomIngredients: false
-		}}
-		{unitSystem}
-		onUnitChange={handleUnitChange}
-		onLike={handleLike}
-		onSave={handleSave}
-		onBackClick={() => goto('/')}
-		onCreateCollection={createCollection}
-		isLoggedIn={!!data.user}
-		collections={data.collections.then((c) => c.map((c) => c.name))}
-		recipeComments={data.comments}
-		formError={page.form?.error}
-	/>
+	{#await data.recipe then recipe}
+		<Recipe
+			recipe={Promise.resolve(recipe)}
+			nutritionInfo={{
+				totalNutrition: recipe.nutrition,
+				hasCustomIngredients: false
+			}}
+			{unitSystem}
+			onUnitChange={handleUnitChange}
+			onLike={handleLike}
+			onSave={handleSave}
+			onBackClick={() => goto('/')}
+			onCreateCollection={createCollection}
+			isLoggedIn={!!data.user}
+			collections={data.collections.then((c) => c.map((c) => c.name))}
+			recipeComments={data.comments}
+			formError={page.form?.error}
+		/>
+	{:catch error}
+		<p>Error loading recipe: {error.message}</p>
+	{/await}
 </div>
