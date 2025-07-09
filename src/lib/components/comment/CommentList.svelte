@@ -6,6 +6,7 @@
 	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
 	import Button from '../button/Button.svelte'
 	import Skeleton from '../skeleton/Skeleton.svelte'
+	import Input from '../input/Input.svelte'
 
 	let {
 		comments = [],
@@ -35,6 +36,7 @@
 	let imagePreview = $state<string | null>(null)
 	let isSubmitting = $state(false)
 	let imageError = $state<string | null>(null)
+	let commentContent = $state('')
 
 	async function handleImageSelect(event: Event) {
 		const input = event.target as HTMLInputElement
@@ -81,8 +83,17 @@
 		>
 			<input type="hidden" name="recipeId" value={recipeId} />
 
-			<textarea name="content" placeholder="Add a comment..." rows="2" disabled={isSubmitting}
-			></textarea>
+			<Input value={commentContent}>
+				{#snippet children()}
+					<textarea 
+						name="content" 
+						placeholder="Add a comment..." 
+						rows="2" 
+						disabled={isSubmitting}
+						bind:value={commentContent}
+					></textarea>
+				{/snippet}
+			</Input>
 
 			{#if imagePreview}
 				<div class="image-preview">
@@ -128,7 +139,11 @@
 		<Popover type="warning">
 			{#snippet trigger()}
 				<div class="login-prompt">
-					<textarea placeholder="Add a comment..." disabled></textarea>
+					<Input>
+						{#snippet children()}
+							<textarea placeholder="Add a comment..." disabled></textarea>
+						{/snippet}
+					</Input>
 				</div>
 			{/snippet}
 			{#snippet content()}
@@ -193,36 +208,9 @@
 		overflow: hidden;
 	}
 
-	textarea {
-		width: 100%;
-		padding: var(--spacing-md);
-		background-color: rgba(255, 255, 255, 0.05);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--border-radius-md);
-		color: var(--color-neutral-lightest);
-		font-size: var(--font-size-sm);
-		resize: none;
+	.comment-form :global(.input-container) {
 		margin-bottom: var(--spacing-sm);
 		min-height: 80px;
-		transition:
-			border-color 0.2s ease,
-			box-shadow 0.2s ease;
-		font-family: inherit;
-
-		&:focus {
-			outline: none;
-			border-color: var(--color-primary);
-			box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
-		}
-
-		&:hover:not(:disabled) {
-			border-color: rgba(255, 255, 255, 0.2);
-		}
-
-		&:disabled {
-			opacity: 0.7;
-			cursor: not-allowed;
-		}
 	}
 
 	.form-actions {

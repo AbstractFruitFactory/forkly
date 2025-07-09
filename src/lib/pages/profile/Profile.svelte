@@ -172,7 +172,11 @@
 
 {#snippet _savedRecipes()}
 	{#await collections then collections}
-		<CardGrid items={collections} useAnimation={false} emptyMessage="You haven't saved any collections yet.">
+		<CardGrid
+			items={collections}
+			useAnimation={false}
+			emptyMessage="You haven't saved any collections yet."
+		>
 			{#snippet item(item)}
 				<CollectionCard name={item.name} count={item.count} />
 			{/snippet}
@@ -251,7 +255,7 @@
 		position: absolute;
 		bottom: 8px;
 		right: 8px;
-		background: var(--color-text-on-primary);
+		background: var(--color-surface);
 		border-radius: 50%;
 		padding: 0.3rem;
 		display: flex;
@@ -278,8 +282,7 @@
 
 	.profile-title-row h1 {
 		margin: 0;
-		font-size: var(--font-size-2xl);
-		color: var(--color-text-on-surface);
+		font-family: unset;
 	}
 
 	.profile-email {

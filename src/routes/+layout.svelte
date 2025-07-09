@@ -1,6 +1,5 @@
 <script module lang="ts">
 	import { getContext, onMount, setContext } from 'svelte'
-	import { tick } from 'svelte'
 
 	const key = Symbol('layout-slots')
 

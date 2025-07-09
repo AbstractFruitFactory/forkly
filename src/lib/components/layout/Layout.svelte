@@ -189,22 +189,12 @@
 
 	.main-layout {
 		position: relative;
-		padding-top: var(--spacing-3xl);
 		border-radius: var(--border-radius-3xl);
 		min-height: calc(100dvh - $header-height);
 		will-change: margin, border-radius;
 		transition:
 			margin 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 			border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-		&.homepage {
-			padding-top: 0;
-		}
-
-		@include mobile {
-			padding-top: var(--spacing-md);
-			margin-top: var(--spacing-sm);
-		}
 	}
 
 	.main-background {
@@ -233,9 +223,18 @@
 	.main-content {
 		max-width: $max-width;
 		margin: 0 auto;
-		padding-top: 0;
 		padding-bottom: var(--spacing-2xl);
+		padding-top: var(--spacing-xl);
 		position: relative;
+		min-height: calc(100dvh - $header-height);
+
+		@include mobile {
+			min-height: calc(100dvh - $bottom-bar-height);
+		}
+
+		&.homepage {
+			padding-top: 0;
+		}
 	}
 
 	@include mobile {

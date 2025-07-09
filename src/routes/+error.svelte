@@ -1,12 +1,19 @@
 <script>
 	import { page } from '$app/state'
+	import { setSlots } from './+layout.svelte'
+
+	setSlots({
+		content
+	})
 </script>
 
-<div class="error-container">
-	<h1>{page.status}: {page.error?.message}</h1>
-	<p>Sorry, something went wrong.</p>
-	<a href="/">Go back home</a>
-</div>
+{#snippet content()}
+	<div class="error-container">
+		<h1>{page.status}: {page.error?.message}</h1>
+		<p>Sorry, something went wrong.</p>
+		<a href="/">Go back home</a>
+	</div>
+{/snippet}
 
 <style>
 	.error-container {
@@ -14,7 +21,13 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		height: 100vh;
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		width: 100%;
+		height: 100%;
 		text-align: center;
 		padding: var(--spacing-md);
 	}
@@ -23,6 +36,7 @@
 		font-size: var(--spacing-xl);
 		margin-bottom: var(--spacing-md);
 		color: var(--color-error);
+		font-family: unset;
 	}
 
 	p {
@@ -31,15 +45,11 @@
 	}
 
 	a {
-		color: var(--color-primary);
 		text-decoration: none;
 		padding: var(--spacing-xs) var(--spacing-md);
 		border: var(--border-width-thin) solid var(--color-primary);
 		border-radius: var(--border-radius-md);
 		transition: all var(--transition-fast) var(--ease-in-out);
-	}
-
-	a:hover {
 		background-color: var(--color-primary);
 		color: var(--color-text-on-primary);
 	}

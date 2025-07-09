@@ -183,7 +183,7 @@
 		width: 100%;
 		aspect-ratio: var(--aspect-ratio, 16/9);
 		border: var(--border-width-normal) dashed var(--color-neutral);
-		border-radius: var(--border-radius-lg);
+		border-radius: var(--border-radius-xl);
 		overflow: hidden;
 		cursor: pointer;
 		background: var(--color-surface);

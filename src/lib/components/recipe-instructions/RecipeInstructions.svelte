@@ -26,7 +26,7 @@
 <div class="instructions card">
 	<div style:margin-bottom="var(--spacing-lg)">
 		<Button disabled={loading} color="primary" onclick={() => (isCookingMode = true)} fullWidth>
-			Step by Step Mode
+			Cooking Mode
 		</Button>
 	</div>
 	{#if loading}
