@@ -108,6 +108,7 @@
 						handleSelect(result.label, itemData)
 					})}
 				{/snippet}
+				
 				{@render item?.(_item)}
 			</div>
 		{/each}

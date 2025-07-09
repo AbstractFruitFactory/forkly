@@ -136,7 +136,12 @@
 	<Drawer bind:isOpen {title}>
 		<div class="drawer-flex-col">
 			<div class="drawer-scroll-content">
-				{@render content(handleSelect)}
+				{#snippet item(itemContent: Snippet, onclick: () => void)}
+					<button type="button" class="item" {onclick}>
+						{@render itemContent()}
+					</button>
+				{/snippet}
+				{@render content(handleSelect, item)}
 			</div>
 			<Button color="primary" fullWidth onclick={() => (isOpen = false)}>Show Results</Button>
 		</div>
@@ -164,5 +169,15 @@
 	.drawer-scroll-content {
 		flex: 1 1 auto;
 		overflow-y: auto;
+	}
+
+	.item {
+		padding: var(--spacing-sm) var(--spacing-md);
+		margin: var(--spacing-xs) 0;
+		border-radius: var(--border-radius-xl);
+		border: 1px solid var(--color-neutral-2);
+		color: var(--color-text-on-surface);
+		width: 100%;
+		text-align: left;
 	}
 </style>
