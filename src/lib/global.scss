@@ -32,20 +32,25 @@ $breakpoint-xl: 1280px; // Large desktop
 
 :root {
   // Primary colors
-  $primary-color: #E75D35;
+  $primary-color: #F05D23;
   --color-primary: #{$primary-color};
   --color-primary-light: #{lighten($primary-color, 20%)};
   --color-primary-dark: #{darken($primary-color, 20%)};
 
-  --color-secondary: #FFC96F;
+  $secondary-color: #FFC96F;
+  --color-secondary: #{$secondary-color};
+  --color-secondary-light: #{lighten($secondary-color, 20%)};
+  --color-secondary-dark: #{darken($secondary-color, 20%)};
+
+  --color-gradient: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-light) 100%);
 
   // Background colors
-  $background-color: #FFE8C8;
+  $background-color: #f4e2c3;
   --color-background: #{$background-color};
   --color-background-dark: #{darken($background-color, 5%)};
 
   // Surface colors
-  $surface-color: #FFE5CF;
+  $surface-color: #fff4e6;
   --color-surface: #{$surface-color};
   --color-surface-2: #EEE5E9;
   --color-surface-dark: #{darken($surface-color, 10%)};
@@ -73,7 +78,7 @@ $breakpoint-xl: 1280px; // Large desktop
   --color-text-on-primary: white;
 
   // Font families
-  --font-sans:  "DM Sans", sans-serif;
+  --font-sans: "DM Sans", sans-serif;
   --font-serif: 'Libre Baskerville', serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 
