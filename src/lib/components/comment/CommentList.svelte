@@ -2,7 +2,7 @@
 	import Comment from './Comment.svelte'
 	import Popover from '$lib/components/popover/Popover.svelte'
 	import ImageIcon from 'lucide-svelte/icons/image'
-	import { enhance } from '$app/forms'
+       import { enhance } from '$app/forms'
 	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
 	import Button from '../button/Button.svelte'
 	import Skeleton from '../skeleton/Skeleton.svelte'
@@ -72,13 +72,25 @@
 
 <div class="comments-section">
 	{#if isLoggedIn}
-		<form
-			class="comment-form"
-			method="POST"
-			action="?/addComment"
-			enctype="multipart/form-data"
-			use:enhance
-		>
+               <form
+                       class="comment-form"
+                       method="POST"
+                       action="?/addComment"
+                       enctype="multipart/form-data"
+                       use:enhance(({ formElement }) => {
+                               isSubmitting = true
+
+                               return async ({ update, result }) => {
+                                       isSubmitting = false
+
+                                       if (result.type === 'success') {
+                                               removeImage()
+                                       }
+
+                                       await update()
+                               }
+                       })}
+               >
 			<input type="hidden" name="recipeId" value={recipeId} />
 
 			<textarea name="content" placeholder="Add a comment..." rows="2" disabled={isSubmitting}
