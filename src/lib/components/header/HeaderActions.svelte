@@ -21,8 +21,8 @@
 
 <div class="header-actions">
 	<div>
-		<Button href={newRecipeHref} color="gradient" size="sm">
-			<PlusIcon color="var(--color-text-on-secondary)" size={16} />
+		<Button href={newRecipeHref} color="primary" size="sm">
+			<PlusIcon color="var(--color-text-on-primary)" size={16} />
 			New Recipe
 		</Button>
 	</div>

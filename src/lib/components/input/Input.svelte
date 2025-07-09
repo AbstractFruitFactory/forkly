@@ -60,16 +60,6 @@
 		font-size: var(--font-size-sm);
 		transition: all var(--transition-fast) var(--ease-in-out);
 
-		&::placeholder {
-			color: var(--color-primary);
-			opacity: 0.7;
-			font-weight: var(--font-weight-medium);
-			background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-			background-clip: text;
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-		}
-
 		&:focus {
 			outline: none;
 			border-color: var(--color-primary);

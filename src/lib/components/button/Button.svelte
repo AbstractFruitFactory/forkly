@@ -187,15 +187,10 @@
 		}
 
 		&.gradient {
-			background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+			background: var(--color-gradient);
 			border: var(--border-width-thin) solid var(--color-primary-dark) !important;
 
 			&:hover:not(:disabled) {
-				background: linear-gradient(
-					135deg,
-					var(--color-primary-light) 0%,
-					var(--color-secondary) 100%
-				);
 				transform: translateY(-2px);
 				box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 			}

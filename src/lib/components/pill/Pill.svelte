@@ -51,7 +51,7 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--spacing-sm);
-		background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-secondary) 100%);
+		background: var(--color-gradient);
 		padding: var(--spacing-sm);
 		border-radius: var(--border-radius-full);
 		transition: all 0.2s ease;
