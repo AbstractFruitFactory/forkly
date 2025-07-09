@@ -67,9 +67,10 @@ $breakpoint-xl: 1280px; // Large desktop
   --color-success-dark: #166534;
 
   // Error colors
-  --color-error-dark: #5c0e0e;
-  --color-error: #9e0202;
-  --color-error-light: #d84c4c;
+  $error-color: #d1493b;
+  --color-error: #{$error-color};
+  --color-error-light: #{lighten($error-color, 20%)};
+  --color-error-dark: #{darken($error-color, 20%)};
 
   --color-text: #2D3142;
   --color-text-on-background: var(--color-text);
