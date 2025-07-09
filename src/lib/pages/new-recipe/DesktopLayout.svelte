@@ -73,7 +73,7 @@
 					<textarea
 						class="description-input"
 						name="description"
-						placeholder="Describe your recipe"
+						placeholder="Describe your recipe (optional)"
 						rows="3"
 					></textarea>
 				</Input>
@@ -107,7 +107,7 @@
 					animate:flip={{ duration: 200 }}
 				>
 					{#if 'isAddButton' in item}
-						<Button onclick={addIngredient} size="sm">
+						<Button variant="pill" onclick={addIngredient} size="sm">
 							<Plus size={16} color="var(--color-text-on-surface)" />
 						</Button>
 					{:else}
@@ -138,7 +138,7 @@
 					animate:flip={{ duration: 200 }}
 				>
 					{#if 'isAddButton' in item}
-						<Button onclick={addInstruction} size="sm">
+						<Button variant="pill" onclick={addInstruction} size="sm">
 							<Plus size={16} color="var(--color-text-on-surface)" />
 						</Button>
 					{:else}
@@ -254,7 +254,7 @@
 
 	.header-content {
 		display: flex;
-		gap: var(--spacing-xl);
+		gap: var(--spacing-sm);
 	}
 
 	.text-content {

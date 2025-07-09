@@ -223,7 +223,8 @@
 		<div style:height="var(--spacing-md)"></div>
 
 		<Input>
-			<textarea name="description" placeholder="Describe your recipe" rows="3"></textarea>
+			<textarea name="description" placeholder="Describe your recipe (optional)" rows="3"
+			></textarea>
 		</Input>
 	</div>
 </div>

@@ -433,9 +433,14 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     tags: recipe.tags,
     servings: recipe.servings,
     createdAt: recipe.createdAt,
-    userId: recipe.userId
+    userId: recipe.userId,
+    user: {
+      username: user.username,
+      avatarUrl: user.avatarUrl
+    }
   })
     .from(recipe)
+    .leftJoin(user, eq(recipe.userId, user.id))
     .where(eq(recipe.id, recipeId))
 
   const foundRecipe = recipes[0]
@@ -505,7 +510,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     nutrition,
     isLiked,
     isSaved,
-    likes: likes.length
+    likes: likes.length,
+    user: foundRecipe.user
   }
 
   return nullToUndefined(result)

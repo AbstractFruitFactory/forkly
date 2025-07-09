@@ -234,6 +234,7 @@
 		max-width: $max-width;
 		margin: 0 auto;
 		padding-top: 0;
+		padding-bottom: var(--spacing-2xl);
 		position: relative;
 	}
 

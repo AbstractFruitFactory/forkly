@@ -34,22 +34,24 @@
 
 <div class="desktop-layout">
 	<div class="sidebar">
-		<div class="action-buttons" in:fly={FLY_LEFT_IN} out:fly={FLY_LEFT_OUT}>
+		<div class="action-buttons" in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 			{@render actionButtons()}
 		</div>
 	</div>
 
 	<div class="main-content">
 		<div class="content-grid">
-			<div class="recipe-info" in:fly={FLY_LEFT_IN_SHORT} out:fly={FLY_LEFT_OUT}>
-				<div class="tags-and-action-buttons">
-					<div class="tags">
-						{@render tags()}
+			<div class="recipe-info" in:fly|global={FLY_LEFT_IN_SHORT} out:fly|global={FLY_LEFT_OUT}>
+				<div class="recipe-info-meta">
+					<div class="tags-and-action-buttons">
+						<div class="tags">
+							{@render tags()}
+						</div>
 					</div>
-				</div>
 
-				{@render title()}
-				{@render description()}
+					{@render title()}
+					{@render description()}
+				</div>
 				{@render nutrition()}
 
 				<div class="ingredients">
@@ -57,14 +59,14 @@
 				</div>
 			</div>
 
-			<div class="right-column" in:fly={FLY_DOWN_IN} out:fly={FLY_LEFT_OUT}>
+			<div class="right-column" in:fly|global={FLY_DOWN_IN} out:fly|global={FLY_LEFT_OUT}>
 				<div class="recipe-media">
 					{@render image()}
 				</div>
 				{@render instructions()}
 			</div>
 		</div>
-		<div class="comments-section" in:fly={FLY_DOWN_IN} out:fly={FLY_DOWN_OUT}>
+		<div class="comments-section" in:fly|global={FLY_DOWN_IN} out:fly|global={FLY_DOWN_OUT}>
 			{@render comments()}
 		</div>
 	</div>
@@ -96,6 +98,11 @@
 	}
 
 	.recipe-info {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.recipe-info-meta {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-xl);

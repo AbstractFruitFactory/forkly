@@ -42,11 +42,6 @@
 		<Skeleton width="100%" height="1.5rem" />
 		<Skeleton width="80%" height="1.5rem" />
 	{:else}
-		{#if username && userId}
-			<RecipeCreator {username} {userId} {profilePicUrl} />
-			<div class="divider"></div>
-		{/if}
-
 		<p>
 			{isDescriptionExpanded ? description : truncatedDescription}
 			{#if shouldTruncateDescription}
@@ -55,6 +50,9 @@
 				</button>
 			{/if}
 		</p>
+		{#if username && userId}
+			<RecipeCreator {username} {userId} {profilePicUrl} />
+		{/if}
 	{/if}
 </div>
 
