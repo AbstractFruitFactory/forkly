@@ -66,7 +66,7 @@
 	.card-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-		gap: var(--spacing-lg);
+		gap: var(--spacing-xl);
 		justify-content: center;
 		place-items: center;
 
@@ -93,9 +93,7 @@
 	@media (max-width: 640px) {
 		.card-grid {
 			grid-template-columns: 1fr;
-
 			grid-template-columns: repeat(2, 1fr);
-			gap: var(--spacing-sm);
 		}
 	}
 </style>

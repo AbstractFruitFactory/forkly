@@ -119,7 +119,7 @@
 				{/if}
 			</div>
 
-			<div style:margin-top="var(--spacing-sm)">
+			<div style:margin-top="var(--spacing-lg)">
 				{#if loading}
 					<div class="title">
 						<div class="gradient-animate"></div>

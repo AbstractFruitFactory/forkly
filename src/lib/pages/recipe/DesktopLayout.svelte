@@ -76,7 +76,7 @@
 	.desktop-layout {
 		display: grid;
 		grid-template-columns: auto 1fr;
-		gap: var(--spacing-xl);
+		gap: var(--spacing-3xl);
 		background: var(--color-background);
 	}
 
@@ -87,19 +87,18 @@
 	.content-grid {
 		display: grid;
 		grid-template-columns: minmax(300px, 1fr) minmax(400px, 1.5fr);
-		gap: var(--spacing-lg);
+		gap: var(--spacing-xl);
 	}
 
 	.right-column {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-lg);
 	}
 
 	.recipe-info {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-lg);
+		gap: var(--spacing-xl);
 	}
 
 	.tags {
@@ -117,7 +116,7 @@
 
 	.sidebar {
 		position: sticky;
-		top: var(--spacing-md);
+		top: var(--spacing-3xl);
 		height: fit-content;
 	}
 
@@ -126,7 +125,6 @@
 		flex-direction: column;
 		gap: var(--spacing-xl);
 		align-items: center;
-		margin-top: var(--spacing-2xl);
 	}
 
 	.ingredients {
@@ -140,7 +138,7 @@
 		overflow: hidden;
 		height: 400px;
 		width: 100%;
-		border-radius: var(--border-radius-lg);
+		border-radius: var(--border-radius-2xl);
 
 		:global(img) {
 			width: 100%;

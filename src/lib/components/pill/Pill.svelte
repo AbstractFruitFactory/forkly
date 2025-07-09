@@ -65,7 +65,7 @@
 		line-height: 1;
 		display: flex;
 		align-items: center;
-		color: var(--color-text-on-primary);
+		color: var(--color-text-on-secondary);
 		text-wrap: nowrap;
 	}
 

@@ -112,6 +112,10 @@
 			width: 100%;
 			color: var(--color-text-on-surface);
 
+			&:first-child {
+				padding-top: 0;
+			}
+
 			&:nth-last-child(2),
 			&:last-child {
 				border-bottom: none;

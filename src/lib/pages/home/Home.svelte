@@ -382,7 +382,6 @@
 					{recipes}
 					emptyMessage={emptyStateMessage}
 					{loadMore}
-					size="large"
 					onRecipeClick={openRecipePopup}
 				/>
 			</div>
@@ -530,25 +529,30 @@
 		display: flex;
 		flex-direction: column;
 		position: sticky;
-		top: var(--spacing-xs);
+		top: var(--spacing-sm);
 		z-index: var(--z-sticky);
 		transform-origin: center top;
 		transition:
 			border 0.2s ease-in-out,
 			background 0.1s ease-in-out,
+			padding-bottom 0.2s ease-in-out,
 			opacity 0.2s ease-in-out;
 
-		padding: var(--spacing-md) 0;
+		padding: var(--spacing-lg) 0;
+
 		border: var(--border-width-thin) solid transparent;
 		border-radius: var(--border-radius-xl);
 
 		@include mobile {
+			padding-top: var(--spacing-lg);
+			padding-bottom: 0;
 			border: unset;
 			border-radius: unset;
 			top: 0;
 		}
 
 		&.sticky {
+			padding-bottom: var(--spacing-lg);
 			border-color: var(--color-neutral);
 			margin: var(--spacing-sm);
 			background: var(--color-background);
@@ -568,25 +572,37 @@
 
 		.buttons {
 			display: flex;
-			gap: var(--spacing-md);
+			gap: var(--spacing-lg);
 			align-items: stretch;
 			justify-content: space-between;
 			transition: transform 0.2s ease-in-out;
 			z-index: var(--z-elevated);
 
+			@include mobile {
+				gap: var(--spacing-md);
+			}
+
 			.left-section {
 				display: flex;
-				gap: var(--spacing-md);
+				gap: var(--spacing-lg);
 				min-width: 0;
 				flex: 1;
+
+				@include mobile {
+					gap: var(--spacing-md);
+				}
 			}
 
 			.right-section {
 				display: flex;
-				gap: var(--spacing-md);
+				gap: var(--spacing-lg);
 				align-items: center;
 				min-width: 0;
 				flex-shrink: 0;
+
+				@include mobile {
+					gap: var(--spacing-md);
+				}
 			}
 		}
 	}
@@ -637,7 +653,7 @@
 
 	.recipe-grid {
 		position: relative;
-		margin-top: var(--spacing-lg);
+		margin-top: var(--spacing-xl);
 
 		@include mobile {
 			margin-top: var(--spacing-md);

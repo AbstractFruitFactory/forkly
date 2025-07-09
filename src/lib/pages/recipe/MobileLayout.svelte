@@ -69,8 +69,8 @@
 	.header {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-md);
-		margin: var(--spacing-lg) 0;
+		gap: var(--spacing-lg);
+		margin: var(--spacing-xl) 0;
 	}
 
 	.back-button {
@@ -113,6 +113,7 @@
 		overflow: hidden;
 
 		:global(img) {
+			display: block;
 			width: 100%;
 			object-fit: cover;
 			border-radius: var(--border-radius-lg);
@@ -128,7 +129,6 @@
 		justify-content: center;
 		flex-wrap: wrap;
 		gap: var(--spacing-sm);
-		padding: var(--spacing-md) var(--spacing-lg);
 	}
 
 	.action-buttons {
@@ -140,6 +140,5 @@
 	.content {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-lg);
 	}
 </style>

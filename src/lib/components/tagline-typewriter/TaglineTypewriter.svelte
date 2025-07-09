@@ -139,7 +139,7 @@
 	}
 
 	h1 {
-		color: var(--color-text-on-primary);
+		color: var(--color-text-on-secondary);
 		display: inline-block;
 		margin: 0;
 	}

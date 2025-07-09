@@ -65,14 +65,13 @@
 			<div class="text-content">
 				<div>
 					<Input>
-						<input id="title" name="title" type="text" required placeholder="Enter recipe title" />
+						<input name="title" type="text" required placeholder="Enter recipe title" />
 					</Input>
 				</div>
 
 				<Input>
 					<textarea
 						class="description-input"
-						id="description"
 						name="description"
 						placeholder="Describe your recipe"
 						rows="3"
@@ -354,7 +353,6 @@
 		display: grid;
 		grid-template-columns: subgrid;
 		align-items: center;
-		
 	}
 
 	.mobile-servings {

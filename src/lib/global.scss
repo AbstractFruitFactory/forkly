@@ -32,7 +32,7 @@ $breakpoint-xl: 1280px; // Large desktop
 
 :root {
   // Primary colors
-  $primary-color: #F45D01;
+  $primary-color: #E75D35;
   --color-primary: #{$primary-color};
   --color-primary-light: #{lighten($primary-color, 20%)};
   --color-primary-dark: #{darken($primary-color, 20%)};
@@ -69,7 +69,8 @@ $breakpoint-xl: 1280px; // Large desktop
   --color-text: #2D3142;
   --color-text-on-background: var(--color-text);
   --color-text-on-surface: #2D3142;
-  --color-text-on-primary: black;
+  --color-text-on-secondary: black;
+  --color-text-on-primary: white;
 
   // Font families
   --font-sans:  "DM Sans", sans-serif;
@@ -323,7 +324,7 @@ button {
 .card {
   background: var(--color-surface);
   border-radius: var(--border-radius-lg);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xl);
   box-shadow: var(--shadow-md);
 }
 

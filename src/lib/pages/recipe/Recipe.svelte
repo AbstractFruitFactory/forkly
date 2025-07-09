@@ -8,7 +8,6 @@
 	import FloatingShareButton from '$lib/components/floating-action-button/FloatingShareButton.svelte'
 	import SharePopup from '$lib/components/share-button/SharePopup.svelte'
 	import Popup from '$lib/components/popup/Popup.svelte'
-	import CirclePlus from 'lucide-svelte/icons/circle-plus'
 	import MessageSquare from 'lucide-svelte/icons/message-square'
 	import Description from '$lib/components/Description.svelte'
 	import Pill from '$lib/components/pill/Pill.svelte'
@@ -274,7 +273,7 @@
 
 {#snippet ingredients()}
 	<div class="ingredients-section" bind:this={ingredientsSection}>
-		<div class="ingredients-header">
+		<div class="header">
 			<h3>Ingredients</h3>
 			{#await recipe then _}
 				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
@@ -295,7 +294,7 @@
 
 {#snippet instructions()}
 	<div bind:this={instructionsSection}>
-		<div class="instructions-header">
+		<div class="header">
 			<h3 style="margin-bottom: 0;">Instructions</h3>
 			{#await recipe then _}
 				<Switch bind:checked={hideImages} label="Hide media" />
@@ -311,15 +310,17 @@
 
 {#snippet comments()}
 	<div class="comments-section" bind:this={commentsSection}>
-		<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
-			<MessageSquare size={20} />
-			Comments
-			{#await recipe then _}
-				<span style:font-size="var(--font-size-xl)" style:font-weight="500">
-					({recipeComments.length})
-				</span>
-			{/await}
-		</h3>
+		<div class="header">
+			<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
+				<MessageSquare size={20} />
+				Comments
+				{#await recipe then _}
+					<span style:font-size="var(--font-size-xl)" style:font-weight="500">
+						({recipeComments.length ?? '0'})
+					</span>
+				{/await}
+			</h3>
+		</div>
 		{#await recipe}
 			<CommentList comments={[]} {isLoggedIn} recipeId="" {formError} loading={true} />
 		{:then recipe}
@@ -337,8 +338,6 @@
 	</button>
 	<button class="nav-button" onclick={() => scrollToSection(commentsSection)}> Comments </button>
 {/snippet}
-
-
 
 <div class="recipe-desktop-view">
 	<DesktopLayout {tags} {title} {actionButtons} {nutrition} {ingredients} {instructions} {comments}>
@@ -471,12 +470,12 @@
 		margin-bottom: 0;
 	}
 
-	.ingredients-header,
-	.instructions-header {
+	.header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: var(--spacing-md);
+		margin-bottom: var(--spacing-lg);
+		margin-top: var(--spacing-xl);
 
 		h3 {
 			margin-bottom: 0;

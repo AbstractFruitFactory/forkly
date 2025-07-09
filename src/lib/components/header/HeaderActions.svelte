@@ -22,7 +22,7 @@
 <div class="header-actions">
 	<div>
 		<Button href={newRecipeHref} color="gradient" size="sm">
-			<PlusIcon color="var(--color-text-on-primary)" size={16} />
+			<PlusIcon color="var(--color-text-on-secondary)" size={16} />
 			New Recipe
 		</Button>
 	</div>
@@ -34,7 +34,7 @@
 			</a>
 		{:else}
 			<Button href={loginHref} variant="border" size="sm">
-				<LogInIcon color="var(--color-text-on-primary)" size={16} />
+				<LogInIcon color="var(--color-text-on-surface)" size={16} />
 				Sign in
 			</Button>
 		{/if}

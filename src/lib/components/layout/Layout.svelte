@@ -44,7 +44,7 @@
 				{@render homepageHeader()}
 			</div>
 		{/if}
-		<div class="main-layout" class:expanded={!wideHeader}>
+		<div class="main-layout" class:expanded={!wideHeader} class:homepage>
 			<div class="main-background" class:expanded={!wideHeader}></div>
 			<div class="main-content page-padding" class:homepage>
 				{@render content()}
@@ -197,8 +197,12 @@
 			margin 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 			border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-		@include mobile {
+		&.homepage {
 			padding-top: 0;
+		}
+
+		@include mobile {
+			padding-top: var(--spacing-md);
 			margin-top: var(--spacing-sm);
 		}
 	}
@@ -229,12 +233,8 @@
 	.main-content {
 		max-width: $max-width;
 		margin: 0 auto;
-		padding-top: var(--spacing-lg);
+		padding-top: 0;
 		position: relative;
-
-		@include mobile {
-			padding-top: var(--spacing-md);
-		}
 	}
 
 	@include mobile {
