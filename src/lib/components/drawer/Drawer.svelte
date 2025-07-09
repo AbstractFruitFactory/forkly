@@ -53,7 +53,7 @@
 
 <svelte:document onmousedown={handleClickOutside} onkeydown={handleKeydown} />
 
-<div bind:this={drawerContainer}>
+<div class="drawer" bind:this={drawerContainer}>
 	{#if isOpen}
 		<div class="drawer-overlay" transition:fade={{ duration: 200 }}></div>
 		<div
@@ -103,6 +103,14 @@
 
 <style lang="scss">
 	@import '$lib/global.scss';
+
+	.drawer {
+		display: none;
+
+		@include mobile {
+			display: block;
+		}
+	}
 
 	.drawer-overlay {
 		position: fixed;

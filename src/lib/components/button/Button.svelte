@@ -257,6 +257,10 @@
 		&.pill {
 			border-radius: var(--border-radius-full);
 
+			.content {
+				color: var(--color-text-on-secondary);
+			}
+
 			&:focus-visible {
 				outline: none;
 				box-shadow: 0 0 0 2px var(--color-primary-light);

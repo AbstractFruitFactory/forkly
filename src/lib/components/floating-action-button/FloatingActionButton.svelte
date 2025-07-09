@@ -70,8 +70,8 @@
 
 	.button-text {
 		font-family: 'DM Sans', sans-serif;
-		font-size: 11px;
-		color: var(--color-neutral-light);
+		font-size: var(--font-size-xs);
+		color: var(--color-text-on-surface);
 		text-align: center;
 	}
 </style>

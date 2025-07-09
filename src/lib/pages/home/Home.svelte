@@ -558,14 +558,13 @@
 
 		padding: var(--spacing-lg) 0;
 
-		border: var(--border-width-thin) solid transparent;
+	
 		border-radius: var(--border-radius-xl);
 		background: var(--color-background);
 
 		@include mobile {
 			padding-top: var(--spacing-lg);
 			padding-bottom: 0;
-			border: unset;
 			border-radius: unset;
 			top: 0;
 		}

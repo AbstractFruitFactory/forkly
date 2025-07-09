@@ -61,7 +61,7 @@
 	.switch-track {
 		width: 40px;
 		height: 22px;
-		background: var(--color-neutral, #ccc);
+		background: var(--color-neutral);
 		border-radius: 11px;
 		position: relative;
 		transition: background 0.2s;
@@ -70,7 +70,7 @@
 	}
 
 	.switch[aria-checked='true'] .switch-track {
-		background: var(--color-primary, #4f46e5);
+		background: var(--color-primary);
 	}
 
 	.switch-thumb {
@@ -91,6 +91,5 @@
 
 	.switch-label {
 		font-size: var(--font-size-sm);
-		color: var(--color-neutral-light, #222);
 	}
 </style>

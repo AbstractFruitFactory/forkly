@@ -80,6 +80,6 @@
 	}
 
 	.active {
-		color: var(--color-text-on-primary);
+		color: var(--color-text-on-secondary);
 	}
 </style>
