@@ -84,7 +84,7 @@
 			}}
 		/>
 	{:else}
-		<Button variant="pill" color="neutral" size="sm" onclick={toggle}>
+		<Button fullHeight variant="pill" color="neutral" size="sm" onclick={toggle}>
 			<svg
 				class="search-icon"
 				xmlns="http://www.w3.org/2000/svg"
@@ -123,6 +123,9 @@
 </div>
 
 <style>
+	.container {
+		height: 100%;
+	}
 	.search-icon-placeholder {
 		opacity: 0;
 		pointer-events: none;

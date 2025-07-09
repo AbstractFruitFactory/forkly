@@ -17,6 +17,7 @@
 	import SearchButton from '$lib/components/search-button/SearchButton.svelte'
 	import { fade } from 'svelte/transition'
 	import TaglineTypewriter from '$lib/components/tagline-typewriter/TaglineTypewriter.svelte'
+	import Logo from '$lib/components/logo/Logo.svelte'
 
 	let {
 		recipes,
@@ -306,10 +307,15 @@
 
 {#snippet homepageHeader()}
 	<div class="large-header">
-		<TaglineTypewriter tags={taglineTags} onSelect={handleTaglineTagSelect} />
-	</div>
+		<div class="mobile-logo">
+			<Logo responsive={false} />
+		</div>
 
-	<div bind:this={$sentinelNode} style:height="var(--spacing-2xl)"></div>
+		<div class="tagline">
+			<TaglineTypewriter tags={taglineTags} onSelect={handleTaglineTagSelect} />
+		</div>
+		<div bind:this={$sentinelNode} style:height="var(--spacing-2xl)"></div>
+	</div>
 {/snippet}
 
 {#snippet content()}
@@ -319,7 +325,7 @@
 			<div class="buttons">
 				<div class="left-section">
 					{#if isMobile}
-						<div class="mobile-searchbar" style:width={mobileSearchExpanded ? '100%' : ''}>
+						<div class="mobile-searchbar" class:expanded={mobileSearchExpanded}>
 							<SearchButton
 								bind:expanded={mobileSearchExpanded}
 								{...searchProps}
@@ -443,12 +449,24 @@
 		display: flex;
 		justify-content: center;
 		padding: var(--spacing-4xl) 0;
-		min-height: 11rem;
 
 		@include mobile {
 			padding: 0;
-			padding-top: var(--spacing-xl);
-			min-height: 9rem;
+			padding: var(--spacing-md) 0;
+		}
+	}
+
+	.mobile-logo {
+		display: none;
+
+		@include mobile {
+			display: block;
+		}
+	}
+
+	.tagline {
+		@include mobile {
+			display: none;
 		}
 	}
 
@@ -542,6 +560,7 @@
 
 		border: var(--border-width-thin) solid transparent;
 		border-radius: var(--border-radius-xl);
+		background: var(--color-background);
 
 		@include mobile {
 			padding-top: var(--spacing-lg);
@@ -555,7 +574,6 @@
 			padding-bottom: var(--spacing-lg);
 			border-color: var(--color-neutral);
 			margin: var(--spacing-sm);
-			background: var(--color-background);
 
 			@include mobile {
 				margin: unset;
@@ -610,6 +628,12 @@
 	.filters-search {
 		width: 100%;
 		max-width: 30rem;
+	}
+
+	.mobile-searchbar {
+		&.expanded {
+			width: 100%;
+		}
 	}
 
 	.selected-pills {

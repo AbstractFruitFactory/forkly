@@ -46,7 +46,6 @@
 		right: 0;
 		background: var(--color-background);
 		border-top: 1px solid var(--color-neutral-light);
-		border-radius: var(--border-radius-2xl) var(--border-radius-2xl) 0 0;
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-end;

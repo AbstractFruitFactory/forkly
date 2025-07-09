@@ -10,10 +10,10 @@
 	const deleteSpeed = 30
 	const pauseDelay = 3000
 
-	let prefixText = $state('')
-	let initialWordText = $state('')
+	let prefixText = $state(prefix)
+	let initialWordText = $state(initialWord)
 	let currentTag = $state('')
-	let suffixText = $state('')
+	let suffixText = $state(suffix)
 	let currentWordIndex = 0
 	let running = true
 	let isHovering = $state(false)
@@ -48,24 +48,6 @@
 	}
 
 	async function start() {
-		for (const char of prefix) {
-			if (!running) return
-			prefixText += char
-			await delay(typingSpeed)
-		}
-
-		for (const char of initialWord) {
-			if (!running) return
-			initialWordText += char
-			await delay(typingSpeed)
-		}
-
-		for (const char of suffix) {
-			if (!running) return
-			suffixText += char
-			await delay(typingSpeed)
-		}
-
 		await delay(pauseDelay)
 
 		if (tags.length > 0) {
