@@ -56,11 +56,13 @@
 <div bind:this={drawerContainer}>
 	{#if isOpen}
 		<div class="drawer-overlay" transition:fade={{ duration: 200 }}></div>
-		<div 
+		<div
 			class="drawer-container"
 			class:side-drawer={position === 'side'}
 			bind:this={drawer}
-			transition:fly={position === 'side' ? { x: 500, duration: 200, opacity: 1 } : { y: 300, duration: 300 }}
+			transition:fly={position === 'side'
+				? { x: 500, duration: 200, opacity: 1 }
+				: { y: 800, duration: 300, opacity: 1 }}
 		>
 			<div class="drawer-header">
 				<div class="header-left">
@@ -230,7 +232,6 @@
 			overflow-y: hidden;
 		}
 	}
-
 
 	.item {
 		padding: var(--spacing-sm) var(--spacing-md);
