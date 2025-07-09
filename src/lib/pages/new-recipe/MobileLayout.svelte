@@ -218,13 +218,12 @@
 
 	<div class="form-group">
 		<Input>
-			<input id="title" name="title" type="text" required placeholder="Enter recipe title" />
+			<input name="title" type="text" required placeholder="Enter recipe title" />
 		</Input>
 		<div style:height="var(--spacing-md)"></div>
 
 		<Input>
-			<textarea id="description" name="description" placeholder="Describe your recipe" rows="3"
-			></textarea>
+			<textarea name="description" placeholder="Describe your recipe" rows="3"></textarea>
 		</Input>
 	</div>
 </div>
@@ -272,18 +271,8 @@
 										value={item.amount}
 										oninput={handleDrawerAmountInput}
 									/>
-									<input
-										type="text"
-										disabled
-										class="ingredient-unit"
-										value={item.unit}
-									/>
-									<input
-										type="text"
-										disabled
-										class="ingredient-name"
-										value={item.name}
-									/>
+									<input type="text" disabled class="ingredient-unit" value={item.unit} />
+									<input type="text" disabled class="ingredient-name" value={item.name} />
 								</div>
 							</Input>
 						</div>
@@ -389,11 +378,7 @@
 					<div class="instruction-card-content">
 						<input type="hidden" name="instructions-{item.id}-text" value={item.text} />
 						<Input>
-							<textarea
-								disabled
-								class="selected-instruction-text"
-								value={item.text}
-								rows={3}
+							<textarea disabled class="selected-instruction-text" value={item.text} rows={3}
 							></textarea>
 						</Input>
 
@@ -450,7 +435,7 @@
 	<h3>Tags</h3>
 	<div class="form-group">
 		<div class="tags">
-			<div style:width="fit-content">
+			<div style:width="100%">
 				<SuggestionSearch
 					disabled={selectedTags.length >= 3}
 					placeholder="Search for tags..."
@@ -477,7 +462,7 @@
 </div>
 
 <div class="submit-section">
-	<Button loading={submitting} type="submit" color="primary">Create Recipe</Button>
+	<Button fullWidth loading={submitting} type="submit" color="primary">Create Recipe</Button>
 </div>
 
 <style lang="scss">
