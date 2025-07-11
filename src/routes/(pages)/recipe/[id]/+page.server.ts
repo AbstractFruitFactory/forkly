@@ -1,12 +1,12 @@
 import { error, fail } from '@sveltejs/kit'
 import { getRecipeWithDetails } from '$lib/server/db/recipe'
 import type { PageServerLoad, Actions } from './$types'
-import { addComment, getComments } from '$lib/server/db/recipe-comments'
 import { uploadImage } from '$lib/server/cloudinary'
 import * as v from 'valibot'
 import { getCollections } from '$lib/server/db/save'
+import { safeFetch } from '$lib/utils/fetch'
 
-export const load: PageServerLoad = ({ params, locals }) => {
+export const load: PageServerLoad = ({ params, locals, fetch }) => {
   const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(
     (result) => {
       if (!result) throw error(404, 'Recipe not found')
@@ -14,7 +14,14 @@ export const load: PageServerLoad = ({ params, locals }) => {
     }
   )
 
-  const comments = getComments(params.id)
+  const comments = safeFetch(fetch)(`/api/recipes/${params.id}/comments`).then((result) => {
+    if (result.isErr()) {
+      console.error('Failed to fetch comments:', result.error)
+      return []
+    }
+    return result.value
+  })
+
   const collections = locals.user
     ? getCollections(locals.user.id)
     : Promise.resolve([])
@@ -35,7 +42,7 @@ const commentSchema = v.object({
 })
 
 export const actions: Actions = {
-  addComment: async ({ request, params, locals }) => {
+  addComment: async ({ request, params, locals, fetch }) => {
     if (!locals.user) return fail(401, { error: 'You must be logged in to comment' })
     if (!params.id) return fail(400, { error: 'Recipe ID is required' })
 
@@ -72,7 +79,23 @@ export const actions: Actions = {
       imageUrl = await uploadImage(buffer, { folder: 'recipe-comments' })
     }
 
-    await addComment(params.id, locals.user.id, trimmedContent, imageUrl)
+    const result = await safeFetch<{ id: string; content: string; imageUrl?: string }>(fetch)(
+      `/api/recipes/${params.id}/comments`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: trimmedContent,
+          imageUrl
+        })
+      }
+    )
+
+    if (result.isErr()) {
+      return fail(500, { error: result.error.message || 'Failed to add comment' })
+    }
 
     return { success: true }
   }

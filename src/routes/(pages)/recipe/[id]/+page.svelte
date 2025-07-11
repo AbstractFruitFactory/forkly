@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation'
+	import { goto} from '$app/navigation'
 	import Recipe from '$lib/pages/recipe/Recipe.svelte'
 	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
 	import { page } from '$app/state'
@@ -7,8 +7,9 @@
 	import type { RecipesLikeResponse } from '../../../api/recipes/like/+server.js'
 	import type { RecipesSaveResponse } from '../../../api/recipes/save/+server.js'
 	import type { CollectionsResponse } from '../../../api/collections/+server.js'
-
+	
 	let { data } = $props()
+	let comments = $state(data.comments)
 
 	const handleLike = async () => {
 		await safeFetch<RecipesLikeResponse>()(`/api/recipes/like`, {
@@ -48,29 +49,33 @@
 		}
 	}
 
+	const handleCommentAdded = async () => {
+		const result = await safeFetch<{ id: string; content: string; createdAt: string | Date; imageUrl?: string | null; user: { id: string; username: string; avatarUrl: string | null; }[] }>()(`/api/recipes/${(await data.recipe).id}/comments`)
+		if (result.isOk()) {
+			comments = Promise.resolve(result.value)
+		}
+	}
+	
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
 <div class="recipe-page" data-page="recipe">
-	{#await data.recipe then recipe}
-		<Recipe
-			recipe={Promise.resolve(recipe)}
-			nutritionInfo={{
-				totalNutrition: recipe.nutrition,
-				hasCustomIngredients: false
-			}}
-			{unitSystem}
-			onUnitChange={handleUnitChange}
-			onLike={handleLike}
-			onSave={handleSave}
-			onBackClick={() => goto('/')}
-			onCreateCollection={createCollection}
-			isLoggedIn={!!data.user}
-			collections={data.collections.then((c) => c.map((c) => c.name))}
-			recipeComments={data.comments}
-			formError={page.form?.error}
-		/>
-	{:catch error}
-		<p>Error loading recipe: {error.message}</p>
-	{/await}
+	<Recipe
+		recipe={data.recipe}
+		nutritionInfo={{
+			totalNutrition: data.recipe.nutrition,
+			hasCustomIngredients: false
+		}}
+		{unitSystem}
+		onUnitChange={handleUnitChange}
+		onLike={handleLike}
+		onSave={handleSave}
+		onBackClick={() => goto('/')}
+		onCreateCollection={createCollection}
+		isLoggedIn={!!data.user}
+		collections={data.collections.then((c) => c.map((c) => c.name))}
+		recipeComments={comments}
+		formError={page.form?.error}
+		onCommentAdded={handleCommentAdded}
+	/>
 </div>

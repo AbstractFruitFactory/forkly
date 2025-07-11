@@ -18,7 +18,7 @@
 	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
 	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
 	import Switch from '$lib/components/Switch.svelte'
-	import { onMount } from 'svelte'
+	import { onMount, type ComponentProps } from 'svelte'
 	import Toast from '$lib/components/toast/Toast.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import Input from '$lib/components/input/Input.svelte'
@@ -39,8 +39,9 @@
 		isLoggedIn,
 		onCreateCollection,
 		onBackClick,
-		recipeComments = [],
-		formError
+		recipeComments = Promise.resolve([]),
+		formError,
+		onCommentAdded
 	}: {
 		recipe: Promise<DetailedRecipe>
 		nutritionInfo: {
@@ -55,8 +56,9 @@
 		isLoggedIn: boolean
 		onCreateCollection: (name: string) => Promise<void>
 		onBackClick?: () => void
-		recipeComments?: any[]
+		recipeComments?: Promise<ComponentProps<typeof CommentList>['comments']>
 		formError?: string
+		onCommentAdded?: () => void
 	} = $props()
 
 	let isLiked = $derived.by(() => recipe.then((r) => r.isLiked))
@@ -324,17 +326,17 @@
 			<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
 				<MessageSquare size={20} />
 				Comments
-				{#await recipe then _}
+				{#await recipeComments then comments}
 					<span style:font-size="var(--font-size-xl)" style:font-weight="500">
-						({recipeComments.length ?? '0'})
+						({comments.length ?? '0'})
 					</span>
 				{/await}
 			</h3>
 		</div>
-		{#await recipe}
-			<CommentList comments={[]} {isLoggedIn} recipeId="" {formError} loading={true} />
-		{:then recipe}
-			<CommentList comments={recipeComments} {isLoggedIn} recipeId={recipe.id} {formError} />
+		{#await Promise.all([recipe, recipeComments])}
+			<CommentList comments={[]} {isLoggedIn} recipeId="" {formError} loading={true} onCommentAdded={onCommentAdded} />
+		{:then [recipe, comments]}
+			<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} onCommentAdded={onCommentAdded} />
 		{/await}
 	</div>
 {/snippet}

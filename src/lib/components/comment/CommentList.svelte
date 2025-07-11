@@ -7,13 +7,17 @@
 	import Button from '../button/Button.svelte'
 	import Skeleton from '../skeleton/Skeleton.svelte'
 	import Input from '../input/Input.svelte'
+	import { invalidate, invalidateAll } from '$app/navigation'
+	import { flip } from 'svelte/animate'
+	import { fade } from 'svelte/transition'
 
 	let {
 		comments = [],
 		isLoggedIn,
 		recipeId,
 		formError = null,
-		loading = false
+		loading = false,
+		onCommentAdded
 	}: {
 		comments: {
 			id: string
@@ -31,6 +35,7 @@
 		recipeId: string
 		formError?: string | null
 		loading?: boolean
+		onCommentAdded?: () => void
 	} = $props()
 
 	let imagePreview = $state<string | null>(null)
@@ -79,16 +84,33 @@
 			method="POST"
 			action="?/addComment"
 			enctype="multipart/form-data"
-			use:enhance
+			use:enhance={async () => {
+				isSubmitting = true
+
+				return async ({ result }) => {
+					isSubmitting = false
+
+					if (result.type === 'success') {
+						commentContent = ''
+						if (imagePreview) {
+							cleanupPreview(imagePreview)
+							imagePreview = null
+						}
+						if (onCommentAdded) {
+							onCommentAdded()
+						}
+					}
+				}
+			}}
 		>
 			<input type="hidden" name="recipeId" value={recipeId} />
 
 			<Input value={commentContent}>
 				{#snippet children()}
-					<textarea 
-						name="content" 
-						placeholder="Add a comment..." 
-						rows="2" 
+					<textarea
+						name="content"
+						placeholder="Add a comment..."
+						rows="2"
 						disabled={isSubmitting}
 						bind:value={commentContent}
 					></textarea>
@@ -152,7 +174,7 @@
 		</Popover>
 	{/if}
 
-	<div class="comments-list">
+	<div class="comments-list card">
 		{#if loading}
 			{#each Array(3) as _, i}
 				<div class="comment-skeleton">
@@ -185,13 +207,16 @@
 			</div>
 		{:else}
 			{#each comments as comment (comment.id)}
-				<Comment
-					username={comment.user.username}
-					content={comment.content}
-					createdAt={comment.createdAt}
-					avatarUrl={comment.user.avatarUrl}
-					imageUrl={comment.imageUrl}
-				/>
+				<div animate:flip|global={{ duration: 300 }} transition:fade|global={{ duration: 1000 }}>
+					<Comment
+						username={comment.user.username}
+						content={comment.content}
+						createdAt={comment.createdAt}
+						avatarUrl={comment.user.avatarUrl}
+						imageUrl={comment.imageUrl}
+					/>
+					<div class="divider"></div>
+				</div>
 			{/each}
 		{/if}
 	</div>
