@@ -17,7 +17,11 @@
 		recipeId,
 		formError = null,
 		loading = false,
-		onCommentAdded
+		onCommentAdded,
+		page = 0,
+		hasMore = false,
+		onNextPage,
+		onPrevPage
 	}: {
 		comments: {
 			id: string
@@ -36,6 +40,10 @@
 		formError?: string | null
 		loading?: boolean
 		onCommentAdded?: () => void
+		page?: number
+		hasMore?: boolean
+		onNextPage?: () => void
+		onPrevPage?: () => void
 	} = $props()
 
 	let imagePreview = $state<string | null>(null)
@@ -96,9 +104,8 @@
 							cleanupPreview(imagePreview)
 							imagePreview = null
 						}
-						if (onCommentAdded) {
-							onCommentAdded()
-						}
+
+						onCommentAdded?.()
 					}
 				}
 			}}
@@ -207,7 +214,7 @@
 			</div>
 		{:else}
 			{#each comments as comment (comment.id)}
-				<div animate:flip|global={{ duration: 300 }} transition:fade|global={{ duration: 1000 }}>
+				<div animate:flip={{ duration: 300 }} transition:fade|global={{ duration: 1000 }}>
 					<Comment
 						username={comment.user.username}
 						content={comment.content}
@@ -219,6 +226,11 @@
 				</div>
 			{/each}
 		{/if}
+	</div>
+
+	<div class="pagination">
+		<Button onclick={onPrevPage} disabled={page === 0}>Previous</Button>
+		<Button onclick={onNextPage} disabled={!hasMore}>Next</Button>
 	</div>
 </div>
 
@@ -420,5 +432,11 @@
 
 	.comment-image-skeleton {
 		margin-top: var(--spacing-sm);
+	}
+
+	.pagination {
+		display: flex;
+		justify-content: space-between;
+		margin-top: var(--spacing-lg);
 	}
 </style>

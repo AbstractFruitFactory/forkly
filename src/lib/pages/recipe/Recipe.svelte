@@ -41,7 +41,11 @@
 		onBackClick,
 		recipeComments = Promise.resolve([]),
 		formError,
-		onCommentAdded
+		onCommentAdded,
+		page = 0,
+		hasMore = false,
+		onNextPage,
+		onPrevPage
 	}: {
 		recipe: Promise<DetailedRecipe>
 		nutritionInfo: {
@@ -59,6 +63,10 @@
 		recipeComments?: Promise<ComponentProps<typeof CommentList>['comments']>
 		formError?: string
 		onCommentAdded?: () => void
+		page?: number
+		hasMore?: boolean
+		onNextPage?: () => void
+		onPrevPage?: () => void
 	} = $props()
 
 	let isLiked = $derived.by(() => recipe.then((r) => r.isLiked))
@@ -334,9 +342,28 @@
 			</h3>
 		</div>
 		{#await Promise.all([recipe, recipeComments])}
-			<CommentList comments={[]} {isLoggedIn} recipeId="" {formError} loading={true} onCommentAdded={onCommentAdded} />
+			<CommentList
+				comments={[]}
+				{isLoggedIn}
+				recipeId=""
+				{formError}
+				loading={true}
+				{onCommentAdded}
+				page={0}
+				hasMore={false}
+			/>
 		{:then [recipe, comments]}
-			<CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} onCommentAdded={onCommentAdded} />
+			<CommentList
+				{comments}
+				{isLoggedIn}
+				recipeId={recipe.id}
+				{formError}
+				{onCommentAdded}
+				{page}
+				{hasMore}
+				{onNextPage}
+				{onPrevPage}
+			/>
 		{/await}
 	</div>
 {/snippet}
