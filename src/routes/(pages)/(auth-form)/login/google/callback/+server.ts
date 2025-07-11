@@ -5,6 +5,7 @@ import * as table from "$lib/server/db/schema"
 import { generateSessionToken, createSession, setSessionTokenCookie } from "$lib/server/auth"
 import { eq } from "drizzle-orm"
 import { generateId } from "$lib/server/id"
+import { generateAvailableUsername } from "$lib/server/utils/username"
 import type { RequestHandler } from "@sveltejs/kit"
 
 export const GET: RequestHandler = async (event) => {
@@ -27,7 +28,8 @@ export const GET: RequestHandler = async (event) => {
     }
     const claims = decodeIdToken(tokens.idToken()) as { sub: string; name?: string; email?: string }
     const googleUserId = claims.sub
-    const username = claims.name || (claims.email ? claims.email.split("@")[0] : "googleuser")
+    const baseUsername = claims.name || (claims.email ? claims.email.split("@")[0] : "googleuser")
+    const username = await generateAvailableUsername(baseUsername)
     const email = claims.email || `${googleUserId}@googleuser.com`
 
     // Find user by googleId
