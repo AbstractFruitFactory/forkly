@@ -63,13 +63,11 @@
 			<Skeleton width="120px" height="120px" round />
 		{:then user}
 			<div
-				class="avatar"
-				style="background: {user.avatarUrl
-					? `url(${user.avatarUrl}) center/cover`
-					: `var(--color-${user.username.charCodeAt(0) % 5})`}"
+				class="avatar {user.avatarUrl ? 'avatar-image' : 'avatar-placeholder'}"
+				style={user.avatarUrl ? `background: url(${user.avatarUrl}) center/cover` : ''}
 			>
 				{#if !user.avatarUrl}
-					{user.username[0].toUpperCase()}
+					<span class="avatar-initial">{user.username[0].toUpperCase()}</span>
 				{/if}
 			</div>
 			<input
@@ -246,9 +244,28 @@
 		width: 100%;
 		height: 100%;
 		border-radius: 50%;
-		background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
 		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 		border: 3px solid var(--color-background);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.avatar-image {
+		background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+	}
+	.avatar-placeholder {
+		background: #7c7b80;
+	}
+	.avatar-initial {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		font-size: 3rem;
+		font-weight: 700;
+		color: #f8f5e6;
+		user-select: none;
 	}
 
 	.avatar-edit-icon {
