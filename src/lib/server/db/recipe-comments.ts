@@ -5,7 +5,7 @@ import { generateId } from '$lib/server/id'
 
 export async function addComment(recipeId: string, userId: string, content: string, imageUrl?: string) {
   const commentId = generateId()
-  
+
   const newComment = await db.insert(recipeComment).values({
     id: commentId,
     userId,
@@ -13,7 +13,7 @@ export async function addComment(recipeId: string, userId: string, content: stri
     content,
     imageUrl
   }).returning()
-  
+
   return newComment[0]
 }
 
@@ -58,7 +58,7 @@ export async function deleteComment(commentId: string, userId: string) {
       )
     )
     .returning()
-  
+
   return deleted.length > 0
 }
 

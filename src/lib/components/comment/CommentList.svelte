@@ -7,11 +7,10 @@
 	import Button from '../button/Button.svelte'
 	import Skeleton from '../skeleton/Skeleton.svelte'
 	import Input from '../input/Input.svelte'
-import { invalidate, invalidateAll } from '$app/navigation'
-import { flip } from 'svelte/animate'
-import { fade } from 'svelte/transition'
+	import { flip } from 'svelte/animate'
+	import { fade } from 'svelte/transition'
 
-const COMMENTS_PER_PAGE = 10
+	const COMMENTS_PER_PAGE = 10
 
 	let {
 		comments = [],
@@ -23,9 +22,9 @@ const COMMENTS_PER_PAGE = 10
 		page = 0,
 		hasMore = false,
 		onNextPage,
-                onPrevPage,
-                total = 0
-        }: {
+		onPrevPage,
+		total = 0
+	}: {
 		comments: {
 			id: string
 			content: string
@@ -46,16 +45,16 @@ const COMMENTS_PER_PAGE = 10
 		page?: number
 		hasMore?: boolean
 		onNextPage?: () => void
-                onPrevPage?: () => void,
-                total?: number
-        } = $props()
+		onPrevPage?: () => void
+		total?: number
+	} = $props()
 
 	let imagePreview = $state<string | null>(null)
 	let isSubmitting = $state(false)
 	let imageError = $state<string | null>(null)
-        let commentContent = $state('')
+	let commentContent = $state('')
 
-        $: totalPages = Math.max(1, Math.ceil(total / COMMENTS_PER_PAGE))
+	const totalPages = $derived(Math.max(1, Math.ceil(total / COMMENTS_PER_PAGE)))
 
 	async function handleImageSelect(event: Event) {
 		const input = event.target as HTMLInputElement
@@ -234,11 +233,11 @@ const COMMENTS_PER_PAGE = 10
 		{/if}
 	</div>
 
-        <div class="pagination">
-                <Button onclick={onPrevPage} disabled={page === 0}>Previous</Button>
-                <span class="page-info">Page {page + 1} of {totalPages}</span>
-                <Button onclick={onNextPage} disabled={!hasMore}>Next</Button>
-        </div>
+	<div class="pagination">
+		<Button onclick={onPrevPage} disabled={page === 0}>Previous</Button>
+		<span class="page-info">Page {page + 1} of {totalPages}</span>
+		<Button onclick={onNextPage} disabled={!hasMore}>Next</Button>
+	</div>
 </div>
 
 <style lang="scss">
@@ -441,14 +440,14 @@ const COMMENTS_PER_PAGE = 10
 		margin-top: var(--spacing-sm);
 	}
 
-        .pagination {
-                display: flex;
-                justify-content: space-between;
-                margin-top: var(--spacing-lg);
-        }
+	.pagination {
+		display: flex;
+		justify-content: space-between;
+		margin-top: var(--spacing-lg);
+	}
 
-        .page-info {
-                display: flex;
-                align-items: center;
-        }
+	.page-info {
+		display: flex;
+		align-items: center;
+	}
 </style>
