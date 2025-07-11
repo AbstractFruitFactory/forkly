@@ -344,7 +344,17 @@
 		{#await Promise.all([recipe, recipeComments])}
                     <CommentList comments={[]} {isLoggedIn} recipeId="" {formError} loading={true} onCommentAdded={onCommentAdded} page={0} hasMore={false} />
 		{:then [recipe, comments]}
-                    <CommentList {comments} {isLoggedIn} recipeId={recipe.id} {formError} onCommentAdded={onCommentAdded} page={page} hasMore={hasMore} onNextPage={nextPage} onPrevPage={prevPage} />
+                    <CommentList
+                            {comments}
+                            {isLoggedIn}
+                            recipeId={recipe.id}
+                            {formError}
+                            onCommentAdded={onCommentAdded}
+                            page={page}
+                            hasMore={hasMore}
+                            onNextPage={onNextPage}
+                            onPrevPage={onPrevPage}
+                    />
 		{/await}
 	</div>
 {/snippet}
