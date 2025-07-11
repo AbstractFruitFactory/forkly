@@ -206,12 +206,15 @@
 		border-radius: var(--border-radius-3xl);
 		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 		background: var(--color-background);
+		max-width: $max-width;
+		margin: 0 auto;
 
 		&.expanded {
 			left: calc(-1 * var(--spacing-4xl));
 			right: calc(-1 * var(--spacing-4xl));
 			margin-top: calc(var(--spacing-2xl) * -1);
 			border-radius: 0;
+			max-width: 100%;
 
 			@include tablet {
 				left: calc(-1 * var(--spacing-3xl));
