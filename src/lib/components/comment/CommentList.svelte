@@ -12,7 +12,10 @@
 		isLoggedIn,
 		recipeId,
 		formError = null,
-		loading = false
+		loading = false,
+		page = 0,
+		hasMore = false,
+		onPageChange
 	}: {
 		comments: {
 			id: string
@@ -30,6 +33,9 @@
 		recipeId: string
 		formError?: string | null
 		loading?: boolean
+		page?: number
+		hasMore?: boolean
+		onPageChange?: (page: number) => void
 	} = $props()
 
 	let imagePreview = $state<string | null>(null)
@@ -178,6 +184,26 @@
 					imageUrl={comment.imageUrl}
 				/>
 			{/each}
+		{/if}
+	</div>
+	<div class="pagination-controls">
+		{#if page > 0}
+			<button
+				class="pagination-button"
+				on:click={() => onPageChange && onPageChange(page - 1)}
+				disabled={loading}
+			>
+				Previous
+			</button>
+		{/if}
+		{#if hasMore}
+			<button
+				class="pagination-button"
+				on:click={() => onPageChange && onPageChange(page + 1)}
+				disabled={loading}
+			>
+				Next
+			</button>
 		{/if}
 	</div>
 </div>
@@ -407,5 +433,20 @@
 
 	.comment-image-skeleton {
 		margin-top: var(--spacing-sm);
+	}
+
+	.pagination-controls {
+		display: flex;
+		justify-content: space-between;
+		margin-top: var(--spacing-lg);
+	}
+
+	.pagination-button {
+		background: none;
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		color: var(--color-text-on-surface);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		border-radius: var(--border-radius-sm);
+		cursor: pointer;
 	}
 </style>

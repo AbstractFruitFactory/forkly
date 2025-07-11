@@ -6,74 +6,76 @@ import { uploadImage } from '$lib/server/cloudinary'
 import * as v from 'valibot'
 import { getCollections } from '$lib/server/db/save'
 
-export const load: PageServerLoad = ({ params, locals }) => {
-  const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(
-    (result) => {
-      if (!result) throw error(404, 'Recipe not found')
-      return result
-    }
-  )
+export const load: PageServerLoad = ({ params, locals, url }) => {
+	const recipe = getRecipeWithDetails(params.id, locals.user?.id).then((result) => {
+		if (!result) throw error(404, 'Recipe not found')
+		return result
+	})
 
-  const comments = getComments(params.id)
-  const collections = locals.user
-    ? getCollections(locals.user.id)
-    : Promise.resolve([])
+	const commentPage = parseInt(url.searchParams.get('page') || '0', 10)
+	const commentLimit = 11
+	const commentsPromise = getComments(params.id, commentLimit, commentPage)
+	const comments = commentsPromise.then((c) => c.slice(0, 10))
+	const hasMore = commentsPromise.then((c) => c.length === commentLimit)
+	const collections = locals.user ? getCollections(locals.user.id) : Promise.resolve([])
 
-  return {
-    recipe,
-    comments,
-    collections
-  }
+	return {
+		recipe,
+		comments,
+		collections,
+		commentsPage: commentPage,
+		commentsHasMore: hasMore
+	}
 }
 
 const commentSchema = v.object({
-  content: v.pipe(
-    v.string(),
-    v.minLength(1, 'Comment cannot be empty'),
-    v.maxLength(1000, 'Comment is too long (maximum 1000 characters)')
-  )
+	content: v.pipe(
+		v.string(),
+		v.minLength(1, 'Comment cannot be empty'),
+		v.maxLength(1000, 'Comment is too long (maximum 1000 characters)')
+	)
 })
 
 export const actions: Actions = {
-  addComment: async ({ request, params, locals }) => {
-    if (!locals.user) return fail(401, { error: 'You must be logged in to comment' })
-    if (!params.id) return fail(400, { error: 'Recipe ID is required' })
+	addComment: async ({ request, params, locals }) => {
+		if (!locals.user) return fail(401, { error: 'You must be logged in to comment' })
+		if (!params.id) return fail(400, { error: 'Recipe ID is required' })
 
-    const formData = await request.formData()
-    const content = formData.get('content')
-    const imageFile = formData.get('image') as File | undefined
+		const formData = await request.formData()
+		const content = formData.get('content')
+		const imageFile = formData.get('image') as File | undefined
 
-    if (!content || typeof content !== 'string') {
-      return fail(400, { error: 'Comment content is required' })
-    }
+		if (!content || typeof content !== 'string') {
+			return fail(400, { error: 'Comment content is required' })
+		}
 
-    const trimmedContent = content.trim()
+		const trimmedContent = content.trim()
 
-    const validatedData = v.safeParse(commentSchema, {
-      content: trimmedContent
-    })
+		const validatedData = v.safeParse(commentSchema, {
+			content: trimmedContent
+		})
 
-    if (!validatedData.success) return fail(400, { error: validatedData.issues[0].message })
+		if (!validatedData.success) return fail(400, { error: validatedData.issues[0].message })
 
-    let imageUrl: string | undefined = undefined
+		let imageUrl: string | undefined = undefined
 
-    if (imageFile && imageFile.size > 0) {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-      if (!allowedTypes.includes(imageFile.type)) {
-        return fail(400, { error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed' })
-      }
+		if (imageFile && imageFile.size > 0) {
+			const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+			if (!allowedTypes.includes(imageFile.type)) {
+				return fail(400, { error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed' })
+			}
 
-      const maxSize = 5 * 1024 * 1024 // 5MB
-      if (imageFile.size > maxSize) return fail(400, { error: 'File size exceeds the 5MB limit' })
+			const maxSize = 5 * 1024 * 1024 // 5MB
+			if (imageFile.size > maxSize) return fail(400, { error: 'File size exceeds the 5MB limit' })
 
-      const arrayBuffer = await imageFile.arrayBuffer()
-      const buffer = Buffer.from(arrayBuffer)
+			const arrayBuffer = await imageFile.arrayBuffer()
+			const buffer = Buffer.from(arrayBuffer)
 
-      imageUrl = await uploadImage(buffer, { folder: 'recipe-comments' })
-    }
+			imageUrl = await uploadImage(buffer, { folder: 'recipe-comments' })
+		}
 
-    await addComment(params.id, locals.user.id, trimmedContent, imageUrl)
+		await addComment(params.id, locals.user.id, trimmedContent, imageUrl)
 
-    return { success: true }
-  }
+		return { success: true }
+	}
 }

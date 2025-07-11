@@ -40,6 +40,9 @@
 		onCreateCollection,
 		onBackClick,
 		recipeComments = [],
+		commentPage = 0,
+		commentsHasMore = false,
+		onCommentPageChange,
 		formError
 	}: {
 		recipe: Promise<DetailedRecipe>
@@ -56,12 +59,15 @@
 		onCreateCollection: (name: string) => Promise<void>
 		onBackClick?: () => void
 		recipeComments?: any[]
+		commentPage?: number
+		commentsHasMore?: boolean
+		onCommentPageChange?: (page: number) => void
 		formError?: string
 	} = $props()
 
-       let isLiked = $derived.by(() => recipe.then((r) => r.isLiked))
-       let isSaved = $derived.by(() => recipe.then((r) => r.isSaved))
-       let likes = $derived.by(() => recipe.then((r) => r.likes))
+	let isLiked = $derived.by(() => recipe.then((r) => r.isLiked))
+	let isSaved = $derived.by(() => recipe.then((r) => r.isSaved))
+	let likes = $derived.by(() => recipe.then((r) => r.likes))
 	let isSharePopupOpen = $state(false)
 	let shareUrl = $state('')
 	let toastType = $state<'like' | 'save'>()
@@ -93,19 +99,19 @@
 		shareUrl = `${window.location.origin}${window.location.pathname}`
 	})
 
-       const handleLike = async () => {
-               if (!isLoggedIn) {
-                       toastType = 'like'
-                       if (toastRef) toastRef.trigger()
-                       return
-               }
-               if (!onLike) return
-               const currentLiked = await isLiked
-               const currentLikes = await likes
-               isLiked = Promise.resolve(!currentLiked)
-               likes = Promise.resolve(currentLikes + (currentLiked ? -1 : 1))
-               onLike()
-       }
+	const handleLike = async () => {
+		if (!isLoggedIn) {
+			toastType = 'like'
+			if (toastRef) toastRef.trigger()
+			return
+		}
+		if (!onLike) return
+		const currentLiked = await isLiked
+		const currentLikes = await likes
+		isLiked = Promise.resolve(!currentLiked)
+		likes = Promise.resolve(currentLikes + (currentLiked ? -1 : 1))
+		onLike()
+	}
 
 	const handleSave = async (collectionName?: string) => {
 		if (!isLoggedIn) {
@@ -177,13 +183,13 @@
 			if (!nutritionInfo?.totalNutrition) {
 				return undefined
 			}
-			
+
 			const { calories, protein, carbs, fat } = nutritionInfo.totalNutrition
-			
+
 			if (calories === 0 && protein === 0 && carbs === 0 && fat === 0) {
 				return undefined
 			}
-			
+
 			return {
 				calories: calories / r.servings,
 				protein: protein / r.servings,
@@ -225,16 +231,16 @@
 {/snippet}
 
 {#snippet actionButtons()}
-       {#await Promise.all([isLiked, isSaved, likes])}
-               <FloatingLikeButton loading />
-               <FloatingSaveButton loading />
-               <FloatingShareButton loading />
-       {:then [isLiked, isSaved, likes]}
-               <FloatingLikeButton isActive={isLiked} count={likes} onClick={handleLike} />
-               <FloatingSaveButton
-                       isActive={isSaved}
-                       onClick={() => {
-                               if (isSaved) {
+	{#await Promise.all([isLiked, isSaved, likes])}
+		<FloatingLikeButton loading />
+		<FloatingSaveButton loading />
+		<FloatingShareButton loading />
+	{:then [isLiked, isSaved, likes]}
+		<FloatingLikeButton isActive={isLiked} count={likes} onClick={handleLike} />
+		<FloatingSaveButton
+			isActive={isSaved}
+			onClick={() => {
+				if (isSaved) {
 					handleSave()
 				} else {
 					savePopupOpen = true
@@ -334,7 +340,15 @@
 		{#await recipe}
 			<CommentList comments={[]} {isLoggedIn} recipeId="" {formError} loading={true} />
 		{:then recipe}
-			<CommentList comments={recipeComments} {isLoggedIn} recipeId={recipe.id} {formError} />
+			<CommentList
+				comments={recipeComments}
+				{isLoggedIn}
+				recipeId={recipe.id}
+				{formError}
+				page={commentPage}
+				hasMore={commentsHasMore}
+				onPageChange={onCommentPageChange}
+			/>
 		{/await}
 	</div>
 {/snippet}

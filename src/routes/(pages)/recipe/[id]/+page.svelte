@@ -68,6 +68,9 @@
 			isLoggedIn={!!data.user}
 			collections={data.collections.then((c) => c.map((c) => c.name))}
 			recipeComments={data.comments}
+			commentPage={data.commentsPage}
+			commentsHasMore={data.commentsHasMore}
+			onCommentPageChange={(p) => goto(`?page=${p}`)}
 			formError={page.form?.error}
 		/>
 	{:catch error}
