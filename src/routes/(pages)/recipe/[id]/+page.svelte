@@ -7,7 +7,7 @@
 	import type { RecipesLikeResponse } from '../../../api/recipes/like/+server.js'
 	import type { RecipesSaveResponse } from '../../../api/recipes/save/+server.js'
 	import type { CollectionsResponse } from '../../../api/collections/+server.js'
-	import type { Comments } from '../../../api/recipes/[id]/comments/+server.js'
+	import type { CommentsResponse } from '../../../api/recipes/[id]/comments/+server.js'
 
 	const COMMENTS_PER_PAGE = 10
 
@@ -18,7 +18,7 @@
 
 	$effect(() => {
 		data.comments.then((c) => {
-			hasMore = c.length === COMMENTS_PER_PAGE
+			hasMore = c.comments.length === COMMENTS_PER_PAGE
 		})
 	})
 
@@ -61,10 +61,12 @@
 	}
 
 	const loadComments = async (pageNum: number) => {
-		const result = await safeFetch<Comments>()(`/api/recipes/${(await data.recipe).id}/comments?page=${pageNum}`)
+		const result = await safeFetch<CommentsResponse>()(
+			`/api/recipes/${(await data.recipe).id}/comments?page=${pageNum}`
+		)
 		if (result.isOk()) {
 			comments = Promise.resolve(result.value)
-			hasMore = result.value.length === COMMENTS_PER_PAGE
+			hasMore = result.value.comments.length === COMMENTS_PER_PAGE
 			currentPage = pageNum
 		}
 	}

@@ -1,9 +1,9 @@
 import { error, json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getComments, addComment } from '$lib/server/db/recipe-comments'
+import { getComments, addComment, getCommentCount } from '$lib/server/db/recipe-comments'
 import * as v from 'valibot'
 
-export type Comments = {
+export type Comment = {
   id: string
   content: string
   imageUrl?: string
@@ -13,7 +13,12 @@ export type Comments = {
     username: string
     avatarUrl?: string
   }
-}[]
+}
+
+export type CommentsResponse = {
+  comments: Comment[]
+  total: number
+}
 
 export const GET: RequestHandler = async ({ params, url }) => {
   const recipeId = params.id
@@ -24,8 +29,9 @@ export const GET: RequestHandler = async ({ params, url }) => {
 
   const limit = parseInt(url.searchParams.get('limit') || '10', 10)
   const page = parseInt(url.searchParams.get('page') || '0', 10)
-  const comments = await getComments(recipeId, limit, page) satisfies Comments
-  return json(comments)
+  const comments = await getComments(recipeId, limit, page)
+  const total = await getCommentCount(recipeId)
+  return json({ comments, total } satisfies CommentsResponse)
 }
 
 const commentSchema = v.object({

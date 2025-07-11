@@ -39,7 +39,7 @@
 		isLoggedIn,
 		onCreateCollection,
 		onBackClick,
-		recipeComments = Promise.resolve([]),
+		recipeComments = Promise.resolve({ comments: [], total: 0 }),
 		formError,
 		onCommentAdded,
 		page = 0,
@@ -60,7 +60,10 @@
 		isLoggedIn: boolean
 		onCreateCollection: (name: string) => Promise<void>
 		onBackClick?: () => void
-		recipeComments?: Promise<ComponentProps<typeof CommentList>['comments']>
+		recipeComments?: Promise<{
+			comments: ComponentProps<typeof CommentList>['comments']
+			total: number
+		}>
 		formError?: string
 		onCommentAdded?: () => void
 		page?: number
@@ -334,9 +337,9 @@
 			<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
 				<MessageSquare size={20} />
 				Comments
-				{#await recipeComments then comments}
+				{#await recipeComments then res}
 					<span style:font-size="var(--font-size-xl)" style:font-weight="500">
-						({comments.length ?? '0'})
+						({res.total ?? '0'})
 					</span>
 				{/await}
 			</h3>
@@ -351,16 +354,18 @@
 				{onCommentAdded}
 				page={0}
 				hasMore={false}
+				total={0}
 			/>
-		{:then [recipe, comments]}
+		{:then [recipe, res]}
 			<CommentList
-				{comments}
+				comments={res.comments}
 				{isLoggedIn}
 				recipeId={recipe.id}
 				{formError}
 				{onCommentAdded}
 				{page}
 				{hasMore}
+				total={res.total}
 				{onNextPage}
 				{onPrevPage}
 			/>
