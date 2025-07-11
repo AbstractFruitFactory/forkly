@@ -15,10 +15,14 @@
 		comments = [],
 		isLoggedIn,
 		recipeId,
-		formError = null,
-		loading = false,
-		onCommentAdded
-	}: {
+                formError = null,
+                loading = false,
+                onCommentAdded,
+                page = 0,
+                hasMore = false,
+                onNextPage,
+                onPrevPage
+        }: {
 		comments: {
 			id: string
 			content: string
@@ -32,11 +36,15 @@
 		}[]
 		isLoggedIn: boolean
 		onAddComment?: (content: string, imageUrl?: string) => Promise<void>
-		recipeId: string
-		formError?: string | null
-		loading?: boolean
-		onCommentAdded?: () => void
-	} = $props()
+                recipeId: string
+                formError?: string | null
+                loading?: boolean
+                onCommentAdded?: () => void
+                page?: number
+                hasMore?: boolean
+                onNextPage?: () => void
+                onPrevPage?: () => void
+        } = $props()
 
 	let imagePreview = $state<string | null>(null)
 	let isSubmitting = $state(false)
@@ -217,9 +225,14 @@
 					/>
 					<div class="divider"></div>
 				</div>
-			{/each}
-		{/if}
-	</div>
+                        {/each}
+                {/if}
+        </div>
+
+        <div class="pagination">
+                <Button on:click={onPrevPage} disabled={page === 0}>Previous</Button>
+                <Button on:click={onNextPage} disabled={!hasMore}>Next</Button>
+        </div>
 </div>
 
 <style lang="scss">
@@ -418,7 +431,13 @@
 		gap: var(--spacing-xs);
 	}
 
-	.comment-image-skeleton {
-		margin-top: var(--spacing-sm);
-	}
+        .comment-image-skeleton {
+                margin-top: var(--spacing-sm);
+        }
+
+        .pagination {
+                display: flex;
+                justify-content: space-between;
+                margin-top: var(--spacing-lg);
+        }
 </style>

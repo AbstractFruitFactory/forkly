@@ -17,8 +17,12 @@ export async function addComment(recipeId: string, userId: string, content: stri
   return newComment[0]
 }
 
-export async function getComments(recipeId: string) {
-  const comments = await db
+export async function getComments(
+  recipeId: string,
+  limit?: number,
+  page = 0
+) {
+  let query = db
     .select({
       id: recipeComment.id,
       content: recipeComment.content,
@@ -34,7 +38,13 @@ export async function getComments(recipeId: string) {
     .innerJoin(user, eq(recipeComment.userId, user.id))
     .where(eq(recipeComment.recipeId, recipeId))
     .orderBy(desc(recipeComment.createdAt))
-  
+
+  if (typeof limit === 'number') {
+    query = query.limit(limit).offset(page * limit)
+  }
+
+  const comments = await query
+
   return comments
 }
 

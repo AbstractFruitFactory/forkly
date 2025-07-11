@@ -6,7 +6,7 @@ import * as v from 'valibot'
 import { getCollections } from '$lib/server/db/save'
 import { safeFetch } from '$lib/utils/fetch'
 
-export const load: PageServerLoad = ({ params, locals, fetch }) => {
+export const load: PageServerLoad = ({ params, locals, fetch, url }) => {
   const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(
     (result) => {
       if (!result) throw error(404, 'Recipe not found')
@@ -14,7 +14,8 @@ export const load: PageServerLoad = ({ params, locals, fetch }) => {
     }
   )
 
-  const comments = safeFetch(fetch)(`/api/recipes/${params.id}/comments`).then((result) => {
+  const page = parseInt(url.searchParams.get('page') || '0', 10)
+  const comments = safeFetch(fetch)(`/api/recipes/${params.id}/comments?page=${page}`).then((result) => {
     if (result.isErr()) {
       console.error('Failed to fetch comments:', result.error)
       return []

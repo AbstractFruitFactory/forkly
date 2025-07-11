@@ -3,15 +3,17 @@ import type { RequestHandler } from './$types'
 import { getComments, addComment } from '$lib/server/db/recipe-comments'
 import * as v from 'valibot'
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, url }) => {
   const recipeId = params.id
-  
+
   if (!recipeId) {
     throw error(400, 'Recipe ID is required')
   }
-  
+
   try {
-    const comments = await getComments(recipeId)
+    const limit = parseInt(url.searchParams.get('limit') || '10', 10)
+    const page = parseInt(url.searchParams.get('page') || '0', 10)
+    const comments = await getComments(recipeId, limit, page)
     return json(comments)
   } catch (err) {
     console.error('Error fetching comments:', err)
