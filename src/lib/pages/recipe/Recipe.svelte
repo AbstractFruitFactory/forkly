@@ -41,12 +41,12 @@
 		onBackClick,
 		recipeComments = Promise.resolve([]),
 		formError,
-                onCommentAdded,
-                page = 0,
-                hasMore = false,
-                onNextPage,
-                onPrevPage
-        }: {
+		onCommentAdded,
+		page = 0,
+		hasMore = false,
+		onNextPage,
+		onPrevPage
+	}: {
 		recipe: Promise<DetailedRecipe>
 		nutritionInfo: {
 			totalNutrition: Omit<NutritionInfo, 'servingSize'>
@@ -62,12 +62,12 @@
 		onBackClick?: () => void
 		recipeComments?: Promise<ComponentProps<typeof CommentList>['comments']>
 		formError?: string
-                onCommentAdded?: () => void
-                page?: number
-                hasMore?: boolean
-                onNextPage?: () => void
-                onPrevPage?: () => void
-        } = $props()
+		onCommentAdded?: () => void
+		page?: number
+		hasMore?: boolean
+		onNextPage?: () => void
+		onPrevPage?: () => void
+	} = $props()
 
 	let isLiked = $derived.by(() => recipe.then((r) => r.isLiked))
 	let isSaved = $derived.by(() => recipe.then((r) => r.isSaved))
@@ -342,19 +342,28 @@
 			</h3>
 		</div>
 		{#await Promise.all([recipe, recipeComments])}
-                    <CommentList comments={[]} {isLoggedIn} recipeId="" {formError} loading={true} onCommentAdded={onCommentAdded} page={0} hasMore={false} />
+			<CommentList
+				comments={[]}
+				{isLoggedIn}
+				recipeId=""
+				{formError}
+				loading={true}
+				{onCommentAdded}
+				page={0}
+				hasMore={false}
+			/>
 		{:then [recipe, comments]}
-                    <CommentList
-                            {comments}
-                            {isLoggedIn}
-                            recipeId={recipe.id}
-                            {formError}
-                            onCommentAdded={onCommentAdded}
-                            page={page}
-                            hasMore={hasMore}
-                            onNextPage={onNextPage}
-                            onPrevPage={onPrevPage}
-                    />
+			<CommentList
+				{comments}
+				{isLoggedIn}
+				recipeId={recipe.id}
+				{formError}
+				{onCommentAdded}
+				{page}
+				{hasMore}
+				{onNextPage}
+				{onPrevPage}
+			/>
 		{/await}
 	</div>
 {/snippet}
