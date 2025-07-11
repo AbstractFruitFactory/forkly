@@ -39,7 +39,7 @@
 		isLoggedIn,
 		onCreateCollection,
 		onBackClick,
-		recipeComments = Promise.resolve([]),
+		recipeComments = Promise.resolve({ comments: [], total: 0 }),
 		formError,
 		onCommentAdded,
 		page = 0,
@@ -60,7 +60,7 @@
 		isLoggedIn: boolean
 		onCreateCollection: (name: string) => Promise<void>
 		onBackClick?: () => void
-		recipeComments?: Promise<ComponentProps<typeof CommentList>['comments']>
+		recipeComments?: Promise<{ comments: ComponentProps<typeof CommentList>['comments']; total: number }>
 		formError?: string
 		onCommentAdded?: () => void
 		page?: number
@@ -334,37 +334,39 @@
 			<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
 				<MessageSquare size={20} />
 				Comments
-				{#await recipeComments then comments}
-					<span style:font-size="var(--font-size-xl)" style:font-weight="500">
-						({comments.length ?? '0'})
-					</span>
-				{/await}
+                                {#await recipeComments then res}
+                                        <span style:font-size="var(--font-size-xl)" style:font-weight="500">
+                                                ({res.total ?? '0'})
+                                        </span>
+                                {/await}
 			</h3>
 		</div>
-		{#await Promise.all([recipe, recipeComments])}
-			<CommentList
-				comments={[]}
-				{isLoggedIn}
-				recipeId=""
-				{formError}
-				loading={true}
-				{onCommentAdded}
-				page={0}
-				hasMore={false}
-			/>
-		{:then [recipe, comments]}
-			<CommentList
-				{comments}
-				{isLoggedIn}
-				recipeId={recipe.id}
-				{formError}
-				{onCommentAdded}
-				{page}
-				{hasMore}
-				{onNextPage}
-				{onPrevPage}
-			/>
-		{/await}
+                {#await Promise.all([recipe, recipeComments])}
+                        <CommentList
+                                comments={[]}
+                                {isLoggedIn}
+                                recipeId=""
+                                {formError}
+                                loading={true}
+                                {onCommentAdded}
+                                page={0}
+                                hasMore={false}
+                                total={0}
+                        />
+                {:then [recipe, res]}
+                        <CommentList
+                                comments={res.comments}
+                                {isLoggedIn}
+                                recipeId={recipe.id}
+                                {formError}
+                                {onCommentAdded}
+                                {page}
+                                {hasMore}
+                                total={res.total}
+                                {onNextPage}
+                                {onPrevPage}
+                        />
+                {/await}
 	</div>
 {/snippet}
 
