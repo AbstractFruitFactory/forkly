@@ -20,11 +20,11 @@
 		inset: 0;
 		background: linear-gradient(
 			90deg,
-			rgba(255, 255, 255, 0.05) 0%,
-			rgba(255, 255, 255, 0.1) 25%,
-			rgba(255, 255, 255, 0.15) 50%,
-			rgba(255, 255, 255, 0.1) 75%,
-			rgba(255, 255, 255, 0.05) 100%
+			rgba(0, 0, 0, 0.1) 0%,
+			rgba(0, 0, 0, 0.2) 25%,
+			rgba(0, 0, 0, 0.3) 50%,
+			rgba(0, 0, 0, 0.2) 75%,
+			rgba(0, 0, 0, 0.1) 100%
 		);
 		background-size: 200% 100%;
 		animation: skeleton-shift 1.5s ease-in-out infinite;
