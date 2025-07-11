@@ -253,9 +253,6 @@
 	}
 
 	.divider {
-		height: 2px;
-		background: var(--color-text-on-surface);
-		opacity: 0.2;
 		margin: 0 calc(var(--spacing-lg) * -1);
 	}
 </style>

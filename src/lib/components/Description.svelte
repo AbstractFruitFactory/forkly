@@ -84,10 +84,4 @@
 			color: var(--color-primary-dark);
 		}
 	}
-
-	.divider {
-		height: 2px;
-		background: var(--color-neutral-light);
-		opacity: 0.1;
-	}
 </style>

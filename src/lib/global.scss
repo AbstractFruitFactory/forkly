@@ -334,6 +334,12 @@ button {
   box-shadow: var(--shadow-md);
 }
 
+.divider {
+  height: 2px;
+  background: var(--color-neutral-light);
+  opacity: 0.1;
+}
+
 /* Custom Scrollbar Styles */
 * {
   /* Firefox */

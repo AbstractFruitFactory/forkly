@@ -115,9 +115,7 @@
 
 	.comment-text {
 		margin: 0;
-		color: var(--color-neutral-light);
 		font-size: var(--font-size-sm);
-		line-height: 1.5;
 		word-break: break-word;
 	}
 
