@@ -286,14 +286,6 @@
 			pointer-events: none;
 		}
 
-		&.no-image {
-			background: linear-gradient(135deg, var(--color-neutral-dark), var(--color-neutral));
-
-			&::after {
-				background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
-			}
-		}
-
 		img {
 			width: 100%;
 			height: 100%;

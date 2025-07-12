@@ -33,7 +33,7 @@
 				<ProfilePic {profilePicUrl} size="lg" />
 			</a>
 		{:else}
-			<Button href={loginHref} variant="border" size="sm">
+			<Button href={loginHref} variant="border" color="neutral" size="sm">
 				<LogInIcon color="var(--color-text-on-surface)" size={16} />
 				Sign in
 			</Button>

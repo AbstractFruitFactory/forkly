@@ -6,8 +6,8 @@
 	type Size = 'xs' | 'sm' | 'md' | 'lg'
 
 	let {
-		variant = 'border',
-		color = 'neutral',
+		variant,
+		color,
 		buttonColor,
 		size = 'md',
 		type = 'button',
@@ -160,11 +160,11 @@
 		// Variants
 		&.primary {
 			background-color: var(--color-primary);
+			border: var(--border-width-thin) solid var(--color-neutral);
 
 			&:hover:not(:disabled) {
 				background-color: color-mix(in srgb, var(--color-primary), black 15%);
 			}
-
 			&:active:not(:disabled) {
 				transform: translateY(var(--spacing-xs));
 			}
@@ -176,6 +176,7 @@
 
 		&.secondary {
 			background-color: var(--color-secondary);
+			border: var(--border-width-thin) solid var(--color-neutral);
 
 			&:hover:not(:disabled) {
 				background-color: color-mix(in srgb, var(--color-secondary), black 15%);
