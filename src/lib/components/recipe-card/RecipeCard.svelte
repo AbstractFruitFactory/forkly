@@ -99,7 +99,7 @@
 	<div class="content">
 		{#if recipe?.user && !loading}
 			<div class="avatar">
-				<ProfilePic profilePicUrl={recipe.user.avatarUrl} size="sm" />
+				<ProfilePic profilePicUrl={recipe.user.avatarUrl} size="sm" background />
 			</div>
 		{/if}
 

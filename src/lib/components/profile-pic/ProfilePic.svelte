@@ -6,10 +6,12 @@
 
 	let {
 		profilePicUrl,
-		size = 'sm'
+		size = 'sm',
+		background = false
 	}: {
 		profilePicUrl?: string
 		size?: 'sm' | 'lg'
+		background?: boolean
 	} = $props()
 
 	const pixelSize = sizeMap[size]
@@ -23,7 +25,10 @@
 		style="width: {pixelSize}; height: {pixelSize};"
 	/>
 {:else}
-	<div class="profile-pic-placeholder" style="width: {pixelSize}; height: {pixelSize};">
+	<div 
+		class="profile-pic-placeholder" 
+		style="width: {pixelSize}; height: {pixelSize}; background: {background ? 'var(--color-surface)' : 'var(--color-neutral)'};"
+	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="20"
