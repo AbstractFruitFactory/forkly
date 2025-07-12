@@ -184,7 +184,7 @@
 				<div class="selected-tags">
 					{#each selectedTags as tag (tag)}
 						<div transition:scale|global={{ duration: 200 }} animate:flip={{ duration: 200 }}>
-							<Button variant="pill" size="sm" onclick={() => removeTag(tag)}>
+							<Button color="neutral" variant="pill" size="sm" onclick={() => removeTag(tag)}>
 								{tag}
 								<X size={14} color="var(--color-text-on-surface)" />
 							</Button>
