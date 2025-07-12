@@ -27,7 +27,7 @@
 {:else}
 	<div 
 		class="profile-pic-placeholder" 
-		style="width: {pixelSize}; height: {pixelSize}; background: {background ? 'var(--color-surface)' : 'var(--color-neutral)'};"
+		style="width: {pixelSize}; height: {pixelSize}; background: {background ? 'var(--color-surface)' : undefined};"
 	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
