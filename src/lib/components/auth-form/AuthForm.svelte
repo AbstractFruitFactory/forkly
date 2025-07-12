@@ -23,18 +23,18 @@
 </script>
 
 <div class="auth-form card">
-	<h1>{title}</h1>
+	<div class="title">{title}</div>
 	<form method="POST" use:enhance>
 		<div class="form-group">
 			<label for="username">Username</label>
-			<Input>
+			<Input --background=white>
 				<input id="username" name="username" type="text" placeholder="Enter username" required />
 			</Input>
 		</div>
 
 		<div class="form-group">
 			<label for="password">Password</label>
-			<Input>
+			<Input --background=white>
 				<input
 					id="password"
 					name="password"
@@ -48,7 +48,7 @@
 		{#if mode === 'signup'}
 			<div class="form-group">
 				<label for="email">Email</label>
-				<Input>
+				<Input --background=white>
 					<input id="email" name="email" type="email" placeholder="Enter email" required />
 				</Input>
 			</div>
@@ -63,10 +63,10 @@
 		</Button>
 
 		{#if mode === 'login'}
-			<a href="/login/google" style="display: block; margin-top: 1rem; text-align: center;">
+			<a href="/login/google" class="google-button">
 				<button
 					type="button"
-					style="width: 100%; padding: 0.75em; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5em;"
+					class="google-button-inner"
 				>
 					<GoogleIcon />
 					Sign in with Google
@@ -87,9 +87,11 @@
 		max-width: 400px;
 	}
 
-	h1 {
+	.title {
 		margin: 0 0 var(--spacing-xl);
 		text-align: center;
+		font-size: var(--font-size-3xl);
+		font-weight: var(--font-weight-bold);
 	}
 
 	.form-group {
@@ -99,6 +101,28 @@
 	label {
 		display: block;
 		margin-bottom: var(--spacing-xs);
+	}
+
+	.google-button {
+		display: block;
+		margin-top: var(--spacing-md);
+		text-align: center;
+		
+		.google-button-inner {
+			width: 100%;
+			padding: 0.75em;
+			border-radius: 4px;
+			border: 1px solid #ccc;
+			background: #fff;
+			color: #333;
+			font-weight: 500;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.5em;
+			border-radius: var(--border-radius-2xl);
+		}
 	}
 
 	.error {

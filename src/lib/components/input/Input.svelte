@@ -86,7 +86,7 @@
 		align-items: center;
 		border-radius: var(--rounded-corners, var(--border-radius-2xl));
 		padding: var(--spacing-xs);
-		background-color: var(--color-surface);
+		background-color: var(--background, var(--color-surface));
 		transition: all var(--transition-fast) var(--ease-in-out);
 		box-shadow: var(--shadow-sm);
 
