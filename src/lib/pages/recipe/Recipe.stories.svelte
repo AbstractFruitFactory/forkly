@@ -4,6 +4,7 @@
 	import type { MeasurementUnit } from '$lib/types'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import type { Component, ComponentProps } from 'svelte'
+	import type { DetailedRecipe } from '$lib/server/db/recipe'
 
 	type StoryProps = ComponentProps<typeof Recipe> & {
 		hasUser: boolean
@@ -35,7 +36,7 @@
 		}
 	})
 
-	const mockRecipe = $state({
+	const mockRecipe: DetailedRecipe = {
 		isSaved: false,
 		id: 'recipe-123',
 		title: 'Classic Spaghetti Carbonara',
@@ -43,22 +44,22 @@
 			'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper. Lorem ipsum dolor sit amet consectetur. Et enim nisi ac dui venenatis vitae egestas sit. Viverra vehicula odio quis convallis. Et libero mauris tincidunt volutpat ut ut posuere rhoncus. Condimentum risus egestas ultricies fermentum ullamcorper id varius dignissim feugiat.',
 		servings: 4,
 		ingredients: [
-			{ quantity: 400, measurement: 'grams' as MeasurementUnit, name: 'spaghetti', displayName: 'spaghetti', custom: false },
-			{ quantity: 4, measurement: 'pieces' as MeasurementUnit, name: 'large eggs', displayName: 'large eggs', custom: false },
+			{ id: '1', quantity: 400, measurement: 'grams' as MeasurementUnit, name: 'spaghetti', displayName: 'spaghetti' },
+			{ id: '2', quantity: 4, measurement: 'pieces' as MeasurementUnit, name: 'large eggs', displayName: 'large eggs' },
 			{
+				id: '3',
 				quantity: 100,
 				measurement: 'grams' as MeasurementUnit,
 				name: 'pecorino romano',
-				displayName: 'pecorino romano',
-				custom: false
+				displayName: 'pecorino romano'
 			},
-			{ quantity: 200, measurement: 'grams' as MeasurementUnit, name: 'pancetta', displayName: 'pancetta', custom: false },
+			{ id: '4', quantity: 200, measurement: 'grams' as MeasurementUnit, name: 'pancetta', displayName: 'pancetta' },
 			{
+				id: '5',
 				quantity: 2,
 				measurement: 'teaspoons' as MeasurementUnit,
 				name: 'black pepper',
-				displayName: 'black pepper',
-				custom: false
+				displayName: 'black pepper'
 			}
 		],
 		instructions: [
@@ -88,8 +89,8 @@
 				mediaType: 'video' as const
 			}
 		],
-               likes: 42,
-               bookmarks: 24,
+		likes: 42,
+		bookmarks: 24,
 		isLiked: false,
 		imageUrl:
 			'https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&q=80',
@@ -100,8 +101,14 @@
 				'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80'
 		},
 		tags: ['Vegan', 'Dinner', 'Sheet Pan'],
-		createdAt: '2024-01-01'
-	})
+		createdAt: new Date('2024-01-01'),
+		nutrition: {
+			calories: 850,
+			protein: 35,
+			carbs: 80,
+			fat: 40
+		}
+	}
 
 	const mockNutrition = {
 		totalNutrition: {
@@ -114,8 +121,7 @@
 	}
 
 	const mockOnLike = () => {
-		mockRecipe.likes = mockRecipe.likes + (mockRecipe.isLiked ? -1 : 1)
-		mockRecipe.isLiked = !mockRecipe.isLiked
+		console.log('Like clicked')
 	}
 
 	const mockUnitSystem: UnitSystem = 'metric'
@@ -125,17 +131,19 @@
 <Story name="Default">
 	{#snippet children(args)}
 		<Recipe
-			recipe={{
+			recipe={Promise.resolve({
 				...mockRecipe,
 				user: args.hasUser ? mockRecipe.user : undefined,
 				userId: args.hasUser ? mockRecipe.userId : undefined,
 				imageUrl: args.hasImage ? mockRecipe.imageUrl : undefined
-			}}
+			})}
 			nutritionInfo={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
-			user={!!args.hasUser}
 			onLike={mockOnLike}
+			collections={Promise.resolve(['Favorites', 'Italian', 'Quick Meals'])}
+			isLoggedIn={true}
+			onCreateCollection={async (name: string) => console.log('Create collection:', name)}
 		/>
 	{/snippet}
 </Story>
@@ -143,16 +151,18 @@
 <Story name="Without Description">
 	{#snippet children(args)}
 		<Recipe
-			recipe={{
+			recipe={Promise.resolve({
 				...mockRecipe,
 				description: undefined,
 				imageUrl: args.hasImage ? mockRecipe.imageUrl : undefined
-			}}
+			})}
 			nutritionInfo={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
-			user={true}
 			onLike={mockOnLike}
+			collections={Promise.resolve(['Favorites', 'Italian', 'Quick Meals'])}
+			isLoggedIn={true}
+			onCreateCollection={async (name: string) => console.log('Create collection:', name)}
 		/>
 	{/snippet}
 </Story>
@@ -160,15 +170,17 @@
 <Story name="Without Login">
 	{#snippet children(args)}
 		<Recipe
-			recipe={{
+			recipe={Promise.resolve({
 				...mockRecipe,
 				imageUrl: args.hasImage ? mockRecipe.imageUrl : undefined
-			}}
+			})}
 			nutritionInfo={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
 			onLike={mockOnLike}
-			user={false}
+			collections={Promise.resolve([])}
+			isLoggedIn={false}
+			onCreateCollection={async (name: string) => console.log('Create collection:', name)}
 		/>
 	{/snippet}
 </Story>
