@@ -553,7 +553,6 @@
 		transition:
 			border 0.2s ease-in-out,
 			background 0.1s ease-in-out,
-			padding-bottom 0.2s ease-in-out,
 			opacity 0.2s ease-in-out;
 
 		padding: var(--spacing-lg) 0;
@@ -564,17 +563,16 @@
 
 		@include mobile {
 			padding-top: var(--spacing-lg);
-			padding-bottom: 0;
 			border-radius: unset;
 			top: 0;
 		}
 
 		&.sticky {
-			padding-bottom: var(--spacing-lg);
 			border-color: var(--color-neutral);
 			margin: var(--spacing-sm);
 
 			@include mobile {
+	
 				margin: unset;
 			}
 
@@ -676,11 +674,6 @@
 
 	.recipe-grid {
 		position: relative;
-		margin-top: var(--spacing-xl);
-
-		@include mobile {
-			margin-top: var(--spacing-md);
-		}
 	}
 
 	.scroll-to-top {
