@@ -249,6 +249,7 @@
 					{#if 'isAddButton' in item}
 						<Button
 							fullWidth
+							color="neutral"
 							onclick={() => {
 								isDrawerOpen = true
 								resetDrawerFields()
@@ -331,7 +332,9 @@
 				onclick={() => {
 					isDrawerOpen = false
 					resetDrawerFields()
-				}}>Cancel</Button
+				}}
+				color="neutral"
+				>Cancel</Button
 			>
 			<Button onclick={handleAddIngredient} color="primary"
 				>{editingIngredientId ? 'Update Ingredient' : 'Add Ingredient'}</Button
@@ -350,7 +353,7 @@
 				animate:flip={{ duration: 200 }}
 			>
 				{#if 'isAddButton' in item}
-					<Button fullWidth onclick={openInstructionDrawer} size="sm">
+					<Button fullWidth color="neutral" onclick={openInstructionDrawer} size="sm">
 						<Plus size={16} color="var(--color-text-on-surface)" />
 						Add new instruction
 					</Button>
@@ -420,6 +423,7 @@
 		/>
 		<div class="drawer-actions">
 			<Button
+				color="neutral"
 				onclick={() => {
 					isInstructionDrawerOpen = false
 					resetInstructionDrawerFields()

@@ -119,7 +119,7 @@
 {/snippet}
 
 {#snippet signOut(fullWidth = false)}
-	<Button variant="border" size="sm" onclick={onLogout} {fullWidth}>
+	<Button variant="border" color="neutral" size="sm" onclick={onLogout} {fullWidth}>
 		<LogOut size={16} />
 		Sign out
 	</Button>

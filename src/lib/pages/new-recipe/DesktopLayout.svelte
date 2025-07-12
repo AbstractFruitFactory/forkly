@@ -107,7 +107,7 @@
 					animate:flip={{ duration: 200 }}
 				>
 					{#if 'isAddButton' in item}
-						<Button variant="pill" onclick={addIngredient} size="sm">
+						<Button variant="pill" color="neutral" onclick={addIngredient} size="sm">
 							<Plus size={16} color="var(--color-text-on-surface)" />
 						</Button>
 					{:else}
@@ -138,7 +138,7 @@
 					animate:flip={{ duration: 200 }}
 				>
 					{#if 'isAddButton' in item}
-						<Button variant="pill" onclick={addInstruction} size="sm">
+						<Button variant="pill" color="neutral" onclick={addInstruction} size="sm">
 							<Plus size={16} color="var(--color-text-on-surface)" />
 						</Button>
 					{:else}
