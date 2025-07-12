@@ -213,7 +213,11 @@
 	{#await recipe}
 		<RecipeImagePlaceholder loading size="large" />
 	{:then recipe}
-		<img src={recipe.imageUrl || ''} alt={recipe.title} />
+		{#if recipe.imageUrl}
+			<img src={recipe.imageUrl} alt={recipe.title} />
+		{:else}
+			<RecipeImagePlaceholder size="large" />
+		{/if}
 	{/await}
 {/snippet}
 
