@@ -22,7 +22,7 @@
 		content: Snippet<
 			[
 				handleSelect: (itemLabel: string, itemData: Omit<Item, 'label'>) => void,
-				item?: (itemContent: Snippet) => ReturnType<Snippet>
+				item?: (itemContent: Snippet, onclick: () => void) => ReturnType<Snippet>
 			]
 		>
 		isOpen?: boolean
@@ -109,7 +109,7 @@
 </script>
 
 <div class="filter-select">
-	<Button variant="pill" onclick={toggleDropdown} size="sm" fullHeight>
+	<Button variant="pill" color="neutral" onclick={toggleDropdown} size="sm" fullHeight>
 		{@render icon?.()}
 		{#if typeof label === 'string'}
 			{label}

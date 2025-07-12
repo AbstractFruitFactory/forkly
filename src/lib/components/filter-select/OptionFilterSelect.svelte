@@ -33,18 +33,14 @@
 			{:else}
 				{#each options as option}
 					{#snippet _item()}
-						<button
-							style:color="var(--color-text-on-surface)"
-							onclick={() => {
-								handleSelect(option.label, option)
-								option.onClick()
-								isOpen = false
-							}}
-						>
-							{option.label}
-						</button>
+						{option.label}
 					{/snippet}
-					{@render item?.(_item)}
+					
+					{@render item?.(_item, () => {
+						handleSelect(option.label, option)
+						option.onClick()
+						isOpen = false
+					})}
 				{/each}
 			{/if}
 		</div>
