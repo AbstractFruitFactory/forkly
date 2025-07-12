@@ -1,5 +1,4 @@
 <script lang="ts">
-	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
 	import Dropdown from '$lib/components/dropdown/Dropdown.svelte'
 	import MoreVertical from 'lucide-svelte/icons/more-vertical'
 	import Carrot from 'lucide-svelte/icons/carrot'
@@ -201,7 +200,7 @@
 
 		@include mobile {
 			height: 300px;
-			grid-template-rows: 55% auto;
+			grid-template-rows: 45% auto;
 
 			.avatar-wrapper {
 				bottom: -12px;
@@ -265,6 +264,10 @@
 		color: var(--color-text-on-surface);
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
+
+		@include mobile {
+			font-size: var(--font-size-md);
+		}
 	}
 
 	.image-container {
