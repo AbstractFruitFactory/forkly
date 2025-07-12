@@ -198,10 +198,7 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: var(--spacing-md);
-		border-top: 1px solid var(--color-neutral-dark);
-		background: var(--color-neutral-dark);
 		gap: var(--spacing-md);
-		border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
 
 		:global(.nav-button) {
 			display: flex;
