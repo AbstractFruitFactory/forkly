@@ -7,21 +7,8 @@
 	import { safeFetch } from '$lib/utils/fetch'
 	import { fly } from 'svelte/transition'
 	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
-	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 
-	let { form, data } = $props()
-
-	let availableTags: Awaited<ReturnType<typeof data.availableTags>> = $state([])
-	let isTagsLoading = $state(true)
-
-	$effect(() => {
-		const tagsPromise = data.availableTags
-		isTagsLoading = true
-		tagsPromise.then((tags) => {
-			availableTags = tags
-			isTagsLoading = false
-		})
-	})
+	let { form } = $props()
 
 	let searchTimeout: ReturnType<typeof setTimeout>
 	let tagSearchTimeout: ReturnType<typeof setTimeout>
@@ -76,14 +63,11 @@
 <div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 	{#if form?.success}
 		<RecipeSuccess recipeId={form.recipeId!} />
-	{:else if isTagsLoading}
-		<Skeleton height="10rem" />
 	{:else}
 		<NewRecipe
 			errors={form?.errors}
 			onSearchIngredients={handleSearchIngredients}
 			onSearchTags={handleSearchTags}
-			{availableTags}
 			{unitSystem}
 			onUnitChange={handleUnitChange}
 		/>
