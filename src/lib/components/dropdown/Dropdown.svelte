@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { clickOutside } from '$lib/actions/clickOutside'
-	import { fly } from 'svelte/transition'
-	import type { Snippet } from 'svelte'
+        import { clickOutside } from '$lib/actions/clickOutside'
+        import { fly } from 'svelte/transition'
+        import type { Snippet } from 'svelte'
+        import { computePosition, autoUpdate, offset, flip, shift } from '@floating-ui/dom'
+        import { onDestroy, tick } from 'svelte'
 
 	let {
 		isOpen = $bindable(false),
@@ -13,17 +15,49 @@
 		>
 	} = $props()
 
-	const closeDropdown = () => {
-		isOpen = false
-	}
+        let dropdownEl: HTMLElement | null = null
+        let parentEl: HTMLElement | null = null
+        let cleanup: (() => void) | undefined
+
+        const closeDropdown = () => {
+                isOpen = false
+        }
+
+        async function updatePosition() {
+                if (!parentEl || !dropdownEl) return
+                const { x, y } = await computePosition(parentEl, dropdownEl, {
+                        placement: 'bottom-start',
+                        middleware: [offset(4), flip(), shift({ padding: 8 })]
+                })
+
+                dropdownEl.style.left = `${x}px`
+                dropdownEl.style.top = `${y}px`
+        }
+
+        $: if (isOpen && dropdownEl) {
+                parentEl = dropdownEl.parentElement
+                tick().then(() => {
+                        cleanup?.()
+                        cleanup = autoUpdate(parentEl!, dropdownEl!, updatePosition)
+                        updatePosition()
+                })
+        } else {
+                cleanup?.()
+        }
+
+        onDestroy(() => {
+                cleanup?.()
+        })
 </script>
 
 {#if isOpen}
-	<div
-		class="dropdown"
-		use:clickOutside={{ callback: closeDropdown }}
-		transition:fly={{ y: 10, duration: 200 }}
-	>
+        <div
+                bind:this={dropdownEl}
+                class="dropdown"
+                style="top: 0; left: 0;"
+                use:clickOutside={{ callback: closeDropdown }}
+                transition:fly={{ y: 10, duration: 200 }}
+        >
 		{@render dropdownContent(item)}
 	</div>
 {/if}
@@ -35,17 +69,14 @@
 {/snippet}
 
 <style lang="scss">
-	.dropdown {
-		position: absolute;
-		top: 100%;
-		left: 0;
-		background-color: var(--color-surface);
-		border-radius: var(--border-radius-lg);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-		z-index: 10;
-		margin-top: var(--spacing-sm);
-		overflow: hidden;
-		border: 1px solid var(--color-neutral-2);
+        .dropdown {
+                position: absolute;
+                background-color: var(--color-surface);
+                border-radius: var(--border-radius-lg);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                z-index: 10;
+                overflow: hidden;
+                border: 1px solid var(--color-neutral-2);
 		min-width: 200px;
 		display: flex;
 		flex-direction: column;
