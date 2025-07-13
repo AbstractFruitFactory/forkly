@@ -34,7 +34,7 @@
 	function open(viewName?: typeof view) {
 		view = viewName
 		isDrawerOpen = !!viewName
-		goto(viewName ? `/profile?tab=${viewName}` : '/profile', { replaceState: true })
+		//goto(viewName ? `/profile?tab=${viewName}` : '/profile', { replaceState: true })
 	}
 
 	function handleBack() {
