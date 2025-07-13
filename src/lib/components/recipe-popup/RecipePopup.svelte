@@ -2,26 +2,24 @@
 	import Popup from '../popup/Popup.svelte'
 	import RecipePage from '../../../routes/(pages)/recipe/[id]/+page.svelte'
 	import type { ComponentProps } from 'svelte'
-	import { untrack } from 'svelte'
+
 	let {
 		data,
-		isOpen = $bindable(false),
 		onClose,
 		animateFrom = null
 	}: {
 		data?: ComponentProps<typeof RecipePage>['data']
-		isOpen: boolean
 		onClose: () => void
 		animateFrom?: HTMLElement | null
 	} = $props()
 
-	$effect(() => {
-		if (isOpen) {
-			untrack(popup.open)
-		} else {
-			untrack(popup.close)
-		}
-	})
+	export const open = async () => {
+		await popup.open()
+	}
+	
+	export const close = async () => {
+		await popup.close()
+	}
 
 	let popup: Popup
 </script>

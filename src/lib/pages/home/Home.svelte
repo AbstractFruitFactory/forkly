@@ -232,6 +232,7 @@
 
 	let recipeModalData = $state<ComponentProps<typeof RecipePopup>['data']>()
 	let animateFromElement = $state<HTMLElement | null>(null)
+	let recipePopup: RecipePopup
 
 	const openRecipePopup = async (recipe: DetailedRecipe, e: MouseEvent) => {
 		if (e.shiftKey || e.metaKey || e.ctrlKey || e.button === 1) return
@@ -255,16 +256,21 @@
 
 		resolveRecipePopup = resolve
 
+		recipePopup.open()
+
 		return promise
 	}
 
-	const closePopup = () => {
+	const closePopup = async (_replaceState = true) => {
 		if (!resolveRecipePopup) return
 
 		page.state.recipeModal = undefined
 		animateFromElement = null
 		resolveRecipePopup()
-		replaceState('/', { recipeModal: undefined })
+
+		if (_replaceState) {
+			replaceState('/', { recipeModal: undefined })
+		}
 	}
 
 	const emptyStateMessage = $derived(
@@ -274,8 +280,9 @@
 	)
 
 	onMount(() => {
-		const callback = () => {
-			closePopup()
+		const callback = async () => {
+			await recipePopup.close()
+			closePopup(false)
 		}
 		window.addEventListener('popstate', callback)
 
@@ -396,8 +403,8 @@
 {/snippet}
 
 <RecipePopup
+	bind:this={recipePopup}
 	data={recipeModalData}
-	isOpen={page.state.recipeModal ?? false}
 	onClose={closePopup}
 	animateFrom={animateFromElement}
 />

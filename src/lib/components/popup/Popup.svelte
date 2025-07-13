@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
 	import { fade } from 'svelte/transition'
-	import { onMount, tick } from 'svelte'
+	import { tick } from 'svelte'
 	import gsap from 'gsap'
 
 	let {
@@ -26,12 +26,12 @@
 		animateFrom?: HTMLElement | null
 	} = $props()
 
-	export const open = () => {
-		handleOpen()
+	export const open = async () => {
+		await handleOpen()
 	}
 
-	export const close = () => {
-		handleClose()
+	export const close = async () => {
+		await handleClose()
 	}
 
 	let ANIMATION_DURATION = 0.4
