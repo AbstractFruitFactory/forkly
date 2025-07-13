@@ -31,7 +31,7 @@
 
 	function handleTabSelect(option: (typeof tabOptions)[number]) {
 		selectedTab = option
-		goto(`/profile?tab=${option}`, { replaceState: true })
+		//goto(`/profile?tab=${option}`, { replaceState: true })
 	}
 
 	let avatarInput: HTMLInputElement
