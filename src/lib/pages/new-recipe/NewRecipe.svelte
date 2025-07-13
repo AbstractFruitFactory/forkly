@@ -231,6 +231,10 @@
 				{submitting}
 			/>
 		</div>
+		
+		{#each selectedTags as tag (tag)}
+			<input type="hidden" name="tags" value={tag} />
+		{/each}
 	</form>
 </div>
 
