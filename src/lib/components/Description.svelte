@@ -61,6 +61,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
+		word-break: break-word;
 	}
 
 	.creator-skeleton {

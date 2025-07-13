@@ -516,6 +516,7 @@
 		font-size: var(--font-size-3xl);
 		font-weight: var(--font-weight-semibold);
 		margin-bottom: 0;
+		word-break: break-word;
 	}
 
 	.header {
