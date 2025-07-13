@@ -6,5 +6,5 @@ export const google = new Google(
     GOOGLE_CLIENT_SECRET,
     import.meta.env.MODE === "development"
         ? "http://localhost:5173/login/google/callback"
-        : "https://forkly.vercel.app/login/google/callback"
+        : "https://forkly.me/login/google/callback"
 ) 
