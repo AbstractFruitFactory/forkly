@@ -251,6 +251,11 @@
 		<FloatingSaveButton
 			isActive={isSaved}
 			onClick={() => {
+				if (!isLoggedIn) {
+					handleSave()
+					return
+				}
+
 				if (isSaved) {
 					handleSave()
 				} else {
