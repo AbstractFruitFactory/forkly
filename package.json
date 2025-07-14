@@ -26,7 +26,8 @@
     "redis-ui": "redis-commander --redis-host localhost --redis-port 6379",
     "chromatic": "npx chromatic --project-token=chpt_ab3b71157b15f21 --storybook-build-dir=storybook-static",
     "test": "dotenv -e .env.test vitest run",
-    "test:watch": "dotenv -e .env.test vitest"
+    "test:watch": "dotenv -e .env.test vitest",
+    "cleanup:unverified": "tsx src/lib/server/db/cleanup-unverified.ts"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.4",

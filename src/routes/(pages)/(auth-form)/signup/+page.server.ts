@@ -67,7 +67,14 @@ export const actions = {
             .where(eq(table.user.email, input.output.email))
             .then(results => results[0])
 
-        if (existingEmail) return fail(400, { error: 'Email already in use' })
+        if (existingEmail) {
+            if (!existingEmail.emailVerified) {
+                return fail(400, { 
+                    error: 'An account with this email already exists but is not verified. Please check your email for the verification link.'
+                })
+            }
+            return fail(400, { error: 'Email already in use' })
+        }
 
         const userId = generateUserId()
         const passwordHash = await hash(input.output.password, {
