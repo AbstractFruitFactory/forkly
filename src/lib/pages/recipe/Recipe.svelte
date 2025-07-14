@@ -248,16 +248,21 @@
 		<FloatingShareButton loading />
 	{:then [isLiked, isSaved, likes]}
 		<FloatingLikeButton isActive={isLiked} count={likes} onClick={handleLike} />
-		<FloatingSaveButton
-			isActive={isSaved}
-			onClick={() => {
-				if (isSaved) {
-					handleSave()
-				} else {
-					savePopupOpen = true
-				}
-			}}
-		/>
+                <FloatingSaveButton
+                        isActive={isSaved}
+                        onClick={() => {
+                                if (!isLoggedIn) {
+                                        handleSave()
+                                        return
+                                }
+
+                                if (isSaved) {
+                                        handleSave()
+                                } else {
+                                        savePopupOpen = true
+                                }
+                        }}
+                />
 		<FloatingShareButton onClick={toggleSharePopup} />
 	{/await}
 {/snippet}
