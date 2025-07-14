@@ -54,16 +54,8 @@
     {
       "idx": 7,
       "version": "7",
-      "when": 1752395061320,
-      "tag": "0007_crisp_title_length",
-      "breakpoints": true
-    }
-    ,
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1752523116769,
-      "tag": "0008_steady_title_min_length",
+      "when": 1752523956771,
+      "tag": "0007_sharp_mac_gargan",
       "breakpoints": true
     }
   ]
