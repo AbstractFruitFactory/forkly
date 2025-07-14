@@ -44,7 +44,7 @@ export const recipe = pgTable('recipe', {
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => {
         return {
-                titleLength: check('recipe_title_length', sql`length(${table.title}) <= 80`)
+                titleLength: check('recipe_title_length', sql`length(${table.title}) <= 80 and length(${table.title}) >= 5`)
         }
 })
 

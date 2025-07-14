@@ -218,7 +218,7 @@
 
 	<div class="form-group">
                 <Input>
-                        <input name="title" type="text" required maxlength="80" placeholder="Enter recipe title" />
+                        <input name="title" type="text" required minlength="5" maxlength="80" placeholder="Enter recipe title" />
                 </Input>
 		<div style:height="var(--spacing-md)"></div>
 
