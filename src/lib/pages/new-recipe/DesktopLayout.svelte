@@ -64,9 +64,9 @@
 		<div class="header-content">
 			<div class="text-content">
 				<div>
-					<Input>
-						<input name="title" type="text" required placeholder="Enter recipe title" />
-					</Input>
+                                        <Input>
+                                                <input name="title" type="text" required maxlength="80" placeholder="Enter recipe title" />
+                                        </Input>
 				</div>
 
 				<Input>
