@@ -31,7 +31,12 @@ jobs:
       - name: Run cleanup script
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: pnpm cleanup:unverified
+        run: |
+          echo "Calling cleanup API endpoint..."
+          curl -X POST "${{ vars.APP_URL }}/api/auth/cleanup-unverified" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP Status: %{http_code}\n" \
+            -s
 
       - name: Report cleanup results
         if: always()
