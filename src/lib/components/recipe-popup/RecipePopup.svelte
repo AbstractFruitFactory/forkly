@@ -15,6 +15,7 @@
 
 	export const open = async () => {
 		await popup.open()
+		window.scrollTo(0, 0)
 	}
 	
 	export const close = async () => {
