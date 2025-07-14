@@ -2,7 +2,7 @@
 	import { gsap } from 'gsap'
 	import { untrack, type Snippet } from 'svelte'
 
-	type Item = $$Generic
+	type Item = $$Generic<{ id: string }>
 
 	let {
 		item,
@@ -46,7 +46,7 @@
 		</div>
 	{:else}
 		<div bind:this={cardGrid} class="card-grid">
-			{#each items as _item, index (index)}
+			{#each items as _item, index (_item.id)}
 				<div bind:this={cards[index]} class="card-wrapper">
 					{@render item(_item)}
 				</div>

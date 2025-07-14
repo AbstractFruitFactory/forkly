@@ -1,11 +1,11 @@
 <script lang="ts">
 	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
 	import CardGrid from '$lib/components/card-grid/CardGrid.svelte'
-	import { onMount, untrack, type ComponentProps } from 'svelte'
+	import { onMount, type ComponentProps } from 'svelte'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 
 	type RecipeItem = NonNullable<ComponentProps<typeof RecipeCard>['recipe']>
-	type LoadingItem = { loading: true }
+	type LoadingItem = { loading: true, id: string }
 	type GridItem = RecipeItem | LoadingItem
 
 	let {
@@ -39,7 +39,7 @@
 		if (isLoading && resolvedRecipes) {
 			return [
 				...resolvedRecipes.map((recipe) => ({ ...recipe, loading: false })),
-				...Array(18).fill({ loading: true })
+				...Array(18).fill(undefined).map((_, index) => ({ loading: true, id: index.toString() }))
 			] as GridItem[]
 		}
 		return resolvedRecipes as GridItem[]
