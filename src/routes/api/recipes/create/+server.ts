@@ -51,7 +51,9 @@ const createRecipeSchema = v.object({
   title: v.pipe(
     v.string(),
     v.transform(input => input ?? ''),
-    v.minLength(1, 'Title is required')
+    v.minLength(1, 'Title is required'),
+    v.minLength(5, 'Title must be at least 5 characters'),
+    v.maxLength(80, 'Title must be at most 80 characters')
   ),
   description: v.pipe(
     v.string(),
