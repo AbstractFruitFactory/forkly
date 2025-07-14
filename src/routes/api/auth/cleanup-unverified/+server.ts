@@ -37,8 +37,8 @@ export const POST: RequestHandler = async () => {
                 .map(user => user.id)
 
             if (usersToDelete.length > 0) {
-                await db.delete(table.user).where(inArray(table.user.id, usersToDelete))
-                deletedUsers = usersToDelete.length
+                const result = await db.delete(table.user).where(inArray(table.user.id, usersToDelete))
+                deletedUsers = result.length
             }
         }
 
