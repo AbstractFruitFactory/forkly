@@ -329,7 +329,9 @@
 		<div class="header">
 			<h3 style="margin-bottom: 0;">Instructions</h3>
 			{#await recipe then _}
+			<div class=hide-media-switch>
 				<Switch bind:checked={hideImages} label="Hide media" />
+			</div>
 			{/await}
 		</div>
 		{#await recipe}
@@ -533,6 +535,12 @@
 
 		h3 {
 			margin-bottom: 0;
+		}
+	}
+
+	.hide-media-switch {
+		@include mobile {
+			display: none;
 		}
 	}
 
