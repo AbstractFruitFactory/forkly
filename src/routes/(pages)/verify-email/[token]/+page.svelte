@@ -1,33 +1,32 @@
 <script lang="ts">
-       import { onMount } from 'svelte'
-       import { goto } from '$app/navigation'
-       import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
-       let { data } = $props()
+	import { onMount } from 'svelte'
+	import { goto } from '$app/navigation'
+	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 
-       let result: Awaited<ReturnType<typeof data.verification>> | null = null
-       let isLoading = $state(true)
+	let { data } = $props()
 
-       $effect(() => {
-               const p = data.verification
-               isLoading = true
-               p.then((r) => {
-                       result = r
-                       isLoading = false
-               })
-       })
+	let result = $state<any>(null)
+	let isLoading = $state(true)
 
-       onMount(() => {
-               if (result?.success) setTimeout(() => goto('/'), 2000)
-       })
+	onMount(() => {
+		data.verification.then((r: any) => {
+			result = r
+			isLoading = false
+
+			if (r.success) {
+				setTimeout(() => goto('/'), 2000)
+			}
+		})
+	})
 </script>
 
 <div class="verify-email-container">
-        {#if isLoading || !result}
-                <Skeleton height="4rem" />
-        {:else}
-                <h1>{result.success ? 'Email Verified' : 'Verification Failed'}</h1>
-                <p>{result.message}</p>
-        {/if}
+	{#if isLoading || !result}
+		<Skeleton height="4rem" />
+	{:else}
+		<h1>{result.success ? 'Email Verified' : 'Verification Failed'}</h1>
+		<p>{result.message}</p>
+	{/if}
 </div>
 
 <style>
@@ -39,9 +38,6 @@
 		min-height: 60vh;
 	}
 	h1 {
-		margin-bottom: 1rem;
-	}
-	p {
-		font-size: 1.1rem;
+		font-family: 'Inter', sans-serif;
 	}
 </style>

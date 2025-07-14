@@ -3,8 +3,9 @@ import type { PageServerLoad } from './$types'
 import { db } from '$lib/server/db'
 import * as table from '$lib/server/db/schema'
 import { eq, and } from 'drizzle-orm'
+import * as auth from '$lib/server/auth'
 
-export const load: PageServerLoad = ({ params }) => {
+export const load: PageServerLoad = ({ params, cookies }) => {
     const { token } = params
     if (!token) return { verification: Promise.resolve({ success: false, message: 'Invalid verification link.' }) }
 
@@ -24,6 +25,16 @@ export const load: PageServerLoad = ({ params }) => {
                 .set({ emailVerified: true })
                 .where(eq(table.user.id, record.userId))
             await db.delete(table.emailVerification).where(eq(table.emailVerification.token, token))
+
+            // Create session after email verification
+            const sessionToken = auth.generateSessionToken()
+            const session = await auth.createSession(sessionToken, record.userId)
+
+            // Set session cookie
+            cookies.set(auth.sessionCookieName, sessionToken, {
+                expires: session.expiresAt,
+                path: '/'
+            })
 
             return { success: true, message: 'Your email has been verified, and you will be redirected to the home page shortly.' }
         })

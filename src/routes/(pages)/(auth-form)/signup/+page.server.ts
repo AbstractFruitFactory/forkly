@@ -6,7 +6,6 @@ import { db } from '$lib/server/db'
 import * as table from '$lib/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { hash } from '@node-rs/argon2'
-import * as auth from '$lib/server/auth'
 
 export const load: PageServerLoad = ({ locals }) => {
     if (locals.user) {
@@ -42,7 +41,7 @@ const generateUserId = () => {
 }
 
 export const actions = {
-    default: async ({ request, cookies }) => {
+    default: async ({ request }) => {
         const formData = await request.formData()
         const username = formData.get('username')
         const password = formData.get('password')
@@ -97,20 +96,6 @@ export const actions = {
         // Placeholder for sending email
         console.log(`Verify your email: /verify-email/${token}`)
 
-        const sessionToken = auth.generateSessionToken()
-        const session = await auth.createSession(sessionToken, userId)
-
-        cookies.set(auth.sessionCookieName, sessionToken, {
-            expires: session.expiresAt,
-            path: '/'
-        })
-
-        return {
-            success: true,
-            user: {
-                id: userId,
-                username: input.output.username
-            }
-        }
+        redirect(302, '/verify-email')
     }
 } satisfies Actions 
