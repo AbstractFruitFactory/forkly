@@ -6,6 +6,8 @@ import { db } from '$lib/server/db'
 import * as table from '$lib/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { hash } from '@node-rs/argon2'
+import { Resend } from 'resend'
+import { APP_URL, RESEND_API_KEY } from '$env/static/private'
 
 export const load: PageServerLoad = ({ locals }) => {
     if (locals.user) {
@@ -95,6 +97,17 @@ export const actions = {
 
         // Placeholder for sending email
         console.log(`Verify your email: /verify-email/${token}`)
+
+        const resend = new Resend(RESEND_API_KEY)
+
+        const url = `${APP_URL}/verify-email/${token}`
+
+        resend.emails.send({
+            from: 'Forkly <onboarding@resend.dev>',
+            to: input.output.email,
+            subject: 'Verify your email',
+            html: `<p>Verify your email: <a href="${url}">${url}</a></p>`
+        })
 
         redirect(302, '/verify-email')
     }

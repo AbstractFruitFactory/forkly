@@ -78,6 +78,7 @@
     "lucide-svelte": "^0.475.0",
     "postgres": "^3.4.5",
     "ramda": "^0.30.1",
+    "resend": "^4.6.0",
     "spoonacular": "^2.0.1",
     "string-similarity": "^4.0.4",
     "ts-results": "^3.3.0",

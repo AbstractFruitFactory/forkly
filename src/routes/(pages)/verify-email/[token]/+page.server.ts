@@ -5,11 +5,11 @@ import * as table from '$lib/server/db/schema'
 import { eq, and } from 'drizzle-orm'
 import * as auth from '$lib/server/auth'
 
-export const load: PageServerLoad = ({ params, cookies }) => {
+export const load: PageServerLoad = async ({ params, cookies }) => {
     const { token } = params
     if (!token) return { verification: Promise.resolve({ success: false, message: 'Invalid verification link.' }) }
 
-    const verification = db
+    const verification = await db
         .select()
         .from(table.emailVerification)
         .where(eq(table.emailVerification.token, token))
