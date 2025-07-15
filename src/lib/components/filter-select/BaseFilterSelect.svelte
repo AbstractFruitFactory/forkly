@@ -3,8 +3,9 @@
 	import { onMount, type Snippet } from 'svelte'
 	import Button from '../button/Button.svelte'
 	import Drawer from '../drawer/Drawer.svelte'
+	import Check from 'lucide-svelte/icons/check'
 
-	type Item = $$Generic<{ label: string }>
+	type Item = $$Generic<{ label: string; selected: boolean }>
 
 	let {
 		label,
@@ -22,7 +23,12 @@
 		content: Snippet<
 			[
 				handleSelect: (itemLabel: string, itemData: Omit<Item, 'label'>) => void,
-				item?: (itemContent: Snippet, onclick: () => void) => ReturnType<Snippet>
+				selected: Item | Item[],
+				item?: (
+					itemContent: Snippet,
+					onclick: () => void,
+					selected: boolean
+				) => ReturnType<Snippet>
 			]
 		>
 		isOpen?: boolean
@@ -125,7 +131,7 @@
 		<Dropdown bind:isOpen>
 			{#snippet dropdownContent(item)}
 				<div class="items-container" role="listbox" onkeydown={handleKeyDown}>
-					{@render content(handleSelect, item)}
+					{@render content(handleSelect, selected, item)}
 				</div>
 			{/snippet}
 		</Dropdown>
@@ -136,12 +142,17 @@
 	<Drawer bind:isOpen {title}>
 		<div class="drawer-flex-col">
 			<div class="drawer-scroll-content">
-				{#snippet item(itemContent: Snippet, onclick: () => void)}
-					<button type="button" class="item" {onclick}>
+				{#snippet item(itemContent: Snippet, onclick: () => void, selected: boolean)}
+					<button type="button" class="item" {onclick} class:selected>
 						{@render itemContent()}
+						{#if selected}
+							<div class="selected-indicator">
+								<Check size={16} color="white" />
+							</div>
+						{/if}
 					</button>
 				{/snippet}
-				{@render content(handleSelect, item)}
+				{@render content(handleSelect, selected, item)}
 			</div>
 			<Button color="primary" fullWidth onclick={() => (isOpen = false)}>Show Results</Button>
 		</div>
@@ -179,5 +190,26 @@
 		color: var(--color-text-on-surface);
 		width: 100%;
 		text-align: left;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		transition: all 0.2s ease;
+
+		&.selected {
+			color: var(--color-text-on-primary);
+			border-color: var(--color-primary);
+		}
+	}
+
+	.selected-indicator {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 20px;
+		height: 20px;
+		background-color: var(--color-success);
+		border-radius: 50%;
+		color: white;
+		flex-shrink: 0;
 	}
 </style>

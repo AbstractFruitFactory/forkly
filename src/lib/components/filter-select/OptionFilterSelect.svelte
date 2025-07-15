@@ -3,16 +3,18 @@
 	import type { Snippet } from 'svelte'
 	import ChevronDown from 'lucide-svelte/icons/chevron-down'
 
-	type Item = $$Generic<{ label: string; onClick: () => void }>
+	type Item = $$Generic<{ label: string; onClick: () => void; selected: boolean }>
 
 	let {
 		options,
 		selected = $bindable<Item>(),
-		icon
+		icon,
+		buttonLabel
 	}: {
 		options: Item[]
 		selected: Item
 		icon?: Snippet
+		buttonLabel?: Snippet
 	} = $props()
 
 	let isOpen = $state(false)
@@ -20,13 +22,17 @@
 
 <BaseFilterSelect bind:selected {icon} bind:isOpen>
 	{#snippet label()}
-		{selected.label}
-		<div class="arrow" class:open={isOpen}>
-			<ChevronDown size={16} color="var(--color-text-on-surface)" />
-		</div>
+		{#if buttonLabel}
+			{@render buttonLabel()}
+		{:else}
+			{selected.label}
+			<div class="arrow" class:open={isOpen}>
+				<ChevronDown size={16} color="var(--color-text-on-surface)" />
+			</div>
+		{/if}
 	{/snippet}
 
-	{#snippet content(handleSelect, item)}
+	{#snippet content(handleSelect, selected, item)}
 		<div class="items">
 			{#if options.length === 0}
 				<div class="helper-text">No options available</div>
@@ -35,12 +41,18 @@
 					{#snippet _item()}
 						{option.label}
 					{/snippet}
-					
-					{@render item?.(_item, () => {
-						handleSelect(option.label, option)
-						option.onClick()
-						isOpen = false
-					})}
+
+					{@render item?.(
+						_item,
+						() => {
+							handleSelect(option.label, option)
+							option.onClick()
+							isOpen = false
+						},
+						Array.isArray(selected)
+							? selected.some((item) => item.label === option.label)
+							: selected.label === option.label
+					)}
 				{/each}
 			{/if}
 		</div>

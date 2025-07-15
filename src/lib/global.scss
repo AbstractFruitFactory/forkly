@@ -338,6 +338,14 @@ button {
   opacity: 0.1;
 }
 
+.only-mobile {
+  display: none;
+
+  @include mobile {
+    display: block;
+  }
+}
+
 /* Custom Scrollbar Styles */
 * {
   /* Firefox */

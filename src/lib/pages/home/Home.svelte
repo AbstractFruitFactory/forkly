@@ -18,6 +18,7 @@
 	import { fade } from 'svelte/transition'
 	import TaglineTypewriter from '$lib/components/tagline-typewriter/TaglineTypewriter.svelte'
 	import Logo from '$lib/components/logo/Logo.svelte'
+	import SortIcon from 'lucide-svelte/icons/arrow-up-down'
 
 	let {
 		recipes,
@@ -357,7 +358,15 @@
 				</div>
 
 				<div class="right-section">
-					<OptionFilterSelect options={sortOptions} bind:selected={sortBy} />
+					{#snippet buttonLabel()}
+						<SortIcon size={16} />
+					{/snippet}
+
+					<OptionFilterSelect
+						options={sortOptions}
+						bind:selected={sortBy}
+						buttonLabel={isMobile ? buttonLabel : undefined}
+					/>
 				</div>
 			</div>
 
@@ -564,7 +573,6 @@
 
 		padding: var(--spacing-lg) 0;
 
-	
 		border-radius: var(--border-radius-xl);
 		background: var(--color-background);
 
@@ -579,7 +587,6 @@
 			margin: var(--spacing-sm);
 
 			@include mobile {
-	
 				margin: unset;
 			}
 
