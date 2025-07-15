@@ -109,12 +109,14 @@ export const actions = {
 
         const url = `${APP_URL}/verify-email/${token}`
 
-        resend.emails.send({
+        const result = await resend.emails.send({
             from: 'Forkly <no-reply@forkly.me>',
             to: input.output.email,
             subject: 'Verify your email',
             html: `<p>Verify your email: <a href="${url}">${url}</a></p>`
         })
+
+        console.log('Email result:', result)
 
         redirect(302, '/verify-email')
     }
