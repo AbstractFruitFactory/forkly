@@ -217,9 +217,16 @@
 	<MediaUpload name="image" type="image" previewAlt="Recipe preview" />
 
 	<div class="form-group">
-                <Input>
-                        <input name="title" type="text" required minlength="5" maxlength="80" placeholder="Enter recipe title" />
-                </Input>
+		<Input>
+			<input
+				name="title"
+				type="text"
+				required
+				minlength="5"
+				maxlength="80"
+				placeholder="Enter recipe title"
+			/>
+		</Input>
 		<div style:height="var(--spacing-md)"></div>
 
 		<Input>
@@ -333,8 +340,7 @@
 					isDrawerOpen = false
 					resetDrawerFields()
 				}}
-				color="neutral"
-				>Cancel</Button
+				color="neutral">Cancel</Button
 			>
 			<Button onclick={handleAddIngredient} color="primary"
 				>{editingIngredientId ? 'Update Ingredient' : 'Add Ingredient'}</Button
