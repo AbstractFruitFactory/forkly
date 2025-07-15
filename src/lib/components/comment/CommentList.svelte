@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Comment from './Comment.svelte'
-	import Popover from '$lib/components/popover/Popover.svelte'
 	import ImageIcon from 'lucide-svelte/icons/image'
 	import { enhance } from '$app/forms'
 	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
@@ -170,20 +169,16 @@
 			</div>
 		</form>
 	{:else}
-		<Popover type="warning">
-			{#snippet trigger()}
-				<div class="login-prompt">
-					<Input>
-						{#snippet children()}
-							<textarea placeholder="Add a comment..." disabled></textarea>
-						{/snippet}
-					</Input>
-				</div>
-			{/snippet}
-			{#snippet content()}
-				Login to comment on recipes!
-			{/snippet}
-		</Popover>
+		<div class="login-prompt">
+			<Input>
+				{#snippet children()}
+					<textarea placeholder="Add a comment..." disabled></textarea>
+				{/snippet}
+			</Input>
+			<div class="login-overlay">
+				<span>Log in to post a comment</span>
+			</div>
+		</div>
 	{/if}
 
 	<div class="comments-list card">
@@ -396,6 +391,38 @@
 	.login-prompt {
 		width: 100%;
 		opacity: 0.7;
+		position: relative;
+		cursor: not-allowed;
+
+		&:hover .login-overlay {
+			opacity: 1;
+			visibility: visible;
+		}
+	}
+
+	.login-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(255, 255, 255, 0.9);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: var(--border-radius-2xl);
+		opacity: 0;
+		visibility: hidden;
+		transition: all 0.2s ease;
+		z-index: 10;
+
+		span {
+			color: var(--color-neutral-darkest);
+			font-size: var(--font-size-sm);
+			font-weight: var(--font-weight-medium);
+			text-align: center;
+			padding: var(--spacing-sm);
+		}
 	}
 
 	.comment-skeleton {
