@@ -90,9 +90,21 @@
 		transition: all var(--transition-fast) var(--ease-in-out);
 		box-shadow: var(--shadow-sm);
 
+		/* Safari-specific fixes */
+		-webkit-box-sizing: border-box;
+		-webkit-transform: translateZ(0);
+		-webkit-backface-visibility: hidden;
+
 		&:focus-within {
 			border-color: var(--color-primary);
 			box-shadow: 0 0 0 var(--border-width-thin) var(--color-primary-light);
+		}
+
+		/* Fallback for Safari grid issues */
+		@supports (-webkit-appearance: none) {
+			display: flex;
+			align-items: center;
+			gap: var(--spacing-xs);
 		}
 	}
 
@@ -101,6 +113,7 @@
 		align-items: center;
 		gap: var(--spacing-xs);
 		padding-right: var(--spacing-md);
+		flex-shrink: 0;
 	}
 
 	.clear-button {
@@ -151,6 +164,7 @@
 		}
 	}
 
+	/* Safari-specific input fixes */
 	.input-wrapper {
 		:global(input),
 		:global(textarea) {
@@ -160,6 +174,9 @@
 			border-radius: 0;
 			padding-right: var(--spacing-md);
 			color: var(--color-text-on-surface);
+			-webkit-appearance: none;
+			-webkit-box-sizing: border-box;
+			-webkit-transform: translateZ(0);
 
 			&:hover,
 			&:focus {
