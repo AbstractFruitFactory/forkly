@@ -3,7 +3,7 @@
 	import type { Snippet } from 'svelte'
 	import ChevronDown from 'lucide-svelte/icons/chevron-down'
 
-	type Item = $$Generic<{ label: string; onClick: () => void; selected: boolean }>
+	type Item = $$Generic<{ label: string; onClick: () => void }>
 
 	let {
 		options,

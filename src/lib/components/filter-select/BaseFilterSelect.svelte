@@ -5,7 +5,7 @@
 	import Drawer from '../drawer/Drawer.svelte'
 	import Check from 'lucide-svelte/icons/check'
 
-	type Item = $$Generic<{ label: string; selected: boolean }>
+	type Item = $$Generic<{ label: string; }>
 
 	let {
 		label,
