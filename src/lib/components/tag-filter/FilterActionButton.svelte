@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { Check, Plus, Minus } from 'lucide-svelte'
+	import Check from 'lucide-svelte/icons/check'
+	import Plus from 'lucide-svelte/icons/plus'
+	import Minus from 'lucide-svelte/icons/minus'
 
 	let {
 		isSelected = $bindable(false),

@@ -1,7 +1,30 @@
-<script lang="ts">
+<script lang="ts" module>
+	import { defineMeta } from '@storybook/addon-svelte-csf'
 	import WarningBox from './WarningBox.svelte'
 
-	let { message = 'A collection with this name already exists.' }: { message?: string } = $props()
+	const { Story } = defineMeta({
+		component: WarningBox,
+		tags: ['autodocs']
+	})
 </script>
 
-<WarningBox {message} /> 
+<Story name="Default">
+	{#snippet children(args)}
+		<WarningBox message="A collection with this name already exists." {...args} />
+	{/snippet}
+</Story>
+
+<Story name="Long Message">
+	{#snippet children(args)}
+		<WarningBox 
+			message="This is a much longer warning message that demonstrates how the component handles text that spans multiple lines and provides more detailed information to the user." 
+			{...args} 
+		/>
+	{/snippet}
+</Story>
+
+<Story name="Short Message">
+	{#snippet children(args)}
+		<WarningBox message="Warning!" {...args} />
+	{/snippet}
+</Story> 
