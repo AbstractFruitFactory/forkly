@@ -5,7 +5,7 @@
 	import Drawer from '../drawer/Drawer.svelte'
 	import Check from 'lucide-svelte/icons/check'
 
-	type Item = $$Generic<{ label: string; }>
+	type Item = $$Generic<{ label: string }>
 
 	let {
 		label,
@@ -24,11 +24,7 @@
 			[
 				handleSelect: (itemLabel: string, itemData: Omit<Item, 'label'>) => void,
 				selected: Item | Item[],
-				item?: (
-					itemContent: Snippet,
-					onclick: () => void,
-					selected: boolean
-				) => ReturnType<Snippet>
+				item?: (itemContent: Snippet, onclick: () => void, selected: boolean) => ReturnType<Snippet>
 			]
 		>
 		isOpen?: boolean
@@ -190,12 +186,12 @@
 		color: var(--color-text-on-surface);
 		width: 100%;
 		text-align: left;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		transition: all 0.2s ease;
 
 		&.selected {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			transition: all 0.2s ease;
 			color: var(--color-text-on-primary);
 			border-color: var(--color-primary);
 		}
