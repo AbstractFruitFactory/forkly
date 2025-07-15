@@ -76,7 +76,7 @@
 		</div>
 	{/snippet}
 
-	{#snippet content(handleSelect, item)}
+	{#snippet content(handleSelect, _, item)}
 		<div class="search-container">
 			<Search
 				placeholder={searchPlaceholder}
@@ -108,8 +108,8 @@
 						handleSelect(result.label, itemData)
 					})}
 				{/snippet}
-				
-				{@render item?.(_item)}
+
+				{@render item?.(_item, () => {}, false)}
 			</div>
 		{/each}
 
@@ -118,7 +118,7 @@
 				{#snippet _item()}
 					{@render filterItem(result, (itemData) => handleSelect(result.label, itemData))}
 				{/snippet}
-				{@render item?.(_item)}
+				{@render item?.(_item, () => {}, false)}
 			</div>
 		{/each}
 
@@ -192,21 +192,5 @@
 	.remove-button {
 		cursor: pointer;
 		font-size: var(--font-size-lg);
-	}
-
-	.desktop-only {
-		display: none;
-
-		@include desktop {
-			display: block;
-		}
-	}
-
-	.mobile-only {
-		display: block;
-
-		@include desktop {
-			display: none;
-		}
 	}
 </style>

@@ -332,19 +332,17 @@
 		<div class="filters" class:sticky={searchbarIsSticky}>
 			<div class="buttons">
 				<div class="left-section">
-					{#if isMobile}
-						<div class="mobile-searchbar" class:expanded={mobileSearchExpanded}>
-							<SearchButton
-								bind:expanded={mobileSearchExpanded}
-								{...searchProps}
-								bind:value={searchValue}
-							/>
-						</div>
-					{:else}
-						<div class="filters-search">
-							{@render search('filters')}
-						</div>
-					{/if}
+					<div class="mobile-searchbar tablet-only" class:expanded={mobileSearchExpanded}>
+						<SearchButton
+							bind:expanded={mobileSearchExpanded}
+							{...searchProps}
+							bind:value={searchValue}
+						/>
+					</div>
+
+					<div class="filters-search desktop-only">
+						{@render search('filters')}
+					</div>
 
 					{#if !mobileSearchExpanded}
 						<div in:fade={{ duration: 300, delay: 300 }}>
@@ -358,15 +356,17 @@
 				</div>
 
 				<div class="right-section">
-					{#snippet buttonLabel()}
-						<SortIcon size={16} />
-					{/snippet}
+					<div class="tablet-only">
+						<OptionFilterSelect options={sortOptions} bind:selected={sortBy}>
+							{#snippet buttonLabel()}
+								<SortIcon size={16} />
+							{/snippet}
+						</OptionFilterSelect>
+					</div>
 
-					<OptionFilterSelect
-						options={sortOptions}
-						bind:selected={sortBy}
-						buttonLabel={isMobile ? buttonLabel : undefined}
-					/>
+					<div class="desktop-only">
+						<OptionFilterSelect options={sortOptions} bind:selected={sortBy} />
+					</div>
 				</div>
 			</div>
 
@@ -442,22 +442,6 @@
 
 		@include mobile {
 			display: none;
-		}
-	}
-
-	.desktop-only {
-		display: block;
-
-		@include tablet {
-			display: none;
-		}
-	}
-
-	.mobile-only {
-		display: none;
-
-		@include tablet {
-			display: block;
 		}
 	}
 

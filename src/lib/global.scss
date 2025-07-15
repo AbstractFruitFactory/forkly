@@ -30,6 +30,12 @@ $breakpoint-xl: 1280px; // Large desktop
   }
 }
 
+@mixin tablet-desktop {
+  @media (min-width: $breakpoint-md) {
+    @content;
+  }
+}
+
 :root {
   // Primary colors
   $primary-color: #F05D23;
@@ -338,10 +344,34 @@ button {
   opacity: 0.1;
 }
 
-.only-mobile {
+.mobile-only {
   display: none;
 
   @include mobile {
+    display: block;
+  }
+}
+
+.tablet-only {
+  display: none;
+
+  @include tablet {
+    display: block;
+  }
+}
+
+.desktop-only {
+  display: none;
+
+  @include desktop {
+    display: block;
+  }
+}
+
+.tablet-desktop-only {
+  display: none;
+
+  @include tablet-desktop {
     display: block;
   }
 }
