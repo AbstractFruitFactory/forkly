@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Dropdown from '../dropdown/Dropdown.svelte'
-	import { onMount, type Snippet } from 'svelte'
+	import { onMount, type ComponentProps, type Snippet } from 'svelte'
 	import Button from '../button/Button.svelte'
 	import Drawer from '../drawer/Drawer.svelte'
 	import Check from 'lucide-svelte/icons/check'
@@ -111,7 +111,7 @@
 </script>
 
 <div class="filter-select">
-	<Button variant="pill" color="neutral" onclick={toggleDropdown} size="sm" fullHeight>
+	<Button variant="pill" color="neutral" onclick={toggleDropdown} size="md" fullHeight>
 		{@render icon?.()}
 		{#if typeof label === 'string'}
 			{label}

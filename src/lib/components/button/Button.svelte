@@ -138,21 +138,25 @@
 
 		// Sizes
 		&.xs > .content {
+			height: 35px;
 			padding: var(--spacing-xs) var(--spacing-sm);
 			font-size: var(--font-size-sm);
 		}
 
 		&.sm > .content {
+			height: 35px;
 			padding: var(--spacing-sm) var(--spacing-xl);
 			font-size: var(--font-size-md);
 		}
 
 		&.md > .content {
+			height: 40px;
 			padding: var(--spacing-md) var(--spacing-lg);
 			font-size: var(--font-size-md);
 		}
 
 		&.lg > .content {
+			height: 40px;
 			padding: var(--spacing-lg) var(--spacing-xl);
 			font-size: var(--font-size-lg);
 		}

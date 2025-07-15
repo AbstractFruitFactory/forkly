@@ -21,7 +21,7 @@
 
 <div class="header-actions">
 	<div>
-		<Button href={newRecipeHref} color="primary" size="sm">
+		<Button href={newRecipeHref} color="primary">
 			<PlusIcon color="var(--color-text-on-primary)" size={16} />
 			New Recipe
 		</Button>
@@ -33,7 +33,7 @@
 				<ProfilePic {profilePicUrl} size="lg" />
 			</a>
 		{:else}
-			<Button href={loginHref} variant="border" color="neutral" size="sm">
+			<Button href={loginHref} variant="border" color="neutral">
 				<LogInIcon color="var(--color-text-on-surface)" size={16} />
 				Sign in
 			</Button>

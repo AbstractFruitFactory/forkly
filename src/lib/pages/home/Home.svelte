@@ -357,7 +357,7 @@
 
 				<div class="right-section">
 					<div class="tablet-only">
-						<OptionFilterSelect options={sortOptions} bind:selected={sortBy}>
+						<OptionFilterSelect options={sortOptions} bind:selected={sortBy} title="Sort by">
 							{#snippet buttonLabel()}
 								<SortIcon size={16} />
 							{/snippet}

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import BaseFilterSelect from './BaseFilterSelect.svelte'
-	import type { Snippet } from 'svelte'
+	import type { ComponentProps, Snippet } from 'svelte'
 	import ChevronDown from 'lucide-svelte/icons/chevron-down'
+	import Button from '../button/Button.svelte'
 
 	type Item = $$Generic<{ label: string; onClick: () => void }>
 
@@ -9,18 +10,20 @@
 		options,
 		selected = $bindable<Item>(),
 		icon,
-		buttonLabel
+		buttonLabel,
+		title
 	}: {
 		options: Item[]
 		selected: Item
 		icon?: Snippet
 		buttonLabel?: Snippet
+		title?: string
 	} = $props()
 
 	let isOpen = $state(false)
 </script>
 
-<BaseFilterSelect bind:selected {icon} bind:isOpen>
+<BaseFilterSelect bind:selected {icon} bind:isOpen {title}>
 	{#snippet label()}
 		{#if buttonLabel}
 			{@render buttonLabel()}
