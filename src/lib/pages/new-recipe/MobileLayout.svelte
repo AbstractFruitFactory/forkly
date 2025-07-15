@@ -413,7 +413,7 @@
 
 <Drawer
 	bind:isOpen={isInstructionDrawerOpen}
-	title={editingInstructionId ? 'Edit instruction' : `Step ${instructions.length + 1} instructions`}
+	title={editingInstructionId ? 'Edit instruction' : `Step ${instructions.filter((instruction) => savedInstructions[instruction.id]).length + 1} instructions`}
 >
 	<div class="drawer-instruction-form">
 		<textarea
