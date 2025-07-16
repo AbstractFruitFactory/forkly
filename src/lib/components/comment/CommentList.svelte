@@ -223,7 +223,7 @@
 						imageUrl={comment.imageUrl}
 					/>
 					{#if i < comments.length - 1}
-						<div class="divider"></div>
+						<div class="comments-divider divider"></div>
 					{/if}
 				</div>
 			{/each}
@@ -375,6 +375,10 @@
 	.comments-list {
 		margin-top: var(--spacing-xl);
 		clear: both;
+	}
+
+	.comments-divider {
+		margin-bottom: var(--spacing-lg);
 	}
 
 	.no-comments {
