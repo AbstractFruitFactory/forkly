@@ -25,9 +25,11 @@
 		style="width: {pixelSize}; height: {pixelSize};"
 	/>
 {:else}
-	<div 
-		class="profile-pic-placeholder" 
-		style="width: {pixelSize}; height: {pixelSize}; background: {background ? 'var(--color-surface)' : undefined};"
+	<div
+		class="profile-pic-placeholder"
+		style="width: {pixelSize}; height: {pixelSize}; background: {background
+			? 'var(--color-surface)'
+			: undefined};"
 	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
@@ -54,7 +56,7 @@
 
 	.profile-pic-placeholder {
 		border-radius: 50%;
-		border: var(--border-width-normal) solid var(--color-neutral);
+		border: var(--border-width-normal) solid var(--color-text);
 		display: flex;
 		align-items: center;
 		justify-content: center;
