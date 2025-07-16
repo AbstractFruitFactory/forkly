@@ -90,7 +90,7 @@
 					onclick={handleMenuToggle}
 					aria-label="Recipe menu"
 				>
-					<MoreVertical size={20} />
+					<MoreVertical size={20} color="black" />
 				</button>
 			{/if}
 		</div>
@@ -488,15 +488,15 @@
 		align-items: center;
 		justify-content: center;
 		border-radius: var(--border-radius-full);
-		backdrop-filter: blur(2px);
+		backdrop-filter: blur(10px);
 		border: 1px solid rgba(255, 255, 255, 0.2);
 		padding: var(--spacing-sm);
-		color: var(--color-white);
 		cursor: pointer;
 		transition: all var(--transition-fast) var(--ease-in-out);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 		min-width: 40px;
 		min-height: 40px;
+		background: rgba(255, 255, 255, 0.7);
 		filter: brightness(1.1);
 
 		&:hover {
