@@ -164,7 +164,6 @@
 		// Variants
 		&.primary {
 			background-color: var(--color-primary);
-			border: var(--border-width-thin) solid var(--color-neutral);
 
 			&:hover:not(:disabled) {
 				background-color: color-mix(in srgb, var(--color-primary), black 15%);

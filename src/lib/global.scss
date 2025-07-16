@@ -82,7 +82,7 @@ $breakpoint-xl: 1280px; // Large desktop
   --color-text-on-background: var(--color-text);
   --color-text-on-surface: #2D3142;
   --color-text-on-secondary: black;
-  --color-text-on-primary: black;
+  --color-text-on-primary: var(--color-surface);
 
   // Font families
   --font-sans: "DM Sans", sans-serif;
