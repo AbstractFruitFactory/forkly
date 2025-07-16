@@ -457,6 +457,7 @@
 							name="collection-selection"
 							value={collection}
 							checked={selectedCollection === collection}
+							onchange={() => selectCollection(collection)}
 							onclick={(e) => e.stopPropagation()}
 						/>
 					</div>

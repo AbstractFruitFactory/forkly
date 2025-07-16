@@ -1,8 +1,7 @@
 import { db } from '.'
-import { recipeBookmark, collection, recipe } from './schema'
+import { recipeBookmark, collection } from './schema'
 import { eq, and, sql } from 'drizzle-orm'
 import { getRecipes } from './recipe'
-import type { DetailedRecipe } from './recipe'
 
 /**
  * Check if a recipe is saved by a user
