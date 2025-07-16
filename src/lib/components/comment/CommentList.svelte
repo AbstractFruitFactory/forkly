@@ -213,7 +213,7 @@
 				<p>No comments yet. Be the first to comment!</p>
 			</div>
 		{:else}
-			{#each comments as comment (comment.id)}
+			{#each comments as comment, i (comment.id)}
 				<div animate:flip={{ duration: 300 }} transition:fade|global={{ duration: 1000 }}>
 					<Comment
 						username={comment.user.username}
@@ -222,7 +222,9 @@
 						avatarUrl={comment.user.avatarUrl}
 						imageUrl={comment.imageUrl}
 					/>
-					<div class="divider"></div>
+					{#if i < comments.length - 1}
+						<div class="divider"></div>
+					{/if}
 				</div>
 			{/each}
 		{/if}
