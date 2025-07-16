@@ -27,7 +27,7 @@ export const useCookies = <
   },
   get: () => {
     const cookie = document.cookie.split(';').find((cookie) => cookie.includes(item))
-    return cookie ? JSON.parse(cookie.split('=')[1]) : undefined
+    return cookie ? JSON.parse(cookie.split('=')[1]) as Extract<T, { key: V }>['value'] : undefined
   },
   clear: () => (document.cookie = `${item}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`)
 })

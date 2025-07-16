@@ -149,4 +149,5 @@
 	]}
 	initialSort={sortParam}
 	{onSearchbarSticky}
+	initialSearchValue={searchValue}
 />

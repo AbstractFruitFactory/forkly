@@ -34,7 +34,8 @@
 		initialTags = [],
 		initialIngredients = [],
 		initialSort = 'popular',
-		onSearchbarSticky = (isSticky: boolean) => {}
+		onSearchbarSticky = (isSticky: boolean) => {},
+		initialSearchValue = ''
 	}: {
 		recipes: ComponentProps<typeof RecipeGrid>['recipes']
 		onSearchChange?: (query: string) => void
@@ -51,6 +52,7 @@
 		initialIngredients?: { label: string; include: boolean }[]
 		initialSort?: 'popular' | 'newest' | 'easiest'
 		onSearchbarSticky?: (isSticky: boolean) => void
+		initialSearchValue?: string
 	} = $props()
 
 	let selectedTags = $state<{ label: string; selected: boolean }[]>([])
@@ -64,7 +66,7 @@
 	let filtersSentinelNode = writable<HTMLElement | null>(null)
 	let flipState = $state<any>(null)
 	let searchBarPosition = $state<'header' | 'filters'>('header')
-	let searchValue = $state('')
+	let searchValue = $state(initialSearchValue)
 	let filtersSentinelOutOfView = $state(false)
 	let mobileSearchExpanded = $state(false)
 	let taglineTags = $state<string[]>([])
@@ -329,6 +331,7 @@
 {#snippet content()}
 	<div class="main-layout" class:expanded={searchbarIsSticky}>
 		<div bind:this={$filtersSentinelNode} style:height="1px" style:margin-top=""></div>
+
 		<div class="filters" class:sticky={searchbarIsSticky}>
 			<div class="buttons">
 				<div class="left-section">
@@ -397,6 +400,12 @@
 				{/if}
 			{/if}
 		</div>
+
+		{#if searchValue.length > 0}
+			<div class="search-results-header">
+				<h3>Showing results for "{searchValue}"</h3>
+			</div>
+		{/if}
 
 		<div class="home-container">
 			<div class="recipe-grid">
@@ -492,7 +501,8 @@
 	}
 
 	.search-results-header {
-		margin-bottom: var(--spacing-xl);
+		margin: var(--spacing-lg) 0;
+		text-align: center;
 	}
 
 	.header-content {
@@ -505,18 +515,10 @@
 		}
 	}
 
-	.search-results-header h1 {
-		margin: 0;
-		font-size: var(--font-size-2xl);
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		color: var(--color-neutral-light);
-	}
-
 	.results-count {
 		color: var(--color-neutral);
 		font-size: var(--font-size-sm);
-		margin: 0;
+		margin: var(--spacing-xs) 0 0 0;
 	}
 
 	.sort-controls {
