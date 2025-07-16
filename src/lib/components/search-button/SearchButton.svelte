@@ -3,7 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import Search from '../search/Search.svelte'
 	import { tick } from 'svelte'
-	import gsap from 'gsap'
 
 	let {
 		expanded = $bindable(false),
@@ -33,18 +32,6 @@
 		showingPlaceholder = true
 
 		await tick()
-
-		gsap.from('.container button', {
-			backgroundColor: 'var(--color-neutral-dark)',
-			duration: ANIMATION_DURATION,
-			ease: 'power1.inOut'
-		})
-
-		gsap.from('.container input', {
-			backgroundColor: 'var(--color-neutral-2)',
-			duration: ANIMATION_DURATION,
-			ease: 'power1.inOut'
-		})
 
 		flip.from(iconState, {
 			targets: iconTargets,
@@ -84,7 +71,7 @@
 			}}
 		/>
 	{:else}
-		<Button fullHeight variant="pill" color="neutral" size="sm" onclick={toggle}>
+		<Button fullHeight variant="pill" color="neutral" onclick={toggle}>
 			<svg
 				class="search-icon"
 				xmlns="http://www.w3.org/2000/svg"
