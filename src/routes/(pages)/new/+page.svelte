@@ -7,8 +7,9 @@
 	import { safeFetch } from '$lib/utils/fetch'
 	import { fly } from 'svelte/transition'
 	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
+	import type { PageData } from './$types'
 
-	let { form } = $props()
+	let { form, data }: { form: any; data: PageData } = $props()
 
 	let searchTimeout: ReturnType<typeof setTimeout>
 	let tagSearchTimeout: ReturnType<typeof setTimeout>
@@ -70,6 +71,7 @@
 			onSearchTags={handleSearchTags}
 			{unitSystem}
 			onUnitChange={handleUnitChange}
+			initialData={data.initialData}
 		/>
 	{/if}
 </div>

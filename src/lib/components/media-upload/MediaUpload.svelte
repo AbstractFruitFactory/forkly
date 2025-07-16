@@ -27,7 +27,8 @@
 		name = 'media',
 		aspectRatio = '16/9',
 		previewAlt = 'Media preview',
-		onFile
+		onFile,
+		initialImageUrl = ''
 	}: {
 		error?: string
 		id?: string
@@ -37,12 +38,21 @@
 		aspectRatio?: string
 		previewAlt?: string
 		onFile?: (file: File) => void
+		initialImageUrl?: string
 	} = $props()
 
-	let preview = $state('')
+	let preview = $state(initialImageUrl || '')
 	let inputElement: HTMLInputElement
 	let dragOver = $state(false)
-	let mediaType = $state<'image' | 'video' | null>(null)
+	let mediaType = $state<'image' | 'video' | null>(initialImageUrl ? 'image' : null)
+
+	// Update preview when initialImageUrl changes
+	$effect(() => {
+		if (initialImageUrl && !preview) {
+			preview = initialImageUrl
+			mediaType = 'image'
+		}
+	})
 
 	const MAX_VIDEO_DURATION_SECONDS = 10
 	const MAX_VIDEO_SIZE_MB = 10

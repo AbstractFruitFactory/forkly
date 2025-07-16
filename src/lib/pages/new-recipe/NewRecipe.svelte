@@ -15,24 +15,78 @@
 		errors,
 		unitSystem = 'imperial',
 		onSearchTags,
-		onSearchIngredients
+		onSearchIngredients,
+		initialData
 	}: {
 		errors?: { path: string; message: string }[]
 		onSearchIngredients?: (query: string) => Promise<Ingredient[]>
 		unitSystem?: UnitSystem
 		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
+		initialData?: {
+			title: string
+			description: string
+			totalTime: string
+			yields: string
+			difficulty: string
+			image: string
+			ingredients: { quantity: string; unit: string; name: string }[]
+			instructions: { text: string }[]
+			tags: string[]
+			servings: number
+		}
 	} = $props()
 
 	const generateId = () => Math.random().toString(36).slice(2)
 
-	let ingredients = $state<IngredientRow[]>([{ id: generateId(), name: '', amount: '', unit: '' }])
-	let instructions = $state<InstructionRow[]>([{ id: generateId(), text: '', media: undefined }])
+	let ingredients = $state<IngredientRow[]>([])
+	let instructions = $state<InstructionRow[]>([])
 	let servings = $state(1)
 	let selectedTags = $state<string[]>([])
+	let title = $state('')
+	let description = $state('')
+	let imageUrl = $state('')
 
 	let isMobileView = $state(false)
 	let mobileLayoutElement: HTMLElement
 	let desktopLayoutElement: HTMLElement
+
+	// Initialize form with initial data if provided
+	$effect(() => {
+		if (initialData) {
+			title = initialData.title || ''
+			description = initialData.description || ''
+			imageUrl = initialData.image || ''
+			servings = initialData.servings || 1
+			selectedTags = initialData.tags || []
+			
+			// Initialize ingredients
+			if (initialData.ingredients && initialData.ingredients.length > 0) {
+				ingredients = initialData.ingredients.map(ing => ({
+					id: generateId(),
+					name: ing.name || '',
+					amount: ing.quantity || '',
+					unit: ing.unit || ''
+				}))
+			} else {
+				ingredients = [{ id: generateId(), name: '', amount: '', unit: '' }]
+			}
+			
+			// Initialize instructions
+			if (initialData.instructions && initialData.instructions.length > 0) {
+				instructions = initialData.instructions.map(inst => ({
+					id: generateId(),
+					text: inst.text || '',
+					media: undefined
+				}))
+			} else {
+				instructions = [{ id: generateId(), text: '', media: undefined }]
+			}
+		} else {
+			// Default empty form
+			ingredients = [{ id: generateId(), name: '', amount: '', unit: '' }]
+			instructions = [{ id: generateId(), text: '', media: undefined }]
+		}
+	})
 
 	const checkViewport = () => {
 		isMobileView = window.innerWidth <= 480
@@ -211,6 +265,9 @@
 				{handleTagSelect}
 				{removeTag}
 				{submitting}
+				{title}
+				{description}
+				{imageUrl}
 			/>
 		</div>
 		<div class="desktop-layout" bind:this={desktopLayoutElement}>
@@ -229,6 +286,9 @@
 				{handleTagSelect}
 				{removeTag}
 				{submitting}
+				{title}
+				{description}
+				{imageUrl}
 			/>
 		</div>
 		

@@ -58,6 +58,7 @@
 	import Header from '$lib/components/header/Header.svelte'
 	import Layout from '$lib/components/layout/Layout.svelte'
 	import BottomNav from '$lib/components/navigation/BottomNav.svelte'
+	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
 	import Error from '$lib/pages/error/Error.svelte'
 	import '$lib/global.scss'
 	import type { Snippet } from 'svelte'
@@ -76,6 +77,8 @@
 	let homepageHeaderTransition = $state(true)
 
 	let _flip: (typeof import('gsap/Flip'))['Flip'] | null = $state(null)
+
+	let isImportPopupOpen = $state(false)
 
 	onMount(() => {
 		import('gsap/Flip').then(({ Flip }) => {
@@ -102,6 +105,14 @@
 	})
 
 	let hasGlobalError = $derived(!!errorStore.error)
+
+	function handleImportRecipe() {
+		isImportPopupOpen = true
+	}
+
+	function handleCloseImportPopup() {
+		isImportPopupOpen = false
+	}
 </script>
 
 <svelte:head>
@@ -122,6 +133,7 @@
 			profileHref="/profile"
 			loginHref="/login"
 			profilePicUrl={data.user?.avatarUrl ?? undefined}
+			onImportRecipe={handleImportRecipe}
 		/>
 	{/snippet}
 
@@ -152,6 +164,8 @@
 		/>
 	{/snippet}
 </Layout>
+
+<ImportRecipePopup bind:isOpen={isImportPopupOpen} onClose={handleCloseImportPopup} />
 
 <style lang="scss">
 	@import '$lib/global.scss';

@@ -27,7 +27,10 @@
 		searchTags,
 		handleTagSelect,
 		removeTag,
-		submitting
+		submitting,
+		title = '',
+		description = '',
+		imageUrl = ''
 	}: {
 		servings: number
 		ingredients: IngredientRow[]
@@ -43,6 +46,9 @@
 		handleTagSelect: (tag: string, selected: boolean) => void
 		removeTag: (tag: string) => void
 		submitting: boolean
+		title?: string
+		description?: string
+		imageUrl?: string
 	} = $props()
 
 	let searchValue = $state('')
@@ -75,12 +81,13 @@
 			<div class="text-content">
 				<div>
                                         <Input>
-                                                <input name="title" type="text" required minlength="5" maxlength="80" placeholder="Enter recipe title" />
+                                                <input bind:value={title} name="title" type="text" required minlength="5" maxlength="80" placeholder="Enter recipe title" />
                                         </Input>
 				</div>
 
 				<Input>
 					<textarea
+						bind:value={description}
 						class="description-input"
 						name="description"
 						placeholder="Describe your recipe (optional)"
@@ -90,7 +97,7 @@
 			</div>
 
 			<div class="image-content">
-				<MediaUpload name="image" type="image" previewAlt="Recipe preview" />
+				<MediaUpload name="image" type="image" previewAlt="Recipe preview" initialImageUrl={imageUrl} />
 			</div>
 		</div>
 	</div>

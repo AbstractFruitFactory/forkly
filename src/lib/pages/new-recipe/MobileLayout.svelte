@@ -32,7 +32,10 @@
 		updateIngredient,
 		addInstruction,
 		removeInstruction,
-		updateInstruction
+		updateInstruction,
+		title = '',
+		description = '',
+		imageUrl = ''
 	}: {
 		servings: number
 		selectedTags: string[]
@@ -54,6 +57,9 @@
 		addInstruction: (instruction: Omit<InstructionRow, 'id'>) => void
 		removeInstruction: (id: string) => void
 		updateInstruction: (id: string, instruction: { text: string; media?: File }) => void
+		title?: string
+		description?: string
+		imageUrl?: string
 	} = $props()
 
 	let isDrawerOpen = $state(false)
@@ -223,11 +229,12 @@
 </script>
 
 <div class="form-section">
-	<MediaUpload name="image" type="image" previewAlt="Recipe preview" />
+	<MediaUpload name="image" type="image" previewAlt="Recipe preview" initialImageUrl={imageUrl} />
 
 	<div class="form-group">
 		<Input>
 			<input
+				bind:value={title}
 				name="title"
 				type="text"
 				required
@@ -239,7 +246,7 @@
 		<div style:height="var(--spacing-md)"></div>
 
 		<Input>
-			<textarea name="description" placeholder="Describe your recipe (optional)" rows="3"
+			<textarea bind:value={description} name="description" placeholder="Describe your recipe (optional)" rows="3"
 			></textarea>
 		</Input>
 	</div>
