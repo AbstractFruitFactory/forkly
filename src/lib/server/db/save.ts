@@ -1,6 +1,6 @@
 import { db } from '.'
 import { recipeBookmark, collection } from './schema'
-import { eq, and, sql } from 'drizzle-orm'
+import { eq, and, sql, isNull } from 'drizzle-orm'
 import { getRecipes } from './recipe'
 
 /**
@@ -149,6 +149,11 @@ export async function getCollection(userId: string, collectionName: string) {
 export async function renameCollection(userId: string, oldName: string, newName: string) {
 	await db.transaction(async (tx) => {
 		await tx
+			.update(recipeBookmark)
+			.set({ collectionName: null })
+			.where(and(eq(recipeBookmark.userId, userId), eq(recipeBookmark.collectionName, oldName)))
+
+		await tx
 			.update(collection)
 			.set({ name: newName })
 			.where(and(eq(collection.userId, userId), eq(collection.name, oldName)))
@@ -156,7 +161,7 @@ export async function renameCollection(userId: string, oldName: string, newName:
 		await tx
 			.update(recipeBookmark)
 			.set({ collectionName: newName })
-			.where(and(eq(recipeBookmark.userId, userId), eq(recipeBookmark.collectionName, oldName)))
+			.where(and(eq(recipeBookmark.userId, userId), isNull(recipeBookmark.collectionName)))
 	})
 }
 
