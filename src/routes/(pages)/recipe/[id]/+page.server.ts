@@ -8,12 +8,9 @@ import { safeFetch } from '$lib/utils/fetch'
 import type { CommentsResponse } from '../../../api/recipes/[id]/comments/+server'
 
 export const load: PageServerLoad = ({ params, locals, fetch }) => {
-  const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(
-    (result) => {
-      if (!result) throw error(404, 'Recipe not found')
-      return result
-    }
-  )
+  const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(r => {
+    return r as NonNullable<typeof r>
+  })
 
   const comments = safeFetch<CommentsResponse>(fetch)(`/api/recipes/${params.id}/comments?page=0`).then((result) => {
     if (result.isErr()) {

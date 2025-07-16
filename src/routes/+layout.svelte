@@ -31,12 +31,34 @@
 			_isScrolledDownHomepage = false
 		}
 	}
+
+	export type ErrorState = {
+		status: number
+		message: string
+	}
+
+	let _error = $state<ErrorState>()
+
+	export const errorStore = {
+		get error() {
+			return _error
+		},
+
+		setError(status: number, message: string) {
+			_error = { status, message }
+		},
+
+		clearError() {
+			_error = undefined
+		}
+	}
 </script>
 
 <script lang="ts">
 	import Header from '$lib/components/header/Header.svelte'
 	import Layout from '$lib/components/layout/Layout.svelte'
 	import BottomNav from '$lib/components/navigation/BottomNav.svelte'
+	import Error from '$lib/pages/error/Error.svelte'
 	import '$lib/global.scss'
 	import type { Snippet } from 'svelte'
 	import type { LayoutData } from './$types'
@@ -64,6 +86,7 @@
 
 	afterNavigate(() => {
 		scrollStore.scrollToTop('instant')
+		errorStore.clearError()
 	})
 
 	$effect(() => {
@@ -77,6 +100,8 @@
 			scrolledDownHomepageStore.setFalse()
 		}
 	})
+
+	let hasGlobalError = $derived(!!errorStore.error)
 </script>
 
 <svelte:head>
@@ -105,7 +130,16 @@
 	{/snippet}
 
 	{#snippet content()}
-		{@render slots.content?.()}
+		{#if hasGlobalError}
+			<Error
+				status={errorStore.error!.status}
+				error={{
+					message: errorStore.error!.message
+				}}
+			/>
+		{:else}
+			{@render slots.content?.()}
+		{/if}
 	{/snippet}
 
 	{#snippet bottomNavBar()}

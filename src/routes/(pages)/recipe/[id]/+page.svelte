@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation'
+	import { goto, invalidateAll } from '$app/navigation'
 	import Recipe from '$lib/pages/recipe/Recipe.svelte'
 	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
 	import { page } from '$app/state'
@@ -8,10 +8,19 @@
 	import type { RecipesSaveResponse } from '../../../api/recipes/save/+server.js'
 	import type { CollectionsResponse } from '../../../api/collections/+server.js'
 	import type { CommentsResponse } from '../../../api/recipes/[id]/comments/+server.js'
-
-	const COMMENTS_PER_PAGE = 10
+	import { errorStore } from '../../../+layout.svelte'
 
 	let { data } = $props()
+
+	$effect(() => {
+		data.recipe.then((r) => {
+			if (!r) {
+				errorStore.setError(404, 'Recipe not found')
+			}
+		})
+	})
+
+	const COMMENTS_PER_PAGE = 10
 	let comments = $state(data.comments)
 	let currentPage = $state(parseInt(page.url.searchParams.get('page') || '0', 10))
 	let hasMore = $state(false)
