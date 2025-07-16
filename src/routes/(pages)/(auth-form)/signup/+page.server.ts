@@ -1,4 +1,4 @@
-import { fail, json, redirect } from '@sveltejs/kit'
+import { fail, redirect } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 import * as v from 'valibot'
 import { encodeBase32LowerCase } from '@oslojs/encoding'
@@ -8,6 +8,7 @@ import { eq } from 'drizzle-orm'
 import { hash } from '@node-rs/argon2'
 import { Resend } from 'resend'
 import { APP_URL, RESEND_API_KEY } from '$env/static/private'
+import emailTemplate from './email.html?raw'
 
 export const load: PageServerLoad = ({ locals }) => {
     if (locals.user) {
@@ -69,7 +70,7 @@ export const actions = {
 
         if (existingEmail) {
             if (!existingEmail.emailVerified) {
-                return fail(400, { 
+                return fail(400, {
                     error: 'An account with this email already exists but is not verified. Please check your email for the verification link.'
                 })
             }
@@ -112,8 +113,8 @@ export const actions = {
         const result = await resend.emails.send({
             from: 'Forkly <no-reply@forkly.me>',
             to: input.output.email,
-            subject: 'Verify your email',
-            html: `<p>Verify your email: <a href="${url}">${url}</a></p>`
+            subject: 'Welcome to Forkly! Please verify your email',
+            html: emailTemplate.replace('${url}', url)
         })
 
         console.log('Email result:', result)

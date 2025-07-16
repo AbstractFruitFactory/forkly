@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify your email - Forkly</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      background-color: #f8f9fa;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #FFC96F 0%, #F05D23 100%);
+      padding: 40px 30px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 32px;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 10px;
+    }
+
+    .tagline {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .content {
+      padding: 40px 30px;
+    }
+
+    .greeting {
+      font-size: 24px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 20px;
+    }
+
+    .message {
+      font-size: 16px;
+      color: #4a5568;
+      margin-bottom: 30px;
+      line-height: 1.7;
+    }
+
+    .button-container {
+      text-align: center;
+      margin: 40px 0;
+    }
+
+    .verify-button {
+      display: inline-block;
+      background: #F05D23;
+      color: white;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: transform 0.2s ease;
+    }
+
+    .verify-button:hover {
+      transform: translateY(-2px);
+    }
+
+    .fallback-link {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .fallback-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .footer {
+      background-color: #f7fafc;
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .footer-text {
+      color: #718096;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .expiry-notice {
+      background-color: #fff5f5;
+      border: 1px solid #fed7d7;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+
+    .expiry-notice p {
+      color: #c53030;
+      font-size: 14px;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">Forkly</div>
+    </div>
+
+    <div class="content">
+      <h1 class="greeting">Welcome to Forkly!</h1>
+
+      <p class="message">
+        Thanks for signing up! We're excited to have you join our community of food lovers.
+        To get started, please verify your email address by clicking the button below.
+      </p>
+
+      <div class="button-container">
+        <a href="${url}" class="verify-button">Verify Email Address</a>
+      </div>
+
+      <div class="expiry-notice">
+        <p>⚠️ This verification link will expire in 1 hour.</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p class="footer-text">
+        If you didn't create an account with Forkly, you can safely ignore this email.
+      </p>
+    </div>
+  </div>
+</body>
+
+</html>
