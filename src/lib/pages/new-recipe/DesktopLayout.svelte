@@ -45,6 +45,8 @@
 		submitting: boolean
 	} = $props()
 
+	let searchValue = $state('')
+
 	type ItemWithAddButton = IngredientRow | { id: string; isAddButton: true }
 	let items = $derived<ItemWithAddButton[]>([
 		...ingredients,
@@ -56,6 +58,14 @@
 		...instructions,
 		{ id: 'add-instruction-button', isAddButton: true }
 	])
+
+	const handleAddCustomTag = () => {
+		const trimmedValue = searchValue.trim()
+		if (trimmedValue && selectedTags.length < 3 && !selectedTags.includes(trimmedValue)) {
+			handleTagSelect(trimmedValue, true)
+			searchValue = ''
+		}
+	}
 </script>
 
 <div class="form-grid">
@@ -172,11 +182,16 @@
 		<div class="tags">
 			<div style:width="fit-content">
 				<SuggestionSearch
+					bind:searchValue
 					disabled={selectedTags.length >= 3}
-					placeholder="Search for tags..."
+					placeholder="Search or add custom tag"
 					onSearch={searchTags}
 					onSelect={(tag) => handleTagSelect(tag.name, true)}
 					clearInput={true}
+					actionButton={{
+						text: 'Add',
+						onClick: handleAddCustomTag
+					}}
 				/>
 			</div>
 

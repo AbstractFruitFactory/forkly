@@ -144,6 +144,7 @@
 	let isInstructionDrawerOpen = $state(false)
 	let newInstructionText = $state('')
 	let newInstructionMedia: File | null = null
+	let searchValue = $state('')
 
 	type ItemWithAddButton = IngredientRow | { id: string; isAddButton: true }
 	let ingredientItems = $derived<ItemWithAddButton[]>([
@@ -210,6 +211,14 @@
 	const removeInstructionLocal = (id: string) => {
 		removeInstruction(id)
 		savedInstructions[id] = false
+	}
+
+	const handleAddCustomTag = () => {
+		const trimmedValue = searchValue.trim()
+		if (trimmedValue && selectedTags.length < 3 && !selectedTags.includes(trimmedValue)) {
+			handleTagSelect(trimmedValue, true)
+			searchValue = ''
+		}
 	}
 </script>
 
@@ -448,11 +457,16 @@
 		<div class="tags">
 			<div style:width="100%">
 				<SuggestionSearch
+					bind:searchValue
 					disabled={selectedTags.length >= 3}
-					placeholder="Search for tags..."
+					placeholder="Search or add custom tag"
 					onSearch={searchTags}
 					onSelect={(tag) => handleTagSelect(tag.name, true)}
 					clearInput={true}
+					actionButton={{
+						text: 'Add',
+						onClick: handleAddCustomTag
+					}}
 				/>
 			</div>
 
