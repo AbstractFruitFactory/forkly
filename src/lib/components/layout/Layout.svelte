@@ -96,7 +96,7 @@
 	}
 
 	.page-padding {
-		padding: 0 var(--spacing-2xl);
+		padding: 0 var(--spacing-xl);
 
 		@include tablet {
 			padding: 0 var(--spacing-md);
