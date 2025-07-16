@@ -82,7 +82,7 @@
 	let isCreatingCollection = $state(false)
 	let newCollectionName = $state('')
 	let localCollections = $state<string[]>([])
-	let selectedCollection = $state<string | null>(null)
+	let selectedCollection = $state<string | undefined>('All Recipes')
 	let showDuplicateWarning = $state(false)
 
 	$effect(() => {
@@ -141,18 +141,18 @@
 		const currentSaved = await isSaved
 		isSaved = Promise.resolve(!currentSaved)
 
-		if (selectedCollection === null) {
+		if (!selectedCollection || selectedCollection === 'All Recipes') {
 			onSave()
 		} else {
 			onSave(selectedCollection)
 		}
 
 		savePopupOpen = false
-		selectedCollection = null
+		selectedCollection = undefined
 	}
 
 	const selectCollection = (collection: string) => {
-		selectedCollection = selectedCollection === collection ? null : collection
+		selectedCollection = selectedCollection === collection ? undefined : collection
 	}
 
 	const toggleSharePopup = () => {
@@ -435,15 +435,11 @@
 			savePopupOpen = false
 			isCreatingCollection = false
 			newCollectionName = ''
-			selectedCollection = null
+			selectedCollection = undefined
 		}}
 	>
-		<div class="save-popup-header">
-			<p>Select a collection to save to, or save to "All Recipes" if none selected</p>
-		</div>
-
 		<div class="collections-list">
-			{#each localCollections.filter((c) => c !== 'All Recipes') as collection (collection)}
+			{#each localCollections as collection (collection)}
 				<button
 					class="collection-item"
 					animate:flip
@@ -457,8 +453,7 @@
 							name="collection-selection"
 							value={collection}
 							checked={selectedCollection === collection}
-							onchange={() => selectCollection(collection)}
-							onclick={(e) => e.stopPropagation()}
+							bind:group={selectedCollection}
 						/>
 					</div>
 				</button>
