@@ -228,11 +228,13 @@
 		{/if}
 	</div>
 
-	<div class="pagination">
-		<Button onclick={onPrevPage} disabled={page === 0}>Previous</Button>
-		<span class="page-info">Page {page + 1} of {totalPages}</span>
-		<Button onclick={onNextPage} disabled={!hasMore}>Next</Button>
-	</div>
+	{#if totalPages > 1}
+		<div class="pagination">
+			<Button onclick={onPrevPage} disabled={page === 0}>Previous</Button>
+			<span class="page-info">Page {page + 1} of {totalPages}</span>
+			<Button onclick={onNextPage} disabled={!hasMore}>Next</Button>
+		</div>
+	{/if}
 </div>
 
 <style lang="scss">
