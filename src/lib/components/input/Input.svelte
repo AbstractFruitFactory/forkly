@@ -54,7 +54,7 @@
 <style lang="scss">
 	@mixin input-base {
 		width: 100%;
-		height: 34px;
+		height: 32px;
 		padding: 0 var(--spacing-lg);
 		font-family: var(--font-sans);
 		font-size: var(--font-size-sm);
@@ -114,6 +114,11 @@
 		gap: var(--spacing-xs);
 		padding-right: var(--spacing-md);
 		flex-shrink: 0;
+
+		.input-container:has(textarea) & {
+			align-items: flex-start;
+			padding-top: var(--spacing-xs);
+		}
 	}
 
 	.clear-button {
