@@ -12,10 +12,10 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 
 		// Call the Python serverless function
 		// In development, this will call the local Python server
-		// In production, this will call the deployed Vercel function
+		// In production, this will call the deployed Vercel function directly
 		const pythonFunctionUrl = process.env.NODE_ENV === 'development' 
 			? 'http://localhost:8000'
-			: `${new URL(request.url).origin}/api/scrape`
+			: `${new URL(request.url).origin}/api/scrape/index.py`
 
 		const response = await fetch(pythonFunctionUrl, {
 			method: 'POST',

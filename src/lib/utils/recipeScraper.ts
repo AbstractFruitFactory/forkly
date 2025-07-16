@@ -29,7 +29,13 @@ export interface ScrapeError {
 
 export async function scrapeRecipe(url: string): Promise<RecipeData | ScrapeError> {
 	try {
-		const result = await safeFetch<RecipeData>()('/api/scrape', {
+		// In development, use the SvelteKit proxy
+		// In production, call the Python function directly
+		const apiUrl = import.meta.env.DEV 
+			? '/api/scrape'
+			: '/api/scrape/index.py'
+
+		const result = await safeFetch<RecipeData>()(apiUrl, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

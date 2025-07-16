@@ -1,8 +1,8 @@
 from recipe_scrapers import scrape_me
 import json
-from http.server import BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
 import re
+import sys
+import traceback
 
 def safe_scrape_method(scraper, method_name, default_value=None):
     """Safely call a scraper method, returning default_value if the method doesn't exist"""
@@ -21,37 +21,61 @@ def normalize_instructions(instructions):
         return instructions
     if isinstance(instructions, str):
         instructions = instructions.strip()
-        # Split by newlines first
-        steps = [step.strip() for step in instructions.split('\n') if step.strip()]
-        if len(steps) > 1:
-            return steps
-        # If still only one step, split by period+space
-        steps = [step.strip() for step in re.split(r'\.\s+', instructions) if step.strip()]
+        
+        # Try to split by common step indicators
+        step_patterns = [
+            r'\d+\.\s*',  # 1., 2., etc.
+            r'[a-z]\.\s*',  # a., b., etc.
+            r'Step\s+\d+:\s*',  # Step 1:, Step 2:, etc.
+            r'^\s*[-•]\s*',  # Bullet points
+        ]
+        
+        for pattern in step_patterns:
+            steps = re.split(pattern, instructions, flags=re.IGNORECASE | re.MULTILINE)
+            if len(steps) > 1:
+                steps = [step.strip() for step in steps if step.strip()]
+                if steps:
+                    return steps
+        
+        # If no step patterns found, split by double newlines or periods
+        if '\n\n' in instructions:
+            steps = [step.strip() for step in instructions.split('\n\n') if step.strip()]
+        else:
+            # Split by sentences (period followed by space or newline)
+            steps = re.split(r'\.\s+', instructions)
+            steps = [step.strip() + '.' for step in steps if step.strip()]
+        
         return steps if steps else [instructions]
-    return [str(instructions)]
+    
+    # If it's something else, try to convert to list
+    try:
+        # Don't convert strings to character lists
+        if isinstance(instructions, str):
+            return [instructions]
+        return list(instructions)
+    except:
+        return [str(instructions)]
 
-def handler(request):
+def scrape_recipe_handler(request_body, request_headers):
+    """Main handler function for recipe scraping"""
     try:
         # Parse the request body
-        content_length = int(request.headers.get('Content-Length', 0))
-        body = request.rfile.read(content_length) if content_length > 0 else b'{}'
+        if isinstance(request_body, str):
+            data = json.loads(request_body)
+        else:
+            data = request_body
         
-        # Try to parse as JSON
-        try:
-            data = json.loads(body.decode('utf-8'))
-            url = data.get("url")
-        except json.JSONDecodeError:
-            # If not JSON, try to parse as form data
-            url = None
-            if body:
-                body_str = body.decode('utf-8')
-                params = parse_qs(body_str)
-                url = params.get('url', [None])[0]
+        url = data.get("url")
         
         if not url:
             return {
                 "statusCode": 400,
-                "headers": {"Content-Type": "application/json"},
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type"
+                },
                 "body": json.dumps({"error": "URL parameter is required"})
             }
         
@@ -87,48 +111,142 @@ def handler(request):
         
         return {
             "statusCode": 200,
-            "headers": {"Content-Type": "application/json"},
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type"
+            },
             "body": json.dumps(recipe_data, default=str)
         }
         
     except Exception as e:
+        # Log the full error for debugging
+        print(f"Error in recipe scraper: {str(e)}", file=sys.stderr)
+        print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
+        
         return {
             "statusCode": 500,
-            "headers": {"Content-Type": "application/json"},
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type"
+            },
             "body": json.dumps({"error": str(e)})
         }
 
-# Vercel serverless function handler
-class VercelHandler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        response = handler(self)
-        
-        self.send_response(response["statusCode"])
-        for key, value in response["headers"].items():
-            self.send_header(key, value)
-        self.end_headers()
-        
-        self.wfile.write(response["body"].encode('utf-8'))
-    
-    def do_GET(self):
-        # For testing purposes, allow GET requests
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.end_headers()
-        
-        response = {
-            "message": "Recipe Scraper API",
-            "usage": "Send a POST request with JSON body containing 'url' field",
-            "example": {
-                "url": "https://example.com/recipe"
+# Vercel serverless function entry point
+def handler(request, context):
+    """Vercel serverless function handler"""
+    try:
+        # Handle different HTTP methods
+        if request.method == 'GET':
+            return {
+                "statusCode": 200,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type"
+                },
+                "body": json.dumps({
+                    "message": "Recipe Scraper API",
+                    "status": "running",
+                    "usage": "Send a POST request with JSON body containing 'url' field",
+                    "example": {
+                        "url": "https://example.com/recipe"
+                    }
+                })
             }
-        }
         
-        self.wfile.write(json.dumps(response).encode('utf-8'))
+        elif request.method == 'OPTIONS':
+            # Handle CORS preflight requests
+            return {
+                "statusCode": 200,
+                "headers": {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type"
+                },
+                "body": ""
+            }
+        
+        elif request.method == 'POST':
+            # Handle recipe scraping
+            return scrape_recipe_handler(request.body, request.headers)
+        
+        else:
+            return {
+                "statusCode": 405,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type"
+                },
+                "body": json.dumps({"error": "Method not allowed"})
+            }
+            
+    except Exception as e:
+        print(f"Error in handler: {str(e)}", file=sys.stderr)
+        print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
+        
+        return {
+            "statusCode": 500,
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type"
+            },
+            "body": json.dumps({"error": "Internal server error"})
+        }
 
 # For local development
 if __name__ == "__main__":
-    from http.server import HTTPServer
-    server = HTTPServer(('localhost', 8000), VercelHandler)
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    import urllib.parse
+    
+    class LocalHandler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length) if content_length > 0 else b'{}'
+            
+            # Create a mock request object
+            class MockRequest:
+                def __init__(self, body, headers):
+                    self.body = body.decode('utf-8')
+                    self.headers = headers
+                    self.method = 'POST'
+            
+            request = MockRequest(body, dict(self.headers))
+            
+            response = handler(request, None)
+            
+            self.send_response(response["statusCode"])
+            for key, value in response["headers"].items():
+                self.send_header(key, value)
+            self.end_headers()
+            
+            self.wfile.write(response["body"].encode('utf-8'))
+        
+        def do_GET(self):
+            class MockRequest:
+                def __init__(self):
+                    self.method = 'GET'
+                    self.headers = {}
+            
+            request = MockRequest()
+            response = handler(request, None)
+            
+            self.send_response(response["statusCode"])
+            for key, value in response["headers"].items():
+                self.send_header(key, value)
+            self.end_headers()
+            
+            self.wfile.write(response["body"].encode('utf-8'))
+    
+    server = HTTPServer(('localhost', 8000), LocalHandler)
     print("Server running on http://localhost:8000")
     server.serve_forever() 
