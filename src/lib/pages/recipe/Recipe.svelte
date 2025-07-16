@@ -17,7 +17,6 @@
 	import CommentList from '$lib/components/comment/CommentList.svelte'
 	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
 	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
-	import Switch from '$lib/components/Switch.svelte'
 	import { onMount, type ComponentProps } from 'svelte'
 	import Toast from '$lib/components/toast/Toast.svelte'
 	import Button from '$lib/components/button/Button.svelte'
@@ -79,7 +78,6 @@
 	let shareUrl = $state('')
 	let toastType = $state<'like' | 'save'>()
 	let toastRef: Toast
-	let hideImages = $state(false)
 	let savePopupOpen = $state(false)
 	let isCreatingCollection = $state(false)
 	let newCollectionName = $state('')
@@ -328,16 +326,11 @@
 	<div bind:this={instructionsSection}>
 		<div class="header">
 			<h3 style="margin-bottom: 0;">Instructions</h3>
-			{#await recipe then _}
-			<div class=hide-media-switch>
-				<Switch bind:checked={hideImages} label="Hide media" />
-			</div>
-			{/await}
 		</div>
 		{#await recipe}
 			<RecipeInstructions instructions={[]} loading />
 		{:then recipe}
-			<RecipeInstructions instructions={recipe.instructions} bind:hideImages />
+			<RecipeInstructions instructions={recipe.instructions} />
 		{/await}
 	</div>
 {/snippet}
