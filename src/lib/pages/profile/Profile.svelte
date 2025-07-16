@@ -171,7 +171,10 @@
 {#snippet _savedRecipes()}
 	{#await collections then collections}
 		<CardGrid
-			items={collections}
+			items={collections.map((collection) => ({
+				...collection,
+				id: collection.name
+			}))}
 			useAnimation={false}
 			emptyMessage="You haven't saved any collections yet."
 		>
