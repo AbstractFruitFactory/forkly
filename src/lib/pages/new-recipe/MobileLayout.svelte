@@ -64,35 +64,21 @@
 
 	let isDrawerOpen = $state(false)
 	let editingIngredientId = $state<string | null>(null)
-	let newIngredientName = $state('')
-	let newIngredientId = $state('')
-	let newIngredientAmount = $state('1')
-	let newIngredientUnit = $state('')
 	let savedIngredients = $state<{ [key: string]: boolean }>({})
 
 	let editingInstructionId = $state<string | null>(null)
 	let savedInstructions = $state<{ [key: string]: boolean }>({})
 
-	const handleDrawerIngredientSelect = (ingredient: { id: string; name: string }) => {
-		newIngredientName = ingredient.name
-		newIngredientId = ingredient.id
-	}
-	const handleDrawerAmountInput = (e: Event) => {
-		const input = e.target as HTMLInputElement
-		const numericValue = input.value.replace(/[^0-9.]/g, '')
-		if (numericValue !== input.value) {
-			input.value = numericValue
-		}
-		newIngredientAmount = numericValue
-	}
-	const handleDrawerUnitInput = (e: Event) => {
-		newIngredientUnit = (e.target as HTMLInputElement).value
-	}
+	let drawerIngredientAmount = $state('1')
+	let drawerIngredientUnit = $state('')
+	let drawerIngredientName = $state('')
+	let drawerIngredientId = $state('')
+
 	const resetDrawerFields = () => {
-		newIngredientName = ''
-		newIngredientId = ''
-		newIngredientAmount = '1'
-		newIngredientUnit = ''
+		drawerIngredientName = ''
+		drawerIngredientId = ''
+		drawerIngredientAmount = '1'
+		drawerIngredientUnit = ''
 		editingIngredientId = null
 	}
 
@@ -100,41 +86,44 @@
 		removeIngredient(id)
 		savedIngredients[id] = false
 	}
+	
 	const openDrawerForEdit = (ingredient: IngredientRow) => {
 		editingIngredientId = ingredient.id
-		newIngredientName = ingredient.name
-		newIngredientId = ingredient.id
-		newIngredientAmount = ingredient.amount
-		newIngredientUnit = ingredient.unit
+		drawerIngredientName = ingredient.name
+		drawerIngredientId = ingredient.id
+		drawerIngredientAmount = ingredient.amount
+		drawerIngredientUnit = ingredient.unit
 		isDrawerOpen = true
 	}
+	
+	const handleDrawerIngredientSelect = (ingredient: { id: string; name: string }) => {
+		drawerIngredientName = ingredient.name
+		drawerIngredientId = ingredient.id
+	}
+	
 	const handleAddIngredient = () => {
 		if (editingIngredientId) {
 			updateIngredient(editingIngredientId, {
-				name: newIngredientName,
-				amount: newIngredientAmount,
-				unit: newIngredientUnit
+				name: drawerIngredientName,
+				amount: drawerIngredientAmount,
+				unit: drawerIngredientUnit
 			})
 		} else {
-			// Find the first unsaved ingredient or create a new one
 			const unsavedIngredient = ingredients.find((ing) => !savedIngredients[ing.id])
 			if (unsavedIngredient) {
-				// Update the existing unsaved ingredient
 				updateIngredient(unsavedIngredient.id, {
-					name: newIngredientName,
-					amount: newIngredientAmount,
-					unit: newIngredientUnit
+					name: drawerIngredientName,
+					amount: drawerIngredientAmount,
+					unit: drawerIngredientUnit
 				})
 				savedIngredients[unsavedIngredient.id] = true
 			} else {
-				// Create a new ingredient with the data
 				const newIngredient = {
-					name: newIngredientName,
-					amount: newIngredientAmount,
-					unit: newIngredientUnit
+					name: drawerIngredientName,
+					amount: drawerIngredientAmount,
+					unit: drawerIngredientUnit
 				}
 				addIngredient(newIngredient)
-				// Mark the last ingredient as saved (it should be the newly added one)
 				setTimeout(() => {
 					const lastIngredient = ingredients[ingredients.length - 1]
 					if (lastIngredient) {
@@ -294,7 +283,6 @@
 										disabled
 										class="ingredient-amount"
 										value={item.amount}
-										oninput={handleDrawerAmountInput}
 									/>
 									<input type="text" disabled class="ingredient-unit" value={item.unit} />
 									<input type="text" disabled class="ingredient-name" value={item.name} />
@@ -327,29 +315,15 @@
 	title={editingIngredientId ? 'Edit ingredient' : 'New ingredient'}
 >
 	<div class="drawer-ingredient-form">
-		<div class="search-row">
-			<SuggestionSearch
-				placeholder="add ingredient"
-				onSearch={searchIngredients}
-				onSelect={handleDrawerIngredientSelect}
-				clearInput={false}
-				bind:searchValue={newIngredientName}
-			/>
-		</div>
-		<div class="row">
-			<Input>
-				<input
-					type="text"
-					inputmode="decimal"
-					placeholder="1"
-					bind:value={newIngredientAmount}
-					oninput={handleDrawerAmountInput}
-				/>
-			</Input>
-			<Input>
-				<input placeholder="--" bind:value={newIngredientUnit} oninput={handleDrawerUnitInput} />
-			</Input>
-		</div>
+		<IngredientInput
+			id="drawer-ingredient"
+			bind:amount={drawerIngredientAmount}
+			bind:unit={drawerIngredientUnit}
+			bind:name={drawerIngredientName}
+			{unitSystem}
+			placeholder="Amount"
+			onIngredientSelect={handleDrawerIngredientSelect}
+		/>
 		<div class="drawer-actions">
 			<Button
 				onclick={() => {
@@ -543,14 +517,7 @@
 		margin-top: var(--spacing-lg);
 	}
 
-	.search-row {
-		margin-bottom: var(--spacing-md);
-	}
 
-	.row {
-		display: flex;
-		gap: var(--spacing-md);
-	}
 
 	.ingredient-row {
 		display: flex;

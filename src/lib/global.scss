@@ -31,7 +31,7 @@ $breakpoint-xl: 1280px; // Large desktop
 }
 
 @mixin tablet-desktop {
-  @media (min-width: $breakpoint-md) {
+  @media (min-width: $breakpoint-sm) {
     @content;
   }
 }

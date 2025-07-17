@@ -15,7 +15,8 @@
 		formName,
 		disabled = false,
 		searchValue = $bindable(''),
-		showSearchIcon = true
+		showSearchIcon = true,
+		minSearchLength = 3
 	}: {
 		placeholder?: string
 		isLoading?: boolean
@@ -28,6 +29,7 @@
 		disabled?: boolean
 		searchValue?: string
 		showSearchIcon?: boolean
+		minSearchLength?: number
 	} = $props()
 
 	let suggestions = $state<T[]>([])
@@ -35,7 +37,7 @@
 	let searchWrapper: HTMLDivElement
 
 	const handleSearch = async (value: string) => {
-		if (onSearch) {
+		if (onSearch && value.length >= minSearchLength) {
 			const result = onSearch(value)
 			suggestions = result instanceof Promise ? await result : result
 			showSuggestions = suggestions.length > 0

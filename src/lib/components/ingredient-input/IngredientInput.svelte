@@ -97,7 +97,7 @@
 </script>
 
 <div class="ingredient-input">
-	<div>
+	<div class="ingredient-row">
 		<input type="hidden" name="ingredient-{id}-name" value={name} />
 		<div class="search">
 			<SuggestionSearch
@@ -110,52 +110,82 @@
 		</div>
 	</div>
 
-	<div class="quantity-input">
-		<Input>
-			<input
-				type="text"
-				inputmode="decimal"
-				name="ingredient-{id}-quantity"
-				{placeholder}
-				bind:value={amount}
-				oninput={handleAmountInput}
+	<div class="quantity-unit-row">
+		<div class="quantity-input">
+			<Input>
+				<input
+					type="text"
+					inputmode="decimal"
+					name="ingredient-{id}-quantity"
+					{placeholder}
+					bind:value={amount}
+					oninput={handleAmountInput}
+				/>
+			</Input>
+		</div>
+
+		<div class="unit-input">
+			<SuggestionSearch
+				placeholder="Unit"
+				onSearch={searchUnits}
+				onSelect={handleUnitSelect}
+				clearInput={false}
+				bind:searchValue={unit}
+				showSearchIcon={false}
+				minSearchLength={2}
 			/>
-		</Input>
-	</div>
+		</div>
 
-	<div class="unit-input">
-		<SuggestionSearch
-			placeholder="Unit"
-			onSearch={searchUnits}
-			onSelect={handleUnitSelect}
-			clearInput={false}
-			bind:searchValue={unit}
-			showSearchIcon={false}
-		/>
+		{#if canRemove}
+			<button type="button" class="remove-btn" onclick={onRemove}>
+				<Trash size={16} color="var(--color-text-on-background)" />
+			</button>
+		{/if}
 	</div>
-
-	{#if canRemove}
-		<button type="button" class="remove-btn" onclick={onRemove}>
-			<Trash size={16} color="var(--color-text-on-background)" />
-		</button>
-	{/if}
 </div>
 
 <style lang="scss">
+	@import '$lib/global.scss';
+
 	.ingredient-input {
 		width: 100%;
 		display: flex;
-		gap: 1px;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+
+		@include tablet-desktop {
+			flex-direction: row;
+			gap: 1px;
+			align-items: center;
+		}
+	}
+
+	.ingredient-row {
+		width: 100%;
+	}
+
+	.quantity-unit-row {
+		display: flex;
+		gap: var(--spacing-xs);
 		align-items: center;
+		width: 100%;
+
+		@include tablet-desktop {
+			gap: 1px;
+		}
 	}
 
 	.search {
-		flex: 1;
-		min-width: 0;
+		width: 100%;
 
-		:global(.input-container) {
-			border-top-right-radius: 0;
-			border-bottom-right-radius: 0;
+		@include tablet-desktop {
+			flex: 1;
+			min-width: 0;
+
+			:global(.input-container) {
+				border-top-right-radius: 0;
+				border-bottom-right-radius: 0;
+			}
 		}
 
 		:global(.search-wrapper) {
@@ -164,23 +194,31 @@
 	}
 
 	.quantity-input {
-		flex: 0 0 auto;
+		flex: 1;
 
-		:global(.input-container) {
-			border-radius: 0;
-			border-left: none;
-			border-right: none;
+		@include tablet-desktop {
+			flex: 0 0 auto;
+
+			:global(.input-container) {
+				border-radius: 0;
+				border-left: none;
+				border-right: none;
+			}
 		}
 	}
 
 	.unit-input {
-		flex: auto;
+		flex: 1;
 		position: relative;
 
-		:global(.input-container) {
-			border-top-left-radius: 0;
-			border-bottom-left-radius: 0;
-			border-left: none;
+		@include tablet-desktop {
+			flex: auto;
+
+			:global(.input-container) {
+				border-top-left-radius: 0;
+				border-bottom-left-radius: 0;
+				border-left: none;
+			}
 		}
 
 		:global(.suggestion-search-wrapper) {
@@ -191,11 +229,14 @@
 	.remove-btn {
 		height: 36px;
 		width: 36px;
-		margin-left: var(--spacing-xs);
 		border-radius: var(--border-radius-lg);
 		transition: all var(--transition-fast) var(--ease-in-out);
 		&:hover {
 			background-color: var(--color-background-dark);
+		}
+
+		@include tablet-desktop {
+			margin-left: var(--spacing-xs);
 		}
 	}
 </style>

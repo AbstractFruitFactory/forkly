@@ -80,9 +80,17 @@
 		<div class="header-content">
 			<div class="text-content">
 				<div>
-                                        <Input>
-                                                <input bind:value={title} name="title" type="text" required minlength="5" maxlength="80" placeholder="Enter recipe title" />
-                                        </Input>
+					<Input>
+						<input
+							bind:value={title}
+							name="title"
+							type="text"
+							required
+							minlength="5"
+							maxlength="80"
+							placeholder="Enter recipe title"
+						/>
+					</Input>
 				</div>
 
 				<Input>
@@ -97,7 +105,12 @@
 			</div>
 
 			<div class="image-content">
-				<MediaUpload name="image" type="image" previewAlt="Recipe preview" initialImageUrl={imageUrl} />
+				<MediaUpload
+					name="image"
+					type="image"
+					previewAlt="Recipe preview"
+					initialImageUrl={imageUrl}
+				/>
 			</div>
 		</div>
 	</div>
