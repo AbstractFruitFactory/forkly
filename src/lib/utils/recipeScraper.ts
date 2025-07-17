@@ -44,13 +44,40 @@ export async function scrapeRecipe(url: string): Promise<RecipeData | ScrapeErro
 		})
 
 		if (result.isErr()) {
-			return { error: result.error.message || 'Failed to scrape recipe' }
+			// Provide more specific error messages based on the error type
+			const errorMessage = result.error.message || 'Failed to scrape recipe'
+			
+			// Check for specific error patterns
+			if (errorMessage.includes('Unable to access') || errorMessage.includes('not found')) {
+				return { error: 'The recipe URL could not be accessed. Please check if the URL is correct and the website is available.' }
+			} else if (errorMessage.includes('not supported')) {
+				return { error: 'This recipe website is not currently supported. Please try a recipe from a supported website.' }
+			} else if (errorMessage.includes('incomplete') || errorMessage.includes('could not be extracted')) {
+				return { error: 'The recipe data could not be properly extracted. Please try a different recipe URL.' }
+			} else if (errorMessage.includes('timeout') || errorMessage.includes('too long')) {
+				return { error: 'The recipe website took too long to respond. Please try again.' }
+			} else if (errorMessage.includes('connect') || errorMessage.includes('network')) {
+				return { error: 'Unable to connect to the recipe scraper. Please check your internet connection and try again.' }
+			}
+			
+			return { error: errorMessage }
 		}
 
 		return result.value
 	} catch (error) {
 		console.error('Recipe scraping error:', error)
-		return { error: 'Failed to connect to recipe scraper' }
+		
+		// Handle network/connection errors
+		if (error instanceof TypeError && error.message.includes('fetch')) {
+			return { error: 'Unable to connect to the recipe scraper. Please check your internet connection and try again.' }
+		}
+		
+		// Handle other unexpected errors
+		if (error instanceof Error) {
+			return { error: error.message || 'An unexpected error occurred while scraping the recipe' }
+		}
+		
+		return { error: 'An unexpected error occurred while scraping the recipe' }
 	}
 }
 

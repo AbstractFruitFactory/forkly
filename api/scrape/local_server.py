@@ -1,5 +1,6 @@
 import json
 import sys
+import traceback
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from scraper import scrape_recipe
 
@@ -20,6 +21,7 @@ class LocalHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": "URL parameter is required"}).encode('utf-8'))
                 return
             
+            print(f"Scraping recipe from: {url}", file=sys.stderr)
             recipe_data = scrape_recipe(url)
             
             self.send_response(200)
@@ -28,13 +30,24 @@ class LocalHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps(recipe_data, default=str).encode('utf-8'))
             
-        except Exception as e:
-            print(f"Error: {str(e)}", file=sys.stderr)
-            self.send_response(500)
+        except ValueError as e:
+            # Validation errors from the scraper
+            print(f"Validation error: {str(e)}", file=sys.stderr)
+            self.send_response(400)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+            
+        except Exception as e:
+            # Unexpected errors
+            print(f"Unexpected error: {str(e)}", file=sys.stderr)
+            print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "An unexpected error occurred while scraping the recipe"}).encode('utf-8'))
     
     def do_GET(self):
         self.send_response(200)

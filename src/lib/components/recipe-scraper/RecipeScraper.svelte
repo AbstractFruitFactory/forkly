@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { scrapeRecipe, isValidRecipeUrl, type RecipeData } from '$lib/utils/recipeScraper'
+	import { scrapeRecipe, type RecipeData } from '$lib/utils/recipeScraper'
 	import Button from '$lib/components/button/Button.svelte'
 	import Input from '$lib/components/input/Input.svelte'
-	import Toast from '$lib/components/toast/Toast.svelte'
+	import WarningBox from '$lib/components/warning-box/WarningBox.svelte'
 
 	let {
 		onClose,
@@ -15,18 +15,24 @@
 	let url = $state('')
 	let isLoading = $state(false)
 	let error: string | null = $state(null)
-	let showToast = $state(false)
+
+	function isValidUrl(urlString: string): boolean {
+		try {
+			new URL(urlString)
+			return true
+		} catch {
+			return false
+		}
+	}
 
 	async function handleScrape() {
 		if (!url.trim()) {
 			error = 'Please enter a recipe URL'
-			showToast = true
 			return
 		}
-
-		if (!isValidRecipeUrl(url)) {
-			error = 'Please enter a valid recipe URL from a supported website'
-			showToast = true
+		
+		if (!isValidUrl(url)) {
+			error = 'Please enter a valid URL'
 			return
 		}
 
@@ -38,14 +44,27 @@
 
 			if ('error' in result) {
 				error = result.error
-				showToast = true
 			} else {
+				// Additional validation on the frontend
+				if (!result.title || !result.ingredients || !result.instructions) {
+					error = 'The recipe data appears to be incomplete. Please try a different recipe URL.'
+					return
+				}
+				
 				onRecipeScraped?.(result)
 				onClose?.()
 			}
 		} catch (err) {
-			error = 'Failed to scrape recipe'
-			showToast = true
+			console.error('Recipe scraping error:', err)
+			
+			// Provide more specific error messages based on the error type
+			if (err instanceof TypeError && err.message.includes('fetch')) {
+				error = 'Unable to connect to the recipe scraper. Please check your internet connection and try again.'
+			} else if (err instanceof Error) {
+				error = err.message || 'Failed to scrape recipe'
+			} else {
+				error = 'An unexpected error occurred while scraping the recipe'
+			}
 		} finally {
 			isLoading = false
 		}
@@ -62,7 +81,7 @@
 	<div class="scraper-form">
 		<Input bind:value={url}>
 			<input
-				placeholder="Enter recipe URL (e.g., https://www.allrecipes.com/recipe/...)"
+				placeholder="Enter recipe URL"
 				bind:value={url}
 				oninput={handleUrlInput}
 				disabled={isLoading}
@@ -76,10 +95,18 @@
 			{isLoading ? 'Scraping...' : 'Scrape Recipe'}
 		</Button>
 	</div>
+	
+	{#if error}
+		<WarningBox message={error} />
+	{/if}
+	
+	{#if isLoading}
+		<div class="loading-message">
+			<p>Scraping recipe data...</p>
+			<p class="loading-note">This may take a few moments depending on the website.</p>
+		</div>
+	{/if}
 </div>
-
-{#if showToast && error}
-	<Toast message={error} type="error" />{/if}
 
 <style lang="scss">
 	@import '$lib/global.scss';
@@ -96,6 +123,25 @@
 
 		@include mobile {
 			flex-direction: column;
+		}
+	}
+
+	.loading-message {
+		text-align: center;
+		margin-top: var(--spacing-lg);
+		color: var(--color-text-on-surface);
+		
+		p {
+			margin: 0;
+			&:first-child {
+				font-weight: 500;
+				margin-bottom: var(--spacing-xs);
+			}
+		}
+		
+		.loading-note {
+			font-size: var(--font-size-sm);
+			color: var(--color-text-on-surface-secondary);
 		}
 	}
 </style>
