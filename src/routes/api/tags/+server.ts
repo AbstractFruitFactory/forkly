@@ -10,23 +10,37 @@ export type TagSearchResponse = {
 }
 
 export const GET = async ({ url }) => {
-  const query = url.searchParams.get('q') || ''
-  const limit = 5
+  try {
+    console.log('Tags API called with URL:', url.toString())
+    
+    const query = url.searchParams.get('q') || ''
+    const limit = 5
 
-  // If query is empty, get most popular tags
-  if (!query.trim()) {
-    const popularTags = await getPopularTags(limit)
+    console.log('Processing tags request - query:', query, 'limit:', limit)
+
+    // If query is empty, get most popular tags
+    if (!query.trim()) {
+      console.log('Getting popular tags...')
+      const popularTags = await getPopularTags(limit)
+      console.log('Popular tags retrieved:', popularTags.length)
+      
+      return json({
+        tags: popularTags,
+        query: ''
+      } satisfies TagSearchResponse)
+    }
+
+    // Search for tags that match the query
+    console.log('Searching for tags with query:', query)
+    const tagResults = await searchTags(query, limit)
+    console.log('Tag search results:', tagResults.length)
+
     return json({
-      tags: popularTags,
-      query: ''
+      tags: tagResults,
+      query
     } satisfies TagSearchResponse)
+  } catch (error) {
+    console.error('Error in tags API:', error)
+    throw error
   }
-
-  // Search for tags that match the query
-  const tagResults = await searchTags(query, limit)
-
-  return json({
-    tags: tagResults,
-    query
-  } satisfies TagSearchResponse)
 } 

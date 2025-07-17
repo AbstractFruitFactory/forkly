@@ -9,19 +9,27 @@ import { sql, ilike, desc, eq } from 'drizzle-orm'
  * @returns An array of tags with their usage counts
  */
 export async function searchTags(query: string, limit: number = 10) {
-  const results = await db
-    .select({
-      name: tag.name,
-      count: sql<number>`count(${recipeTag.recipeId})::int`
-    })
-    .from(tag)
-    .leftJoin(recipeTag, eq(tag.name, recipeTag.tagName))
-    .where(ilike(tag.name, `%${query}%`))
-    .groupBy(tag.name)
-    .orderBy(desc(sql`count(${recipeTag.recipeId})`), tag.name)
-    .limit(limit)
+  try {
+    console.log('searchTags called with query:', query, 'limit:', limit)
+    
+    const results = await db
+      .select({
+        name: tag.name,
+        count: sql<number>`count(${recipeTag.recipeId})::int`
+      })
+      .from(tag)
+      .leftJoin(recipeTag, eq(tag.name, recipeTag.tagName))
+      .where(ilike(tag.name, `%${query}%`))
+      .groupBy(tag.name)
+      .orderBy(desc(sql`count(${recipeTag.recipeId})`), tag.name)
+      .limit(limit)
 
-  return results.map(row => ({ name: row.name, count: Number(row.count) }))
+    console.log('searchTags results:', results.length)
+    return results.map(row => ({ name: row.name, count: Number(row.count) }))
+  } catch (error) {
+    console.error('Error in searchTags:', error)
+    throw error
+  }
 }
 
 /**
@@ -30,16 +38,24 @@ export async function searchTags(query: string, limit: number = 10) {
  * @returns An array of the most used tags with their usage counts
  */
 export async function getPopularTags(limit: number = 10) {
-  const results = await db
-    .select({
-      name: tag.name,
-      count: sql<number>`count(${recipeTag.recipeId})::int`
-    })
-    .from(tag)
-    .leftJoin(recipeTag, eq(tag.name, recipeTag.tagName))
-    .groupBy(tag.name)
-    .orderBy(desc(sql`count(${recipeTag.recipeId})`), tag.name)
-    .limit(limit)
+  try {
+    console.log('getPopularTags called with limit:', limit)
+    
+    const results = await db
+      .select({
+        name: tag.name,
+        count: sql<number>`count(${recipeTag.recipeId})::int`
+      })
+      .from(tag)
+      .leftJoin(recipeTag, eq(tag.name, recipeTag.tagName))
+      .groupBy(tag.name)
+      .orderBy(desc(sql`count(${recipeTag.recipeId})`), tag.name)
+      .limit(limit)
 
-  return results.map(row => ({ name: row.name, count: Number(row.count) }))
+    console.log('getPopularTags results:', results.length)
+    return results.map(row => ({ name: row.name, count: Number(row.count) }))
+  } catch (error) {
+    console.error('Error in getPopularTags:', error)
+    throw error
+  }
 }
