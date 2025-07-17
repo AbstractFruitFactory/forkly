@@ -1,12 +1,14 @@
 <script lang="ts">
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import RecipeScraper from './RecipeScraper.svelte'
-
+	import type { RecipeData } from '$lib/utils/recipeScraper'
 	let {
 		isOpen = $bindable(false),
+		onRecipeScraped,
 		onClose
 	}: {
 		isOpen?: boolean
+		onRecipeScraped?: (recipe: RecipeData) => void
 		onClose?: () => void
 	} = $props()
 
@@ -16,14 +18,9 @@
 	}
 </script>
 
-<Popup 
-	bind:isOpen 
-	title="Import Recipe" 
-	width="800px"
-	{onClose}
->
+<Popup bind:isOpen title="Import Recipe" width="800px" {onClose}>
 	<div class="import-recipe-content">
-		<RecipeScraper onClose={handleClose} />
+		<RecipeScraper onClose={handleClose} {onRecipeScraped} />
 	</div>
 </Popup>
 
@@ -35,4 +32,4 @@
 		overflow-y: auto;
 		padding: var(--spacing-lg);
 	}
-</style> 
+</style>

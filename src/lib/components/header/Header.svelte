@@ -10,8 +10,7 @@
 		loginHref,
 		profilePicUrl = '',
 		actions,
-		logo,
-		onImportRecipe
+		logo
 	}: {
 		loggedIn: boolean
 		newRecipeHref?: string
@@ -20,7 +19,6 @@
 		profilePicUrl?: string
 		actions?: Snippet
 		logo?: Snippet
-		onImportRecipe?: () => void
 	} = $props()
 
 	let isMac = $state(false)
@@ -43,7 +41,7 @@
 		{#if actions}
 			{@render actions()}
 		{:else}
-			<HeaderActions {loggedIn} {newRecipeHref} {profileHref} {loginHref} {profilePicUrl} {onImportRecipe} />
+			<HeaderActions {loggedIn} {newRecipeHref} {profileHref} {loginHref} {profilePicUrl} />
 		{/if}
 	</div>
 </header>

@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit'
-import type { Actions, PageServerLoad } from './$types'
+import type { Actions } from './$types'
 import type { Ingredient } from '$lib/types'
 import groupBy from 'ramda/src/groupBy'
 import { api } from '$lib/server/food-api'
@@ -174,97 +174,6 @@ const parseFormData = (formData: FormData): FormFields => {
     instructions,
     tags
   }
-}
-
-export const load: PageServerLoad = async ({ url }) => {
-	const title = url.searchParams.get('title') || ''
-	const description = url.searchParams.get('description') || ''
-	const totalTime = url.searchParams.get('total_time') || ''
-	const yields = url.searchParams.get('yields') || ''
-	const difficulty = url.searchParams.get('difficulty') || ''
-	const image = url.searchParams.get('image') || ''
-	
-	// Parse ingredients from JSON string
-	let ingredients: string[] = []
-	try {
-		const ingredientsParam = url.searchParams.get('ingredients')
-		if (ingredientsParam) {
-			ingredients = JSON.parse(ingredientsParam)
-		}
-	} catch (e) {
-		console.error('Failed to parse ingredients:', e)
-	}
-	
-	// Parse instructions from JSON string
-	let instructions: string[] = []
-	try {
-		const instructionsParam = url.searchParams.get('instructions')
-		if (instructionsParam) {
-			instructions = JSON.parse(instructionsParam)
-		}
-	} catch (e) {
-		console.error('Failed to parse instructions:', e)
-	}
-	
-	// Parse tags from JSON string
-	let tags: string[] = []
-	try {
-		const tagsParam = url.searchParams.get('tags')
-		if (tagsParam) {
-			tags = JSON.parse(tagsParam)
-		}
-	} catch (e) {
-		console.error('Failed to parse tags:', e)
-	}
-
-	// Convert ingredients to the format expected by the form
-	const parsedIngredients = ingredients.map(ingredient => {
-		// Try to parse ingredient string into quantity, unit, and name
-		// This is a simple parser - you might want to make it more sophisticated
-		const match = ingredient.match(/^([\d./\s]+)?\s*([a-zA-Z]+)?\s+(.+)$/)
-		if (match) {
-			const [, quantity, unit, name] = match
-			return {
-				quantity: quantity?.trim() || '',
-				unit: unit?.trim() || '',
-				name: name?.trim() || ingredient
-			}
-		}
-		return {
-			quantity: '',
-			unit: '',
-			name: ingredient
-		}
-	})
-
-	// Convert instructions to the format expected by the form
-	const parsedInstructions = instructions.map(instruction => ({
-		text: instruction
-	}))
-
-	// Parse servings from yields string
-	let servings = 1
-	if (yields) {
-		const servingsMatch = yields.match(/(\d+)/)
-		if (servingsMatch) {
-			servings = parseInt(servingsMatch[1]) || 1
-		}
-	}
-
-	return {
-		initialData: {
-			title,
-			description,
-			totalTime,
-			yields,
-			difficulty,
-			image,
-			ingredients: parsedIngredients,
-			instructions: parsedInstructions,
-			tags,
-			servings
-		}
-	}
 }
 
 export const actions = {

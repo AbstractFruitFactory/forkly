@@ -3,35 +3,24 @@
 	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
 	import LogInIcon from 'lucide-svelte/icons/log-in'
 	import PlusIcon from 'lucide-svelte/icons/plus'
-	import DownloadIcon from 'lucide-svelte/icons/download'
 
 	let {
 		loggedIn = false,
 		newRecipeHref,
 		profileHref,
 		loginHref,
-		profilePicUrl = '',
-		onImportRecipe
+		profilePicUrl = ''
 	}: {
 		loggedIn: boolean
 		newRecipeHref?: string
 		profileHref?: string
 		loginHref?: string
 		profilePicUrl?: string
-		onImportRecipe?: () => void
 	} = $props()
-
-	function handleImportRecipe() {
-		onImportRecipe?.()
-	}
 </script>
 
 <div class="header-actions">
 	<div class="recipe-actions">
-		<Button onclick={handleImportRecipe} variant="border" color="neutral">
-			<DownloadIcon color="var(--color-text-on-surface)" size={16} />
-			Import Recipe
-		</Button>
 		<Button href={newRecipeHref} color="primary">
 			<PlusIcon color="var(--color-text-on-primary)" size={16} />
 			New Recipe

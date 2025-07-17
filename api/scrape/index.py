@@ -21,40 +21,14 @@ def normalize_instructions(instructions):
         return instructions
     if isinstance(instructions, str):
         instructions = instructions.strip()
-        
-        # Try to split by common step indicators
-        step_patterns = [
-            r'\d+\.\s*',  # 1., 2., etc.
-            r'[a-z]\.\s*',  # a., b., etc.
-            r'Step\s+\d+:\s*',  # Step 1:, Step 2:, etc.
-            r'^\s*[-•]\s*',  # Bullet points
-        ]
-        
-        for pattern in step_patterns:
-            steps = re.split(pattern, instructions, flags=re.IGNORECASE | re.MULTILINE)
-            if len(steps) > 1:
-                steps = [step.strip() for step in steps if step.strip()]
-                if steps:
-                    return steps
-        
-        # If no step patterns found, split by double newlines or periods
-        if '\n\n' in instructions:
-            steps = [step.strip() for step in instructions.split('\n\n') if step.strip()]
-        else:
-            # Split by sentences (period followed by space or newline)
-            steps = re.split(r'\.\s+', instructions)
-            steps = [step.strip() + '.' for step in steps if step.strip()]
-        
+        # Split by newlines first
+        steps = [step.strip() for step in instructions.split('\n') if step.strip()]
+        if len(steps) > 1:
+            return steps
+        # If still only one step, split by period+space
+        steps = [step.strip() for step in re.split(r'\.\s+', instructions) if step.strip()]
         return steps if steps else [instructions]
-    
-    # If it's something else, try to convert to list
-    try:
-        # Don't convert strings to character lists
-        if isinstance(instructions, str):
-            return [instructions]
-        return list(instructions)
-    except:
-        return [str(instructions)]
+    return [str(instructions)]
 
 def scrape_recipe_handler(request_body, request_headers):
     """Main handler function for recipe scraping"""

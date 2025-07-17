@@ -10,83 +10,37 @@
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import DesktopLayout from './DesktopLayout.svelte'
 	import MobileLayout from './MobileLayout.svelte'
+	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
+	import Button from '$lib/components/button/Button.svelte'
+	import DownloadIcon from 'lucide-svelte/icons/download'
+	import type { RecipeData } from '$lib/utils/recipeScraper'
 
 	let {
 		errors,
 		unitSystem = 'imperial',
 		onSearchTags,
-		onSearchIngredients,
-		initialData
+		onSearchIngredients
 	}: {
 		errors?: { path: string; message: string }[]
 		onSearchIngredients?: (query: string) => Promise<Ingredient[]>
 		unitSystem?: UnitSystem
 		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
-		initialData?: {
-			title: string
-			description: string
-			totalTime: string
-			yields: string
-			difficulty: string
-			image: string
-			ingredients: { quantity: string; unit: string; name: string }[]
-			instructions: { text: string }[]
-			tags: string[]
-			servings: number
-		}
 	} = $props()
 
 	const generateId = () => Math.random().toString(36).slice(2)
 
-	let ingredients = $state<IngredientRow[]>([])
-	let instructions = $state<InstructionRow[]>([])
+	let ingredients = $state<IngredientRow[]>([{ id: generateId(), name: '', amount: '', unit: '' }])
+	let instructions = $state<InstructionRow[]>([{ id: generateId(), text: '', media: undefined }])
 	let servings = $state(1)
 	let selectedTags = $state<string[]>([])
 	let title = $state('')
-	let description = $state('')
-	let imageUrl = $state('')
+	let image = $state<string | null>(null)
 
 	let isMobileView = $state(false)
 	let mobileLayoutElement: HTMLElement
 	let desktopLayoutElement: HTMLElement
 
-	// Initialize form with initial data if provided
-	$effect(() => {
-		if (initialData) {
-			title = initialData.title || ''
-			description = initialData.description || ''
-			imageUrl = initialData.image || ''
-			servings = initialData.servings || 1
-			selectedTags = initialData.tags || []
-			
-			// Initialize ingredients
-			if (initialData.ingredients && initialData.ingredients.length > 0) {
-				ingredients = initialData.ingredients.map(ing => ({
-					id: generateId(),
-					name: ing.name || '',
-					amount: ing.quantity || '',
-					unit: ing.unit || ''
-				}))
-			} else {
-				ingredients = [{ id: generateId(), name: '', amount: '', unit: '' }]
-			}
-			
-			// Initialize instructions
-			if (initialData.instructions && initialData.instructions.length > 0) {
-				instructions = initialData.instructions.map(inst => ({
-					id: generateId(),
-					text: inst.text || '',
-					media: undefined
-				}))
-			} else {
-				instructions = [{ id: generateId(), text: '', media: undefined }]
-			}
-		} else {
-			// Default empty form
-			ingredients = [{ id: generateId(), name: '', amount: '', unit: '' }]
-			instructions = [{ id: generateId(), text: '', media: undefined }]
-		}
-	})
+	let isImportPopupOpen = $state(false)
 
 	const checkViewport = () => {
 		isMobileView = window.innerWidth <= 480
@@ -97,7 +51,7 @@
 		if (mobileLayoutElement && desktopLayoutElement) {
 			const mobileInputs = mobileLayoutElement.querySelectorAll('input, textarea, button, select')
 			const desktopInputs = desktopLayoutElement.querySelectorAll('input, textarea, button, select')
-			
+
 			// Disable mobile inputs when not in mobile view
 			mobileInputs.forEach((input) => {
 				if (isMobileView) {
@@ -106,7 +60,7 @@
 					input.setAttribute('disabled', 'disabled')
 				}
 			})
-			
+
 			// Disable desktop inputs when in mobile view
 			desktopInputs.forEach((input) => {
 				if (isMobileView) {
@@ -121,7 +75,7 @@
 	onMount(() => {
 		checkViewport()
 		window.addEventListener('resize', checkViewport)
-		
+
 		return () => {
 			window.removeEventListener('resize', checkViewport)
 		}
@@ -221,10 +175,78 @@
 		servings = newServings
 	}
 
+	function openImportPopup() {
+		isImportPopupOpen = true
+	}
+
+	function closeImportPopup() {
+		isImportPopupOpen = false
+	}
+
+	function parseIngredient(ingredient: string) {
+		// Example: "1 cup sugar" => amount: "1", unit: "cup", name: "sugar"
+		const match = ingredient.match(/^([\d/.\-\s]+)?\s*([a-zA-Z]+)?\s*(.*)$/)
+		if (match) {
+			const [, amount, unit, name] = match
+			return {
+				amount: amount?.trim() || '',
+				unit: unit?.trim() || '',
+				name: name?.trim() || ingredient
+			}
+		}
+		return { amount: '', unit: '', name: ingredient }
+	}
+
 	let submitting = $state(false)
+
+	function handleRecipeScraped(recipe: RecipeData) {
+		// Populate title
+		if (recipe.title) {
+			title = recipe.title
+		}
+		// Populate image
+		if (recipe.image) {
+			image = recipe.image
+		}
+		// Populate ingredients
+		if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+			ingredients = recipe.ingredients.map((raw) => {
+				const { amount, unit, name } = parseIngredient(raw)
+				return { id: generateId(), name, amount, unit }
+			})
+		}
+		// Populate instructions
+		if (recipe.instructions && Array.isArray(recipe.instructions)) {
+			instructions = recipe.instructions.map((text) => ({
+				id: generateId(),
+				text,
+				media: undefined
+			}))
+		}
+		// Populate servings
+		if (recipe.yields) {
+			const match = recipe.yields.match(/\d+/)
+			if (match) {
+				servings = parseInt(match[0], 10)
+			}
+		}
+		// Populate tags
+		if (recipe.tags && Array.isArray(recipe.tags)) {
+			selectedTags = recipe.tags.slice(0, 3)
+		}
+		isImportPopupOpen = false
+	}
 </script>
 
 <div class="container">
+	<div class="page-header">
+		<div></div>
+		<Button onclick={openImportPopup} variant="border" color="neutral">
+			<DownloadIcon color="var(--color-text-on-surface)" size={16} />
+			Import Recipe
+		</Button>
+	</div>
+
 	<form
 		method="POST"
 		enctype="multipart/form-data"
@@ -248,6 +270,8 @@
 
 		<div class="mobile-layout" bind:this={mobileLayoutElement}>
 			<MobileLayout
+				imageUrl={image ?? undefined}
+				{title}
 				{servings}
 				{ingredients}
 				{addIngredient}
@@ -265,13 +289,12 @@
 				{handleTagSelect}
 				{removeTag}
 				{submitting}
-				{title}
-				{description}
-				{imageUrl}
 			/>
 		</div>
 		<div class="desktop-layout" bind:this={desktopLayoutElement}>
 			<DesktopLayout
+				imageUrl={image ?? undefined}
+				{title}
 				{servings}
 				{ingredients}
 				{addIngredient}
@@ -286,17 +309,20 @@
 				{handleTagSelect}
 				{removeTag}
 				{submitting}
-				{title}
-				{description}
-				{imageUrl}
 			/>
 		</div>
-		
+
 		{#each selectedTags as tag (tag)}
 			<input type="hidden" name="tags" value={tag} />
 		{/each}
 	</form>
 </div>
+
+<ImportRecipePopup
+	bind:isOpen={isImportPopupOpen}
+	onClose={closeImportPopup}
+	onRecipeScraped={handleRecipeScraped}
+/>
 
 <style lang="scss">
 	@import '../../global.scss';
@@ -305,6 +331,25 @@
 		max-width: 1000px;
 		margin: 0 auto;
 		padding: var(--spacing-lg) var(--spacing-md);
+	}
+
+	.page-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-xl);
+
+		h1 {
+			margin: 0;
+			font-size: var(--font-size-2xl);
+			font-weight: 600;
+		}
+
+		@include mobile {
+			flex-direction: column;
+			gap: var(--spacing-md);
+			align-items: stretch;
+		}
 	}
 
 	.error-container {
