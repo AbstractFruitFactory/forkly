@@ -338,7 +338,7 @@ export const actions = {
     }
 
     const fetchResponse = await safeFetch<RecipeApiResponse>(fetch)(
-      '/api/recipes/create',
+      '/recipes/create',
       {
         method: 'POST',
         headers: {

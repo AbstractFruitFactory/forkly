@@ -20,7 +20,7 @@ export const load: PageServerLoad = ({ fetch, cookies }) => {
         if (search?.sort) searchParams.set('sort', search.sort)
 
         const resultPromise = safeFetch<RecipesSearchResponse>(fetch)(
-                '/api/recipes/search?' + searchParams.toString() + '&page=' + page
+                '/recipes/search?' + searchParams.toString() + '&page=' + page
         )
 
         const recipesPromise = resultPromise.then((recipes) => {

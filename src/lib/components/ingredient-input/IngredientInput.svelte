@@ -60,7 +60,7 @@
 		if (query.length < 2) return []
 
 		try {
-			const response = await fetch(`/api/ingredients/search/${encodeURIComponent(query)}`)
+			const response = await fetch(`/ingredients/search/${encodeURIComponent(query)}`)
 			if (response.ok) {
 				return await response.json()
 			}

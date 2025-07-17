@@ -44,7 +44,7 @@
 		const formData = new FormData()
 		formData.append('avatar', file)
 
-		const res = await safeFetch<{ avatarUrl: string }>()('/api/avatar', {
+		const res = await safeFetch<{ avatarUrl: string }>()('/avatar', {
 			method: 'POST',
 			body: formData
 		})

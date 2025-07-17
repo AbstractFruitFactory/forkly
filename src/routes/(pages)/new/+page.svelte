@@ -3,7 +3,7 @@
 	import type { IngredientSearchResult } from '$lib/server/food-api'
 	import RecipeSuccess from '$lib/pages/recipe-created/RecipeCreated.svelte'
 	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
-	import type { TagSearchResponse } from '../../api/tags/+server'
+	import type { TagSearchResponse } from '../../(api)/tags/+server'
 	import { safeFetch } from '$lib/utils/fetch'
 	import { fly } from 'svelte/transition'
 	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
@@ -19,7 +19,7 @@
 		return new Promise((resolve) => {
 			searchTimeout = setTimeout(async () => {
 				const response = await safeFetch<IngredientSearchResult>()(
-					`/api/ingredients/search/${query}`
+					`/ingredients/search/${query}`
 				)
 				if (response.isOk()) {
 					resolve(response.value)
@@ -37,7 +37,7 @@
 		return new Promise((resolve) => {
 			tagSearchTimeout = setTimeout(async () => {
 				const response = await safeFetch<TagSearchResponse>()(
-					`/api/tags?q=${encodeURIComponent(query)}`
+					`/tags?q=${encodeURIComponent(query)}`
 				)
 				if (response.isOk()) {
 					resolve(response.value.tags)

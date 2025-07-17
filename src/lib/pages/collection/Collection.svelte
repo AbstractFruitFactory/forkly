@@ -17,7 +17,7 @@
 	let selectedRecipeId: string | null = null
 
 	const handleDelete = async (recipeId: string) => {
-		await safeFetch<{ saved: boolean }>()('/api/recipes/save', {
+		await safeFetch<{ saved: boolean }>()('/recipes/save', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ id: recipeId })
@@ -26,7 +26,7 @@
 	}
 
 	const handleMove = async (recipeId: string, collectionName?: string) => {
-		await safeFetch<{ success: true }>()('/api/recipes/move', {
+		await safeFetch<{ success: true }>()('/recipes/move', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ id: recipeId, collectionName })
