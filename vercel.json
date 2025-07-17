@@ -4,5 +4,11 @@
       "runtime": "vercel-python@0.8.0",
       "maxDuration": 30
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/scrape",
+      "dest": "scraper/index.py"
+    }
+  ]
 }
