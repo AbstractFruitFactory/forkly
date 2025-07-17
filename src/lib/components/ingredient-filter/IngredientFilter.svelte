@@ -8,10 +8,13 @@
 		include: boolean
 	}
 
-	let { selected = $bindable<IngredientFilter[]>([]), onSearch } = $props<{
+	let {
+		selected = $bindable<IngredientFilter[]>([]),
+		onSearch
+	}: {
 		selected: IngredientFilter[]
 		onSearch: (query: string) => Promise<string[]> | string[]
-	}>()
+	} = $props()
 
 	const searchIngredients = async (query: string) => {
 		const results = await Promise.resolve(onSearch(query))

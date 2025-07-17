@@ -1,7 +1,7 @@
 import { safeFetch } from '$lib/utils/fetch'
 import { error } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
-import type { RecipesSearchResponse } from './api/recipes/search/+server'
+import type { RecipesSearchResponse } from './(api)/recipes/search/+server'
 import type { PaginationCookie, SearchCookie } from '$lib/utils/cookies'
 
 const PAGINATION_LIMIT = 18
@@ -20,7 +20,7 @@ export const load: PageServerLoad = ({ fetch, cookies }) => {
         if (search?.sort) searchParams.set('sort', search.sort)
 
         const resultPromise = safeFetch<RecipesSearchResponse>(fetch)(
-                '/api/recipes/search?' + searchParams.toString() + '&page=' + page
+                '/recipes/search?' + searchParams.toString() + '&page=' + page
         )
 
         const recipesPromise = resultPromise.then((recipes) => {

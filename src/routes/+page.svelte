@@ -2,8 +2,8 @@
 	import Home from '$lib/pages/home/Home.svelte'
 	import { invalidateAll } from '$app/navigation'
 	import { safeFetch } from '$lib/utils/fetch'
-	import type { IngredientLookupResult } from './api/ingredients/lookup/[query]/+server'
-	import type { TagSearchResponse } from './api/tags/+server'
+	import type { IngredientLookupResult } from './(api)/ingredients/lookup/[query]/+server'
+	import type { TagSearchResponse } from './(api)/tags/+server'
 	import { scrolledDownHomepageStore } from './+layout.svelte'
 	import { onMount } from 'svelte'
 	import { useCookies } from '$lib/utils/cookies'
@@ -74,13 +74,13 @@
 
 	const searchIngredients = async (query: string): Promise<{ id: string; name: string }[]> => {
 		if (!query.trim()) return []
-		const result = await safeFetch<IngredientLookupResult>()(`/api/ingredients/lookup/${query}`)
+		const result = await safeFetch<IngredientLookupResult>()(`/ingredients/lookup/${query}`)
 		return result.isOk() ? result.value : []
 	}
 
 	const searchTags = async (query: string): Promise<{ name: string; count: number }[]> => {
 		const response = await safeFetch<TagSearchResponse>()(
-			`/api/tags?q=${encodeURIComponent(query)}`
+			`/tags?q=${encodeURIComponent(query)}`
 		)
 		return response.isOk() ? response.value.tags : []
 	}

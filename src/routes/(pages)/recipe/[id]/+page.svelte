@@ -4,10 +4,10 @@
 	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
 	import { page } from '$app/state'
 	import { safeFetch } from '$lib/utils/fetch.js'
-	import type { RecipesLikeResponse } from '../../../api/recipes/like/+server.js'
-	import type { RecipesSaveResponse } from '../../../api/recipes/save/+server.js'
-	import type { CollectionsResponse } from '../../../api/collections/+server.js'
-	import type { CommentsResponse } from '../../../api/recipes/[id]/comments/+server.js'
+	import type { RecipesLikeResponse } from '../../../(api)/recipes/like/+server.js'
+	import type { RecipesSaveResponse } from '../../../(api)/recipes/save/+server.js'
+	import type { CollectionsResponse } from '../../../(api)/collections/+server.js'
+	import type { CommentsResponse } from '../../../(api)/recipes/[id]/comments/+server.js'
 	import { errorStore } from '../../../+layout.svelte'
 
 	let { data } = $props()
@@ -32,7 +32,7 @@
 	})
 
 	const handleLike = async () => {
-		await safeFetch<RecipesLikeResponse>()(`/api/recipes/like`, {
+		await safeFetch<RecipesLikeResponse>()(`/recipes/like`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -42,7 +42,7 @@
 	}
 
 	const handleSave = async (collectionName?: string) => {
-		await safeFetch<RecipesSaveResponse>()(`/api/recipes/save`, {
+		await safeFetch<RecipesSaveResponse>()(`/recipes/save`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -52,7 +52,7 @@
 	}
 
 	const createCollection = async (name: string) => {
-		await safeFetch<CollectionsResponse>()(`/api/collections`, {
+		await safeFetch<CollectionsResponse>()(`/collections`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -71,7 +71,7 @@
 
 	const loadComments = async (pageNum: number) => {
 		const result = await safeFetch<CommentsResponse>()(
-			`/api/recipes/${(await data.recipe).id}/comments?page=${pageNum}`
+			`/recipes/${(await data.recipe).id}/comments?page=${pageNum}`
 		)
 		if (result.isOk()) {
 			comments = Promise.resolve(result.value)

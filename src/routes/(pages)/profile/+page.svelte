@@ -7,7 +7,7 @@
 	let { data, form } = $props()
 
 	async function handleLogout() {
-		const response = await fetch('/api/logout', {
+		const response = await fetch('/logout', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

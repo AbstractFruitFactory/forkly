@@ -4,7 +4,7 @@ import { getUserById, getUserByUsername, updateUserProfile } from '$lib/server/d
 import * as v from 'valibot'
 import { deleteImage } from '$lib/server/cloudinary'
 import { safeFetch } from '$lib/utils/fetch'
-import type { UserRecipes } from '../../api/recipes/user/+server'
+import type { UserRecipes } from '../../(api)/recipes/user/+server'
 import { getCollections } from '$lib/server/db/save'
 
 const updateProfileSchema = v.object({
@@ -21,7 +21,7 @@ const updateProfileSchema = v.object({
 export const load: PageServerLoad = ({ locals, fetch, url }) => {
   if (!locals.user) error(401, 'Unauthorized')
 
-  const recipes = safeFetch<UserRecipes>(fetch)('/api/recipes/user').then((r) => {
+  const recipes = safeFetch<UserRecipes>(fetch)('/recipes/user').then((r) => {
     if (r.isErr()) error(500, 'Failed to load recipes')
     return r.value.created
   })

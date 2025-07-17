@@ -15,7 +15,7 @@
 	let newName = $state(name)
 
 	const handleRename = async () => {
-		const result = await safeFetch<{ success: true }>()('/api/collections/rename', {
+		const result = await safeFetch<{ success: true }>()('/collections/rename', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ oldName: name, newName })
@@ -28,7 +28,7 @@
 	}
 
 	const handleDelete = async () => {
-		const result = await safeFetch<{ success: true }>()('/api/collections/delete', {
+		const result = await safeFetch<{ success: true }>()('/collections/delete', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ name })

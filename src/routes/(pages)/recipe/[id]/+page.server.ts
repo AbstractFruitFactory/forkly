@@ -5,14 +5,14 @@ import { uploadImage } from '$lib/server/cloudinary'
 import * as v from 'valibot'
 import { getCollections } from '$lib/server/db/save'
 import { safeFetch } from '$lib/utils/fetch'
-import type { CommentsResponse } from '../../../api/recipes/[id]/comments/+server'
+import type { CommentsResponse } from '../../../(api)/recipes/[id]/comments/+server'
 
 export const load: PageServerLoad = ({ params, locals, fetch }) => {
   const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(r => {
     return r as NonNullable<typeof r>
   })
 
-  const comments = safeFetch<CommentsResponse>(fetch)(`/api/recipes/${params.id}/comments?page=0`).then((result) => {
+  const comments = safeFetch<CommentsResponse>(fetch)(`/recipes/${params.id}/comments?page=0`).then((result) => {
     if (result.isErr()) {
       console.error('Failed to fetch comments:', result.error)
       return { comments: [], total: 0 }
@@ -78,7 +78,7 @@ export const actions: Actions = {
     }
 
     const result = await safeFetch<{ id: string; content: string; imageUrl?: string }>(fetch)(
-      `/api/recipes/${params.id}/comments`,
+      `/recipes/${params.id}/comments`,
       {
         method: 'POST',
         headers: {
