@@ -4,7 +4,7 @@ import { getUserById, getUserByUsername, updateUserProfile } from '$lib/server/d
 import * as v from 'valibot'
 import { deleteImage } from '$lib/server/cloudinary'
 import { safeFetch } from '$lib/utils/fetch'
-import type { UserRecipes } from '../../api/recipes/user/+server'
+import type { UserRecipes } from '../../(api)/recipes/user/+server'
 import { getCollections } from '$lib/server/db/save'
 
 const updateProfileSchema = v.object({

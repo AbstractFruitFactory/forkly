@@ -5,7 +5,7 @@ import { uploadImage } from '$lib/server/cloudinary'
 import * as v from 'valibot'
 import { getCollections } from '$lib/server/db/save'
 import { safeFetch } from '$lib/utils/fetch'
-import type { CommentsResponse } from '../../../api/recipes/[id]/comments/+server'
+import type { CommentsResponse } from '../../../(api)/recipes/[id]/comments/+server'
 
 export const load: PageServerLoad = ({ params, locals, fetch }) => {
   const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(r => {
