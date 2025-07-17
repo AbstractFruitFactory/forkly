@@ -30,7 +30,7 @@
 			error = 'Please enter a recipe URL'
 			return
 		}
-		
+
 		if (!isValidUrl(url)) {
 			error = 'Please enter a valid URL'
 			return
@@ -50,16 +50,17 @@
 					error = 'The recipe data appears to be incomplete. Please try a different recipe URL.'
 					return
 				}
-				
+
 				onRecipeScraped?.(result)
 				onClose?.()
 			}
 		} catch (err) {
 			console.error('Recipe scraping error:', err)
-			
+
 			// Provide more specific error messages based on the error type
 			if (err instanceof TypeError && err.message.includes('fetch')) {
-				error = 'Unable to connect to the recipe scraper. Please check your internet connection and try again.'
+				error =
+					'Unable to connect to the recipe scraper. Please check your internet connection and try again.'
 			} else if (err instanceof Error) {
 				error = err.message || 'Failed to scrape recipe'
 			} else {
@@ -88,18 +89,19 @@
 			/>
 		</Input>
 		<Button
+			loading={isLoading}
 			onclick={handleScrape}
 			disabled={isLoading || !url.trim()}
 			color="neutral"
 		>
-			{isLoading ? 'Scraping...' : 'Scrape Recipe'}
+			Import
 		</Button>
 	</div>
-	
+
 	{#if error}
 		<WarningBox message={error} />
 	{/if}
-	
+
 	{#if isLoading}
 		<div class="loading-message">
 			<p>Scraping recipe data...</p>
@@ -130,7 +132,7 @@
 		text-align: center;
 		margin-top: var(--spacing-lg);
 		color: var(--color-text-on-surface);
-		
+
 		p {
 			margin: 0;
 			&:first-child {
@@ -138,7 +140,7 @@
 				margin-bottom: var(--spacing-xs);
 			}
 		}
-		
+
 		.loading-note {
 			font-size: var(--font-size-sm);
 			color: var(--color-text-on-surface-secondary);
