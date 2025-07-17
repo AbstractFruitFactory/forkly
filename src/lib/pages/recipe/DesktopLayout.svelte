@@ -2,8 +2,8 @@
 	import type { Snippet } from 'svelte'
 	import { fly } from 'svelte/transition'
 	import {
+		FLY_LEFT_IN_LONG,
 		FLY_LEFT_IN,
-		FLY_LEFT_IN_SHORT,
 		FLY_LEFT_OUT,
 		FLY_DOWN_IN,
 		FLY_DOWN_OUT
@@ -34,14 +34,14 @@
 
 <div class="desktop-layout">
 	<div class="sidebar">
-		<div class="action-buttons" in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
+		<div class="action-buttons" in:fly|global={FLY_LEFT_IN_LONG} out:fly|global={FLY_LEFT_OUT}>
 			{@render actionButtons()}
 		</div>
 	</div>
 
 	<div class="main-content">
 		<div class="content-grid">
-			<div class="recipe-info" in:fly|global={FLY_LEFT_IN_SHORT} out:fly|global={FLY_LEFT_OUT}>
+			<div class="recipe-info" in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 				<div class="recipe-info-meta">
 					<div class="tags-and-action-buttons">
 						<div class="tags">
