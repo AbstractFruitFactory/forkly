@@ -211,6 +211,7 @@
 
 		&.neutral {
 			background-color: var(--color-surface);
+			border: var(--border-width-thin) solid var(--color-neutral);
 
 			&:hover:not(:disabled) {
 				background-color: color-mix(in srgb, var(--color-surface), black 15%);

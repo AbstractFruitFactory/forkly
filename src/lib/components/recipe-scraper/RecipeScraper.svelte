@@ -68,7 +68,11 @@
 				disabled={isLoading}
 			/>
 		</Input>
-		<Button onclick={handleScrape} disabled={isLoading || !url.trim()}>
+		<Button
+			onclick={handleScrape}
+			disabled={isLoading || !url.trim()}
+			color="neutral"
+		>
 			{isLoading ? 'Scraping...' : 'Scrape Recipe'}
 		</Button>
 	</div>

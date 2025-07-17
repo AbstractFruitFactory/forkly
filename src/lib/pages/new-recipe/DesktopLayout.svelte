@@ -232,7 +232,6 @@
 		justify-content: center;
 		gap: var(--spacing-3xl) 40px;
 		margin: 0 auto;
-		padding: var(--spacing-lg) var(--spacing-md);
 	}
 
 	.section-title {
