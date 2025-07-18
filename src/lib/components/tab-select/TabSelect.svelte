@@ -36,10 +36,5 @@
 	.tab-select {
 		display: flex;
 		gap: var(--spacing-md);
-
-		@media (max-width: 640px) {
-			width: 100%;
-			justify-content: space-between;
-		}
 	}
 </style>

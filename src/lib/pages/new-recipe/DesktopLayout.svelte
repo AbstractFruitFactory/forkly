@@ -9,10 +9,10 @@
 	import X from 'lucide-svelte/icons/x'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
-        import Input from '$lib/components/input/Input.svelte'
-        import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
-        import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-        import type { IngredientRow, InstructionRow } from './NewRecipe.svelte'
+	import Input from '$lib/components/input/Input.svelte'
+	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
+	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+	import type { IngredientRow, InstructionRow } from './NewRecipe.svelte'
 
 	let {
 		servings,
@@ -27,21 +27,21 @@
 		handleServingsChange,
 		searchTags,
 		handleTagSelect,
-                removeTag,
-                submitting,
-                title = '',
-                description = '',
-                imageUrl = '',
-               nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
-               calories = $bindable(''),
-               protein = $bindable(''),
-               carbs = $bindable(''),
-               fat = $bindable('')
-        }: {
-                servings: number
-                ingredients: IngredientRow[]
-                instructions: InstructionRow[]
-                selectedTags: string[]
+		removeTag,
+		submitting,
+		title = '',
+		description = '',
+		imageUrl = '',
+		nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
+		calories = $bindable(''),
+		protein = $bindable(''),
+		carbs = $bindable(''),
+		fat = $bindable('')
+	}: {
+		servings: number
+		ingredients: IngredientRow[]
+		instructions: InstructionRow[]
+		selectedTags: string[]
 		unitSystem: UnitSystem
 		addIngredient: () => void
 		removeIngredient: (id: string) => void
@@ -50,17 +50,17 @@
 		handleServingsChange: (newServings: number) => void
 		searchTags: (query: string) => Promise<{ name: string }[]>
 		handleTagSelect: (tag: string, selected: boolean) => void
-                removeTag: (tag: string) => void
-                submitting: boolean
-                title?: string
-                description?: string
-                imageUrl?: string
-                nutritionMode?: 'auto' | 'manual' | 'none'
-                calories?: string
-                protein?: string
-                carbs?: string
-                fat?: string
-        } = $props()
+		removeTag: (tag: string) => void
+		submitting: boolean
+		title?: string
+		description?: string
+		imageUrl?: string
+		nutritionMode?: 'auto' | 'manual' | 'none'
+		calories?: string
+		protein?: string
+		carbs?: string
+		fat?: string
+	} = $props()
 
 	let searchValue = $state('')
 
@@ -210,11 +210,11 @@
 
 	<div class="section-title">Tags</div>
 	<div class="section-content">
-        <div class="tags">
-                        <div style:width="fit-content">
-                                <SuggestionSearch
-                                        bind:searchValue
-                                        disabled={selectedTags.length >= 3}
+		<div class="tags">
+			<div style:width="fit-content">
+				<SuggestionSearch
+					bind:searchValue
+					disabled={selectedTags.length >= 3}
 					placeholder="Search or add custom tag"
 					onSearch={searchTags}
 					onSelect={(tag) => handleTagSelect(tag.name, true)}
@@ -237,29 +237,61 @@
 						</div>
 					{/each}
 				</div>
-                        {/if}
-                </div>
-        </div>
+			{/if}
+		</div>
+	</div>
 
-        <div class="section-title">Nutrition</div>
-        <div class="section-content">
-                <div class="nutrition-mode">
-                        <TabSelect
-                                options={[ 'auto', 'manual', 'none' ]}
-                                onSelect={(opt) => (nutritionMode = opt as 'auto' | 'manual' | 'none')}
-                                selected={nutritionMode}
-                        />
-                </div>
-               {#if nutritionMode === 'manual'}
-                       <div class="nutrition-inputs">
-                               <Input><input type="number" step="any" name="protein" placeholder="Protein (g)" bind:value={protein} /></Input>
-                               <Input><input type="number" step="any" name="carbs" placeholder="Carbs (g)" bind:value={carbs} /></Input>
-                               <Input><input type="number" step="any" name="fat" placeholder="Fat (g)" bind:value={fat} /></Input>
-                               <Input><input type="number" step="any" name="calories" placeholder="Calories" value={calories} readonly /></Input>
-                       </div>
-               {/if}
-               <input type="hidden" name="nutritionMode" value={nutritionMode} />
-       </div>
+	<div class="section-title">Nutrition</div>
+	<div class="section-content">
+		<div class="nutrition-mode">
+			<TabSelect
+				options={['auto', 'manual', 'none']}
+				onSelect={(opt) => (nutritionMode = opt as 'auto' | 'manual' | 'none')}
+				selected={nutritionMode}
+			/>
+		</div>
+		{#if nutritionMode === 'manual'}
+			<div class="nutrition-inputs">
+				<Input
+					><input
+						type="number"
+						step="any"
+						name="protein"
+						placeholder="Protein (g)"
+						bind:value={protein}
+					/></Input
+				>
+				<Input
+					><input
+						type="number"
+						step="any"
+						name="carbs"
+						placeholder="Carbs (g)"
+						bind:value={carbs}
+					/></Input
+				>
+				<Input
+					><input
+						type="number"
+						step="any"
+						name="fat"
+						placeholder="Fat (g)"
+						bind:value={fat}
+					/></Input
+				>
+				<Input
+					><input
+						type="text"
+						name="calories"
+						placeholder="Calories"
+						value={`${calories} kcal`}
+						readonly
+					/></Input
+				>
+			</div>
+		{/if}
+		<input type="hidden" name="nutritionMode" value={nutritionMode} />
+	</div>
 
 	<div class="section-title"></div>
 	<div class="section-content">
@@ -438,20 +470,20 @@
 		align-items: center;
 	}
 
-        .ingredient-input {
-                flex: 1;
-        }
+	.ingredient-input {
+		flex: 1;
+	}
 
-        .nutrition-mode {
-                margin-bottom: var(--spacing-md);
-        }
+	.nutrition-mode {
+		margin-bottom: var(--spacing-md);
+	}
 
-        .nutrition-inputs {
-                display: flex;
-                gap: var(--spacing-sm);
-                flex-wrap: wrap;
-                margin-top: var(--spacing-md);
-        }
+	.nutrition-inputs {
+		display: flex;
+		gap: var(--spacing-sm);
+		flex-wrap: wrap;
+		margin-top: var(--spacing-md);
+	}
 
 	@media (max-width: 1000px) {
 		.form-grid {
