@@ -549,7 +549,7 @@
 		display: flex;
 		flex-direction: column;
 		position: sticky;
-		top: var(--spacing-sm);
+		top: var(--spacing-xs);
 		z-index: var(--z-sticky);
 		transform-origin: center top;
 		transition:
