@@ -3,6 +3,7 @@
 	import Button from '$lib/components/button/Button.svelte'
 	import IngredientInput from '$lib/components/ingredient-input/IngredientInput.svelte'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
+	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
 	import Trash from 'lucide-svelte/icons/trash-2'
 	import Plus from 'lucide-svelte/icons/plus'
@@ -25,6 +26,7 @@
 		addInstruction,
 		removeInstruction,
 		handleServingsChange,
+		onUnitChange,
 		searchTags,
 		handleTagSelect,
 		removeTag,
@@ -48,6 +50,7 @@
 		addInstruction: () => void
 		removeInstruction: (id: string) => void
 		handleServingsChange: (newServings: number) => void
+		onUnitChange: (system: UnitSystem) => void
 		searchTags: (query: string) => Promise<{ name: string }[]>
 		handleTagSelect: (tag: string, selected: boolean) => void
 		removeTag: (tag: string) => void
@@ -86,7 +89,7 @@
 </script>
 
 <div class="form-grid">
-	<div class="section-title">Title</div>
+	<div class="section-title">Info</div>
 	<div class="section-content">
 		<div class="header-content">
 			<div class="text-content">
@@ -131,8 +134,13 @@
 			<ServingsAdjuster {servings} onServingsChange={handleServingsChange} />
 		{/snippet}
 
-		<div class="servings">
-			{@render servingsAdjuster()}
+		<div class="servings-controls">
+			<div class="unit-toggle-container">
+				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
+			</div>
+			<div class="servings">
+				{@render servingsAdjuster()}
+			</div>
 		</div>
 		<div class="ingredients-title-row">
 			<div class="section-title">Ingredients</div>
@@ -342,10 +350,16 @@
 		row-gap: var(--spacing);
 	}
 
-	.servings {
+	.servings-controls {
 		grid-column: 2 / span 1;
 		grid-row: 1;
 		justify-self: end;
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
+	.servings {
 		width: fit-content;
 	}
 
@@ -458,6 +472,10 @@
 		justify-self: end;
 	}
 
+	.unit-toggle-container {
+		flex-shrink: 0;
+	}
+
 	.ingredients-list {
 		display: flex;
 		flex-direction: column;
@@ -491,7 +509,7 @@
 			padding: var(--spacing-lg) var(--spacing-sm);
 		}
 
-		.servings {
+		.servings-controls {
 			display: none;
 		}
 

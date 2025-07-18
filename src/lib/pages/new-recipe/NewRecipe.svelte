@@ -19,12 +19,14 @@
 		errors,
 		unitSystem = 'imperial',
 		onSearchTags,
-		onSearchIngredients
+		onSearchIngredients,
+		onUnitChange
 	}: {
 		errors?: { path: string; message: string }[]
 		onSearchIngredients?: (query: string) => Promise<Ingredient[]>
 		unitSystem?: UnitSystem
 		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
+		onUnitChange?: (system: UnitSystem) => void
 	} = $props()
 
 	const generateId = () => Math.random().toString(36).slice(2)
@@ -192,6 +194,10 @@
 		servings = newServings
 	}
 
+	const handleUnitChange = (system: UnitSystem) => {
+		onUnitChange?.(system)
+	}
+
 	function openImportPopup() {
 		isImportPopupOpen = true
 	}
@@ -301,6 +307,7 @@
 				{selectedTags}
 				{unitSystem}
 				{handleServingsChange}
+				onUnitChange={handleUnitChange}
 				bind:nutritionMode
 				{calories}
 				bind:protein
@@ -327,6 +334,7 @@
 				{selectedTags}
 				{unitSystem}
 				{handleServingsChange}
+				onUnitChange={handleUnitChange}
 				bind:nutritionMode
 				{calories}
 				bind:protein

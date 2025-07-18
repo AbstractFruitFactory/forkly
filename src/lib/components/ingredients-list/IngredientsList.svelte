@@ -45,7 +45,13 @@
 
 	let displayIngredients = $derived(
 		scaledIngredients.map((ingredient: Ingredient) => {
-			if (ingredient.quantity && ingredient.measurement) {
+			if (ingredient.quantity) {
+				if (!ingredient.measurement) {
+					return {
+						...ingredient,
+						displayMeasurement: ingredient.quantity.toString()
+					}
+				}
 				const { quantity, unit } = convertMeasurement(
 					ingredient.quantity,
 					ingredient.measurement,

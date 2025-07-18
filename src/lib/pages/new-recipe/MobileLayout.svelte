@@ -3,6 +3,7 @@
 	import Button from '$lib/components/button/Button.svelte'
 	import IngredientInput from '$lib/components/ingredient-input/IngredientInput.svelte'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
+	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
 	import Plus from 'lucide-svelte/icons/plus'
 	import Input from '$lib/components/input/Input.svelte'
@@ -21,6 +22,7 @@
 		selectedTags,
 		unitSystem,
 		handleServingsChange,
+		onUnitChange,
 		searchTags,
 		searchIngredients,
 		handleTagSelect,
@@ -47,6 +49,7 @@
 		selectedTags: string[]
 		unitSystem: UnitSystem
 		handleServingsChange: (newServings: number) => void
+		onUnitChange: (system: UnitSystem) => void
 		searchTags: (query: string) => Promise<{ id: string; name: string }[]>
 		searchIngredients: (query: string) => Promise<{ id: string; name: string }[]>
 		handleTagSelect: (tag: string, selected: boolean) => void
@@ -256,13 +259,18 @@
 	</div>
 </div>
 
-<div class="form-section">
-	<div class="ingredients-header">
-		<h3>Ingredients</h3>
-	</div>
-	<div class="servings-adjuster">
-		<ServingsAdjuster {servings} onServingsChange={handleServingsChange} />
-	</div>
+	<div class="form-section">
+		<div class="ingredients-header">
+			<h3>Ingredients</h3>
+		</div>
+		<div class="servings-unit-row">
+			<div class="servings-adjuster">
+				<ServingsAdjuster {servings} onServingsChange={handleServingsChange} />
+			</div>
+			<div class="unit-toggle-container">
+				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
+			</div>
+		</div>
 
 	<div class="form-group">
 		<div id="ingredients">
@@ -558,8 +566,15 @@
 		margin-bottom: var(--spacing-md);
 	}
 
-	.servings-adjuster {
+	.servings-unit-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 		margin-bottom: var(--spacing-lg);
+	}
+
+	.unit-toggle-container {
+		flex-shrink: 0;
 	}
 
 	.add-ingredient-button {

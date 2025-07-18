@@ -202,7 +202,11 @@ export const chooseBestUnit = (quantity: number, unit: MeasurementUnit): { quant
   return { quantity, unit }
 }
 
-export const formatMeasurement = (quantity: number, unit: MeasurementUnit): string => {
+export const formatMeasurement = (quantity: number, unit?: MeasurementUnit): string => {
+  if (!unit) {
+    return quantity.toString()
+  }
+
   const { quantity: adjustedQuantity, unit: adjustedUnit } = chooseBestUnit(quantity, unit)
 
   // For custom units, use the unit as is

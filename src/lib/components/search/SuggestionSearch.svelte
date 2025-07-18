@@ -16,7 +16,8 @@
 		disabled = false,
 		searchValue = $bindable(''),
 		showSearchIcon = true,
-		minSearchLength = 3
+		minSearchLength = 3,
+		useId = false
 	}: {
 		placeholder?: string
 		isLoading?: boolean
@@ -30,6 +31,7 @@
 		searchValue?: string
 		showSearchIcon?: boolean
 		minSearchLength?: number
+		useId?: boolean
 	} = $props()
 
 	let suggestions = $state<T[]>([])
@@ -51,7 +53,7 @@
 		if (clearInput) {
 			searchValue = ''
 		} else {
-			searchValue = suggestion.name
+			searchValue = useId ? (suggestion as any).id : suggestion.name
 		}
 
 		showSuggestions = false

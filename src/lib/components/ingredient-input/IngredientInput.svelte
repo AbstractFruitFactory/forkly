@@ -99,6 +99,7 @@
 <div class="ingredient-input">
 	<div class="ingredient-row">
 		<input type="hidden" name="ingredient-{id}-name" value={name} />
+		<input type="hidden" name="ingredient-{id}-measurement" value={unit} />
 		<div class="search">
 			<SuggestionSearch
 				placeholder="Enter ingredient"
@@ -133,6 +134,7 @@
 				bind:searchValue={unit}
 				showSearchIcon={false}
 				minSearchLength={2}
+				useId={true}
 			/>
 		</div>
 

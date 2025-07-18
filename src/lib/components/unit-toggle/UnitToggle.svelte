@@ -19,6 +19,7 @@
 			<div in:receive={{ key: 0 }} out:send={{ key: 0 }} class="background"></div>
 		{/if}
 		<button
+			type="button"
 			class="toggle-button metric"
 			class:active={state === 'metric'}
 			onclick={() => {
@@ -35,6 +36,7 @@
 			<div in:receive={{ key: 0 }} out:send={{ key: 0 }} class="background"></div>
 		{/if}
 		<button
+			type="button"
 			class="toggle-button imperial"
 			class:active={state === 'imperial'}
 			onclick={() => {
