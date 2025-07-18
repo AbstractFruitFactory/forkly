@@ -96,7 +96,7 @@
 	}
 
 	.page-padding {
-		padding: 0 var(--spacing-xl);
+		padding: 0 var(--spacing-4xl);
 
 		@include tablet {
 			padding: 0 var(--spacing-md);
@@ -120,6 +120,10 @@
 		&.wide-header {
 			width: 100%;
 			padding: 0;
+
+			@media (max-width: $content-max-width) {
+				padding: 0 var(--spacing-md);
+			}
 		}
 
 		@include mobile {
@@ -233,10 +237,6 @@
 
 		@include mobile {
 			min-height: calc(100dvh - $bottom-bar-height);
-		}
-
-		&.homepage {
-			padding-top: 0;
 		}
 	}
 
