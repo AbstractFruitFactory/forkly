@@ -62,7 +62,7 @@
 <style lang="scss">
 	@import '$lib/global.scss';
 
-	$max-width: 1200px;
+	$content-max-width: 1200px;
 	$header-height: 4rem;
 	$bottom-bar-height: 3.5rem;
 
@@ -112,14 +112,14 @@
 		height: $header-height;
 		z-index: var(--z-sticky);
 		width: 100vw;
-		max-width: $max-width;
+		max-width: $content-max-width;
 		display: flex;
 		align-items: center;
-		transition: max-width 0.25s ease-out;
+		transition: padding 0.25s ease-out;
 
 		&.wide-header {
 			width: 100%;
-			max-width: calc(100vw - var(--spacing-xl));
+			padding: 0;
 		}
 
 		@include mobile {
@@ -206,7 +206,7 @@
 		border-radius: var(--border-radius-3xl);
 		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 		background: var(--color-background);
-		max-width: $max-width;
+		max-width: $content-max-width;
 		margin: 0 auto;
 
 		&.expanded {
@@ -224,7 +224,7 @@
 	}
 
 	.main-content {
-		max-width: $max-width;
+		max-width: $content-max-width;
 		margin: 0 auto;
 		padding-bottom: var(--spacing-2xl);
 		padding-top: var(--spacing-xl);
