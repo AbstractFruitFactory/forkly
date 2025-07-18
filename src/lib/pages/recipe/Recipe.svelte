@@ -29,7 +29,6 @@
 
 	let {
 		recipe,
-		nutritionInfo,
 		onLike,
 		onSave,
 		unitSystem,
@@ -47,10 +46,6 @@
 		onPrevPage
 	}: {
 		recipe: Promise<DetailedRecipe>
-		nutritionInfo: {
-			totalNutrition: Omit<NutritionInfo, 'servingSize'>
-			hasCustomIngredients: boolean
-		}
 		onLike?: () => void
 		onSave?: (collectionName?: string) => void
 		unitSystem: UnitSystem
@@ -185,11 +180,11 @@
 
 	const singleServingNutrition = $derived(
 		recipe.then((r) => {
-			if (!nutritionInfo?.totalNutrition) {
+			if (!r.nutrition) {
 				return undefined
 			}
 
-			const { calories, protein, carbs, fat } = nutritionInfo.totalNutrition
+			const { calories, protein, carbs, fat } = r.nutrition
 
 			if (calories === 0 && protein === 0 && carbs === 0 && fat === 0) {
 				return undefined

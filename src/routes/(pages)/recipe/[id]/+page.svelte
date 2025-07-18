@@ -100,10 +100,6 @@
 <div class="recipe-page" data-page="recipe">
 	<Recipe
 		recipe={data.recipe}
-		nutritionInfo={{
-			totalNutrition: data.recipe.nutrition,
-			hasCustomIngredients: false
-		}}
 		{unitSystem}
 		onUnitChange={handleUnitChange}
 		onLike={handleLike}
