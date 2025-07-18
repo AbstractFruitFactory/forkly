@@ -71,12 +71,17 @@ const createRecipeSchema = v.object({
     v.array(instructionSchema),
     v.minLength(1, 'At least one instruction is required')
   ),
-  nutrition: v.object({
-    calories: v.number(),
-    protein: v.number(),
-    carbs: v.number(),
-    fat: v.number()
-  }),
+  nutrition: v.optional(
+    v.union([
+      v.null_(),
+      v.object({
+        calories: v.number(),
+        protein: v.number(),
+        carbs: v.number(),
+        fat: v.number()
+      })
+    ])
+  ),
   tags: v.pipe(
     v.array(
       v.pipe(

@@ -261,7 +261,16 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     const limitedQuery = limit ? finalQuery.limit(limit) : finalQuery
 
     const results = await limitedQuery
-    return nullToUndefined(results)
+    const transformed = nullToUndefined(results)
+    return transformed.map(r => {
+      if (
+        (r as any).nutrition &&
+        Object.values((r as any).nutrition as Record<string, unknown>).every(v => v === undefined)
+      ) {
+        (r as any).nutrition = undefined
+      }
+      return r
+    })
   } else {
     // Basic query with limited fields
     const basicRecipeQuery = db
@@ -462,12 +471,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     .from(recipeNutrition)
     .where(eq(recipeNutrition.recipeId, recipeId))
 
-  const nutrition = nutritionData[0] || {
-    calories: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0
-  }
+  const nutrition = nutritionData[0] ?? null
 
   let isLiked = false
   let isSaved = false
@@ -513,8 +517,15 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     likes: likes.length,
     user: foundRecipe.user
   }
+  const transformed = nullToUndefined(result)
+  if (
+    transformed.nutrition &&
+    Object.values(transformed.nutrition as Record<string, unknown>).every(v => v === undefined)
+  ) {
+    transformed.nutrition = undefined
+  }
 
-  return nullToUndefined(result)
+  return transformed
 }
 
 export type RecipeSimilarityScore = {
