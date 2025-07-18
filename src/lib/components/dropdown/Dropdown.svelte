@@ -27,7 +27,7 @@
 		if (!parentEl || !dropdownEl) return
 		const { x, y } = await computePosition(parentEl, dropdownEl, {
 			placement: 'bottom-start',
-			middleware: [offset(4), flip(), shift({ padding: 8 })]
+			middleware: [offset(10), flip(), shift({ padding: 8 })]
 		})
 
 		dropdownEl.style.left = `${x}px`
