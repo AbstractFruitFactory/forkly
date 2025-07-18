@@ -6,7 +6,8 @@
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
 	import Plus from 'lucide-svelte/icons/plus'
 	import Input from '$lib/components/input/Input.svelte'
-	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
+        import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
+        import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
@@ -35,8 +36,13 @@
 		updateInstruction,
 		title = '',
 		description = '',
-		imageUrl = ''
-	}: {
+                imageUrl = '',
+                nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
+                calories = $bindable(''),
+                protein = $bindable(''),
+                carbs = $bindable(''),
+                fat = $bindable('')
+        }: {
 		servings: number
 		selectedTags: string[]
 		unitSystem: UnitSystem
@@ -59,8 +65,13 @@
 		updateInstruction: (id: string, instruction: { text: string; media?: File }) => void
 		title?: string
 		description?: string
-		imageUrl?: string
-	} = $props()
+                imageUrl?: string
+                nutritionMode?: 'auto' | 'manual' | 'none'
+                calories?: string
+                protein?: string
+                carbs?: string
+                fat?: string
+        } = $props()
 
 	let isDrawerOpen = $state(false)
 	let editingIngredientId = $state<string | null>(null)
@@ -467,6 +478,28 @@
 	</div>
 </div>
 
+<div class="form-section">
+        <h3>Nutrition</h3>
+        <div class="form-group">
+                <div class="nutrition-mode">
+                        <TabSelect
+                                options={[ 'auto', 'manual', 'none' ]}
+                                onSelect={(opt) => (nutritionMode = opt as 'auto' | 'manual' | 'none')}
+                                selected={nutritionMode}
+                        />
+                </div>
+                {#if nutritionMode === 'manual'}
+                        <div class="nutrition-inputs">
+                                <Input><input type="number" step="any" name="calories" placeholder="Calories" bind:value={calories} /></Input>
+                                <Input><input type="number" step="any" name="protein" placeholder="Protein (g)" bind:value={protein} /></Input>
+                                <Input><input type="number" step="any" name="carbs" placeholder="Carbs (g)" bind:value={carbs} /></Input>
+                                <Input><input type="number" step="any" name="fat" placeholder="Fat (g)" bind:value={fat} /></Input>
+                        </div>
+                {/if}
+                <input type="hidden" name="nutritionMode" value={nutritionMode} />
+        </div>
+</div>
+
 <div class="submit-section">
 	<Button fullWidth loading={submitting} type="submit" color="primary">Create Recipe</Button>
 </div>
@@ -651,12 +684,23 @@
 		gap: var(--spacing-md);
 	}
 
-	.selected-tags {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: var(--spacing-sm);
-	}
+        .selected-tags {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: var(--spacing-sm);
+        }
+
+        .nutrition-mode {
+                margin-bottom: var(--spacing-md);
+        }
+
+        .nutrition-inputs {
+                display: flex;
+                flex-wrap: wrap;
+                gap: var(--spacing-md);
+                margin-top: var(--spacing-md);
+        }
 
 	.submit-section {
 		display: flex;

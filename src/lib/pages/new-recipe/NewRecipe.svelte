@@ -32,9 +32,15 @@
 	let ingredients = $state<IngredientRow[]>([{ id: generateId(), name: '', amount: '', unit: '' }])
 	let instructions = $state<InstructionRow[]>([{ id: generateId(), text: '', media: undefined }])
 	let servings = $state(1)
-	let selectedTags = $state<string[]>([])
-	let title = $state('')
-	let image = $state<string | null>(null)
+        let selectedTags = $state<string[]>([])
+        let title = $state('')
+        let image = $state<string | null>(null)
+
+        let nutritionMode = $state<'auto' | 'manual' | 'none'>('auto')
+        let calories = $state('')
+        let protein = $state('')
+        let carbs = $state('')
+        let fat = $state('')
 
 	let isMobileView = $state(false)
 	let mobileLayoutElement: HTMLElement
@@ -279,16 +285,21 @@
 				{removeIngredient}
 				{updateIngredient}
 				{removeInstruction}
-				{updateInstruction}
-				{instructions}
-				{selectedTags}
-				{unitSystem}
-				{handleServingsChange}
-				{searchTags}
-				{searchIngredients}
-				{handleTagSelect}
-				{removeTag}
-				{submitting}
+                        {updateInstruction}
+                        {instructions}
+                        {selectedTags}
+                        {unitSystem}
+                        {handleServingsChange}
+                        bind:nutritionMode
+                        bind:calories
+                        bind:protein
+                        bind:carbs
+                        bind:fat
+                        {searchTags}
+                        {searchIngredients}
+                        {handleTagSelect}
+                        {removeTag}
+                        {submitting}
 			/>
 		</div>
 		<div class="desktop-layout" bind:this={desktopLayoutElement}>
@@ -302,10 +313,15 @@
 				{instructions}
 				{addInstruction}
 				{removeInstruction}
-				{selectedTags}
-				{unitSystem}
-				{handleServingsChange}
-				{searchTags}
+                        {selectedTags}
+                        {unitSystem}
+                        {handleServingsChange}
+                        bind:nutritionMode
+                        bind:calories
+                        bind:protein
+                        bind:carbs
+                        bind:fat
+                        {searchTags}
 				{handleTagSelect}
 				{removeTag}
 				{submitting}
