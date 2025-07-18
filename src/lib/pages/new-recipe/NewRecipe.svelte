@@ -42,6 +42,15 @@
         let carbs = $state('')
         let fat = $state('')
 
+        $: if (nutritionMode === 'manual') {
+                const p = parseFloat(protein) || 0
+                const c = parseFloat(carbs) || 0
+                const f = parseFloat(fat) || 0
+                calories = String(p * 4 + c * 4 + f * 9)
+        } else {
+                calories = ''
+        }
+
 	let isMobileView = $state(false)
 	let mobileLayoutElement: HTMLElement
 	let desktopLayoutElement: HTMLElement
@@ -291,7 +300,7 @@
                         {unitSystem}
                         {handleServingsChange}
                         bind:nutritionMode
-                        bind:calories
+                        calories={calories}
                         bind:protein
                         bind:carbs
                         bind:fat
@@ -317,7 +326,7 @@
                         {unitSystem}
                         {handleServingsChange}
                         bind:nutritionMode
-                        bind:calories
+                        calories={calories}
                         bind:protein
                         bind:carbs
                         bind:fat

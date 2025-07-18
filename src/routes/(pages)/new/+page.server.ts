@@ -176,11 +176,14 @@ const parseFormData = (formData: FormData): FormFields => {
   const nutritionMode = formData.get('nutritionMode')?.toString() as 'auto' | 'manual' | 'none' | undefined
   let manualNutrition: FormFields['manualNutrition'] = undefined
   if (nutritionMode === 'manual') {
+    const protein = parseFloat(formData.get('protein')?.toString() || '0')
+    const carbs = parseFloat(formData.get('carbs')?.toString() || '0')
+    const fat = parseFloat(formData.get('fat')?.toString() || '0')
     manualNutrition = {
-      calories: parseFloat(formData.get('calories')?.toString() || '0'),
-      protein: parseFloat(formData.get('protein')?.toString() || '0'),
-      carbs: parseFloat(formData.get('carbs')?.toString() || '0'),
-      fat: parseFloat(formData.get('fat')?.toString() || '0')
+      calories: protein * 4 + carbs * 4 + fat * 9,
+      protein,
+      carbs,
+      fat
     }
   }
 

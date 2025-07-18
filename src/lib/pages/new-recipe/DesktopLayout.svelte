@@ -32,11 +32,11 @@
                 title = '',
                 description = '',
                 imageUrl = '',
-                nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
-                calories = $bindable(''),
-                protein = $bindable(''),
-                carbs = $bindable(''),
-                fat = $bindable('')
+               nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
+               calories = $bindable(''),
+               protein = $bindable(''),
+               carbs = $bindable(''),
+               fat = $bindable('')
         }: {
                 servings: number
                 ingredients: IngredientRow[]
@@ -250,16 +250,16 @@
                                 selected={nutritionMode}
                         />
                 </div>
-                {#if nutritionMode === 'manual'}
-                        <div class="nutrition-inputs">
-                                <Input><input type="number" step="any" name="calories" placeholder="Calories" bind:value={calories} /></Input>
-                                <Input><input type="number" step="any" name="protein" placeholder="Protein (g)" bind:value={protein} /></Input>
-                                <Input><input type="number" step="any" name="carbs" placeholder="Carbs (g)" bind:value={carbs} /></Input>
-                                <Input><input type="number" step="any" name="fat" placeholder="Fat (g)" bind:value={fat} /></Input>
-                        </div>
-                {/if}
-                <input type="hidden" name="nutritionMode" value={nutritionMode} />
-        </div>
+               {#if nutritionMode === 'manual'}
+                       <div class="nutrition-inputs">
+                               <Input><input type="number" step="any" name="protein" placeholder="Protein (g)" bind:value={protein} /></Input>
+                               <Input><input type="number" step="any" name="carbs" placeholder="Carbs (g)" bind:value={carbs} /></Input>
+                               <Input><input type="number" step="any" name="fat" placeholder="Fat (g)" bind:value={fat} /></Input>
+                               <Input><input type="number" step="any" name="calories" placeholder="Calories" value={calories} readonly /></Input>
+                       </div>
+               {/if}
+               <input type="hidden" name="nutritionMode" value={nutritionMode} />
+       </div>
 
 	<div class="section-title"></div>
 	<div class="section-content">
