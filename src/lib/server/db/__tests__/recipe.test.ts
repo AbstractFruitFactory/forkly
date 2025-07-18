@@ -122,7 +122,7 @@ describe('recipe.ts', () => {
       expect(result).toBeNull()
     })
 
-    it('should return recipe with all details', async () => {
+  it('should return recipe with all details', async () => {
       const [user] = await createTestUser(randomUUID())
       const [recipe] = await createTestRecipe(user.id)
 
@@ -180,4 +180,24 @@ describe('recipe.ts', () => {
       expect(result?.createdAt).toBeInstanceOf(Date)
     })
   })
-}) 
+
+  it('should return undefined nutrition when not provided', async () => {
+    const [user] = await createTestUser(randomUUID())
+    const [recipe] = await createTestRecipe(user.id)
+
+    const [testIngredient] = await testDb.insert(ingredient).values({
+      id: randomUUID(),
+      name: 'Test Ingredient'
+    }).returning()
+
+    await testDb.insert(recipeIngredient).values({
+      recipeId: recipe.id,
+      ingredientId: testIngredient.id,
+      quantity: 1,
+      measurement: 'cup'
+    })
+
+    const result = await getRecipeWithDetails(recipe.id, user.id)
+    expect(result?.nutrition).toBeUndefined()
+  })
+})

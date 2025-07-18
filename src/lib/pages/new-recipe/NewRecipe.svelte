@@ -36,6 +36,23 @@
 	let title = $state('')
 	let image = $state<string | null>(null)
 
+	let nutritionMode = $state<'auto' | 'manual' | 'none'>('auto')
+	let calories = $state('')
+	let protein = $state('')
+	let carbs = $state('')
+	let fat = $state('')
+
+	$effect(() => {
+		if (nutritionMode === 'manual') {
+		const p = parseFloat(protein) || 0
+		const c = parseFloat(carbs) || 0
+		const f = parseFloat(fat) || 0
+		calories = String(p * 4 + c * 4 + f * 9)
+		} else {
+			calories = ''
+		}
+	})
+
 	let isMobileView = $state(false)
 	let mobileLayoutElement: HTMLElement
 	let desktopLayoutElement: HTMLElement
@@ -284,6 +301,11 @@
 				{selectedTags}
 				{unitSystem}
 				{handleServingsChange}
+				bind:nutritionMode
+				{calories}
+				bind:protein
+				bind:carbs
+				bind:fat
 				{searchTags}
 				{searchIngredients}
 				{handleTagSelect}
@@ -305,6 +327,11 @@
 				{selectedTags}
 				{unitSystem}
 				{handleServingsChange}
+				bind:nutritionMode
+				{calories}
+				bind:protein
+				bind:carbs
+				bind:fat
 				{searchTags}
 				{handleTagSelect}
 				{removeTag}

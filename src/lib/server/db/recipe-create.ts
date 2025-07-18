@@ -29,7 +29,7 @@ type RecipeInput = {
   servings: number
   ingredients: IngredientInput[]
   instructions: InstructionInput[]
-  nutrition: NutritionInput
+  nutrition?: NutritionInput | null
   tags: string[]
   imageUrl?: string
 }
@@ -65,13 +65,15 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
     await db.insert(recipeTag).values({ recipeId, tagName })
   }
 
-  await db.insert(recipeNutrition).values({
-    recipeId: recipeId,
-    calories: input.nutrition.calories,
-    protein: input.nutrition.protein,
-    carbs: input.nutrition.carbs,
-    fat: input.nutrition.fat
-  })
+  if (input.nutrition) {
+    await db.insert(recipeNutrition).values({
+      recipeId: recipeId,
+      calories: input.nutrition.calories,
+      protein: input.nutrition.protein,
+      carbs: input.nutrition.carbs,
+      fat: input.nutrition.fat
+    })
+  }
 
   for (const ingredientData of input.ingredients) {
     let ingredientId: string

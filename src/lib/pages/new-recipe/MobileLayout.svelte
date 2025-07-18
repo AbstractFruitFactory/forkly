@@ -7,6 +7,7 @@
 	import Plus from 'lucide-svelte/icons/plus'
 	import Input from '$lib/components/input/Input.svelte'
 	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
+	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
@@ -35,7 +36,12 @@
 		updateInstruction,
 		title = '',
 		description = '',
-		imageUrl = ''
+		imageUrl = '',
+		nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
+		calories = $bindable(''),
+		protein = $bindable(''),
+		carbs = $bindable(''),
+		fat = $bindable('')
 	}: {
 		servings: number
 		selectedTags: string[]
@@ -60,6 +66,11 @@
 		title?: string
 		description?: string
 		imageUrl?: string
+		nutritionMode?: 'auto' | 'manual' | 'none'
+		calories?: string
+		protein?: string
+		carbs?: string
+		fat?: string
 	} = $props()
 
 	let isDrawerOpen = $state(false)
@@ -86,7 +97,7 @@
 		removeIngredient(id)
 		savedIngredients[id] = false
 	}
-	
+
 	const openDrawerForEdit = (ingredient: IngredientRow) => {
 		editingIngredientId = ingredient.id
 		drawerIngredientName = ingredient.name
@@ -95,12 +106,12 @@
 		drawerIngredientUnit = ingredient.unit
 		isDrawerOpen = true
 	}
-	
+
 	const handleDrawerIngredientSelect = (ingredient: { id: string; name: string }) => {
 		drawerIngredientName = ingredient.name
 		drawerIngredientId = ingredient.id
 	}
-	
+
 	const handleAddIngredient = () => {
 		if (editingIngredientId) {
 			updateIngredient(editingIngredientId, {
@@ -235,7 +246,11 @@
 		<div style:height="var(--spacing-md)"></div>
 
 		<Input>
-			<textarea bind:value={description} name="description" placeholder="Describe your recipe (optional)" rows="3"
+			<textarea
+				bind:value={description}
+				name="description"
+				placeholder="Describe your recipe (optional)"
+				rows="3"
 			></textarea>
 		</Input>
 	</div>
@@ -278,12 +293,7 @@
 							<input type="hidden" name="ingredient-{item.id}-measurement" value={item.unit} />
 							<Input>
 								<div class="ingredient-display-row">
-									<input
-										type="text"
-										disabled
-										class="ingredient-amount"
-										value={item.amount}
-									/>
+									<input type="text" disabled class="ingredient-amount" value={item.amount} />
 									<input type="text" disabled class="ingredient-unit" value={item.unit} />
 									<input type="text" disabled class="ingredient-name" value={item.name} />
 								</div>
@@ -403,7 +413,9 @@
 
 <Drawer
 	bind:isOpen={isInstructionDrawerOpen}
-	title={editingInstructionId ? 'Edit instruction' : `Step ${instructions.filter((instruction) => savedInstructions[instruction.id]).length + 1} instructions`}
+	title={editingInstructionId
+		? 'Edit instruction'
+		: `Step ${instructions.filter((instruction) => savedInstructions[instruction.id]).length + 1} instructions`}
 >
 	<div class="drawer-instruction-form">
 		<textarea
@@ -467,6 +479,60 @@
 	</div>
 </div>
 
+<div class="form-section">
+	<h3>Nutrition</h3>
+	<div class="form-group">
+		<div class="nutrition-mode">
+			<TabSelect
+				options={['auto', 'manual', 'none']}
+				onSelect={(opt) => (nutritionMode = opt as 'auto' | 'manual' | 'none')}
+				selected={nutritionMode}
+			/>
+		</div>
+		{#if nutritionMode === 'manual'}
+			<div class="nutrition-inputs">
+				<Input
+					><input
+						type="number"
+						step="any"
+						name="protein"
+						placeholder="Protein (g)"
+						bind:value={protein}
+					/></Input
+				>
+				<Input
+					><input
+						type="number"
+						step="any"
+						name="carbs"
+						placeholder="Carbs (g)"
+						bind:value={carbs}
+					/></Input
+				>
+				<Input
+					><input
+						type="number"
+						step="any"
+						name="fat"
+						placeholder="Fat (g)"
+						bind:value={fat}
+					/></Input
+				>
+				<Input
+					><input
+						type="text"
+						name="calories"
+						placeholder="Calories"
+						value={`${calories} kcal`}
+						readonly
+					/></Input
+				>
+			</div>
+		{/if}
+		<input type="hidden" name="nutritionMode" value={nutritionMode} />
+	</div>
+</div>
+
 <div class="submit-section">
 	<Button fullWidth loading={submitting} type="submit" color="primary">Create Recipe</Button>
 </div>
@@ -516,8 +582,6 @@
 		justify-content: flex-end;
 		margin-top: var(--spacing-lg);
 	}
-
-
 
 	.ingredient-row {
 		display: flex;
@@ -656,6 +720,17 @@
 		align-items: center;
 		flex-wrap: wrap;
 		gap: var(--spacing-sm);
+	}
+
+	.nutrition-mode {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.nutrition-inputs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-md);
+		margin-top: var(--spacing-md);
 	}
 
 	.submit-section {

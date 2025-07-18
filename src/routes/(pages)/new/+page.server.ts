@@ -98,6 +98,13 @@ type FormFields = {
     mediaType?: 'image' | 'video'
   }[]
   tags: string[]
+  nutritionMode: 'auto' | 'manual' | 'none'
+  manualNutrition?: {
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
+  }
 }
 
 type RecipeApiResponse = {
@@ -166,13 +173,29 @@ const parseFormData = (formData: FormData): FormFields => {
     }
   })
 
+  const nutritionMode = formData.get('nutritionMode')?.toString() as 'auto' | 'manual' | 'none' | undefined
+  let manualNutrition: FormFields['manualNutrition'] = undefined
+  if (nutritionMode === 'manual') {
+    const protein = parseFloat(formData.get('protein')?.toString() || '0')
+    const carbs = parseFloat(formData.get('carbs')?.toString() || '0')
+    const fat = parseFloat(formData.get('fat')?.toString() || '0')
+    manualNutrition = {
+      calories: protein * 4 + carbs * 4 + fat * 9,
+      protein,
+      carbs,
+      fat
+    }
+  }
+
   return {
     title: formData.get('title')?.toString() ?? '',
     description: formData.get('description')?.toString() ?? '',
     servings: parseInt(formData.get('servings')?.toString() ?? '1') || 1,
     ingredients: parseIngredients(formData),
     instructions,
-    tags
+    tags,
+    nutritionMode: nutritionMode ?? 'auto',
+    manualNutrition
   }
 }
 
@@ -285,30 +308,27 @@ export const actions = {
 
     const mappedIngredients = mappedIngredientsResult.value as Ingredient[]
 
-    let nutrition = {
-      calories: 0,
-      protein: 0,
-      carbs: 0,
-      fat: 0
-    }
+    let nutrition: typeof recipeData.manualNutrition | null = null
+    if (recipeData.nutritionMode === 'manual') {
+      nutrition = recipeData.manualNutrition ?? null
+    } else if (recipeData.nutritionMode === 'auto') {
+      const nutritionResult = await api('getRecipeInfo')(
+        mappedIngredients.map(ing => ({
+          amount: ing.quantity,
+          unit: ing.measurement,
+          name: ing.name
+        })),
+        recipeData.instructions.map(i => i.text).join('\n'),
+        recipeData.servings
+      )
 
-
-    const nutritionResult = await api('getRecipeInfo')(
-      mappedIngredients.map(ing => ({
-        amount: ing.quantity,
-        unit: ing.measurement,
-        name: ing.name
-      })),
-      recipeData.instructions.map(i => i.text).join('\n'),
-      recipeData.servings
-    )
-
-    if (nutritionResult.isOk()) {
-      nutrition = {
-        calories: nutritionResult.value.calories,
-        protein: nutritionResult.value.protein,
-        carbs: nutritionResult.value.carbs,
-        fat: nutritionResult.value.fat
+      if (nutritionResult.isOk()) {
+        nutrition = {
+          calories: nutritionResult.value.calories,
+          protein: nutritionResult.value.protein,
+          carbs: nutritionResult.value.carbs,
+          fat: nutritionResult.value.fat
+        }
       }
     }
 

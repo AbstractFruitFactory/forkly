@@ -10,6 +10,7 @@
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
 	import Input from '$lib/components/input/Input.svelte'
+	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import type { IngredientRow, InstructionRow } from './NewRecipe.svelte'
 
@@ -30,7 +31,12 @@
 		submitting,
 		title = '',
 		description = '',
-		imageUrl = ''
+		imageUrl = '',
+		nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
+		calories = $bindable(''),
+		protein = $bindable(''),
+		carbs = $bindable(''),
+		fat = $bindable('')
 	}: {
 		servings: number
 		ingredients: IngredientRow[]
@@ -49,6 +55,11 @@
 		title?: string
 		description?: string
 		imageUrl?: string
+		nutritionMode?: 'auto' | 'manual' | 'none'
+		calories?: string
+		protein?: string
+		carbs?: string
+		fat?: string
 	} = $props()
 
 	let searchValue = $state('')
@@ -230,6 +241,58 @@
 		</div>
 	</div>
 
+	<div class="section-title">Nutrition</div>
+	<div class="section-content">
+		<div class="nutrition-mode">
+			<TabSelect
+				options={['auto', 'manual', 'none']}
+				onSelect={(opt) => (nutritionMode = opt as 'auto' | 'manual' | 'none')}
+				selected={nutritionMode}
+			/>
+		</div>
+		{#if nutritionMode === 'manual'}
+			<div class="nutrition-inputs">
+				<Input
+					><input
+						type="number"
+						step="any"
+						name="protein"
+						placeholder="Protein (g)"
+						bind:value={protein}
+					/></Input
+				>
+				<Input
+					><input
+						type="number"
+						step="any"
+						name="carbs"
+						placeholder="Carbs (g)"
+						bind:value={carbs}
+					/></Input
+				>
+				<Input
+					><input
+						type="number"
+						step="any"
+						name="fat"
+						placeholder="Fat (g)"
+						bind:value={fat}
+					/></Input
+				>
+				<Input
+					><input
+						type="text"
+						name="calories"
+						placeholder="Calories"
+						value={`${calories} kcal`}
+						readonly
+					/></Input
+				>
+			</div>
+		{/if}
+		<input type="hidden" name="nutritionMode" value={nutritionMode} />
+	</div>
+
 	<div class="section-title"></div>
 	<div class="section-content">
 		<div class="submit-section">
@@ -409,6 +472,17 @@
 
 	.ingredient-input {
 		flex: 1;
+	}
+
+	.nutrition-mode {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.nutrition-inputs {
+		display: flex;
+		gap: var(--spacing-sm);
+		flex-wrap: wrap;
+		margin-top: var(--spacing-md);
 	}
 
 	@media (max-width: 1000px) {
