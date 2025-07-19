@@ -83,7 +83,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
-		padding: var(--spacing-sm) var(--spacing-md);
+		padding: var(--spacing-sm);
 	}
 
 	.item {

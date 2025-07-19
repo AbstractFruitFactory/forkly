@@ -79,7 +79,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
-		padding: var(--spacing-sm) 0;
 	}
 
 	.helper-text {

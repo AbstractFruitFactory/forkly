@@ -83,6 +83,7 @@
 				bind:value={searchQuery}
 				onInput={handleSearchInput}
 				{isLoading}
+				--background="var(--color-text-on-primary"
 			/>
 		</div>
 
