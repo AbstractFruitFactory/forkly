@@ -271,6 +271,7 @@
 	}
 
 	.image-container {
+		border-radius: var(--border-radius-2xl) var(--border-radius-2xl) 0 0;
 		position: relative;
 		width: 100%;
 		height: 100%;
