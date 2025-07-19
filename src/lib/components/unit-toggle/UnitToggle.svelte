@@ -11,43 +11,28 @@
 		state: UnitSystem
 		onSelect: (system: UnitSystem) => void
 	} = $props()
+
+	const toggle = () => {
+		state = state === 'metric' ? 'imperial' : 'metric'
+		onSelect(state)
+	}
 </script>
 
-<div class="unit-toggle">
+<button type="button" class="unit-toggle" onclick={toggle}>
 	<div style:position="relative">
 		{#if state === 'metric'}
 			<div in:receive={{ key: 0 }} out:send={{ key: 0 }} class="background"></div>
 		{/if}
-		<button
-			type="button"
-			class="toggle-button metric"
-			class:active={state === 'metric'}
-			onclick={() => {
-				state = 'metric'
-				onSelect('metric')
-			}}
-		>
-			Metric
-		</button>
+		<div class="toggle-button metric" class:active={state === 'metric'}>Metric</div>
 	</div>
 
 	<div style:position="relative">
 		{#if state === 'imperial'}
 			<div in:receive={{ key: 0 }} out:send={{ key: 0 }} class="background"></div>
 		{/if}
-		<button
-			type="button"
-			class="toggle-button imperial"
-			class:active={state === 'imperial'}
-			onclick={() => {
-				state = 'imperial'
-				onSelect('imperial')
-			}}
-		>
-			US
-		</button>
+		<div class="toggle-button imperial" class:active={state === 'imperial'}>US</div>
 	</div>
-</div>
+</button>
 
 <style lang="scss">
 	.unit-toggle {
