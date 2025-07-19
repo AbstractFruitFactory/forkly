@@ -240,7 +240,7 @@
 			min-height: calc(100dvh - $bottom-bar-height);
 
 			&.homepage {
-				padding-top: 0;
+				padding-top: var(--spacing-md);
 			}
 		}
 	}

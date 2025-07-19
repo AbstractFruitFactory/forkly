@@ -9,12 +9,18 @@
 	{@render children()}
 </div>
 
-<style>
+<style lang="scss">
+	@import '$lib/global.scss';
 	div {
-		height: 100dvh;
 		display: flex;
 		justify-content: center;
-		align-items: center;
-		padding: var(--spacing-md);
+		margin-top: 200px;
+
+		@include mobile {
+			height: calc(100dvh - 6.5rem);
+			align-items: center;
+			padding: var(--spacing-md);
+			margin-top: 0;
+		}
 	}
 </style>
