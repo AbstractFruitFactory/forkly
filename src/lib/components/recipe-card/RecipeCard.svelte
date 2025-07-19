@@ -104,6 +104,18 @@
 		{/if}
 
 		<div>
+			<div>
+				{#if loading}
+					<div class="title">
+						<div class="gradient-animate"></div>
+					</div>
+				{:else if recipe}
+					<h3 class="recipe-title" style:margin="0">{recipe.title}</h3>
+				{/if}
+			</div>
+		</div>
+
+		<div class="meta-single" aria-label="Recipe details">
 			<div class="tags">
 				{#if loading}
 					{#each Array(3) as _}
@@ -117,18 +129,6 @@
 					{/each}
 				{/if}
 			</div>
-
-			<div style:margin-top="var(--spacing-lg)">
-				{#if loading}
-					<div class="title">
-						<div class="gradient-animate"></div>
-					</div>
-				{:else if recipe}
-					<h3 class="recipe-title" style:margin="0">{recipe.title}</h3>
-				{/if}
-			</div>
-		</div>
-		<div class="meta-single" aria-label="Recipe details">
 			{#if loading}
 				<span class="text">
 					<div class="gradient-animate"></div>
@@ -431,7 +431,9 @@
 	}
 
 	.meta-single {
-		opacity: 0.8;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
 
 		span {
 			color: var(--color-text-on-surface);
