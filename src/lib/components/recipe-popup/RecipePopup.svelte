@@ -1,35 +1,51 @@
 <script lang="ts">
 	import Popup from '../popup/Popup.svelte'
+	import Drawer from '../drawer/Drawer.svelte'
 	import RecipePage from '../../../routes/(pages)/recipe/[id]/+page.svelte'
 	import type { ComponentProps } from 'svelte'
+	import { mobileStore } from '$lib/state/mobile.svelte'
 
 	let {
 		data,
 		onClose,
 		animateFrom = null
 	}: {
-		data?: ComponentProps<typeof RecipePage>['data']
+		data: ComponentProps<typeof RecipePage>['data']
 		onClose: () => void
 		animateFrom?: HTMLElement | null
 	} = $props()
 
 	export const open = async () => {
-		await popup.open()
+		if (mobileStore.isMobile) {
+			isDrawerOpen = true
+		} else {
+			await popup.open()
+		}
 		window.scrollTo(0, 0)
 	}
-	
+
 	export const close = async () => {
-		await popup.close()
+		if (mobileStore.isMobile) {
+			console.log('closing drawer')
+			isDrawerOpen = false
+		} else {
+			await popup.close()
+		}
 	}
 
 	let popup: Popup
+	let isDrawerOpen = $state(false)
 </script>
 
-<Popup {onClose} width="90vw" {animateFrom} bind:this={popup}>
-	{#if data}
+{#if mobileStore.isMobile}
+	<Drawer bind:isOpen={isDrawerOpen} onBack={onClose} position="side" showBackButton={true}>
 		<RecipePage {data} />
-	{/if}
-</Popup>
+	</Drawer>
+{:else}
+	<Popup {onClose} width="90vw" {animateFrom} bind:this={popup}>
+		<RecipePage {data} />
+	</Popup>
+{/if}
 
 <style lang="scss">
 	.fullscreen-link {

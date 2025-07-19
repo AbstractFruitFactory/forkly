@@ -129,12 +129,10 @@
 		box-shadow: var(--shadow-lg);
 		width: 100%;
 		max-width: 800px;
-		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 		height: 80dvh;
 		z-index: calc(var(--z-modal) + 1);
-		padding: var(--spacing-md);
 
 		@include mobile {
 			width: 100vw;
@@ -154,8 +152,6 @@
 			box-shadow: none;
 			max-width: none;
 			z-index: var(--z-modal);
-			padding: var(--spacing-lg);
-			overflow-y: hidden;
 
 			@include mobile {
 				width: 100%;
@@ -167,7 +163,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding-bottom: var(--spacing-md);
+		padding: var(--spacing-md);
+		padding-bottom: 0;
 
 		.header-left {
 			display: flex;
@@ -225,15 +222,16 @@
 	.drawer-content {
 		padding: var(--spacing-lg);
 		overflow-y: auto;
-		height: 100%;
+		flex: 1;
+		min-height: 0;
 
 		@include mobile {
 			padding: var(--spacing-md);
 		}
 
 		.side-drawer & {
-			padding: 0;
-			overflow-y: hidden;
+			padding: var(--spacing-lg);
+			overflow-y: auto;
 		}
 	}
 
