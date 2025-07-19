@@ -22,6 +22,7 @@
 
 	let {
 		recipes,
+		onSearch,
 		onFiltersChange = (filters: {
 			tags: string[]
 			ingredients: string[]
@@ -38,7 +39,7 @@
 		initialSearchValue = ''
 	}: {
 		recipes: ComponentProps<typeof RecipeGrid>['recipes']
-		onSearchChange?: (query: string) => void
+		onSearch?: (query: string) => void
 		onFiltersChange?: (filters: {
 			tags: string[]
 			ingredients: string[]
@@ -70,18 +71,30 @@
 	let filtersSentinelOutOfView = $state(false)
 	let mobileSearchExpanded = $state(false)
 	let taglineTags = $state<string[]>([])
+	let searchTimeout: ReturnType<typeof setTimeout> | null = null
+	let appliedSearchValue = $state('')
 
 	const searchProps = {
 		placeholder: 'Search recipes...',
 		roundedCorners: true,
 		onInput: (query: string) => {
 			if (!isMobile) {
-				window.dispatchEvent(new CustomEvent('search', { detail: { query } }))
-				scrollToFiltersSentinel()
+				if (searchTimeout) {
+					clearTimeout(searchTimeout)
+				}
+				searchTimeout = setTimeout(() => {
+					appliedSearchValue = query
+					onSearch?.(query)
+					scrollToFiltersSentinel()
+				}, 300)
 			}
 		},
 		onConfirm: () => {
-			window.dispatchEvent(new CustomEvent('search', { detail: { query: searchValue } }))
+			if (searchTimeout) {
+				clearTimeout(searchTimeout)
+			}
+			appliedSearchValue = searchValue
+			onSearch?.(searchValue)
 			scrollToFiltersSentinel()
 		}
 	}
@@ -93,6 +106,7 @@
 		// Initialize selected values
 		selectedTags = initialTags.map((tag) => ({ label: tag, selected: true }))
 		selectedIngredients = initialIngredients
+		appliedSearchValue = initialSearchValue
 
 		// Load popular tags for tagline effect
 		searchTags('').then((results) => {
@@ -142,6 +156,9 @@
 			if (observer) observer.disconnect()
 			if (filtersObserver) filtersObserver.disconnect()
 			window.removeEventListener('resize', checkMobile)
+			if (searchTimeout) {
+				clearTimeout(searchTimeout)
+			}
 			unsubscribe()
 			filtersUnsubscribe()
 		}
@@ -401,9 +418,9 @@
 			{/if}
 		</div>
 
-		{#if searchValue.length > 0}
+		{#if appliedSearchValue.length > 0}
 			<div class="search-results-header">
-				<h3>Showing results for "{searchValue}"</h3>
+				<h3>Showing results for "{appliedSearchValue}"</h3>
 			</div>
 		{/if}
 

@@ -38,17 +38,7 @@
 		isLoading: false
 	})
 
-	onMount(() => {
-		window.addEventListener('search', ((e: CustomEvent) => {
-			handleSearchChange(e.detail.query)
-		}) as EventListener)
 
-		return () => {
-			window.removeEventListener('search', ((e: CustomEvent) => {
-				handleSearchChange(e.detail.query)
-			}) as EventListener)
-		}
-	})
 
 	const handleSearch = async (
 		query: string,
@@ -102,8 +92,12 @@
 	const handleSortChange = (sortBy: 'popular' | 'newest' | 'easiest') => {
 		sortParam = sortBy
 		isLoading = true
+		const currentSearch = useCookies('search').get()
 		useCookies('search').set({
-			...useCookies('search').get(),
+			query: currentSearch?.query || '',
+			tags: currentSearch?.tags || [],
+			ingredients: currentSearch?.ingredients || [],
+			excludedIngredients: currentSearch?.excludedIngredients || [],
 			sort: sortBy
 		})
 	}
@@ -136,7 +130,7 @@
 
 <Home
 	{recipes}
-	onSearchChange={handleSearchChange}
+	onSearch={handleSearchChange}
 	onFiltersChange={handleFiltersChange}
 	onSortChange={handleSortChange}
 	{searchTags}
