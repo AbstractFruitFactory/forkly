@@ -69,6 +69,11 @@
 				props.onConfirm?.(value)
 				toggle()
 			}}
+			onBlur={() => {
+				if (expanded) {
+					toggle()
+				}
+			}}
 		/>
 	{:else}
 		<Button fullHeight variant="pill" color="neutral" onclick={toggle}>

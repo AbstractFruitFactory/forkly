@@ -11,6 +11,7 @@
 		value = $bindable(''),
 		onInput = $bindable((newValue: string) => {}),
 		onConfirm = $bindable((value: string) => {}),
+		onBlur = $bindable(() => {}),
 		actionButton,
 		formName,
 		disabled = false,
@@ -24,6 +25,7 @@
 		value?: string
 		onInput?: (value: string) => void
 		onConfirm?: (value: string) => void
+		onBlur?: () => void
 		actionButton?: { text: string; onClick: () => void }
 		formName?: string
 		disabled?: boolean
@@ -68,6 +70,7 @@
 				{value}
 				oninput={handleInput}
 				onkeydown={handleKeydown}
+				onblur={onBlur}
 				aria-label="Search"
 				name={formName}
 				bind:this={inputElement}
