@@ -38,7 +38,7 @@ $breakpoint-xl: 1280px; // Large desktop
 
 :root {
   // Primary colors
-  $primary-color: #F05D23;
+  $primary-color: #EF561A;
   --color-primary: #{$primary-color};
   --color-primary-light: #{lighten($primary-color, 20%)};
   --color-primary-dark: #{darken($primary-color, 20%)};
@@ -82,7 +82,7 @@ $breakpoint-xl: 1280px; // Large desktop
   --color-text-on-background: var(--color-text);
   --color-text-on-surface: #2D3142;
   --color-text-on-secondary: black;
-  --color-text-on-primary: var(--color-surface);
+  --color-text-on-primary: white;
 
   // Font families
   --font-sans: "DM Sans", sans-serif;
