@@ -108,22 +108,22 @@
 	}
 
 	.default {
-		background: var(--color-secondary, #4b5563);
+		background: var(--color-secondary);
 	}
 
 	.success {
-		background: var(--color-success, #22c55e);
+		background: var(--color-success);
 	}
 
 	.error {
-		background: var(--color-error, #ef4444);
+		background: var(--color-error);
 	}
 
 	.warning {
-		background: var(--color-warning, #f59e0b);
+		background: var(--color-warning);
 	}
 
 	.info {
-		background: var(--color-info, #3b82f6);
+		background: var(--color-info);
 	}
 </style>

@@ -479,7 +479,7 @@
 
 <Toast bind:this={toastRef} type="info">
 	{#snippet message()}
-		Please <a href="/login">log in</a> to {toastType === 'like' ? 'like' : 'save'} recipes.
+		Please <a class="toast-link" href="/login">log in</a> to {toastType === 'like' ? 'like' : 'save'} recipes.
 	{/snippet}
 </Toast>
 
@@ -608,5 +608,10 @@
 				accent-color: var(--color-primary);
 			}
 		}
+	}
+
+	.toast-link {
+		color: var(--color-text-on-primary) !important;
+		text-decoration: underline !important;
 	}
 </style>
