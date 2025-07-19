@@ -58,7 +58,7 @@
 	}
 </script>
 
-<div >
+<div>
 	<a class="back-button" href="/profile?tab=Saved recipes">
 		<ArrowLeftIcon size={18} />
 		<span>Back to saved recipes</span>
@@ -129,5 +129,9 @@
 		&:hover {
 			background: var(--color-neutral);
 		}
+	}
+
+	h1 {
+		font-family: var(--font-sans);
 	}
 </style>
