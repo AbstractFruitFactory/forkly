@@ -43,11 +43,8 @@
 	}
 
 	const handleBack = () => {
-		if (onBack) {
-			onBack()
-		} else {
-			isOpen = false
-		}
+		onBack?.()
+		isOpen = false
 	}
 </script>
 
@@ -170,8 +167,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: var(--spacing-lg);
-		padding-bottom: 0;
+		padding-bottom: var(--spacing-md);
 
 		.header-left {
 			display: flex;
