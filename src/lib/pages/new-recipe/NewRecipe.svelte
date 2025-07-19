@@ -46,10 +46,10 @@
 
 	$effect(() => {
 		if (nutritionMode === 'manual') {
-		const p = parseFloat(protein) || 0
-		const c = parseFloat(carbs) || 0
-		const f = parseFloat(fat) || 0
-		calories = String(p * 4 + c * 4 + f * 9)
+			const p = parseFloat(protein) || 0
+			const c = parseFloat(carbs) || 0
+			const f = parseFloat(fat) || 0
+			calories = String(p * 4 + c * 4 + f * 9)
 		} else {
 			calories = ''
 		}
@@ -365,7 +365,6 @@
 	.container {
 		max-width: 1000px;
 		margin: 0 auto;
-		padding: var(--spacing-lg) var(--spacing-md);
 	}
 
 	.page-header {
@@ -378,12 +377,6 @@
 			margin: 0;
 			font-size: var(--font-size-2xl);
 			font-weight: 600;
-		}
-
-		@include mobile {
-			flex-direction: column;
-			gap: var(--spacing-md);
-			align-items: stretch;
 		}
 	}
 

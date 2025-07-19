@@ -236,8 +236,12 @@
 		min-height: calc(100dvh - $header-height);
 
 		@include mobile {
-			padding-top: 0;
+			padding-top: var(--spacing-md);
 			min-height: calc(100dvh - $bottom-bar-height);
+
+			&.homepage {
+				padding-top: 0;
+			}
 		}
 	}
 
