@@ -4,56 +4,56 @@
 	import IngredientInput from '$lib/components/ingredient-input/IngredientInput.svelte'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
-	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
-	import Trash from 'lucide-svelte/icons/trash-2'
-	import Plus from 'lucide-svelte/icons/plus'
-	import X from 'lucide-svelte/icons/x'
-	import { scale } from 'svelte/transition'
-	import { flip } from 'svelte/animate'
-	import Input from '$lib/components/input/Input.svelte'
-	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
-	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import type { IngredientRow, InstructionRow } from './NewRecipe.svelte'
+       import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
+       import Trash from 'lucide-svelte/icons/trash-2'
+       import Plus from 'lucide-svelte/icons/plus'
+       import X from 'lucide-svelte/icons/x'
+       import { scale } from 'svelte/transition'
+       import { flip } from 'svelte/animate'
+       import Input from '$lib/components/input/Input.svelte'
+       import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
+       import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+       import type { IngredientRow, InstructionRow } from './NewRecipe.svelte'
 
 	let {
-		servings,
-		ingredients,
-		instructions,
-		selectedTags,
-		unitSystem,
-		addIngredient,
-		removeIngredient,
-		addInstruction,
-		removeInstruction,
-		handleServingsChange,
-		onUnitChange,
-		searchTags,
-		handleTagSelect,
-		removeTag,
-		submitting,
-		title = '',
-		description = '',
-		imageUrl = '',
-		nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
-		calories = $bindable(''),
-		protein = $bindable(''),
+               servings,
+               instructions,
+               selectedTags,
+               unitSystem,
+               addInstruction,
+               removeInstruction,
+               addInstructionIngredient,
+               removeInstructionIngredient,
+               updateInstructionIngredient,
+               handleServingsChange,
+               onUnitChange,
+               searchTags,
+               handleTagSelect,
+               removeTag,
+               submitting,
+               title = '',
+               description = '',
+               imageUrl = '',
+               nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
+               calories = $bindable(''),
+               protein = $bindable(''),
 		carbs = $bindable(''),
 		fat = $bindable('')
 	}: {
-		servings: number
-		ingredients: IngredientRow[]
-		instructions: InstructionRow[]
-		selectedTags: string[]
-		unitSystem: UnitSystem
-		addIngredient: () => void
-		removeIngredient: (id: string) => void
-		addInstruction: () => void
-		removeInstruction: (id: string) => void
-		handleServingsChange: (newServings: number) => void
-		onUnitChange: (system: UnitSystem) => void
-		searchTags: (query: string) => Promise<{ name: string }[]>
-		handleTagSelect: (tag: string, selected: boolean) => void
-		removeTag: (tag: string) => void
+               servings: number
+               instructions: InstructionRow[]
+               selectedTags: string[]
+               unitSystem: UnitSystem
+               addInstruction: () => void
+               removeInstruction: (id: string) => void
+               addInstructionIngredient: (instructionId: string, ingredient?: { name?: string; amount?: string; unit?: string }) => void
+               removeInstructionIngredient: (instructionId: string, ingredientId: string) => void
+               updateInstructionIngredient: (instructionId: string, ingredientId: string, data: { name?: string; amount?: string; unit?: string }) => void
+               handleServingsChange: (newServings: number) => void
+               onUnitChange: (system: UnitSystem) => void
+               searchTags: (query: string) => Promise<{ name: string }[]>
+               handleTagSelect: (tag: string, selected: boolean) => void
+               removeTag: (tag: string) => void
 		submitting: boolean
 		title?: string
 		description?: string
@@ -67,17 +67,11 @@
 
 	let searchValue = $state('')
 
-	type ItemWithAddButton = IngredientRow | { id: string; isAddButton: true }
-	let items = $derived<ItemWithAddButton[]>([
-		...ingredients,
-		{ id: 'add-button', isAddButton: true }
-	])
-
-	type InstructionWithAddButton = InstructionRow | { id: string; isAddButton: true }
-	let instructionItems = $derived<InstructionWithAddButton[]>([
-		...instructions,
-		{ id: 'add-instruction-button', isAddButton: true }
-	])
+       type InstructionWithAddButton = InstructionRow | { id: string; isAddButton: true }
+       let instructionItems = $derived<InstructionWithAddButton[]>([
+               ...instructions,
+               { id: 'add-instruction-button', isAddButton: true }
+       ])
 
 	const handleAddCustomTag = () => {
 		const trimmedValue = searchValue.trim()
@@ -129,53 +123,6 @@
 		</div>
 	</div>
 
-	<div class="ingredients-grid" style="grid-column: 1 / span 2;">
-		{#snippet servingsAdjuster()}
-			<ServingsAdjuster {servings} onServingsChange={handleServingsChange} />
-		{/snippet}
-
-		<div class="servings-controls">
-			<div class="unit-toggle-container">
-				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
-			</div>
-			<div class="servings">
-				{@render servingsAdjuster()}
-			</div>
-		</div>
-		<div class="ingredients-title-row">
-			<div class="section-title">Ingredients</div>
-			<div class="mobile-servings">
-				{@render servingsAdjuster()}
-			</div>
-		</div>
-		<div class="ingredients-list" style="grid-column: 2; grid-row: 2;">
-			{#each items as item, i (item.id)}
-				<div
-					class={'isAddButton' in item ? 'add-ingredient-button' : 'ingredient-group'}
-					in:scale
-					animate:flip={{ duration: 200 }}
-				>
-					{#if 'isAddButton' in item}
-						<Button variant="pill" color="neutral" onclick={addIngredient} size="sm">
-							<Plus size={16} color="var(--color-text-on-surface)" />
-						</Button>
-					{:else}
-						<div class="ingredient-input">
-							<IngredientInput
-								bind:amount={item.amount}
-								bind:unit={item.unit}
-								bind:name={item.name}
-								id={item.id}
-								{unitSystem}
-								canRemove={ingredients.length > 1}
-								onRemove={() => removeIngredient(item.id)}
-							/>
-						</div>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	</div>
 
 	<div class="section-title">Instructions</div>
 	<div class="section-content">
@@ -191,25 +138,41 @@
 							<Plus size={16} color="var(--color-text-on-surface)" />
 						</Button>
 					{:else}
-						<div class="instruction-input">
-							<div class="instruction-text">
-								<Input>
-									<textarea
-										bind:value={item.text}
-										name={`instructions-${item.id}-text`}
-										placeholder="Enter instruction step"
-									></textarea>
-								</Input>
-							</div>
-							<div class="instruction-media">
-								<MediaUpload name={`instructions-${item.id}-media`} />
-							</div>
-						</div>
-						{#if instructions.length > 1}
-							<button type="button" class="remove-btn" onclick={() => removeInstruction(item.id)}>
-								<Trash size={16} color="var(--color-text-on-background)" />
-							</button>
-						{/if}
+                                                <div class="instruction-input">
+                                                        <div class="instruction-text">
+                                                                <Input>
+                                                                        <textarea
+                                                                                bind:value={item.text}
+                                                                                placeholder="Enter instruction step"
+                                                                        ></textarea>
+                                                                </Input>
+                                                        </div>
+                                                        <div class="instruction-media">
+                                                                <MediaUpload name={`instructions-${item.id}-media`} />
+                                                        </div>
+                                                </div>
+                                                <div class="instruction-ingredients">
+                                                        <h4>Ingredients</h4>
+                                                        {#each item.ingredients as ing (ing.id)}
+                                                                <IngredientInput
+                                                                        bind:amount={ing.amount}
+                                                                        bind:unit={ing.unit}
+                                                                        bind:name={ing.name}
+                                                                        id={ing.id}
+                                                                        {unitSystem}
+                                                                        canRemove={item.ingredients.length > 1}
+                                                                        onRemove={() => removeInstructionIngredient(item.id, ing.id)}
+                                                                />
+                                                        {/each}
+                                                        <Button variant="pill" color="neutral" size="sm" onclick={() => addInstructionIngredient(item.id)}>
+                                                                <Plus size={16} color="var(--color-text-on-surface)" />
+                                                        </Button>
+                                                </div>
+                                                {#if instructions.length > 1}
+                                                        <button type="button" class="remove-btn" onclick={() => removeInstruction(item.id)}>
+                                                                <Trash size={16} color="var(--color-text-on-background)" />
+                                                        </button>
+                                                {/if}
 					{/if}
 				</div>
 			{/each}
@@ -350,18 +313,6 @@
 		row-gap: var(--spacing);
 	}
 
-	.servings-controls {
-		grid-column: 2 / span 1;
-		grid-row: 1;
-		justify-self: end;
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-	}
-
-	.servings {
-		width: fit-content;
-	}
 
 	.header-content {
 		display: flex;
@@ -392,11 +343,6 @@
 		border-top: 1px solid var(--color-neutral-darker);
 	}
 
-	.ingredients-header {
-		grid-column: 1 / span 2;
-		grid-row: 1;
-		margin-bottom: 0;
-	}
 
 	.tags {
 		display: flex;
@@ -427,11 +373,11 @@
 		margin-bottom: var(--spacing-sm);
 	}
 
-	.instruction-input {
-		flex: 1;
-		display: flex;
-		flex-direction: row;
-		gap: var(--spacing-sm);
+        .instruction-input {
+                flex: 1;
+                display: flex;
+                flex-direction: row;
+                gap: var(--spacing-sm);
 
 		@media (max-width: 600px) {
 			flex-direction: column;
@@ -447,50 +393,17 @@
 		flex-basis: 40%;
 	}
 
-	.instruction-text {
-		flex: 1;
-	}
+        .instruction-text {
+                flex: 1;
+        }
 
-	.ingredients-grid {
-		display: grid;
-		grid-template-columns: subgrid;
-		row-gap: 8px;
-		grid-column: 1 / span 2;
-	}
+        .instruction-ingredients {
+                margin-top: var(--spacing-sm);
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-sm);
+        }
 
-	.ingredients-title-row {
-		grid-column: 1 / span 2;
-		grid-row: 2;
-		display: grid;
-		grid-template-columns: subgrid;
-		align-items: center;
-	}
-
-	.mobile-servings {
-		display: none;
-		grid-column: 2;
-		justify-self: end;
-	}
-
-	.unit-toggle-container {
-		flex-shrink: 0;
-	}
-
-	.ingredients-list {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-sm);
-	}
-
-	.ingredient-group {
-		display: flex;
-		gap: var(--spacing-sm);
-		align-items: center;
-	}
-
-	.ingredient-input {
-		flex: 1;
-	}
 
 	.nutrition-mode {
 		margin-bottom: var(--spacing-md);
@@ -509,13 +422,7 @@
 			padding: var(--spacing-lg) var(--spacing-sm);
 		}
 
-		.servings-controls {
-			display: none;
-		}
-
-		.mobile-servings {
-			display: block;
-		}
+                /* no servings-controls or mobile-servings in new layout */
 
 		.section-title {
 			text-align: left;
@@ -524,20 +431,6 @@
 			font-size: var(--font-size-md);
 		}
 
-		.ingredients-grid {
-			display: block;
-		}
-
-		.ingredients-title-row {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			margin-bottom: var(--spacing-md);
-			margin-top: var(--spacing-md);
-		}
-
-		.ingredients-title-row .section-title {
-			margin-bottom: 0;
-		}
+                /* ingredients grid removed */
 	}
 </style>

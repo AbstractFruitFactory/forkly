@@ -4,7 +4,7 @@
 	import IngredientInput from '$lib/components/ingredient-input/IngredientInput.svelte'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
-	import Drawer from '$lib/components/drawer/Drawer.svelte'
+       import Drawer from '$lib/components/drawer/Drawer.svelte'
 	import Plus from 'lucide-svelte/icons/plus'
 	import Input from '$lib/components/input/Input.svelte'
 	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
@@ -17,155 +17,74 @@
 	import X from 'lucide-svelte/icons/x'
 	import type { IngredientRow, InstructionRow } from './NewRecipe.svelte'
 
-	let {
-		servings,
-		selectedTags,
-		unitSystem,
-		handleServingsChange,
-		onUnitChange,
-		searchTags,
-		searchIngredients,
-		handleTagSelect,
-		removeTag,
-		submitting,
-		ingredients,
-		instructions,
-		addIngredient,
-		removeIngredient,
-		updateIngredient,
-		addInstruction,
-		removeInstruction,
-		updateInstruction,
-		title = '',
-		description = '',
-		imageUrl = '',
-		nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
-		calories = $bindable(''),
+       let {
+               servings,
+               selectedTags,
+               unitSystem,
+               handleServingsChange,
+               onUnitChange,
+               searchTags,
+               handleTagSelect,
+               removeTag,
+               submitting,
+               instructions,
+               addInstruction,
+               removeInstruction,
+               updateInstruction,
+               addInstructionIngredient,
+               removeInstructionIngredient,
+               updateInstructionIngredient,
+               addInstructionIngredient,
+               removeInstructionIngredient,
+               updateInstructionIngredient,
+               title = '',
+               description = '',
+               imageUrl = '',
+               nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
+               calories = $bindable(''),
 		protein = $bindable(''),
 		carbs = $bindable(''),
 		fat = $bindable('')
 	}: {
-		servings: number
-		selectedTags: string[]
-		unitSystem: UnitSystem
-		handleServingsChange: (newServings: number) => void
-		onUnitChange: (system: UnitSystem) => void
-		searchTags: (query: string) => Promise<{ id: string; name: string }[]>
-		searchIngredients: (query: string) => Promise<{ id: string; name: string }[]>
-		handleTagSelect: (tag: string, selected: boolean) => void
-		removeTag: (tag: string) => void
-		submitting: boolean
-		ingredients: IngredientRow[]
-		instructions: InstructionRow[]
-		addIngredient: (ingredient: Omit<IngredientRow, 'id'>) => void
-		removeIngredient: (id: string) => void
-		updateIngredient: (
-			id: string,
-			ingredient: { name: string; amount: string; unit: string }
-		) => void
-		addInstruction: (instruction: Omit<InstructionRow, 'id'>) => void
-		removeInstruction: (id: string) => void
-		updateInstruction: (id: string, instruction: { text: string; media?: File }) => void
-		title?: string
-		description?: string
-		imageUrl?: string
-		nutritionMode?: 'auto' | 'manual' | 'none'
-		calories?: string
+               servings: number
+               selectedTags: string[]
+               unitSystem: UnitSystem
+               handleServingsChange: (newServings: number) => void
+               onUnitChange: (system: UnitSystem) => void
+               searchTags: (query: string) => Promise<{ id: string; name: string }[]>
+               handleTagSelect: (tag: string, selected: boolean) => void
+               removeTag: (tag: string) => void
+               submitting: boolean
+               instructions: InstructionRow[]
+               addInstruction: (instruction: Omit<InstructionRow, 'id'>) => void
+               removeInstruction: (id: string) => void
+               updateInstruction: (id: string, instruction: { text: string; media?: File }) => void
+               addInstructionIngredient: (instructionId: string, ingredient?: { name?: string; amount?: string; unit?: string }) => void
+               removeInstructionIngredient: (instructionId: string, ingredientId: string) => void
+               updateInstructionIngredient: (instructionId: string, ingredientId: string, data: { name?: string; amount?: string; unit?: string }) => void
+               title?: string
+               description?: string
+               imageUrl?: string
+               nutritionMode?: 'auto' | 'manual' | 'none'
+               calories?: string
 		protein?: string
 		carbs?: string
 		fat?: string
 	} = $props()
 
-	let isDrawerOpen = $state(false)
-	let editingIngredientId = $state<string | null>(null)
-	let savedIngredients = $state<{ [key: string]: boolean }>({})
+       let editingInstructionId = $state<string | null>(null)
+       let savedInstructions = $state<{ [key: string]: boolean }>({})
 
-	let editingInstructionId = $state<string | null>(null)
-	let savedInstructions = $state<{ [key: string]: boolean }>({})
-
-	let drawerIngredientAmount = $state('1')
-	let drawerIngredientUnit = $state('')
-	let drawerIngredientName = $state('')
-	let drawerIngredientId = $state('')
-
-	const resetDrawerFields = () => {
-		drawerIngredientName = ''
-		drawerIngredientId = ''
-		drawerIngredientAmount = '1'
-		drawerIngredientUnit = ''
-		editingIngredientId = null
-	}
-
-	const removeIngredientLocal = (id: string) => {
-		removeIngredient(id)
-		savedIngredients[id] = false
-	}
-
-	const openDrawerForEdit = (ingredient: IngredientRow) => {
-		editingIngredientId = ingredient.id
-		drawerIngredientName = ingredient.name
-		drawerIngredientId = ingredient.id
-		drawerIngredientAmount = ingredient.amount
-		drawerIngredientUnit = ingredient.unit
-		isDrawerOpen = true
-	}
-
-	const handleDrawerIngredientSelect = (ingredient: { id: string; name: string }) => {
-		drawerIngredientName = ingredient.name
-		drawerIngredientId = ingredient.id
-	}
-
-	const handleAddIngredient = () => {
-		if (editingIngredientId) {
-			updateIngredient(editingIngredientId, {
-				name: drawerIngredientName,
-				amount: drawerIngredientAmount,
-				unit: drawerIngredientUnit
-			})
-		} else {
-			const unsavedIngredient = ingredients.find((ing) => !savedIngredients[ing.id])
-			if (unsavedIngredient) {
-				updateIngredient(unsavedIngredient.id, {
-					name: drawerIngredientName,
-					amount: drawerIngredientAmount,
-					unit: drawerIngredientUnit
-				})
-				savedIngredients[unsavedIngredient.id] = true
-			} else {
-				const newIngredient = {
-					name: drawerIngredientName,
-					amount: drawerIngredientAmount,
-					unit: drawerIngredientUnit
-				}
-				addIngredient(newIngredient)
-				setTimeout(() => {
-					const lastIngredient = ingredients[ingredients.length - 1]
-					if (lastIngredient) {
-						savedIngredients[lastIngredient.id] = true
-					}
-				}, 0)
-			}
-		}
-		isDrawerOpen = false
-		resetDrawerFields()
-	}
-
-	let isInstructionDrawerOpen = $state(false)
+       let isInstructionDrawerOpen = $state(false)
 	let newInstructionText = $state('')
 	let newInstructionMedia: File | null = null
 	let searchValue = $state('')
 
-	type ItemWithAddButton = IngredientRow | { id: string; isAddButton: true }
-	let ingredientItems = $derived<ItemWithAddButton[]>([
-		...ingredients.filter((ingredient) => savedIngredients[ingredient.id]),
-		{ id: 'add-button', isAddButton: true }
-	])
-
-	type InstructionWithAddButton = InstructionRow | { id: string; isAddButton: true }
-	let instructionItems = $derived<InstructionWithAddButton[]>([
-		...instructions.filter((instruction) => savedInstructions[instruction.id]),
-		{ id: 'add-instruction-button', isAddButton: true }
-	])
+       type InstructionWithAddButton = InstructionRow | { id: string; isAddButton: true }
+       let instructionItems = $derived<InstructionWithAddButton[]>([
+               ...instructions.filter((instruction) => savedInstructions[instruction.id]),
+               { id: 'add-instruction-button', isAddButton: true }
+       ])
 
 	const resetInstructionDrawerFields = () => {
 		newInstructionText = ''
@@ -259,103 +178,6 @@
 	</div>
 </div>
 
-	<div class="form-section">
-		<div class="ingredients-header">
-			<h3>Ingredients</h3>
-		</div>
-		<div class="servings-unit-row">
-			<div class="servings-adjuster">
-				<ServingsAdjuster {servings} onServingsChange={handleServingsChange} />
-			</div>
-			<div class="unit-toggle-container">
-				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
-			</div>
-		</div>
-
-	<div class="form-group">
-		<div id="ingredients">
-			{#each ingredientItems as item (item.id)}
-				<div
-					class={'isAddButton' in item ? 'add-ingredient-button' : 'ingredient-row'}
-					style:height={'isAddButton' in item ? 'auto' : '40px'}
-					transition:scale={{ duration: 200 }}
-					animate:flip={{ duration: 200 }}
-				>
-					{#if 'isAddButton' in item}
-						<Button
-							fullWidth
-							color="neutral"
-							onclick={() => {
-								isDrawerOpen = true
-								resetDrawerFields()
-							}}
-							size="sm"
-						>
-							<Plus size={16} color="var(--color-text-on-surface)" />
-							Add new ingredient
-						</Button>
-					{:else}
-						<div class="ingredient-display">
-							<input type="hidden" name="ingredient-{item.id}-name" value={item.name} />
-							<input type="hidden" name="ingredient-{item.id}-quantity" value={item.amount} />
-							<input type="hidden" name="ingredient-{item.id}-measurement" value={item.unit} />
-							<Input>
-								<div class="ingredient-display-row">
-									<input type="text" disabled class="ingredient-amount" value={item.amount} />
-									<input type="text" disabled class="ingredient-unit" value={item.unit} />
-									<input type="text" disabled class="ingredient-name" value={item.name} />
-								</div>
-							</Input>
-						</div>
-						<div class="ingredient-actions">
-							<button class="action-btn" type="button" onclick={() => openDrawerForEdit(item)}>
-								<Edit size={16} color="var(--color-text-on-surface)" />
-							</button>
-							{#if ingredients.length > 1}
-								<button
-									class="action-btn"
-									type="button"
-									onclick={() => removeIngredientLocal(item.id)}
-								>
-									<Trash size={16} color="var(--color-text-on-surface)" />
-								</button>
-							{/if}
-						</div>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	</div>
-</div>
-
-<Drawer
-	bind:isOpen={isDrawerOpen}
-	title={editingIngredientId ? 'Edit ingredient' : 'New ingredient'}
->
-	<div class="drawer-ingredient-form">
-		<IngredientInput
-			id="drawer-ingredient"
-			bind:amount={drawerIngredientAmount}
-			bind:unit={drawerIngredientUnit}
-			bind:name={drawerIngredientName}
-			{unitSystem}
-			placeholder="Amount"
-			onIngredientSelect={handleDrawerIngredientSelect}
-		/>
-		<div class="drawer-actions">
-			<Button
-				onclick={() => {
-					isDrawerOpen = false
-					resetDrawerFields()
-				}}
-				color="neutral">Cancel</Button
-			>
-			<Button onclick={handleAddIngredient} color="primary"
-				>{editingIngredientId ? 'Update Ingredient' : 'Add Ingredient'}</Button
-			>
-		</div>
-	</div>
-</Drawer>
 
 <div class="form-section">
 	<h3>Instructions</h3>
@@ -393,26 +215,41 @@
 							{/if}
 						</div>
 					</div>
-					<div class="instruction-card-content">
-						<input type="hidden" name="instructions-{item.id}-text" value={item.text} />
-						<Input>
-							<textarea disabled class="selected-instruction-text" value={item.text} rows={3}
-							></textarea>
-						</Input>
+                                        <div class="instruction-card-content">
+                                                <Input>
+                                                        <textarea disabled class="selected-instruction-text" value={item.text} rows={3}></textarea>
+                                                </Input>
 
-						{#if item.media}
-							<div class="instruction-media-display">
-								<!-- svelte-ignore a11y_missing_attribute -->
-								<img
-									class="instruction-card-image"
-									src={typeof item.media === 'string'
-										? item.media
-										: URL.createObjectURL(item.media)}
-								/>
-								<input type="hidden" name="instructions-{item.id}-media" value={item.media} />
-							</div>
-						{/if}
-					</div>
+                                                {#if item.media}
+                                                        <div class="instruction-media-display">
+                                                                <!-- svelte-ignore a11y_missing_attribute -->
+                                                                <img
+                                                                        class="instruction-card-image"
+                                                                        src={typeof item.media === 'string'
+                                                                               ? item.media
+                                                                               : URL.createObjectURL(item.media)}
+                                                                />
+                                                                <input type="hidden" name="instructions-{item.id}-media" value={item.media} />
+                                                        </div>
+                                                {/if}
+                                                <div class="instruction-ingredients">
+                                                        <h4>Ingredients</h4>
+                                                        {#each item.ingredients as ing (ing.id)}
+                                                                <IngredientInput
+                                                                        bind:amount={ing.amount}
+                                                                        bind:unit={ing.unit}
+                                                                        bind:name={ing.name}
+                                                                        id={ing.id}
+                                                                        {unitSystem}
+                                                                        canRemove={item.ingredients.length > 1}
+                                                                        onRemove={() => removeInstructionIngredient(item.id, ing.id)}
+                                                                />
+                                                        {/each}
+                                                        <Button color="neutral" variant="pill" size="sm" onclick={() => addInstructionIngredient(item.id)}>
+                                                                <Plus size={16} color="var(--color-text-on-surface)" />
+                                                        </Button>
+                                                </div>
+                                        </div>
 				{/if}
 			</div>
 		{/each}
@@ -562,91 +399,6 @@
 		margin-top: var(--spacing-lg);
 	}
 
-	.ingredients-header {
-		margin-bottom: var(--spacing-md);
-	}
-
-	.servings-unit-row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.unit-toggle-container {
-		flex-shrink: 0;
-	}
-
-	.add-ingredient-button {
-		margin-top: var(--spacing-md);
-	}
-
-	.ingredient-group {
-		margin-bottom: var(--spacing-xs);
-	}
-
-	.drawer-ingredient-form {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-lg);
-	}
-
-	.drawer-actions {
-		display: flex;
-		gap: var(--spacing-md);
-		justify-content: flex-end;
-		margin-top: var(--spacing-lg);
-	}
-
-	.ingredient-row {
-		display: flex;
-		align-items: center;
-		border-radius: var(--border-radius-lg);
-		margin-bottom: var(--spacing-xs);
-		gap: var(--spacing-md);
-	}
-
-	.ingredient-actions {
-		display: flex;
-		gap: var(--spacing-xs);
-	}
-
-	.ingredient-display {
-		display: flex;
-		gap: var(--spacing-md);
-		flex: 1;
-		align-items: center;
-	}
-
-	.ingredient-display-row {
-		display: flex;
-		gap: var(--spacing-xs);
-		align-items: center;
-	}
-
-	.ingredient-amount {
-		font-weight: 600;
-		color: var(--color-text-on-surface);
-	}
-
-	.ingredient-name {
-		color: var(--color-text-on-surface);
-	}
-
-	.action-btn {
-		background: none;
-		border: none;
-		color: var(--color-text-on-surface);
-		font-size: 1.2em;
-		cursor: pointer;
-		padding: var(--spacing-xs);
-		border-radius: var(--border-radius-sm);
-		transition: background 0.2s;
-	}
-
-	.action-btn:hover {
-		background: var(--color-background-dark);
-	}
 
 	.instruction-card {
 		background: var(--color-surface);
@@ -666,25 +418,47 @@
 		margin-bottom: var(--spacing-xs);
 	}
 
-	.instruction-actions {
-		display: flex;
-		gap: var(--spacing-xs);
-	}
+        .instruction-actions {
+                display: flex;
+                gap: var(--spacing-xs);
+        }
+
+        .action-btn {
+                background: none;
+                border: none;
+                color: var(--color-text-on-surface);
+                font-size: 1.2em;
+                cursor: pointer;
+                padding: var(--spacing-xs);
+                border-radius: var(--border-radius-sm);
+                transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+                background: var(--color-background-dark);
+        }
 
 	.instruction-step {
 		font-weight: 600;
 		color: var(--color-text-on-surface);
 	}
 
-	.instruction-card-content {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
+        .instruction-card-content {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-md);
 
 		:global(.input-container) {
 			box-shadow: none;
 			padding: 0;
-		}
+        }
+
+        .instruction-ingredients {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-sm);
+                margin-top: var(--spacing-sm);
+        }
 	}
 
 	.selected-instruction-text {

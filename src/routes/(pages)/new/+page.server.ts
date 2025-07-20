@@ -53,7 +53,9 @@ const instructionSchema = v.object({
     v.minLength(1, 'All instructions must have text')
   ),
   mediaUrl: v.optional(v.string()),
-  mediaType: v.optional(v.union([v.literal('image'), v.literal('video')]))
+  mediaType: v.optional(v.union([v.literal('image'), v.literal('video')])),
+  ingredients: v.optional(v.array(ingredientSchema)),
+  id: v.optional(v.string())
 })
 
 const formValidationSchema = v.object({

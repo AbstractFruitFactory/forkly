@@ -19,14 +19,12 @@
 		errors,
 		unitSystem = 'imperial',
 		onSearchTags,
-		onSearchIngredients,
-		onUnitChange
-	}: {
-		errors?: { path: string; message: string }[]
-		onSearchIngredients?: (query: string) => Promise<Ingredient[]>
-		unitSystem?: UnitSystem
-		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
-		onUnitChange?: (system: UnitSystem) => void
+               onUnitChange
+       }: {
+               errors?: { path: string; message: string }[]
+               unitSystem?: UnitSystem
+               onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
+               onUnitChange?: (system: UnitSystem) => void
 	} = $props()
 
 	const generateId = () => Math.random().toString(36).slice(2)
@@ -170,14 +168,6 @@
 		return results.map((tag) => ({ id: tag.name, name: tag.name }))
 	}
 
-	const searchIngredients = async (query: string): Promise<{ id: string; name: string }[]> => {
-		if (!onSearchIngredients) return []
-		const results = await onSearchIngredients(query)
-		return results.map((ingredient) => ({
-			id: ingredient.id ?? ingredient.name,
-			name: ingredient.name
-		}))
-	}
 
 	const handleTagSelect = (tag: string, selected: boolean) => {
 		if (selected && !selectedTags.includes(tag)) {
@@ -283,7 +273,8 @@
 		enctype="multipart/form-data"
 		use:enhance={({ formData }) => {
 			submitting = true
-			formData.append('servings', servings.toString())
+                       formData.append('servings', servings.toString())
+                       formData.append('instructions', JSON.stringify(instructions))
 
 			return async ({ update }) => {
 				submitting = false
@@ -317,10 +308,12 @@
 				bind:protein
 				bind:carbs
 				bind:fat
-				{searchTags}
-				{searchIngredients}
-				{handleTagSelect}
-				{removeTag}
+                                {searchTags}
+                                {handleTagSelect}
+                                {removeTag}
+                                {addInstructionIngredient}
+                                {removeInstructionIngredient}
+                                {updateInstructionIngredient}
 				{submitting}
 			/>
 		</div>
@@ -341,10 +334,13 @@
 				bind:protein
 				bind:carbs
 				bind:fat
-				{searchTags}
-				{handleTagSelect}
-				{removeTag}
-				{submitting}
+                                {searchTags}
+                                {handleTagSelect}
+                                {removeTag}
+                                {addInstructionIngredient}
+                                {removeInstructionIngredient}
+                                {updateInstructionIngredient}
+                                {submitting}
 			/>
 		</div>
 
