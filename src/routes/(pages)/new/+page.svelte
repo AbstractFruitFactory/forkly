@@ -18,9 +18,7 @@
 
 		return new Promise((resolve) => {
 			searchTimeout = setTimeout(async () => {
-				const response = await safeFetch<IngredientSearchResult>()(
-					`/ingredients/search/${query}`
-				)
+				const response = await safeFetch<IngredientSearchResult>()(`/ingredients/search/${query}`)
 				if (response.isOk()) {
 					resolve(response.value)
 				} else {
@@ -60,10 +58,12 @@
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
 
-<div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
-	{#if form?.success}
+{#if form?.success}
+	<div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 		<RecipeSuccess recipeId={form.recipeId!} />
-	{:else}
+	</div>
+{:else}
+	<div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 		<NewRecipe
 			errors={form?.errors}
 			onSearchIngredients={handleSearchIngredients}
@@ -71,5 +71,5 @@
 			{unitSystem}
 			onUnitChange={handleUnitChange}
 		/>
-	{/if}
-</div>
+	</div>
+{/if}

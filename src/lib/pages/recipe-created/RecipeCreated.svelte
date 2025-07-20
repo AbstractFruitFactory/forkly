@@ -1,12 +1,34 @@
 <script lang="ts">
 	import Button from '$lib/components/button/Button.svelte'
+	import { onMount } from 'svelte'
+	import { confetti } from '@tsparticles/confetti'
 
 	let { recipeId }: { recipeId: string } = $props()
+	let successIconElement: HTMLElement
+
+	onMount(async () => {
+		await new Promise((resolve) => setTimeout(resolve, 500))
+		const rect = successIconElement.getBoundingClientRect()
+		const centerX = rect.left + rect.width / 2
+		const centerY = rect.top + rect.height / 2
+
+		await confetti({
+			particleCount: 100,
+			spread: 90,
+			startVelocity: 30,
+			origin: {
+				x: centerX / window.innerWidth,
+				y: centerY / window.innerHeight
+			},
+			gravity: 0.8,
+			ticks: 500,
+		})
+	})
 </script>
 
 <div class="success-container">
 	<div class="success-content card">
-		<div class="success-icon">✓</div>
+		<div class="success-icon" bind:this={successIconElement}>🎉</div>
 		<h1>Recipe Created!</h1>
 		<p>Your recipe has been successfully created.</p>
 		<div class="button-group">
@@ -18,18 +40,28 @@
 </div>
 
 <style lang="scss">
+	@import '$lib/global.scss';
+
+	// Make confetti canvas non-interactive
+	:global(#confetti canvas) {
+		pointer-events: none !important;
+	}
+
 	.success-container {
-		position: relative;
 		display: flex;
 		justify-content: center;
-		align-items: center;
-		min-height: calc(100vh - var(--spacing-2xl));
-		padding: var(--spacing-lg);
+		margin-top: 200px;
+
+		@include mobile {
+			height: calc(100dvh - 6.5rem);
+			align-items: center;
+			padding: var(--spacing-md);
+			margin-top: 0;
+		}
 	}
 
 	.success-content {
 		text-align: center;
-
 		max-width: 500px;
 		width: 100%;
 	}
@@ -41,14 +73,11 @@
 	}
 
 	h1 {
-		margin: 0 0 var(--spacing-md);
-		font-size: var(--spacing-xl);
+		font-family: var(--font-sans);
 	}
 
 	p {
-		margin: 0 0 var(--spacing-lg);
 		color: var(--color-neutral);
-		font-size: var(--spacing-md);
 	}
 
 	.button-group {
