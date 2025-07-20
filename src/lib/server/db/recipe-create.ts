@@ -21,13 +21,13 @@ type InstructionInput = {
   text: string
   mediaUrl?: string
   mediaType?: 'image' | 'video'
+  ingredients?: IngredientInput[]
 }
 
 type RecipeInput = {
   title: string
   description?: string
   servings: number
-  ingredients: IngredientInput[]
   instructions: InstructionInput[]
   nutrition?: NutritionInput | null
   tags: string[]
@@ -75,7 +75,23 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
     })
   }
 
-  for (const ingredientData of input.ingredients) {
+  // Aggregate ingredients from all instructions
+  const aggregatedMap = new Map<string, IngredientInput>()
+  for (const instr of input.instructions) {
+    for (const ing of instr.ingredients || []) {
+      const key = `${ing.name.toLowerCase()}|${ing.measurement ?? ''}`
+      if (aggregatedMap.has(key)) {
+        const existing = aggregatedMap.get(key)!
+        if (ing.quantity !== undefined) {
+          existing.quantity = (existing.quantity ?? 0) + (ing.quantity ?? 0)
+        }
+      } else {
+        aggregatedMap.set(key, { ...ing })
+      }
+    }
+  }
+
+  for (const ingredientData of Array.from(aggregatedMap.values())) {
     let ingredientId: string
 
     const existingIngredient = await db

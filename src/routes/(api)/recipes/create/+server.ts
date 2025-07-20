@@ -44,7 +44,8 @@ const instructionSchema = v.object({
     v.minLength(1, 'All instructions must have text')
   ),
   mediaUrl: v.optional(v.string()),
-  mediaType: v.optional(v.union([v.literal('image'), v.literal('video')]))
+  mediaType: v.optional(v.union([v.literal('image'), v.literal('video')])),
+  ingredients: v.optional(v.array(baseIngredientSchema))
 })
 
 const createRecipeSchema = v.object({
@@ -62,10 +63,6 @@ const createRecipeSchema = v.object({
   servings: v.pipe(
     v.number(),
     v.minValue(1, 'Servings must be at least 1')
-  ),
-  ingredients: v.pipe(
-    v.array(baseIngredientSchema),
-    v.minLength(1, 'At least one ingredient is required')
   ),
   instructions: v.pipe(
     v.array(instructionSchema),
@@ -105,6 +102,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   const input = validationResult.output
 
+  const hasIngredients = input.instructions.some(i => (i.ingredients?.length ?? 0) > 0)
+  if (!hasIngredients) {
+    error(400, { message: 'At least one ingredient is required' })
+  }
+
   const newRecipe = await createRecipe(input, locals.user?.id)
   return json(newRecipe)
-} 
+}

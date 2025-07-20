@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	export type IngredientRow = { id: string; name: string; amount: string; unit: string }
-	export type InstructionRow = { id: string; text: string; media?: File }
+       export type InstructionRow = { id: string; text: string; media?: File; ingredients: IngredientRow[] }
 </script>
 
 <script lang="ts">
@@ -31,8 +31,7 @@
 
 	const generateId = () => Math.random().toString(36).slice(2)
 
-	let ingredients = $state<IngredientRow[]>([{ id: generateId(), name: '', amount: '', unit: '' }])
-	let instructions = $state<InstructionRow[]>([{ id: generateId(), text: '', media: undefined }])
+       let instructions = $state<InstructionRow[]>([{ id: generateId(), text: '', media: undefined, ingredients: [{ id: generateId(), name: '', amount: '', unit: '' }] }])
 	let servings = $state(1)
 	let selectedTags = $state<string[]>([])
 	let title = $state('')
@@ -104,41 +103,6 @@
 		disableInactiveInputs()
 	})
 
-	const addIngredient = (ingredientData?: { name?: string; amount?: string; unit?: string }) => {
-		if (ingredientData) {
-			const safeIngredient = {
-				id: generateId(),
-				name: ingredientData.name ?? '',
-				amount: ingredientData.amount ?? '',
-				unit: ingredientData.unit ?? ''
-			}
-			ingredients = [...ingredients, safeIngredient]
-		} else {
-			ingredients = [...ingredients, { id: generateId(), name: '', amount: '', unit: '' }]
-		}
-	}
-
-	const removeIngredient = (id: string) => {
-		if (ingredients.length > 1) {
-			ingredients = ingredients.filter((ingredient) => ingredient.id !== id)
-		}
-	}
-
-	const updateIngredient = (
-		id: string,
-		updatedIngredient: { name?: string; amount?: string; unit?: string }
-	) => {
-		ingredients = ingredients.map((ingredient) =>
-			ingredient.id === id
-				? {
-						...ingredient,
-						name: updatedIngredient.name ?? ingredient.name ?? '',
-						amount: updatedIngredient.amount ?? ingredient.amount ?? '',
-						unit: updatedIngredient.unit ?? ingredient.unit ?? ''
-					}
-				: ingredient
-		)
-	}
 
 	const addInstruction = (instructionData?: { text: string; media?: File }) => {
 		if (instructionData) {
@@ -154,11 +118,50 @@
 		}
 	}
 
-	const updateInstruction = (id: string, updatedInstruction: { text: string; media?: File }) => {
-		instructions = instructions.map((instruction) =>
-			instruction.id === id ? { ...instruction, ...updatedInstruction } : instruction
-		)
-	}
+       const updateInstruction = (id: string, updatedInstruction: { text: string; media?: File }) => {
+               instructions = instructions.map((instruction) =>
+                       instruction.id === id ? { ...instruction, ...updatedInstruction } : instruction
+               )
+       }
+
+       const addInstructionIngredient = (instructionId: string, ingredientData?: { name?: string; amount?: string; unit?: string }) => {
+               instructions = instructions.map((instruction) => {
+                       if (instruction.id === instructionId) {
+                               const newIng = {
+                                       id: generateId(),
+                                       name: ingredientData?.name ?? '',
+                                       amount: ingredientData?.amount ?? '',
+                                       unit: ingredientData?.unit ?? ''
+                               }
+                               return { ...instruction, ingredients: [...instruction.ingredients, newIng] }
+                       }
+                       return instruction
+               })
+       }
+
+       const updateInstructionIngredient = (instructionId: string, ingredientId: string, data: { name?: string; amount?: string; unit?: string }) => {
+               instructions = instructions.map((instruction) => {
+                       if (instruction.id === instructionId) {
+                               return {
+                                       ...instruction,
+                                       ingredients: instruction.ingredients.map((ing) =>
+                                               ing.id === ingredientId ? { ...ing, ...data } : ing
+                                       )
+                               }
+                       }
+                       return instruction
+               })
+       }
+
+       const removeInstructionIngredient = (instructionId: string, ingredientId: string) => {
+               instructions = instructions.map((instruction) => {
+                       if (instruction.id === instructionId) {
+                               const list = instruction.ingredients.length > 1 ? instruction.ingredients.filter((ing) => ing.id !== ingredientId) : instruction.ingredients
+                               return { ...instruction, ingredients: list }
+                       }
+                       return instruction
+               })
+       }
 
 	const searchTags = async (query: string): Promise<{ id: string; name: string }[]> => {
 		if (!onSearchTags) return []
@@ -231,13 +234,18 @@
 		if (recipe.image) {
 			image = recipe.image
 		}
-		// Populate ingredients
-		if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
-			ingredients = recipe.ingredients.map((raw) => {
-				const { amount, unit, name } = parseIngredient(raw)
-				return { id: generateId(), name, amount, unit }
-			})
-		}
+               // Populate ingredients - add to first instruction
+               if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+                       const parsed = recipe.ingredients.map((raw) => {
+                               const { amount, unit, name } = parseIngredient(raw)
+                               return { id: generateId(), name, amount, unit }
+                       })
+                       if (instructions.length === 0) {
+                               instructions = [{ id: generateId(), text: '', media: undefined, ingredients: parsed }]
+                       } else {
+                               instructions[0].ingredients = parsed
+                       }
+               }
 		// Populate instructions
 		if (recipe.instructions && Array.isArray(recipe.instructions)) {
 			instructions = recipe.instructions.map((text) => ({
@@ -296,13 +304,9 @@
 				imageUrl={image ?? undefined}
 				{title}
 				{servings}
-				{ingredients}
-				{addIngredient}
-				{addInstruction}
-				{removeIngredient}
-				{updateIngredient}
-				{removeInstruction}
-				{updateInstruction}
+                                {addInstruction}
+                                {removeInstruction}
+                                {updateInstruction}
 				{instructions}
 				{selectedTags}
 				{unitSystem}
@@ -325,12 +329,9 @@
 				imageUrl={image ?? undefined}
 				{title}
 				{servings}
-				{ingredients}
-				{addIngredient}
-				{removeIngredient}
-				{instructions}
-				{addInstruction}
-				{removeInstruction}
+                                {instructions}
+                                {addInstruction}
+                                {removeInstruction}
 				{selectedTags}
 				{unitSystem}
 				{handleServingsChange}

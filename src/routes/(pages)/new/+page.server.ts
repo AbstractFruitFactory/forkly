@@ -1,7 +1,6 @@
 import { fail } from '@sveltejs/kit'
 import type { Actions } from './$types'
 import type { Ingredient } from '$lib/types'
-import groupBy from 'ramda/src/groupBy'
 import { api } from '$lib/server/food-api'
 import { Ok, Result } from 'ts-results-es'
 import * as v from 'valibot'
@@ -91,11 +90,12 @@ type FormFields = {
   title: string
   description: string
   servings: number
-  ingredients: Ingredient[]
   instructions: {
     text: string
     mediaUrl?: string
     mediaType?: 'image' | 'video'
+    ingredients?: Ingredient[]
+    id?: string
   }[]
   tags: string[]
   nutritionMode: 'auto' | 'manual' | 'none'
@@ -112,66 +112,11 @@ type RecipeApiResponse = {
   [key: string]: any
 }
 
-const parseIngredientOrInstruction = (formData: FormData, keyPrefix: string) =>
-  Array.from(formData.entries())
-    .filter(([key]) => key.startsWith(keyPrefix))
-    .map(([key, value]) => {
-      const [_, id, field] = key.split('-')
-      return { id, field, value: value.toString() }
-    })
-
-const parseIngredients = (formData: FormData): Ingredient[] => {
-  const ingredientEntries = parseIngredientOrInstruction(formData, 'ingredient')
-
-  const byIndex = groupBy(entry => entry.id, ingredientEntries)
-
-  return Object.values(byIndex).map(entries => {
-    let quantity: number | undefined = undefined
-    let measurement: string | undefined = undefined
-    let displayName: string = ''
-
-    entries!.forEach(({ field, value }) => {
-      if (field === 'quantity') {
-        quantity = value ? parseFloat(value) : undefined
-      } else if (field === 'measurement') {
-        measurement = value
-      } else if (field.startsWith('name')) {
-        displayName = value
-      }
-    })
-
-    return {
-      quantity,
-      measurement,
-      name: displayName,
-      displayName
-    }
-  })
-}
-
 const parseFormData = (formData: FormData): FormFields => {
   const tags = formData.getAll('tags').map(value => value.toString())
 
-  // Parse instructions
-  const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')
-  const instructionById = groupBy(entry => entry.id, instructionEntries)
-
-  const instructions: FormFields['instructions'] = Object.values(instructionById).map(entries => {
-    let text = ''
-
-    for (const entry of entries!) {
-      const { field, value } = entry
-      if (field === 'text') {
-        text = value
-      }
-    }
-
-    return {
-      text,
-      mediaUrl: undefined,
-      mediaType: undefined
-    }
-  })
+  const instructionsField = formData.get('instructions')?.toString() || '[]'
+  const instructions: FormFields['instructions'] = JSON.parse(instructionsField)
 
   const nutritionMode = formData.get('nutritionMode')?.toString() as 'auto' | 'manual' | 'none' | undefined
   let manualNutrition: FormFields['manualNutrition'] = undefined
@@ -191,7 +136,6 @@ const parseFormData = (formData: FormData): FormFields => {
     title: formData.get('title')?.toString() ?? '',
     description: formData.get('description')?.toString() ?? '',
     servings: parseInt(formData.get('servings')?.toString() ?? '1') || 1,
-    ingredients: parseIngredients(formData),
     instructions,
     tags,
     nutritionMode: nutritionMode ?? 'auto',
@@ -205,15 +149,9 @@ export const actions = {
     const recipeData = parseFormData(formData)
     const imageFile = formData.get('image') as File | undefined
 
-    // Parse instructions again to get the IDs for media lookup
-    const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')
-    const instructionById = groupBy(entry => entry.id, instructionEntries)
-
     const instructionsWithMedia = await Promise.all(
-      recipeData.instructions.map(async (instruction, index) => {
-        // Find the instruction ID from the parsed data
-        const instructionId = Object.keys(instructionById)[index]
-        const mediaFile = formData.get(`instructions-${instructionId}-media`) as File | undefined
+      recipeData.instructions.map(async (instruction) => {
+        const mediaFile = formData.get(`instructions-${instruction.id}-media`) as File | undefined
 
         if (mediaFile && mediaFile.size > 0) {
           const arrayBuffer = await mediaFile.arrayBuffer()
@@ -237,11 +175,28 @@ export const actions = {
 
     recipeData.instructions = instructionsWithMedia
 
+    // Aggregate ingredients from instructions
+    const aggregatedMap = new Map<string, Ingredient>()
+    for (const instr of recipeData.instructions) {
+      for (const ing of instr.ingredients || []) {
+        const key = `${ing.name.toLowerCase()}|${ing.measurement ?? ''}`
+        if (aggregatedMap.has(key)) {
+          const ex = aggregatedMap.get(key)!
+          if (ing.quantity !== undefined) {
+            ex.quantity = (ex.quantity ?? 0) + (ing.quantity ?? 0)
+          }
+        } else {
+          aggregatedMap.set(key, { ...ing })
+        }
+      }
+    }
+    const aggregatedIngredients = Array.from(aggregatedMap.values())
+
     const result = v.safeParse(formValidationSchema, {
       title: recipeData.title,
       description: recipeData.description,
       servings: Number(recipeData.servings) || 1,
-      ingredients: recipeData.ingredients,
+      ingredients: aggregatedIngredients,
       instructions: recipeData.instructions,
       tags: recipeData.tags
     })
@@ -260,7 +215,7 @@ export const actions = {
     const canonicalNames = canonicalIngredients.map(i => i.name)
 
     const mappedIngredientsResults = await Promise.all(
-      recipeData.ingredients.map(async (ing) => {
+      aggregatedIngredients.map(async (ing) => {
         const normalizedInput = normalizeIngredientName(ing.name)
         let matchedName: string
         let matchedId: string

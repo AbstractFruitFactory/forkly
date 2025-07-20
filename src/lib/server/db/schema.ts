@@ -33,11 +33,17 @@ export const recipe = pgTable('recipe', {
 		.references(() => user.id, { onDelete: 'cascade' }),
 	title: text('title').notNull(),
 	description: text('description'),
-	instructions: jsonb('instructions').$type<{
-		text: string
-		mediaUrl?: string
-		mediaType?: 'image' | 'video'
-	}[]>().notNull(),
+       instructions: jsonb('instructions').$type<{
+               text: string
+               mediaUrl?: string
+               mediaType?: 'image' | 'video'
+               ingredients?: {
+                       quantity?: number
+                       measurement?: string
+                       name: string
+                       displayName: string
+               }[]
+       }[]>().notNull(),
 	tags: jsonb('tags').$type<string[]>().default([]).notNull(),
 	imageUrl: text('image_url'),
 	servings: integer('servings').notNull().default(1),

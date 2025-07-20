@@ -60,6 +60,7 @@ export type RecipeData = {
     text: string
     mediaUrl?: string
     mediaType?: 'image' | 'video'
+    ingredients?: Ingredient[]
   }[]
   imageUrl?: string | null
   tags?: string[]
