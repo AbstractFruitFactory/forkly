@@ -63,18 +63,19 @@ export const seed = async () => {
       .onConflictDoNothing({ target: tag.name })
   }
 
-
   const ingredientMap = new Map<string, { id: string, name: string }>()
  
-  // add all ingredients from recipes
+  // Extract all unique ingredients from instructions
   for (const recipe of sampleRecipesRaw) {
-    for (const ing of (recipe as any).ingredients || []) {
-      const normalized = normalizeIngredientName(ing.displayName)
-      if (!ingredientMap.has(normalized)) {
-        ingredientMap.set(normalized, {
-          id: generateId(),
-          name: normalized
-        })
+    for (const instruction of (recipe as any).instructions || []) {
+      for (const ing of instruction.ingredients || []) {
+        const normalized = normalizeIngredientName(ing.name)
+        if (!ingredientMap.has(normalized)) {
+          ingredientMap.set(normalized, {
+            id: generateId(),
+            name: normalized
+          })
+        }
       }
     }
   }
@@ -113,29 +114,35 @@ export const seed = async () => {
     // Find the corresponding raw recipe (by modulo, since we duplicated)
     const rawRecipe = sampleRecipesRaw[i % baseCount]
     
-    // Create instructions from the old ingredients list
-    // For now, we'll create one instruction per recipe with all ingredients
-    const instructionId = generateId()
-    allRecipeInstructions.push({
-      id: instructionId,
-      recipeId: recipe.id,
-      text: `Prepare ${(rawRecipe as any).title || 'this recipe'} with the following ingredients.`,
-      order: 1
-    })
-    
-    // Add ingredients to this instruction
-    for (const ing of (rawRecipe as any).ingredients || []) {
-      const normalized = normalizeIngredientName(ing.displayName)
-      const ingredientEntry = ingredientMap.get(normalized)
-      if (!ingredientEntry) continue
-      allRecipeInstructionIngredients.push({
+    // Use the actual instructions from the JSON
+    for (let j = 0; j < (rawRecipe as any).instructions.length; j++) {
+      const instruction = (rawRecipe as any).instructions[j]
+      
+      // Create unique instruction ID for each duplicated recipe
+      const instructionId = generateId()
+      allRecipeInstructions.push({
+        id: instructionId,
         recipeId: recipe.id,
-        instructionId: instructionId,
-        ingredientId: ingredientEntry.id,
-        displayName: ing.displayName,
-        quantity: ing.quantity,
-        measurement: ing.measurement
+        text: instruction.text,
+        mediaUrl: instruction.mediaUrl,
+        mediaType: instruction.mediaType,
+        order: j + 1
       })
+      
+      // Add ingredients to this instruction
+      for (const ing of instruction.ingredients || []) {
+        const normalized = normalizeIngredientName(ing.name)
+        const ingredientEntry = ingredientMap.get(normalized)
+        if (!ingredientEntry) continue
+        allRecipeInstructionIngredients.push({
+          recipeId: recipe.id,
+          instructionId: instructionId,
+          ingredientId: ingredientEntry.id,
+          displayName: ing.displayName,
+          quantity: ing.quantity,
+          measurement: ing.measurement
+        })
+      }
     }
   }
   
