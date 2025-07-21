@@ -231,9 +231,13 @@
 		max-width: $content-max-width;
 		margin: 0 auto;
 		padding-bottom: var(--spacing-2xl);
-		padding-top: var(--spacing-xl);
+		padding-top: var(--spacing-4xl);
 		position: relative;
 		min-height: calc(100dvh - $header-height);
+
+		&.homepage {
+			padding-top: var(--spacing-xl);
+		}
 
 		@include mobile {
 			padding-top: var(--spacing-md);

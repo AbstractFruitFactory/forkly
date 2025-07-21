@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { FLY_DOWN_IN, FLY_DOWN_OUT } from '$lib/utils/transitions'
+	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
 	import { fly } from 'svelte/transition'
 
 	let { children } = $props()
 </script>
 
-<div in:fly|global={FLY_DOWN_IN} out:fly|global={FLY_DOWN_OUT}>
+<div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 	{@render children()}
 </div>
 
