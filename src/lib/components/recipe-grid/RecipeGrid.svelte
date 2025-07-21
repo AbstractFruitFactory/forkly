@@ -57,7 +57,7 @@
 					loadMore()
 				}
 			},
-			{ threshold: 0.5, rootMargin: '100px' }
+			{ threshold: 0.1, rootMargin: '200px' }
 		)
 
 		if (loadMoreTrigger) {
@@ -99,5 +99,6 @@
 	.load-more-trigger {
 		height: 1px;
 		width: 100%;
+		margin-top: 200px;
 	}
 </style>
