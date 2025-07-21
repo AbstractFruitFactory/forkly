@@ -22,6 +22,7 @@
 				recipes = Promise.resolve(r)
 			}
 			isLoading = false
+			pagination.isLoading = false
 		})
 	})
 
@@ -117,7 +118,7 @@
 
 		pagination = {
 			page: pagination.page + 1,
-			isLoading: false
+			isLoading: true
 		}
 
 		invalidateAll()
@@ -144,4 +145,5 @@
 	initialSort={sortParam}
 	{onSearchbarSticky}
 	initialSearchValue={searchValue}
+	isLoadingMore={pagination.isLoading}
 />

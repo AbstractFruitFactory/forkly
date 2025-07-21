@@ -36,7 +36,8 @@
 		initialIngredients = [],
 		initialSort = 'popular',
 		onSearchbarSticky = (isSticky: boolean) => {},
-		initialSearchValue = ''
+		initialSearchValue = '',
+		isLoadingMore = false
 	}: {
 		recipes: ComponentProps<typeof RecipeGrid>['recipes']
 		onSearch?: (query: string) => void
@@ -54,6 +55,7 @@
 		initialSort?: 'popular' | 'newest' | 'easiest'
 		onSearchbarSticky?: (isSticky: boolean) => void
 		initialSearchValue?: string
+		isLoadingMore?: boolean
 	} = $props()
 
 	let selectedTags = $state<{ label: string; selected: boolean }[]>([])
@@ -431,6 +433,7 @@
 					emptyMessage={emptyStateMessage}
 					{loadMore}
 					onRecipeClick={openRecipePopup}
+					isLoadingMore={isLoadingMore}
 				/>
 			</div>
 		</div>

@@ -13,33 +13,36 @@
 		emptyMessage = 'No recipes found.',
 		useAnimation = true,
 		loadMore,
-		onRecipeClick
+		onRecipeClick,
+		isLoadingMore = false
 	}: {
 		recipes: Promise<RecipeItem[]>
 		emptyMessage?: string
 		loadMore?: () => Promise<void>
 		useAnimation?: boolean
 		onRecipeClick?: (recipe: DetailedRecipe, event: MouseEvent) => Promise<void>
+		isLoadingMore?: boolean
 	} = $props()
 
 	let loadMoreTrigger: HTMLElement
 	let observer: IntersectionObserver
 
-	let isLoading = $state(true)
+	let isInitialLoading = $state(true)
 	let resolvedRecipes = $state<RecipeItem[]>()
 
 	$effect(() => {
 		recipes.then((recipeArray) => {
 			resolvedRecipes = recipeArray
-			isLoading = false
+			isInitialLoading = false
 		})
 	})
 
 	let renderedItems = $derived.by(() => {
-		if (isLoading && resolvedRecipes) {
+		if (isLoadingMore) {
+			const existingRecipes = resolvedRecipes || []
 			return [
-				...resolvedRecipes.map((recipe) => ({ ...recipe, loading: false })),
-				...Array(18).fill(undefined).map((_, index) => ({ loading: true, id: index.toString() }))
+				...existingRecipes.map((recipe) => ({ ...recipe, loading: false })),
+				...Array(18).fill(undefined).map((_, index) => ({ loading: true, id: `loading-${index}` }))
 			] as GridItem[]
 		}
 		return resolvedRecipes as GridItem[]
@@ -50,12 +53,8 @@
 
 		observer = new IntersectionObserver(
 			(entries) => {
-				if (entries[0].isIntersecting && !isLoading) {
-					isLoading = true
-
-					loadMore().then(() => {
-						isLoading = false
-					})
+				if (entries[0].isIntersecting && !isLoadingMore && !isInitialLoading) {
+					loadMore()
 				}
 			},
 			{ threshold: 0.5, rootMargin: '100px' }
