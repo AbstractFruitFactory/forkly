@@ -1,182 +1,89 @@
 <script lang="ts">
-	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
 	import Button from '$lib/components/button/Button.svelte'
-	import IngredientInput from '$lib/components/ingredient-input/IngredientInput.svelte'
-	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
-	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
 	import Plus from 'lucide-svelte/icons/plus'
 	import Input from '$lib/components/input/Input.svelte'
-	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
-	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
-	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
 	import Trash from 'lucide-svelte/icons/trash-2'
 	import Edit from 'lucide-svelte/icons/edit-2'
-	import X from 'lucide-svelte/icons/x'
-	import type { IngredientRow, InstructionRow } from './NewRecipe.svelte'
+	import type { Snippet } from 'svelte'
+	import { generateId } from './NewRecipe.svelte'
 
 	let {
-		servings,
-		selectedTags,
-		unitSystem,
-		handleServingsChange,
-		onUnitChange,
-		searchTags,
-		searchIngredients,
-		handleTagSelect,
-		removeTag,
 		submitting,
-		ingredients,
-		instructions,
-		addIngredient,
-		removeIngredient,
-		updateIngredient,
-		addInstruction,
-		removeInstruction,
-		updateInstruction,
-		title = '',
-		description = '',
-		imageUrl = '',
-		nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
-		calories = $bindable(''),
-		protein = $bindable(''),
-		carbs = $bindable(''),
-		fat = $bindable('')
+		title,
+		description,
+		recipeImage,
+		tags,
+		nutrition,
+		servingsAdjuster,
+		unitToggle,
+		instructionInput,
+		instructionMedia,
+		ingredientName,
+		ingredientAmount,
+		ingredientUnit
 	}: {
-		servings: number
-		selectedTags: string[]
-		unitSystem: UnitSystem
-		handleServingsChange: (newServings: number) => void
-		onUnitChange: (system: UnitSystem) => void
-		searchTags: (query: string) => Promise<{ id: string; name: string }[]>
-		searchIngredients: (query: string) => Promise<{ id: string; name: string }[]>
-		handleTagSelect: (tag: string, selected: boolean) => void
-		removeTag: (tag: string) => void
 		submitting: boolean
-		ingredients: IngredientRow[]
-		instructions: InstructionRow[]
-		addIngredient: (ingredient: Omit<IngredientRow, 'id'>) => void
-		removeIngredient: (id: string) => void
-		updateIngredient: (
-			id: string,
-			ingredient: { name: string; amount: string; unit: string }
-		) => void
-		addInstruction: (instruction: Omit<InstructionRow, 'id'>) => void
-		removeInstruction: (id: string) => void
-		updateInstruction: (id: string, instruction: { text: string; media?: File }) => void
-		title?: string
-		description?: string
-		imageUrl?: string
-		nutritionMode?: 'auto' | 'manual' | 'none'
-		calories?: string
-		protein?: string
-		carbs?: string
-		fat?: string
+		servingsAdjuster: Snippet
+		title: Snippet
+		description: Snippet
+		recipeImage: Snippet
+		tags: Snippet
+		nutrition: Snippet
+		unitToggle: Snippet
+		instructionInput: Snippet<[id?: string, onInput?: (value: string) => void]>
+		instructionMedia: Snippet<[id?: string, onFile?: (file: File) => void]>
+		ingredientName: Snippet<[id: string, instructionId: string, onInput?: (value: string) => void]>
+		ingredientAmount: Snippet<
+			[id: string, instructionId: string, onInput?: (value: string) => void]
+		>
+		ingredientUnit: Snippet<[id: string, instructionId: string, onInput?: (value: string) => void]>
 	} = $props()
 
-	let isDrawerOpen = $state(false)
-	let editingIngredientId = $state<string | null>(null)
-	let savedIngredients = $state<{ [key: string]: boolean }>({})
+	let isInstructionDrawerOpen = $state(false)
+	let isIngredientDrawerOpen = $state(false)
+	let editingInstructionId = $state<string>()
+	let editingIngredientId = $state<string>()
+	let currentInstructionId = $state<string>()
 
-	let editingInstructionId = $state<string | null>(null)
-	let savedInstructions = $state<{ [key: string]: boolean }>({})
+	let newInstructionText = $state('')
+	let newInstructionMedia: File | undefined
 
-	let drawerIngredientAmount = $state('1')
+	let drawerIngredientAmount = $state('')
 	let drawerIngredientUnit = $state('')
 	let drawerIngredientName = $state('')
-	let drawerIngredientId = $state('')
 
-	const resetDrawerFields = () => {
-		drawerIngredientName = ''
-		drawerIngredientId = ''
-		drawerIngredientAmount = '1'
-		drawerIngredientUnit = ''
-		editingIngredientId = null
-	}
-
-	const removeIngredientLocal = (id: string) => {
-		removeIngredient(id)
-		savedIngredients[id] = false
-	}
-
-	const openDrawerForEdit = (ingredient: IngredientRow) => {
-		editingIngredientId = ingredient.id
-		drawerIngredientName = ingredient.name
-		drawerIngredientId = ingredient.id
-		drawerIngredientAmount = ingredient.amount
-		drawerIngredientUnit = ingredient.unit
-		isDrawerOpen = true
-	}
-
-	const handleDrawerIngredientSelect = (ingredient: { id: string; name: string }) => {
-		drawerIngredientName = ingredient.name
-		drawerIngredientId = ingredient.id
-	}
-
-	const handleAddIngredient = () => {
-		if (editingIngredientId) {
-			updateIngredient(editingIngredientId, {
-				name: drawerIngredientName,
-				amount: drawerIngredientAmount,
-				unit: drawerIngredientUnit
-			})
-		} else {
-			const unsavedIngredient = ingredients.find((ing) => !savedIngredients[ing.id])
-			if (unsavedIngredient) {
-				updateIngredient(unsavedIngredient.id, {
-					name: drawerIngredientName,
-					amount: drawerIngredientAmount,
-					unit: drawerIngredientUnit
-				})
-				savedIngredients[unsavedIngredient.id] = true
-			} else {
-				const newIngredient = {
-					name: drawerIngredientName,
-					amount: drawerIngredientAmount,
-					unit: drawerIngredientUnit
-				}
-				addIngredient(newIngredient)
-				setTimeout(() => {
-					const lastIngredient = ingredients[ingredients.length - 1]
-					if (lastIngredient) {
-						savedIngredients[lastIngredient.id] = true
-					}
-				}, 0)
-			}
-		}
-		isDrawerOpen = false
-		resetDrawerFields()
-	}
-
-	let isInstructionDrawerOpen = $state(false)
-	let newInstructionText = $state('')
-	let newInstructionMedia: File | null = null
-	let searchValue = $state('')
-
-	type ItemWithAddButton = IngredientRow | { id: string; isAddButton: true }
-	let ingredientItems = $derived<ItemWithAddButton[]>([
-		...ingredients.filter((ingredient) => savedIngredients[ingredient.id]),
-		{ id: 'add-button', isAddButton: true }
-	])
-
-	type InstructionWithAddButton = InstructionRow | { id: string; isAddButton: true }
-	let instructionItems = $derived<InstructionWithAddButton[]>([
-		...instructions.filter((instruction) => savedInstructions[instruction.id]),
-		{ id: 'add-instruction-button', isAddButton: true }
-	])
+	let instructions: {
+		id: string
+		text: string
+		media: File | undefined
+		ingredients: { id: string; amount: string; unit: string; name: string }[]
+	}[] = $state([])
 
 	const resetInstructionDrawerFields = () => {
 		newInstructionText = ''
-		newInstructionMedia = null
-		editingInstructionId = null
+		newInstructionMedia = undefined
+		editingInstructionId = undefined
 	}
 
-	const openInstructionDrawerForEdit = (instruction: InstructionRow) => {
+	const resetDrawerFields = () => {
+		drawerIngredientAmount = ''
+		drawerIngredientUnit = ''
+		drawerIngredientName = ''
+		editingIngredientId = undefined
+		currentInstructionId = undefined
+	}
+
+	const openInstructionDrawerForEdit = (instruction: {
+		id: string
+		text: string
+		media: File | undefined
+	}) => {
 		editingInstructionId = instruction.id
 		newInstructionText = instruction.text
-		newInstructionMedia = instruction.media || null
+		newInstructionMedia = instruction.media || undefined
 		isInstructionDrawerOpen = true
 	}
 
@@ -185,182 +92,143 @@
 		resetInstructionDrawerFields()
 	}
 
-	const handleAddInstruction = () => {
-		if (editingInstructionId) {
-			updateInstruction(editingInstructionId, {
-				text: newInstructionText,
-				media: newInstructionMedia || undefined
-			})
+	const openIngredientDrawer = (instructionId: string, ingredientId?: string) => {
+		currentInstructionId = instructionId
+		console.log('currentInstructionId', currentInstructionId)
+		if (ingredientId) {
+			editingIngredientId = ingredientId
+			const instruction = instructions.find((inst) => inst.id === instructionId)
+			const ingredient = instruction?.ingredients.find((ing) => ing.id === ingredientId)
+			if (ingredient) {
+				drawerIngredientAmount = ingredient.amount
+				drawerIngredientUnit = ingredient.unit
+				drawerIngredientName = ingredient.name
+			}
 		} else {
-			const unsavedInstruction = instructions.find((inst) => !savedInstructions[inst.id])
-			if (unsavedInstruction) {
-				updateInstruction(unsavedInstruction.id, {
+			editingIngredientId = undefined
+			drawerIngredientAmount = ''
+			drawerIngredientUnit = ''
+			drawerIngredientName = ''
+		}
+		isIngredientDrawerOpen = true
+	}
+
+	const saveInstruction = () => {
+		if (editingInstructionId) {
+			instructions = instructions.map((instruction) =>
+				instruction.id === editingInstructionId
+					? { ...instruction, text: newInstructionText, media: newInstructionMedia || undefined }
+					: instruction
+			)
+		} else {
+			instructions = [
+				...instructions,
+				{
+					id: generateId(),
 					text: newInstructionText,
-					media: newInstructionMedia || undefined
-				})
-				savedInstructions[unsavedInstruction.id] = true
-			} else {
-				const newInstruction = {
-					text: newInstructionText,
-					media: newInstructionMedia || undefined
+					media: newInstructionMedia || undefined,
+					ingredients: []
 				}
-				addInstruction(newInstruction)
-				setTimeout(() => {
-					const lastInstruction = instructions[instructions.length - 1]
-					if (lastInstruction) {
-						savedInstructions[lastInstruction.id] = true
-					}
-				}, 0)
+			]
+			const lastInstruction = instructions[instructions.length - 1]
+			if (lastInstruction) {
+				instructions = instructions.map((instruction) =>
+					instruction.id === lastInstruction.id
+						? { ...instruction, text: newInstructionText, media: newInstructionMedia || undefined }
+						: instruction
+				)
 			}
 		}
 		isInstructionDrawerOpen = false
 		resetInstructionDrawerFields()
 	}
 
-	const removeInstructionLocal = (id: string) => {
-		removeInstruction(id)
-		savedInstructions[id] = false
+	const handleAddIngredient = () => {
+		if (!currentInstructionId) return
+
+		const trimmedName = drawerIngredientName.trim()
+		const trimmedAmount = drawerIngredientAmount.trim()
+		const trimmedUnit = drawerIngredientUnit.trim()
+
+		if (editingIngredientId) {
+			instructions = instructions.map((instruction) =>
+				instruction.id === currentInstructionId
+					? {
+							...instruction,
+							ingredients: instruction.ingredients.map((ingredient) =>
+								ingredient.id === editingIngredientId
+									? {
+											...ingredient,
+											name: trimmedName,
+											amount: trimmedAmount,
+											unit: trimmedUnit
+										}
+									: ingredient
+							)
+						}
+					: instruction
+			)
+		} else {
+			instructions = instructions.map((instruction) =>
+				instruction.id === currentInstructionId
+					? {
+							...instruction,
+							ingredients: [
+								...instruction.ingredients,
+								{ id: generateId(), name: trimmedName, amount: trimmedAmount, unit: trimmedUnit }
+							]
+						}
+					: instruction
+			)
+		}
+		isIngredientDrawerOpen = false
+		resetDrawerFields()
 	}
 
-	const handleAddCustomTag = () => {
-		const trimmedValue = searchValue.trim()
-		if (trimmedValue && selectedTags.length < 3 && !selectedTags.includes(trimmedValue)) {
-			handleTagSelect(trimmedValue, true)
-			searchValue = ''
-		}
+	const removeInstruction = (id: string) => {
+		instructions = instructions.filter((instruction) => instruction.id !== id)
+	}
+
+	const removeIngredient = (id: string) => {
+		instructions = instructions.map((instruction) =>
+			instruction.id === currentInstructionId
+				? {
+						...instruction,
+						ingredients: instruction.ingredients.filter((ingredient) => ingredient.id !== id)
+					}
+				: instruction
+		)
 	}
 </script>
 
 <div class="form-section">
-	<MediaUpload name="image" type="image" previewAlt="Recipe preview" initialImageUrl={imageUrl} />
+	{@render recipeImage()}
 
 	<div class="form-group">
-		<Input>
-			<input
-				bind:value={title}
-				name="title"
-				type="text"
-				required
-				minlength="5"
-				maxlength="80"
-				placeholder="Enter recipe title"
-			/>
-		</Input>
+		<div>
+			{@render title()}
+		</div>
 		<div style:height="var(--spacing-md)"></div>
 
-		<Input>
-			<textarea
-				bind:value={description}
-				name="description"
-				placeholder="Describe your recipe (optional)"
-				rows="3"
-			></textarea>
-		</Input>
+		{@render description()}
 	</div>
 </div>
-
-	<div class="form-section">
-		<div class="ingredients-header">
-			<h3>Ingredients</h3>
-		</div>
-		<div class="servings-unit-row">
-			<div class="servings-adjuster">
-				<ServingsAdjuster {servings} onServingsChange={handleServingsChange} />
-			</div>
-			<div class="unit-toggle-container">
-				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
-			</div>
-		</div>
-
-	<div class="form-group">
-		<div id="ingredients">
-			{#each ingredientItems as item (item.id)}
-				<div
-					class={'isAddButton' in item ? 'add-ingredient-button' : 'ingredient-row'}
-					style:height={'isAddButton' in item ? 'auto' : '40px'}
-					transition:scale={{ duration: 200 }}
-					animate:flip={{ duration: 200 }}
-				>
-					{#if 'isAddButton' in item}
-						<Button
-							fullWidth
-							color="neutral"
-							onclick={() => {
-								isDrawerOpen = true
-								resetDrawerFields()
-							}}
-							size="sm"
-						>
-							<Plus size={16} color="var(--color-text-on-surface)" />
-							Add new ingredient
-						</Button>
-					{:else}
-						<div class="ingredient-display">
-							<input type="hidden" name="ingredient-{item.id}-name" value={item.name} />
-							<input type="hidden" name="ingredient-{item.id}-quantity" value={item.amount} />
-							<input type="hidden" name="ingredient-{item.id}-measurement" value={item.unit} />
-							<Input>
-								<div class="ingredient-display-row">
-									<input type="text" disabled class="ingredient-amount" value={item.amount} />
-									<input type="text" disabled class="ingredient-unit" value={item.unit} />
-									<input type="text" disabled class="ingredient-name" value={item.name} />
-								</div>
-							</Input>
-						</div>
-						<div class="ingredient-actions">
-							<button class="action-btn" type="button" onclick={() => openDrawerForEdit(item)}>
-								<Edit size={16} color="var(--color-text-on-surface)" />
-							</button>
-							{#if ingredients.length > 1}
-								<button
-									class="action-btn"
-									type="button"
-									onclick={() => removeIngredientLocal(item.id)}
-								>
-									<Trash size={16} color="var(--color-text-on-surface)" />
-								</button>
-							{/if}
-						</div>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	</div>
-</div>
-
-<Drawer
-	bind:isOpen={isDrawerOpen}
-	title={editingIngredientId ? 'Edit ingredient' : 'New ingredient'}
->
-	<div class="drawer-ingredient-form">
-		<IngredientInput
-			id="drawer-ingredient"
-			bind:amount={drawerIngredientAmount}
-			bind:unit={drawerIngredientUnit}
-			bind:name={drawerIngredientName}
-			{unitSystem}
-			placeholder="Amount"
-			onIngredientSelect={handleDrawerIngredientSelect}
-		/>
-		<div class="drawer-actions">
-			<Button
-				onclick={() => {
-					isDrawerOpen = false
-					resetDrawerFields()
-				}}
-				color="neutral">Cancel</Button
-			>
-			<Button onclick={handleAddIngredient} color="primary"
-				>{editingIngredientId ? 'Update Ingredient' : 'Add Ingredient'}</Button
-			>
-		</div>
-	</div>
-</Drawer>
 
 <div class="form-section">
-	<h3>Instructions</h3>
+	<div class="servings-unit-row">
+		<div class="servings-adjuster">
+			{@render servingsAdjuster()}
+		</div>
+		<div class="unit-toggle-container">
+			{@render unitToggle()}
+		</div>
+	</div>
+</div>
+
+<div class="form-section">
+	<h4>Steps</h4>
 	<div class="form-group">
-		{#each instructionItems as item, i (item.id)}
+		{#each [...instructions, { id: '', isAddButton: true }] as item, i (item.id)}
 			<div
 				class={'isAddButton' in item ? 'add-instruction-button' : 'instruction-card'}
 				in:scale
@@ -369,7 +237,7 @@
 				{#if 'isAddButton' in item}
 					<Button fullWidth color="neutral" onclick={openInstructionDrawer} size="sm">
 						<Plus size={16} color="var(--color-text-on-surface)" />
-						Add new instruction
+						Add step
 					</Button>
 				{:else}
 					<div class="instruction-card-header">
@@ -383,11 +251,7 @@
 								<Edit size={16} color="var(--color-text-on-surface)" />
 							</button>
 							{#if instructions.length > 1}
-								<button
-									class="remove-btn"
-									type="button"
-									onclick={() => removeInstructionLocal(item.id)}
-								>
+								<button class="remove-btn" type="button" onclick={() => removeInstruction(item.id)}>
 									<Trash size={16} color="var(--color-text-on-surface)" />
 								</button>
 							{/if}
@@ -395,8 +259,9 @@
 					</div>
 					<div class="instruction-card-content">
 						<input type="hidden" name="instructions-{item.id}-text" value={item.text} />
+
 						<Input>
-							<textarea disabled class="selected-instruction-text" value={item.text} rows={3}
+							<textarea disabled class="selected-instruction-text" rows={3} value={item.text}
 							></textarea>
 						</Input>
 
@@ -412,6 +277,57 @@
 								<input type="hidden" name="instructions-{item.id}-media" value={item.media} />
 							</div>
 						{/if}
+
+						<div class="instruction-ingredients">
+							<h4>Ingredients for this step:</h4>
+							{#each item.ingredients as ingredient, j (ingredient.id)}
+								<div class="ingredient-display">
+									<Input>
+										<div class="ingredient-display-row">
+											<input
+												type="text"
+												disabled
+												class="ingredient-amount"
+												value={ingredient.amount}
+											/>
+											<input
+												type="hidden"
+												name="instructions-{item.id}-ingredient-{ingredient.id}-amount"
+												value={ingredient.amount}
+											/>
+											<input type="text" disabled class="ingredient-unit" value={ingredient.unit} />
+											<input
+												type="hidden"
+												name="instructions-{item.id}-ingredient-{ingredient.id}-unit"
+												value={ingredient.unit}
+											/>
+											<input type="text" disabled class="ingredient-name" value={ingredient.name} />
+											<input
+												type="hidden"
+												name="instructions-{item.id}-ingredient-{ingredient.id}-name"
+												value={ingredient.name}
+											/>
+										</div>
+									</Input>
+									<button
+										class="action-btn"
+										type="button"
+										onclick={() => removeIngredient(ingredient.id)}
+									>
+										<Trash size={16} color="var(--color-text-on-surface)" />
+									</button>
+								</div>
+							{/each}
+							<Button
+								fullWidth
+								color="neutral"
+								onclick={() => openIngredientDrawer(item.id)}
+								size="sm"
+							>
+								<Plus size={16} color="var(--color-text-on-surface)" />
+								Add Ingredient
+							</Button>
+						</div>
 					</div>
 				{/if}
 			</div>
@@ -420,23 +336,58 @@
 </div>
 
 <Drawer
+	bind:isOpen={isIngredientDrawerOpen}
+	title={editingIngredientId ? 'Edit ingredient' : 'New ingredient'}
+>
+	<div class="drawer-ingredient-form">
+		<div class="ingredient-input-row">
+			<div class="ingredient-name-input">
+				{@render ingredientName(
+					'drawer-ingredient',
+					currentInstructionId!,
+					(value) => (drawerIngredientName = value)
+				)}
+			</div>
+		</div>
+		<div class="quantity-unit-row">
+			<div class="quantity-input">
+				{@render ingredientAmount(
+					'drawer-ingredient',
+					currentInstructionId!,
+					(value) => (drawerIngredientAmount = value)
+				)}
+			</div>
+			<div class="unit-input">
+				{@render ingredientUnit(
+					'drawer-ingredient',
+					currentInstructionId!,
+					(value) => (drawerIngredientUnit = value)
+				)}
+			</div>
+		</div>
+		<div class="drawer-actions">
+			<Button
+				onclick={() => {
+					isIngredientDrawerOpen = false
+					resetDrawerFields()
+				}}
+				color="neutral">Cancel</Button
+			>
+			<Button onclick={handleAddIngredient} color="primary"
+				>{editingIngredientId ? 'Update Ingredient' : 'Add Ingredient'}</Button
+			>
+		</div>
+	</div>
+</Drawer>
+
+<Drawer
 	bind:isOpen={isInstructionDrawerOpen}
-	title={editingInstructionId
-		? 'Edit instruction'
-		: `Step ${instructions.filter((instruction) => savedInstructions[instruction.id]).length + 1} instructions`}
+	title={editingInstructionId ? 'Edit instruction' : `Step ${instructions.length + 1}`}
 >
 	<div class="drawer-instruction-form">
-		<textarea
-			class="instruction-textarea"
-			placeholder="Add step instructions"
-			bind:value={newInstructionText}
-			rows={4}
-		></textarea>
-		<MediaUpload
-			name="instruction-media"
-			type="image"
-			onFile={(file) => (newInstructionMedia = file)}
-		/>
+		{@render instructionInput(undefined, (value) => (newInstructionText = value))}
+
+		{@render instructionMedia(undefined, (file) => (newInstructionMedia = file))}
 		<div class="drawer-actions">
 			<Button
 				color="neutral"
@@ -445,7 +396,7 @@
 					resetInstructionDrawerFields()
 				}}>Cancel</Button
 			>
-			<Button onclick={handleAddInstruction} color="primary"
+			<Button onclick={saveInstruction} color="primary"
 				>{editingInstructionId ? 'Update Instruction' : 'Add Instruction'}</Button
 			>
 		</div>
@@ -453,91 +404,16 @@
 </Drawer>
 
 <div class="form-section">
-	<h3>Tags</h3>
+	<h4>Tags</h4>
 	<div class="form-group">
-		<div class="tags">
-			<div style:width="100%">
-				<SuggestionSearch
-					bind:searchValue
-					disabled={selectedTags.length >= 3}
-					placeholder="Search or add custom tag"
-					onSearch={searchTags}
-					onSelect={(tag) => handleTagSelect(tag.name, true)}
-					clearInput={true}
-					actionButton={{
-						text: 'Add',
-						onClick: handleAddCustomTag
-					}}
-				/>
-			</div>
-
-			{#if selectedTags.length > 0}
-				<div class="selected-tags">
-					{#each selectedTags as tag (tag)}
-						<div transition:scale|global={{ duration: 200 }} animate:flip={{ duration: 200 }}>
-							<Button variant="pill" color="neutral" size="sm" onclick={() => removeTag(tag)}>
-								{tag}
-								<X size={14} color="var(--color-text-on-surface)" />
-							</Button>
-						</div>
-					{/each}
-				</div>
-			{/if}
-		</div>
+		{@render tags()}
 	</div>
 </div>
 
 <div class="form-section">
-	<h3>Nutrition</h3>
+	<h4>Nutrition</h4>
 	<div class="form-group">
-		<div class="nutrition-mode">
-			<TabSelect
-				options={['auto', 'manual', 'none']}
-				onSelect={(opt) => (nutritionMode = opt as 'auto' | 'manual' | 'none')}
-				selected={nutritionMode}
-			/>
-		</div>
-		{#if nutritionMode === 'manual'}
-			<div class="nutrition-inputs">
-				<Input
-					><input
-						type="number"
-						step="any"
-						name="protein"
-						placeholder="Protein (g)"
-						bind:value={protein}
-					/></Input
-				>
-				<Input
-					><input
-						type="number"
-						step="any"
-						name="carbs"
-						placeholder="Carbs (g)"
-						bind:value={carbs}
-					/></Input
-				>
-				<Input
-					><input
-						type="number"
-						step="any"
-						name="fat"
-						placeholder="Fat (g)"
-						bind:value={fat}
-					/></Input
-				>
-				<Input
-					><input
-						type="text"
-						name="calories"
-						placeholder="Calories"
-						value={`${calories} kcal`}
-						readonly
-					/></Input
-				>
-			</div>
-		{/if}
-		<input type="hidden" name="nutritionMode" value={nutritionMode} />
+		{@render nutrition()}
 	</div>
 </div>
 
@@ -616,6 +492,7 @@
 		gap: var(--spacing-md);
 		flex: 1;
 		align-items: center;
+		margin-bottom: var(--spacing-md);
 	}
 
 	.ingredient-display-row {
@@ -649,7 +526,7 @@
 	}
 
 	.instruction-card {
-		background: var(--color-surface);
+		background: var(--color-background-dark);
 		border-radius: var(--border-radius-lg);
 		padding: var(--spacing-md);
 		margin-bottom: var(--spacing-md);
@@ -684,6 +561,20 @@
 		:global(.input-container) {
 			box-shadow: none;
 			padding: 0;
+			background: var(--color-background-dark);
+		}
+	}
+
+	.instruction-ingredients {
+		margin-top: var(--spacing-lg);
+		border-radius: var(--border-radius-lg);
+		border: 1px solid var(--color-neutral-darker);
+
+		h4 {
+			margin: 0 0 var(--spacing-md) 0;
+			font-size: var(--font-size-md);
+			font-weight: var(--font-weight-semibold);
+			color: var(--color-text-on-surface);
 		}
 	}
 
@@ -717,6 +608,30 @@
 		resize: vertical;
 		background: var(--color-surface);
 		color: var(--color-text-on-surface);
+	}
+
+	.ingredient-input-row {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+	}
+
+	.ingredient-name-input {
+		flex: 1;
+	}
+
+	.quantity-unit-row {
+		display: flex;
+		gap: var(--spacing-md);
+		align-items: flex-start;
+	}
+
+	.quantity-input {
+		flex: 1;
+	}
+
+	.unit-input {
+		flex: 1;
 	}
 
 	textarea {
@@ -754,5 +669,18 @@
 		margin-top: var(--spacing-xl);
 		padding-top: var(--spacing-lg);
 		border-top: 1px solid var(--color-neutral-darker);
+	}
+
+	.add-instruction-button {
+		display: flex;
+		justify-content: center;
+		margin-top: var(--spacing-lg);
+
+		transition: all var(--transition-fast) var(--ease-in-out);
+
+		&:hover {
+			border-color: var(--color-primary);
+			background: var(--color-primary-light);
+		}
 	}
 </style>

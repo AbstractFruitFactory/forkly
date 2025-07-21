@@ -1,6 +1,5 @@
 <script lang="ts" module>
-	export type IngredientRow = { id: string; name: string; amount: string; unit: string }
-	export type InstructionRow = { id: string; text: string; media?: File }
+	export const generateId = () => Math.random().toString(36).slice(2)
 </script>
 
 <script lang="ts">
@@ -10,10 +9,18 @@
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import DesktopLayout from './DesktopLayout.svelte'
 	import MobileLayout from './MobileLayout.svelte'
-	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import DownloadIcon from 'lucide-svelte/icons/download'
-	import type { RecipeData } from '$lib/utils/recipeScraper'
+	import Input from '$lib/components/input/Input.svelte'
+	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
+	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
+	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
+	import X from 'lucide-svelte/icons/x'
+	import { scale } from 'svelte/transition'
+	import { flip } from 'svelte/animate'
+	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
+	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
+	import { UNIT_DISPLAY_TEXT, UNITS } from '$lib/utils/unitConversion'
 
 	let {
 		errors,
@@ -29,13 +36,9 @@
 		onUnitChange?: (system: UnitSystem) => void
 	} = $props()
 
-	const generateId = () => Math.random().toString(36).slice(2)
-
-	let ingredients = $state<IngredientRow[]>([{ id: generateId(), name: '', amount: '', unit: '' }])
-	let instructions = $state<InstructionRow[]>([{ id: generateId(), text: '', media: undefined }])
+	let _title = $state('')
 	let servings = $state(1)
 	let selectedTags = $state<string[]>([])
-	let title = $state('')
 	let image = $state<string | null>(null)
 
 	let nutritionMode = $state<'auto' | 'manual' | 'none'>('auto')
@@ -60,6 +63,7 @@
 	let desktopLayoutElement: HTMLElement
 
 	let isImportPopupOpen = $state(false)
+	let searchValue = $state('')
 
 	const checkViewport = () => {
 		isMobileView = window.innerWidth <= 480
@@ -71,7 +75,6 @@
 			const mobileInputs = mobileLayoutElement.querySelectorAll('input, textarea, button, select')
 			const desktopInputs = desktopLayoutElement.querySelectorAll('input, textarea, button, select')
 
-			// Disable mobile inputs when not in mobile view
 			mobileInputs.forEach((input) => {
 				if (isMobileView) {
 					input.removeAttribute('disabled')
@@ -80,7 +83,6 @@
 				}
 			})
 
-			// Disable desktop inputs when in mobile view
 			desktopInputs.forEach((input) => {
 				if (isMobileView) {
 					input.setAttribute('disabled', 'disabled')
@@ -103,62 +105,6 @@
 	$effect(() => {
 		disableInactiveInputs()
 	})
-
-	const addIngredient = (ingredientData?: { name?: string; amount?: string; unit?: string }) => {
-		if (ingredientData) {
-			const safeIngredient = {
-				id: generateId(),
-				name: ingredientData.name ?? '',
-				amount: ingredientData.amount ?? '',
-				unit: ingredientData.unit ?? ''
-			}
-			ingredients = [...ingredients, safeIngredient]
-		} else {
-			ingredients = [...ingredients, { id: generateId(), name: '', amount: '', unit: '' }]
-		}
-	}
-
-	const removeIngredient = (id: string) => {
-		if (ingredients.length > 1) {
-			ingredients = ingredients.filter((ingredient) => ingredient.id !== id)
-		}
-	}
-
-	const updateIngredient = (
-		id: string,
-		updatedIngredient: { name?: string; amount?: string; unit?: string }
-	) => {
-		ingredients = ingredients.map((ingredient) =>
-			ingredient.id === id
-				? {
-						...ingredient,
-						name: updatedIngredient.name ?? ingredient.name ?? '',
-						amount: updatedIngredient.amount ?? ingredient.amount ?? '',
-						unit: updatedIngredient.unit ?? ingredient.unit ?? ''
-					}
-				: ingredient
-		)
-	}
-
-	const addInstruction = (instructionData?: { text: string; media?: File }) => {
-		if (instructionData) {
-			instructions = [...instructions, { id: generateId(), ...instructionData }]
-		} else {
-			instructions = [...instructions, { id: generateId(), text: '', media: undefined }]
-		}
-	}
-
-	const removeInstruction = (id: string) => {
-		if (instructions.length > 1) {
-			instructions = instructions.filter((instruction) => instruction.id !== id)
-		}
-	}
-
-	const updateInstruction = (id: string, updatedInstruction: { text: string; media?: File }) => {
-		instructions = instructions.map((instruction) =>
-			instruction.id === id ? { ...instruction, ...updatedInstruction } : instruction
-		)
-	}
 
 	const searchTags = async (query: string): Promise<{ id: string; name: string }[]> => {
 		if (!onSearchTags) return []
@@ -206,76 +152,221 @@
 		isImportPopupOpen = false
 	}
 
-	function parseIngredient(ingredient: string) {
-		// Example: "1 cup sugar" => amount: "1", unit: "cup", name: "sugar"
-		const match = ingredient.match(/^([\d/.\-\s]+)?\s*([a-zA-Z]+)?\s*(.*)$/)
-		if (match) {
-			const [, amount, unit, name] = match
-			return {
-				amount: amount?.trim() || '',
-				unit: unit?.trim() || '',
-				name: name?.trim() || ingredient
-			}
-		}
-		return { amount: '', unit: '', name: ingredient }
-	}
-
 	let submitting = $state(false)
 
-	function handleRecipeScraped(recipe: RecipeData) {
-		// Populate title
-		if (recipe.title) {
-			title = recipe.title
+	const handleAddCustomTag = () => {
+		const trimmedValue = searchValue.trim()
+		if (trimmedValue && selectedTags.length < 3 && !selectedTags.includes(trimmedValue)) {
+			handleTagSelect(trimmedValue, true)
+			searchValue = ''
 		}
-		// Populate image
-		if (recipe.image) {
-			image = recipe.image
-		}
-		// Populate ingredients
-		if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
-			ingredients = recipe.ingredients.map((raw) => {
-				const { amount, unit, name } = parseIngredient(raw)
-				return { id: generateId(), name, amount, unit }
-			})
-		}
-		// Populate instructions
-		if (recipe.instructions && Array.isArray(recipe.instructions)) {
-			instructions = recipe.instructions.map((text) => ({
-				id: generateId(),
-				text,
-				media: undefined
-			}))
-		}
-		// Populate servings
-		if (recipe.yields) {
-			const match = recipe.yields.match(/\d+/)
-			if (match) {
-				servings = parseInt(match[0], 10)
-			}
-		}
-		// Populate tags
-		if (recipe.tags && Array.isArray(recipe.tags)) {
-			selectedTags = recipe.tags.slice(0, 3)
-		}
-		isImportPopupOpen = false
+	}
+
+	const getUnits = (system: UnitSystem) => {
+		const units: string[] = []
+
+		// Add weight units
+		units.push(...(system === 'metric' ? UNITS.weight.metric : UNITS.weight.imperial))
+
+		// Add volume units
+		units.push(...(system === 'metric' ? UNITS.volume.metric : UNITS.volume.imperial))
+
+		// Add length units
+		units.push(...(system === 'metric' ? UNITS.length.metric : UNITS.length.imperial))
+
+		// Add other units
+		units.push(...UNITS.other)
+
+		return units
+	}
+
+	const searchUnits = async (query: string): Promise<{ id: string; name: string }[]> => {
+		const units = getUnits(unitSystem)
+		const filteredUnits = units.filter(
+			(unit) =>
+				unit.toLowerCase().includes(query.toLowerCase()) ||
+				UNIT_DISPLAY_TEXT[unit as keyof typeof UNIT_DISPLAY_TEXT]
+					?.toLowerCase()
+					.includes(query.toLowerCase())
+		)
+		return filteredUnits.map((unit) => ({
+			id: unit,
+			name: UNIT_DISPLAY_TEXT[unit as keyof typeof UNIT_DISPLAY_TEXT] || unit
+		}))
 	}
 </script>
 
-<div class="container">
-	<div class="page-header">
-		<div></div>
-		<Button onclick={openImportPopup} variant="border" color="neutral">
-			<DownloadIcon color="var(--color-text-on-surface)" size={16} />
-			Import Recipe
-		</Button>
+{#snippet title()}
+	<Input>
+		<input
+			bind:value={_title}
+			name="title"
+			type="text"
+			required
+			minlength="5"
+			maxlength="80"
+			placeholder="Enter recipe title"
+		/>
+	</Input>
+{/snippet}
+
+{#snippet description()}
+	<Input>
+		<textarea name="description" placeholder="Describe your recipe (optional)" rows="3"></textarea>
+	</Input>
+{/snippet}
+
+{#snippet recipeImage()}
+	<MediaUpload
+		name="image"
+		type="image"
+		previewAlt="Recipe preview"
+		initialImageUrl={image ?? undefined}
+	/>
+{/snippet}
+
+{#snippet tags()}
+	<div>
+		<SuggestionSearch
+			bind:searchValue
+			disabled={selectedTags.length >= 3}
+			placeholder="Search or add custom tag"
+			onSearch={searchTags}
+			onSelect={(tag) => handleTagSelect(tag.name, true)}
+			clearInput={true}
+			actionButton={{
+				text: 'Add',
+				onClick: handleAddCustomTag
+			}}
+		/>
 	</div>
 
+	{#if selectedTags.length > 0}
+		{#each selectedTags as tag (tag)}
+			<div transition:scale|global={{ duration: 200 }} animate:flip={{ duration: 200 }}>
+				<Button variant="pill" color="neutral" size="sm" onclick={() => removeTag(tag)}>
+					{tag}
+					<X size={14} color="var(--color-text-on-surface)" />
+				</Button>
+			</div>
+		{/each}
+	{/if}
+{/snippet}
+
+{#snippet nutrition()}
+	<div>
+		<TabSelect
+			options={['auto', 'manual', 'none']}
+			onSelect={(opt) => (nutritionMode = opt as 'auto' | 'manual' | 'none')}
+		/>
+	</div>
+
+	{#if nutritionMode === 'manual'}
+		<div class="nutrition-inputs">
+			<Input>
+				<input
+					type="number"
+					step="any"
+					name="protein"
+					placeholder="Protein (g)"
+					bind:value={protein}
+				/>
+			</Input>
+			<Input>
+				<input type="number" step="any" name="carbs" placeholder="Carbs (g)" bind:value={carbs} />
+			</Input>
+			<Input>
+				<input type="number" step="any" name="fat" placeholder="Fat (g)" bind:value={fat} />
+			</Input>
+			<Input>
+				<input
+					type="text"
+					name="calories"
+					placeholder="Calories"
+					value={`${calories} kcal`}
+					readonly
+				/>
+			</Input>
+		</div>
+	{/if}
+{/snippet}
+
+{#snippet ingredientName(id: string, instructionId: string, onInput?: (value: string) => void)}
+	<SuggestionSearch
+		placeholder="Enter ingredient"
+		onSearch={searchIngredients}
+		formName="instructions-{instructionId}-ingredient-{id}-name"
+		clearInput={false}
+		onInput={(value) => onInput?.(value)}
+		onSelect={(item) => onInput?.(item.name)}
+	/>
+{/snippet}
+
+{#snippet ingredientAmount(id: string, instructionId: string, onInput?: (value: string) => void)}
+	<Input>
+		<input
+			type="number"
+			step="any"
+			name="instructions-{instructionId}-ingredient-{id}-amount"
+			placeholder="Enter amount"
+			onchange={(e) => onInput?.(e.currentTarget.value)}
+		/>
+	</Input>
+{/snippet}
+
+{#snippet ingredientUnit(id: string, instructionId: string, onInput?: (value: string) => void)}
+	<SuggestionSearch
+		placeholder="Unit"
+		formName="instructions-{instructionId}-ingredient-{id}-unit"
+		onSearch={searchUnits}
+		clearInput={false}
+		showSearchIcon={false}
+		minSearchLength={2}
+		useId={true}
+		onInput={(value) => onInput?.(value)}
+		onSelect={(item) => onInput?.(item.name)}
+	/>
+{/snippet}
+
+{#snippet servingsAdjuster()}
+	<ServingsAdjuster {servings} onServingsChange={handleServingsChange} />
+{/snippet}
+
+{#snippet unitToggle()}
+	<UnitToggle state={unitSystem} onSelect={handleUnitChange} />
+{/snippet}
+
+{#snippet instructionInput(id?: string, onInput?: (value: string) => void)}
+	<Input>
+		<textarea
+			name={id ? `instructions-${id}-text` : undefined}
+			placeholder="Enter instruction step"
+			onchange={(e) => onInput?.(e.currentTarget.value)}
+		></textarea>
+	</Input>
+{/snippet}
+
+{#snippet instructionMedia(id?: string, onFile?: (file: File) => void)}
+	<MediaUpload
+		name={id ? `instructions-${id}-media` : undefined}
+		{onFile}
+		previewAlt="Instruction media"
+	/>
+{/snippet}
+
+<div class="new-recipe">
 	<form
 		method="POST"
 		enctype="multipart/form-data"
 		use:enhance={({ formData }) => {
 			submitting = true
 			formData.append('servings', servings.toString())
+
+			selectedTags.forEach((tag) => {
+				formData.append('tags', tag)
+			})
+
+			formData.append('nutritionMode', nutritionMode)
 
 			return async ({ update }) => {
 				submitting = false
@@ -293,93 +384,48 @@
 
 		<div class="mobile-layout" bind:this={mobileLayoutElement}>
 			<MobileLayout
-				imageUrl={image ?? undefined}
 				{title}
-				{servings}
-				{ingredients}
-				{addIngredient}
-				{addInstruction}
-				{removeIngredient}
-				{updateIngredient}
-				{removeInstruction}
-				{updateInstruction}
-				{instructions}
-				{selectedTags}
-				{unitSystem}
-				{handleServingsChange}
-				onUnitChange={handleUnitChange}
-				bind:nutritionMode
-				{calories}
-				bind:protein
-				bind:carbs
-				bind:fat
-				{searchTags}
-				{searchIngredients}
-				{handleTagSelect}
-				{removeTag}
+				{description}
+				{recipeImage}
+				{tags}
+				{nutrition}
+				{servingsAdjuster}
+				{unitToggle}
 				{submitting}
+				{instructionInput}
+				{instructionMedia}
+				{ingredientName}
+				{ingredientAmount}
+				{ingredientUnit}
 			/>
 		</div>
 		<div class="desktop-layout" bind:this={desktopLayoutElement}>
 			<DesktopLayout
-				imageUrl={image ?? undefined}
 				{title}
-				{servings}
-				{ingredients}
-				{addIngredient}
-				{removeIngredient}
-				{instructions}
-				{addInstruction}
-				{removeInstruction}
-				{selectedTags}
-				{unitSystem}
-				{handleServingsChange}
-				onUnitChange={handleUnitChange}
-				bind:nutritionMode
-				{calories}
-				bind:protein
-				bind:carbs
-				bind:fat
-				{searchTags}
-				{handleTagSelect}
-				{removeTag}
+				{description}
+				{recipeImage}
+				{tags}
+				{nutrition}
+				{servingsAdjuster}
+				{unitToggle}
+				{instructionInput}
+				{instructionMedia}
+				{ingredientName}
+				{ingredientAmount}
+				{ingredientUnit}
 				{submitting}
 			/>
 		</div>
-
-		{#each selectedTags as tag (tag)}
-			<input type="hidden" name="tags" value={tag} />
-		{/each}
 	</form>
 </div>
-
-<ImportRecipePopup
-	bind:isOpen={isImportPopupOpen}
-	onClose={closeImportPopup}
-	onRecipeScraped={handleRecipeScraped}
-/>
 
 <style lang="scss">
 	@import '../../global.scss';
 
-	.container {
-		max-width: 1000px;
+	.new-recipe {
+		max-width: 1200px;
 		margin: 0 auto;
 	}
-
-	.page-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: var(--spacing-xl);
-
-		h1 {
-			margin: 0;
-			font-size: var(--font-size-2xl);
-			font-weight: 600;
-		}
-	}
-
 	.error-container {
 		background-color: var(--color-error-dark);
 		border-radius: var(--border-radius);
@@ -407,5 +453,12 @@
 		@include mobile {
 			display: none;
 		}
+	}
+
+	.nutrition-inputs {
+		display: flex;
+		gap: var(--spacing-sm);
+		flex-wrap: wrap;
+		margin-top: var(--spacing-md);
 	}
 </style>

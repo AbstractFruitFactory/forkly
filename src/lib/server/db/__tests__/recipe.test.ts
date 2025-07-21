@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import { getRecipes, getRecipeById, getRecipeWithDetails } from '../recipe'
 import { setupTestDb, teardownTestDb, createTestUser, createTestRecipe, testDb } from '../test-utils'
-import { recipe, recipeLike, recipeBookmark, recipeIngredient, ingredient, recipeNutrition } from '../schema'
+import { recipe, recipeLike, recipeBookmark, ingredient, recipeNutrition } from '../schema'
 import { randomUUID } from 'crypto'
 
 describe('recipe.ts', () => {
@@ -47,7 +47,6 @@ describe('recipe.ts', () => {
         id: recipe.id,
         title: recipe.title,
         description: recipe.description,
-        instructions: recipe.instructions,
         tags: recipe.tags,
         servings: recipe.servings,
         likes: 0,
@@ -108,7 +107,6 @@ describe('recipe.ts', () => {
         id: recipe.id,
         title: recipe.title,
         description: recipe.description,
-        instructions: recipe.instructions,
         tags: recipe.tags,
         servings: recipe.servings
       })
@@ -136,14 +134,6 @@ describe('recipe.ts', () => {
         name: 'Test Ingredient'
       }).returning()
 
-      await testDb.insert(recipeIngredient).values({
-        recipeId: recipe.id,
-        ingredientId: testIngredient.id,
-        quantity: 1,
-        measurement: 'cup'
-      })
-
-      // Add nutrition info
       await testDb.insert(recipeNutrition).values({
         recipeId: recipe.id,
         calories: 100,
@@ -157,19 +147,11 @@ describe('recipe.ts', () => {
         id: recipe.id,
         title: recipe.title,
         description: recipe.description,
-        instructions: recipe.instructions,
         tags: recipe.tags,
         servings: recipe.servings,
         isLiked: true,
         isSaved: true,
         likes: 1,
-        ingredients: [{
-          id: testIngredient.id,
-          name: testIngredient.name,
-          quantity: 1,
-          measurement: 'cup',
-          custom: testIngredient.custom
-        }],
         nutrition: {
           calories: 100,
           protein: 10,
@@ -189,13 +171,6 @@ describe('recipe.ts', () => {
       id: randomUUID(),
       name: 'Test Ingredient'
     }).returning()
-
-    await testDb.insert(recipeIngredient).values({
-      recipeId: recipe.id,
-      ingredientId: testIngredient.id,
-      quantity: 1,
-      measurement: 'cup'
-    })
 
     const result = await getRecipeWithDetails(recipe.id, user.id)
     expect(result?.nutrition).toBeUndefined()

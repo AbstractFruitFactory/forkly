@@ -13,14 +13,17 @@
 	let searchTimeout: ReturnType<typeof setTimeout>
 	let tagSearchTimeout: ReturnType<typeof setTimeout>
 
-	const handleSearchIngredients = async (query: string): Promise<IngredientSearchResult> => {
+	const handleSearchIngredients = async (query: string): Promise<{ id: string; name: string }[]> => {
 		clearTimeout(searchTimeout)
 
 		return new Promise((resolve) => {
 			searchTimeout = setTimeout(async () => {
 				const response = await safeFetch<IngredientSearchResult>()(`/ingredients/search/${query}`)
 				if (response.isOk()) {
-					resolve(response.value)
+					resolve(response.value.map(ingredient => ({
+						id: ingredient.id.toString(),
+						name: ingredient.name
+					})))
 				} else {
 					console.error('Failed to fetch ingredients:', response.error)
 					resolve([])

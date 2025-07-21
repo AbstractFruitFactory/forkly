@@ -23,7 +23,7 @@ export const session = pgTable('session', {
 
 export const ingredient = pgTable('ingredient', {
 	id: text('id').primaryKey(),
-	name: text('name').notNull().unique(),
+	name: text('name').notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 })
 
@@ -33,11 +33,6 @@ export const recipe = pgTable('recipe', {
 		.references(() => user.id, { onDelete: 'cascade' }),
 	title: text('title').notNull(),
 	description: text('description'),
-	instructions: jsonb('instructions').$type<{
-		text: string
-		mediaUrl?: string
-		mediaType?: 'image' | 'video'
-	}[]>().notNull(),
 	tags: jsonb('tags').$type<string[]>().default([]).notNull(),
 	imageUrl: text('image_url'),
 	servings: integer('servings').notNull().default(1),
@@ -45,6 +40,40 @@ export const recipe = pgTable('recipe', {
 }, (table) => {
 	return {
 		titleLength: check('recipe_title_length', sql`length(${table.title}) <= 80 and length(${table.title}) >= 5`)
+	}
+})
+
+export const recipeInstruction = pgTable('recipe_instruction', {
+	id: text('id').primaryKey(),
+	recipeId: text('recipe_id')
+		.notNull()
+		.references(() => recipe.id, { onDelete: 'cascade' }),
+	text: text('text').notNull(),
+	mediaUrl: text('media_url'),
+	mediaType: text('media_type', { enum: ['image', 'video'] }),
+	order: integer('order').notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const recipeIngredient = pgTable('recipe_ingredient', {
+	recipeId: text('recipe_id')
+		.notNull()
+		.references(() => recipe.id, { onDelete: 'cascade' }),
+	instructionId: text('instruction_id')
+		.notNull()
+		.references(() => recipeInstruction.id, { onDelete: 'cascade' }),
+	ingredientId: text('ingredient_id')
+		.notNull()
+		.references(() => ingredient.id, { onDelete: 'cascade' }),
+	displayName: text('display_name').notNull(),
+	quantity: real('quantity'),
+	measurement: text('measurement'),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+	return {
+		pk: primaryKey({ columns: [table.recipeId, table.instructionId, table.ingredientId] }),
+		uniqueInstructionIngredient: sql`UNIQUE(${table.instructionId}, ${table.ingredientId}, ${table.displayName})`,
+		quantityNonZero: check('quantity_non_zero', sql`quantity IS NULL OR quantity <> 0`)
 	}
 })
 
@@ -108,24 +137,6 @@ export const recipeBookmark = pgTable('recipe_bookmark', {
 	}
 })
 
-export const recipeIngredient = pgTable('recipe_ingredient', {
-	recipeId: text('recipe_id')
-		.notNull()
-		.references(() => recipe.id, { onDelete: 'cascade' }),
-	ingredientId: text('ingredient_id')
-		.notNull()
-		.references(() => ingredient.id, { onDelete: 'cascade' }),
-	displayName: text('display_name').notNull(),
-	quantity: real('quantity'),
-	measurement: text('measurement'),
-	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-}, (table) => {
-	return {
-		pk: primaryKey({ columns: [table.recipeId, table.ingredientId, table.displayName] }),
-		quantityNonZero: check('quantity_non_zero', sql`quantity IS NULL OR quantity <> 0`)
-	}
-})
-
 export const recipeComment = pgTable('recipe_comment', {
 	id: text('id').primaryKey(),
 	userId: text('user_id')
@@ -173,6 +184,8 @@ export type Session = typeof session.$inferSelect
 export type User = typeof user.$inferSelect
 
 export type Recipe = typeof recipe.$inferSelect
+
+export type RecipeInstruction = typeof recipeInstruction.$inferSelect
 
 export type IngredientRecord = typeof ingredient.$inferSelect
 

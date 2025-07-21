@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { RecipeData } from '$lib/types'
+	import type { Instruction } from '$lib/types'
 	import Button from '$lib/components/button/Button.svelte'
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left'
@@ -9,7 +9,7 @@
 		instructions,
 		isOpen = $bindable(false)
 	}: {
-		instructions: RecipeData['instructions']
+		instructions: Instruction[]
 		isOpen: boolean
 	} = $props()
 
@@ -124,10 +124,31 @@
 				</div>
 			{/if}
 
-			<div>
-				<h3>Step {currentStep + 1}</h3>
-				<p>{instructions[currentStep].text}</p>
-			</div>
+			{#if instructions[currentStep]}
+				{@const step = instructions[currentStep]}
+				<div>
+					<h3>Step {currentStep + 1}</h3>
+					{#if step.ingredients && step.ingredients.length > 0}
+						<div class="step-ingredients">
+							<h4>Ingredients needed:</h4>
+							<ul class="ingredients-list">
+								{#each step.ingredients ?? [] as ingredient}
+									<li class="ingredient-item">
+										<span class="ingredient-quantity">
+											{ingredient.quantity}
+											{ingredient.measurement}
+										</span>
+										<span class="ingredient-name">
+											{ingredient.displayName}
+										</span>
+									</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
+					<p>{step.text}</p>
+				</div>
+			{/if}
 		</div>
 
 		<div class="cooking-navigation">
@@ -172,7 +193,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-lg);
-		height: 0; // This ensures the flex container respects the parent height
+		height: 0;
 	}
 
 	.cooking-media {
@@ -269,5 +290,43 @@
 		100% {
 			transform: rotate(360deg);
 		}
+	}
+
+	.step-ingredients {
+		padding: var(--spacing-lg);
+		background: var(--color-background-dark);
+		border-radius: var(--border-radius-2xl);
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.step-ingredients h4 {
+		margin: 0 0 var(--spacing-sm) 0;
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-text-on-surface);
+	}
+
+	.ingredients-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+	}
+
+	.ingredient-item {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-xs) 0;
+	}
+
+	.ingredient-quantity {
+		font-weight: var(--font-weight-semibold);
+	}
+
+	.ingredient-name {
+		color: var(--color-text-on-surface);
 	}
 </style>

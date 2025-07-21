@@ -64,29 +64,47 @@
 		],
 		instructions: [
 			{
+				id: 'inst-1',
 				text: 'Bring a large pot of salted water to boil and cook spaghetti according to package instructions.',
 				mediaUrl: 'https://videos.pexels.com/video-files/3209831/3209831-uhd_2560_1440_25fps.mp4',
-				mediaType: 'video' as const
+				mediaType: 'video' as const,
+				ingredients: [
+					{ id: '1', quantity: 400, measurement: 'grams' as MeasurementUnit, name: 'spaghetti', displayName: 'spaghetti' }
+				]
 			},
 			{
+				id: 'inst-2',
 				text: 'While pasta cooks, cut pancetta into small cubes and fry until crispy.',
 				mediaUrl: 'https://videos.pexels.com/video-files/6603320/6603320-uhd_2560_1440_25fps.mp4',
-				mediaType: 'video' as const
+				mediaType: 'video' as const,
+				ingredients: [
+					{ id: '4', quantity: 200, measurement: 'grams' as MeasurementUnit, name: 'pancetta', displayName: 'pancetta' }
+				]
 			},
 			{
+				id: 'inst-3',
 				text: 'In a bowl, whisk together eggs, grated pecorino romano, and black pepper.',
 				mediaUrl: 'https://videos.pexels.com/video-files/7008568/7008568-hd_1920_1080_25fps.mp4',
-				mediaType: 'video' as const
+				mediaType: 'video' as const,
+				ingredients: [
+					{ id: '2', quantity: 4, measurement: 'pieces' as MeasurementUnit, name: 'large eggs', displayName: 'large eggs' },
+					{ id: '3', quantity: 100, measurement: 'grams' as MeasurementUnit, name: 'pecorino romano', displayName: 'pecorino romano' },
+					{ id: '5', quantity: 2, measurement: 'teaspoons' as MeasurementUnit, name: 'black pepper', displayName: 'black pepper' }
+				]
 			},
 			{
+				id: 'inst-4',
 				text: 'Drain pasta, reserving some pasta water. While pasta is still very hot, quickly stir in the egg mixture and pancetta.',
 				mediaUrl: 'https://videos.pexels.com/video-files/18775889/18775889-uhd_2560_1440_25fps.mp4',
-				mediaType: 'video' as const
+				mediaType: 'video' as const,
+				ingredients: []
 			},
 			{
+				id: 'inst-5',
 				text: 'Add pasta water as needed to create a creamy sauce. Serve immediately with extra cheese and black pepper.',
 				mediaUrl: 'https://videos.pexels.com/video-files/30627970/13111089_1440_2560_25fps.mp4',
-				mediaType: 'video' as const
+				mediaType: 'video' as const,
+				ingredients: []
 			}
 		],
 		likes: 42,
@@ -137,7 +155,6 @@
 				userId: args.hasUser ? mockRecipe.userId : undefined,
 				imageUrl: args.hasImage ? mockRecipe.imageUrl : undefined
 			})}
-			nutritionInfo={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
 			onLike={mockOnLike}
@@ -156,7 +173,6 @@
 				description: undefined,
 				imageUrl: args.hasImage ? mockRecipe.imageUrl : undefined
 			})}
-			nutritionInfo={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
 			onLike={mockOnLike}
@@ -174,7 +190,6 @@
 				...mockRecipe,
 				imageUrl: args.hasImage ? mockRecipe.imageUrl : undefined
 			})}
-			nutritionInfo={mockNutrition}
 			unitSystem={mockUnitSystem}
 			onUnitChange={mockOnUnitChange}
 			onLike={mockOnLike}

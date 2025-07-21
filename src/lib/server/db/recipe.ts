@@ -1,5 +1,5 @@
 import { db } from '.'
-import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag } from './schema'
+import { recipe, recipeLike, recipeInstruction, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag } from './schema'
 import { eq, ilike, desc, sql, and, SQL, or, asc } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 import type { MeasurementUnit } from '$lib/types'
@@ -21,7 +21,19 @@ export type DetailedRecipe = {
   userId?: string
   title: string
   description?: string
-  instructions: { text: string; mediaUrl?: string; mediaType?: "image" | "video" }[]
+  instructions: Array<{
+    id: string
+    text: string
+    mediaUrl?: string
+    mediaType?: 'image' | 'video'
+    ingredients?: Array<{
+      id: string
+      name: string
+      quantity: number
+      measurement: MeasurementUnit
+      displayName: string
+    }>
+  }>
   tags: string[]
   imageUrl?: string
   createdAt: Date
@@ -99,9 +111,9 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
       const titleCondition = ilike(recipe.title, `%${term}%`)
       const tagCondition = sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${recipe.tags}) AS tag WHERE tag ILIKE ${'%' + term + '%'})`
       const ingredientCondition = sql`EXISTS (
-        SELECT 1 FROM recipe_ingredient ri
-        JOIN ingredient i ON ri.ingredient_id = i.id
-        WHERE ri.recipe_id = ${recipe.id} AND i.name ILIKE ${'%' + term + '%'}
+        SELECT 1 FROM recipe_instruction_ingredient rii
+        JOIN ingredient i ON rii.ingredient_id = i.id
+        WHERE rii.recipe_id = ${recipe.id} AND i.name ILIKE ${'%' + term + '%'}
       )`
 
       const validConditions = [titleCondition, tagCondition, ingredientCondition].filter(Boolean)
@@ -132,11 +144,11 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
   if (ingredients.length > 0) {
     const ingredientsList = ingredients.map(ing => `'${escapeSqlString(ing)}'`).join(',')
     conditions.push(sql`${recipe.id} IN (
-      SELECT ri.recipe_id 
-      FROM recipe_ingredient ri
-      JOIN ingredient i ON ri.ingredient_id = i.id
+      SELECT rii.recipe_id 
+      FROM recipe_instruction_ingredient rii
+      JOIN ingredient i ON rii.ingredient_id = i.id
       WHERE i.name IN (${sql.raw(ingredientsList)})
-      GROUP BY ri.recipe_id
+      GROUP BY rii.recipe_id
       HAVING COUNT(DISTINCT i.name) = ${ingredients.length}
     )`)
   }
@@ -145,11 +157,11 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
   if (excludedIngredients.length > 0) {
     const excludedList = excludedIngredients.map(ing => `'${escapeSqlString(ing)}'`).join(',')
     conditions.push(sql`${recipe.id} NOT IN (
-      SELECT ri.recipe_id 
-      FROM recipe_ingredient ri
-      JOIN ingredient i ON ri.ingredient_id = i.id
+      SELECT rii.recipe_id 
+      FROM recipe_instruction_ingredient rii
+      JOIN ingredient i ON rii.ingredient_id = i.id
       WHERE i.name IN (${sql.raw(excludedList)})
-      GROUP BY ri.recipe_id
+      GROUP BY rii.recipe_id
     )`)
   }
 
@@ -169,10 +181,14 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         return [
           asc(sql`(
             SELECT COUNT(*) 
-            FROM recipe_ingredient ri 
+            FROM recipe_instruction_ingredient rii 
+            WHERE rii.recipe_id = ${recipe.id}
+          )`),
+          asc(sql`(
+            SELECT COUNT(*) 
+            FROM recipe_instruction ri 
             WHERE ri.recipe_id = ${recipe.id}
           )`),
-          asc(sql`jsonb_array_length(${recipe.instructions})`),
           desc(recipe.createdAt)
         ]
       case 'popular':
@@ -190,29 +206,11 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         userId: recipe.userId,
         title: recipe.title,
         description: recipe.description,
-        instructions: recipe.instructions,
         tags: sql<string[]>`coalesce(array_agg(distinct ${recipeTag.tagName}) filter (where ${recipeTag.tagName} is not null), '{}')`,
         imageUrl: recipe.imageUrl,
         createdAt: recipe.createdAt,
         servings: recipe.servings,
         likes: sql<number>`count(DISTINCT ${recipeLike.userId})::int`,
-        ingredients: sql<Array<{ id: string, name: string, quantity: number, measurement: string, custom?: boolean, displayName: string }>>`(
-          SELECT json_agg(
-            json_build_object(
-              'id', i.id,
-              'name', i.name,
-              'quantity', ri.quantity,
-              'measurement', ri.measurement,
-              'displayName', ri.display_name
-            )
-          )
-          FROM (
-            SELECT DISTINCT ri.ingredient_id, ri.quantity, ri.measurement, ri.display_name
-            FROM recipe_ingredient ri
-            WHERE ri.recipe_id = ${recipe.id}
-          ) ri
-          JOIN ingredient i ON i.id = ri.ingredient_id
-        )`,
         nutrition: sql<{ calories: number, protein: number, carbs: number, fat: number }>`json_build_object(
           'calories', ${recipeNutrition.calories},
           'protein', ${recipeNutrition.protein},
@@ -242,7 +240,6 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         recipe.userId,
         recipe.title,
         recipe.description,
-        recipe.instructions,
         recipe.tags,
         recipe.imageUrl,
         recipe.createdAt,
@@ -262,15 +259,106 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
 
     const results = await limitedQuery
     const transformed = nullToUndefined(results)
-    return transformed.map(r => {
-      if (
-        (r as any).nutrition &&
-        Object.values((r as any).nutrition as Record<string, unknown>).every(v => v === undefined)
-      ) {
-        (r as any).nutrition = undefined
-      }
-      return r
-    })
+
+    // For detailed queries, we need to fetch instructions separately
+    const recipesWithInstructions = await Promise.all(
+      transformed.map(async (r) => {
+        const instructions = await db
+          .select({
+            id: recipeInstruction.id,
+            text: recipeInstruction.text,
+            mediaUrl: recipeInstruction.mediaUrl,
+            mediaType: recipeInstruction.mediaType,
+            order: recipeInstruction.order
+          })
+          .from(recipeInstruction)
+          .where(eq(recipeInstruction.recipeId, r.id))
+          .orderBy(asc(recipeInstruction.order))
+
+        // Get ingredients for each instruction
+        const instructionIngredients = await db
+          .select({
+            instructionId: recipeIngredient.instructionId,
+            ingredient: ingredient,
+            quantity: recipeIngredient.quantity,
+            measurement: recipeIngredient.measurement,
+            displayName: recipeIngredient.displayName
+          })
+          .from(recipeIngredient)
+          .innerJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
+          .where(eq(recipeIngredient.recipeId, r.id))
+
+        // Group ingredients by instruction
+        const ingredientsByInstruction = new Map<string, Array<{
+          id: string
+          name: string
+          quantity: number | null
+          measurement: string
+          displayName: string
+        }>>()
+
+        for (const ii of instructionIngredients) {
+          if (!ingredientsByInstruction.has(ii.instructionId)) {
+            ingredientsByInstruction.set(ii.instructionId, [])
+          }
+          ingredientsByInstruction.get(ii.instructionId)!.push({
+            id: ii.ingredient.id,
+            name: ii.ingredient.name,
+            quantity: ii.quantity,
+            measurement: ii.measurement || '',
+            displayName: ii.displayName
+          })
+        }
+
+        // Aggregate ingredients for the main ingredients list
+        const ingredientMap = new Map<string, {
+          id: string
+          name: string
+          quantity: number | null
+          measurement: string
+          displayName: string
+        }>()
+
+        for (const ii of instructionIngredients) {
+          const key = `${ii.ingredient.id}-${ii.measurement}-${ii.displayName}`
+          if (ingredientMap.has(key)) {
+            const quantity = ingredientMap.get(key)!.quantity
+            if (quantity != null) {
+              ingredientMap.get(key)!.quantity = quantity + (ii.quantity ?? 0)
+            }
+          } else {
+            ingredientMap.set(key, {
+              id: ii.ingredient.id,
+              name: ii.ingredient.name,
+              quantity: ii.quantity,
+              measurement: ii.measurement || '',
+              displayName: ii.displayName
+            })
+          }
+        }
+
+        // Add ingredients to instructions
+        const instructionsWithIngredients = instructions.map(instruction => ({
+          ...instruction,
+          ingredients: ingredientsByInstruction.get(instruction.id) || []
+        }))
+
+        if (
+          (r as any).nutrition &&
+          Object.values((r as any).nutrition as Record<string, unknown>).every(v => v === undefined)
+        ) {
+          (r as any).nutrition = undefined
+        }
+
+        return {
+          ...r,
+          instructions: instructionsWithIngredients,
+          ingredients: Array.from(ingredientMap.values())
+        }
+      })
+    )
+
+    return recipesWithInstructions
   } else {
     // Basic query with limited fields
     const basicRecipeQuery = db
@@ -437,7 +525,6 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     id: recipe.id,
     title: recipe.title,
     description: recipe.description,
-    instructions: recipe.instructions,
     imageUrl: recipe.imageUrl,
     tags: recipe.tags,
     servings: recipe.servings,
@@ -455,8 +542,23 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
   const foundRecipe = recipes[0]
   if (!foundRecipe) return undefined
 
-  const recipeIngredients = await db
+  // Get instructions
+  const instructions = await db
     .select({
+      id: recipeInstruction.id,
+      text: recipeInstruction.text,
+      mediaUrl: recipeInstruction.mediaUrl,
+      mediaType: recipeInstruction.mediaType,
+      order: recipeInstruction.order
+    })
+    .from(recipeInstruction)
+    .where(eq(recipeInstruction.recipeId, recipeId))
+    .orderBy(asc(recipeInstruction.order))
+
+  // Get ingredients per instruction
+  const instructionIngredients = await db
+    .select({
+      instructionId: recipeIngredient.instructionId,
       ingredient: ingredient,
       quantity: recipeIngredient.quantity,
       measurement: recipeIngredient.measurement,
@@ -465,6 +567,55 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     .from(recipeIngredient)
     .innerJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
     .where(eq(recipeIngredient.recipeId, recipeId))
+
+  // Group ingredients by instruction
+  const ingredientsByInstruction = new Map<string, Array<{
+    id: string
+    name: string
+    quantity: number | null
+    measurement: string
+    displayName: string
+  }>>()
+
+  for (const ii of instructionIngredients) {
+    if (!ingredientsByInstruction.has(ii.instructionId)) {
+      ingredientsByInstruction.set(ii.instructionId, [])
+    }
+    ingredientsByInstruction.get(ii.instructionId)!.push({
+      id: ii.ingredient.id,
+      name: ii.ingredient.name,
+      quantity: ii.quantity,
+      measurement: ii.measurement || '',
+      displayName: ii.displayName
+    })
+  }
+
+  // Aggregate ingredients for the main ingredients list
+  const ingredientMap = new Map<string, {
+    id: string
+    name: string
+    quantity: number | null
+    measurement: string
+    displayName: string
+  }>()
+
+  for (const ii of instructionIngredients) {
+    const key = `${ii.ingredient.id}-${ii.measurement}-${ii.displayName}`
+    if (ingredientMap.has(key)) {
+      const quantity = ingredientMap.get(key)!.quantity
+      if (quantity != null) {
+        ingredientMap.get(key)!.quantity = quantity + (ii.quantity ?? 0)
+      }
+    } else {
+      ingredientMap.set(key, {
+        id: ii.ingredient.id,
+        name: ii.ingredient.name,
+        quantity: ii.quantity,
+        measurement: ii.measurement || '',
+        displayName: ii.displayName
+      })
+    }
+  }
 
   const nutritionData = await db
     .select()
@@ -500,18 +651,22 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     .from(recipeLike)
     .where(eq(recipeLike.recipeId, recipeId))
 
-  const ingredients = recipeIngredients.map(ri => ({
-    id: ri.ingredient.id,
-    name: ri.ingredient.name,
-    quantity: ri.quantity,
-    measurement: ri.measurement,
-    displayName: ri.displayName
+  // Add ingredients to instructions
+  const instructionsWithIngredients = instructions.map(instruction => ({
+    ...instruction,
+    ingredients: ingredientsByInstruction.get(instruction.id) || []
   }))
 
   const result = {
     ...foundRecipe,
-    ingredients,
-    nutrition,
+    instructions: instructionsWithIngredients,
+    ingredients: Array.from(ingredientMap.values()),
+    nutrition: nutrition ? {
+      calories: nutrition.calories,
+      protein: nutrition.protein,
+      carbs: nutrition.carbs,
+      fat: nutrition.fat
+    } : undefined,
     isLiked,
     isSaved,
     likes: likes.length,

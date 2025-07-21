@@ -73,10 +73,7 @@ const formValidationSchema = v.object({
     v.number(),
     v.minValue(1, 'Servings must be at least 1')
   ),
-  ingredients: v.pipe(
-    v.array(ingredientSchema),
-    v.minLength(1, 'At least one ingredient is required')
-  ),
+  ingredients: v.array(ingredientSchema),
   instructions: v.pipe(
     v.array(instructionSchema),
     v.minLength(1, 'At least one instruction is required')
@@ -120,34 +117,7 @@ const parseIngredientOrInstruction = (formData: FormData, keyPrefix: string) =>
       return { id, field, value: value.toString() }
     })
 
-const parseIngredients = (formData: FormData): Ingredient[] => {
-  const ingredientEntries = parseIngredientOrInstruction(formData, 'ingredient')
 
-  const byIndex = groupBy(entry => entry.id, ingredientEntries)
-
-  return Object.values(byIndex).map(entries => {
-    let quantity: number | undefined = undefined
-    let measurement: string | undefined = undefined
-    let displayName: string = ''
-
-    entries!.forEach(({ field, value }) => {
-      if (field === 'quantity') {
-        quantity = value ? parseFloat(value) : undefined
-      } else if (field === 'measurement') {
-        measurement = value
-      } else if (field.startsWith('name')) {
-        displayName = value
-      }
-    })
-
-    return {
-      quantity,
-      measurement,
-      name: displayName,
-      displayName
-    }
-  })
-}
 
 const parseFormData = (formData: FormData): FormFields => {
   const tags = formData.getAll('tags').map(value => value.toString())
@@ -173,6 +143,8 @@ const parseFormData = (formData: FormData): FormFields => {
     }
   })
 
+
+
   const nutritionMode = formData.get('nutritionMode')?.toString() as 'auto' | 'manual' | 'none' | undefined
   let manualNutrition: FormFields['manualNutrition'] = undefined
   if (nutritionMode === 'manual') {
@@ -191,7 +163,7 @@ const parseFormData = (formData: FormData): FormFields => {
     title: formData.get('title')?.toString() ?? '',
     description: formData.get('description')?.toString() ?? '',
     servings: parseInt(formData.get('servings')?.toString() ?? '1') || 1,
-    ingredients: parseIngredients(formData),
+    ingredients: [], // Ingredients are now scoped to instructions, so this is empty
     instructions,
     tags,
     nutritionMode: nutritionMode ?? 'auto',
@@ -202,6 +174,7 @@ const parseFormData = (formData: FormData): FormFields => {
 export const actions = {
   default: async ({ request, fetch }) => {
     const formData = await request.formData()
+    console.log(formData)
     const recipeData = parseFormData(formData)
     const imageFile = formData.get('image') as File | undefined
 
@@ -226,12 +199,16 @@ export const actions = {
 
           return {
             ...instruction,
+            id: instructionId,
             mediaUrl,
             mediaType: isVideo ? ('video' as const) : ('image' as const)
           }
         }
 
-        return instruction
+        return {
+          ...instruction,
+          id: instructionId
+        }
       })
     )
 
@@ -241,7 +218,7 @@ export const actions = {
       title: recipeData.title,
       description: recipeData.description,
       servings: Number(recipeData.servings) || 1,
-      ingredients: recipeData.ingredients,
+      ingredients: [], // Ingredients are now scoped to instructions
       instructions: recipeData.instructions,
       tags: recipeData.tags
     })
@@ -256,64 +233,104 @@ export const actions = {
       })
     }
 
-    const canonicalIngredients = await getAllIngredients()
-    const canonicalNames = canonicalIngredients.map(i => i.name)
+    let imageUrl: string | undefined = undefined
+    if (imageFile && imageFile.size > 0) {
+      const arrayBuffer = await imageFile.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+      imageUrl = await uploadImage(buffer)
+    }
 
-    const mappedIngredientsResults = await Promise.all(
-      recipeData.ingredients.map(async (ing) => {
-        const normalizedInput = normalizeIngredientName(ing.name)
-        let matchedName: string
-        let matchedId: string
-
-        // Step 1: Exact match
-        const exact = canonicalIngredients.find(i => i.name.toLowerCase() === normalizedInput.toLowerCase())
-        if (exact) {
-          matchedName = exact.name
-          matchedId = exact.id
-        } else {
-          // Step 2: Fuzzy match
-          const bestMatch = stringSimilarity.findBestMatch(normalizedInput, canonicalNames)
-          if (bestMatch.bestMatch.rating > 0.85) {
-            matchedName = bestMatch.bestMatch.target
-            matchedId = canonicalIngredients.find(i => i.name === matchedName)?.id || ''
-          } else {
-            // Step 3: Create new ingredient
-            const newId = generateId()
-            await db.insert(ingredientTable).values({ id: newId, name: normalizedInput })
-            matchedName = normalizedInput
-            matchedId = newId
-          }
-        }
-
-        return Ok({
-          name: matchedName,
-          displayName: ing.displayName,
-          quantity: ing.quantity,
-          measurement: ing.measurement
-        })
+    // Parse ingredients per instruction from form data
+    const ingredientEntries = Array.from(formData.entries())
+      .filter(([key]) => key.startsWith('instructions-') && key.includes('-ingredient-'))
+      .map(([key, value]) => {
+        // Parse: instructions-{instructionId}-ingredient-{ingredientId}-{field}
+        const parts = key.split('-')
+        const instructionId = parts[1]
+        const ingredientId = parts[3]
+        const field = parts[4]
+        return { instructionId, ingredientId, field, value: value.toString() }
       })
-    )
 
-    const mappedIngredientsResult: Result<Ingredient[], { message: string }> = Result.all(mappedIngredientsResults)
+    const ingredientsByInstruction = new Map<string, Array<{
+      name: string
+      displayName: string
+      quantity?: number
+      measurement?: string
+    }>>()
 
-    if (mappedIngredientsResult.isErr()) {
-      return fail(500, {
+    // Group ingredients by their instruction ID
+    const ingredientGroups = new Map<string, Map<string, { [key: string]: string }>>()
+
+    for (const entry of ingredientEntries) {
+      if (!ingredientGroups.has(entry.instructionId)) {
+        ingredientGroups.set(entry.instructionId, new Map())
+      }
+
+      const instructionIngredients = ingredientGroups.get(entry.instructionId)!
+      if (!instructionIngredients.has(entry.ingredientId)) {
+        instructionIngredients.set(entry.ingredientId, {})
+      }
+
+      const ingredient = instructionIngredients.get(entry.ingredientId)!
+      ingredient[entry.field] = entry.value
+    }
+
+    // Convert grouped ingredients to the expected format
+    for (const [instructionId, ingredientMap] of ingredientGroups) {
+      const ingredients: Array<{
+        name: string
+        displayName: string
+        quantity?: number
+        measurement?: string
+      }> = []
+
+      for (const [ingredientId, ingredientData] of ingredientMap) {
+        if (ingredientData.name) {
+          ingredients.push({
+            name: ingredientData.name,
+            displayName: ingredientData.name,
+            quantity: ingredientData.amount ? parseFloat(ingredientData.amount) : undefined,
+            measurement: ingredientData.unit
+          })
+        }
+      }
+
+      ingredientsByInstruction.set(instructionId, ingredients)
+    }
+
+    // Add ingredients to instructions
+    const instructionsWithIngredients = recipeData.instructions.map((instruction, index) => {
+      const instructionId = Object.keys(instructionById)[index]
+      const instructionIngredients = ingredientsByInstruction.get(instructionId) || []
+      return {
+        ...instruction,
+        id: instructionId,
+        ingredients: instructionIngredients
+      }
+    })
+
+    // Validate that the recipe has at least one ingredient
+    const allIngredients = instructionsWithIngredients.flatMap(instruction => instruction.ingredients || [])
+    if (allIngredients.length === 0) {
+      return fail(400, {
         success: false,
         errors: [{
           path: 'ingredients',
-          message: mappedIngredientsResult.error.message
+          message: 'Recipe must have at least one ingredient'
         }]
       })
     }
 
-    const mappedIngredients = mappedIngredientsResult.value as Ingredient[]
-
+    // Calculate nutrition after instructions are processed
     let nutrition: typeof recipeData.manualNutrition | null = null
     if (recipeData.nutritionMode === 'manual') {
       nutrition = recipeData.manualNutrition ?? null
     } else if (recipeData.nutritionMode === 'auto') {
+      // Collect all ingredients from all instructions for nutrition calculation
+      const allIngredients = instructionsWithIngredients.flatMap(instruction => instruction.ingredients || [])
       const nutritionResult = await api('getRecipeInfo')(
-        mappedIngredients.map(ing => ({
+        allIngredients.map(ing => ({
           amount: ing.quantity,
           unit: ing.measurement,
           name: ing.name
@@ -332,26 +349,11 @@ export const actions = {
       }
     }
 
-    let imageUrl: string | undefined = undefined
-    if (imageFile && imageFile.size > 0) {
-      const arrayBuffer = await imageFile.arrayBuffer()
-      const buffer = Buffer.from(arrayBuffer)
-      imageUrl = await uploadImage(buffer)
-    }
-
-    const formattedIngredients = mappedIngredients.map(ing => ({
-      name: ing.name,
-      displayName: ing.displayName,
-      quantity: ing.quantity,
-      measurement: ing.measurement
-    }))
-
     const requestPayload = {
       title: recipeData.title,
       description: recipeData.description,
       servings: recipeData.servings,
-      instructions: recipeData.instructions,
-      ingredients: formattedIngredients,
+      instructions: instructionsWithIngredients,
       nutrition: nutrition,
       tags: recipeData.tags,
       imageUrl

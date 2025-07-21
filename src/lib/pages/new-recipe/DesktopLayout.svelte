@@ -1,90 +1,75 @@
 <script lang="ts">
-	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
 	import Button from '$lib/components/button/Button.svelte'
-	import IngredientInput from '$lib/components/ingredient-input/IngredientInput.svelte'
-	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
-	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
-	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
 	import Trash from 'lucide-svelte/icons/trash-2'
 	import Plus from 'lucide-svelte/icons/plus'
-	import X from 'lucide-svelte/icons/x'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
-	import Input from '$lib/components/input/Input.svelte'
-	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
-	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import type { IngredientRow, InstructionRow } from './NewRecipe.svelte'
+	import { generateId } from './NewRecipe.svelte'
+	import type { Snippet } from 'svelte'
 
 	let {
-		servings,
-		ingredients,
-		instructions,
-		selectedTags,
-		unitSystem,
-		addIngredient,
-		removeIngredient,
-		addInstruction,
-		removeInstruction,
-		handleServingsChange,
-		onUnitChange,
-		searchTags,
-		handleTagSelect,
-		removeTag,
+		title,
+		description,
+		recipeImage,
+		tags,
+		nutrition,
+		servingsAdjuster,
+		unitToggle,
 		submitting,
-		title = '',
-		description = '',
-		imageUrl = '',
-		nutritionMode = $bindable<'auto' | 'manual' | 'none'>('auto'),
-		calories = $bindable(''),
-		protein = $bindable(''),
-		carbs = $bindable(''),
-		fat = $bindable('')
+		instructionInput,
+		instructionMedia,
+		ingredientName,
+		ingredientAmount,
+		ingredientUnit
 	}: {
-		servings: number
-		ingredients: IngredientRow[]
-		instructions: InstructionRow[]
-		selectedTags: string[]
-		unitSystem: UnitSystem
-		addIngredient: () => void
-		removeIngredient: (id: string) => void
-		addInstruction: () => void
-		removeInstruction: (id: string) => void
-		handleServingsChange: (newServings: number) => void
-		onUnitChange: (system: UnitSystem) => void
-		searchTags: (query: string) => Promise<{ name: string }[]>
-		handleTagSelect: (tag: string, selected: boolean) => void
-		removeTag: (tag: string) => void
+		title: Snippet
+		description: Snippet
+		recipeImage: Snippet
+		tags: Snippet
+		nutrition: Snippet
+		servingsAdjuster: Snippet
+		unitToggle: Snippet
+		ingredientName: Snippet<[id: string, instructionId: string, onInput?: (value: string) => void]>
+		ingredientAmount: Snippet<
+			[id: string, instructionId: string, onInput?: (value: string) => void]
+		>
+		ingredientUnit: Snippet<[id: string, instructionId: string, onInput?: (value: string) => void]>
+		instructionInput: Snippet<[id: string]>
+		instructionMedia: Snippet<[id: string]>
 		submitting: boolean
-		title?: string
-		description?: string
-		imageUrl?: string
-		nutritionMode?: 'auto' | 'manual' | 'none'
-		calories?: string
-		protein?: string
-		carbs?: string
-		fat?: string
 	} = $props()
 
-	let searchValue = $state('')
-
-	type ItemWithAddButton = IngredientRow | { id: string; isAddButton: true }
-	let items = $derived<ItemWithAddButton[]>([
-		...ingredients,
-		{ id: 'add-button', isAddButton: true }
+	let instructions: { id: string; ingredients: { id: string }[] }[] = $state([
+		{ id: generateId(), ingredients: [] }
 	])
 
-	type InstructionWithAddButton = InstructionRow | { id: string; isAddButton: true }
-	let instructionItems = $derived<InstructionWithAddButton[]>([
-		...instructions,
-		{ id: 'add-instruction-button', isAddButton: true }
-	])
+	const addInstruction = () => {
+		instructions = [...instructions, { id: generateId(), ingredients: [] }]
+	}
 
-	const handleAddCustomTag = () => {
-		const trimmedValue = searchValue.trim()
-		if (trimmedValue && selectedTags.length < 3 && !selectedTags.includes(trimmedValue)) {
-			handleTagSelect(trimmedValue, true)
-			searchValue = ''
-		}
+	const removeInstruction = (id: string) => {
+		instructions = instructions.filter((instruction) => instruction.id !== id)
+	}
+
+	const addIngredient = (instructionId: string) => {
+		instructions = instructions.map((instruction) =>
+			instruction.id === instructionId
+				? { ...instruction, ingredients: [...instruction.ingredients, { id: generateId() }] }
+				: instruction
+		)
+	}
+
+	const removeIngredient = (instructionId: string, ingredientId: string) => {
+		instructions = instructions.map((instruction) =>
+			instruction.id === instructionId
+				? {
+						...instruction,
+						ingredients: instruction.ingredients.filter(
+							(ingredient) => ingredient.id !== ingredientId
+						)
+					}
+				: instruction
+		)
 	}
 </script>
 
@@ -94,211 +79,124 @@
 		<div class="header-content">
 			<div class="text-content">
 				<div>
-					<Input>
-						<input
-							bind:value={title}
-							name="title"
-							type="text"
-							required
-							minlength="5"
-							maxlength="80"
-							placeholder="Enter recipe title"
-						/>
-					</Input>
+					{@render title()}
 				</div>
 
-				<Input>
-					<textarea
-						bind:value={description}
-						class="description-input"
-						name="description"
-						placeholder="Describe your recipe (optional)"
-						rows="3"
-					></textarea>
-				</Input>
+				{@render description()}
 			</div>
 
 			<div class="image-content">
-				<MediaUpload
-					name="image"
-					type="image"
-					previewAlt="Recipe preview"
-					initialImageUrl={imageUrl}
-				/>
+				{@render recipeImage()}
 			</div>
 		</div>
 	</div>
 
-	<div class="ingredients-grid" style="grid-column: 1 / span 2;">
-		{#snippet servingsAdjuster()}
-			<ServingsAdjuster {servings} onServingsChange={handleServingsChange} />
-		{/snippet}
-
+	<div class="steps-grid" style="grid-column: 1 / span 2;">
 		<div class="servings-controls">
 			<div class="unit-toggle-container">
-				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
+				{@render unitToggle()}
 			</div>
 			<div class="servings">
 				{@render servingsAdjuster()}
 			</div>
 		</div>
-		<div class="ingredients-title-row">
-			<div class="section-title">Ingredients</div>
-			<div class="mobile-servings">
-				{@render servingsAdjuster()}
-			</div>
-		</div>
-		<div class="ingredients-list" style="grid-column: 2; grid-row: 2;">
-			{#each items as item, i (item.id)}
-				<div
-					class={'isAddButton' in item ? 'add-ingredient-button' : 'ingredient-group'}
-					in:scale
-					animate:flip={{ duration: 200 }}
-				>
-					{#if 'isAddButton' in item}
-						<Button variant="pill" color="neutral" onclick={addIngredient} size="sm">
-							<Plus size={16} color="var(--color-text-on-surface)" />
-						</Button>
-					{:else}
-						<div class="ingredient-input">
-							<IngredientInput
-								bind:amount={item.amount}
-								bind:unit={item.unit}
-								bind:name={item.name}
-								id={item.id}
-								{unitSystem}
-								canRemove={ingredients.length > 1}
-								onRemove={() => removeIngredient(item.id)}
-							/>
-						</div>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	</div>
 
-	<div class="section-title">Instructions</div>
-	<div class="section-content">
-		<div id="instructions">
-			{#each instructionItems as item, i (item.id)}
-				<div
-					class={'isAddButton' in item ? 'add-instruction-button' : 'instruction-group'}
-					in:scale
-					animate:flip={{ duration: 200 }}
-				>
-					{#if 'isAddButton' in item}
-						<Button variant="pill" color="neutral" onclick={addInstruction} size="sm">
-							<Plus size={16} color="var(--color-text-on-surface)" />
-						</Button>
-					{:else}
-						<div class="instruction-input">
-							<div class="instruction-text">
-								<Input>
-									<textarea
-										bind:value={item.text}
-										name={`instructions-${item.id}-text`}
-										placeholder="Enter instruction step"
-									></textarea>
-								</Input>
+		<div class="section-title">Steps</div>
+		<div class="section-content">
+			<div id="instructions">
+				{#each [...instructions, { id: '', isAddButton: true }] as item, i (item.id)}
+					<div class={'isAddButton' in item ? undefined : 'instruction-group'}>
+						{#if 'isAddButton' in item}
+							<Button variant="pill" color="neutral" onclick={addInstruction} size="sm">
+								<Plus size={16} color="var(--color-text-on-surface)" /> Add Step
+							</Button>
+						{:else}
+							<div class="instruction-content">
+								<div class="instruction-header">
+									<div class="step-title">Step {i + 1}</div>
+									{#if instructions.length > 1}
+										<button
+											type="button"
+											class="remove-btn"
+											onclick={() => removeInstruction(item.id)}
+										>
+											<Trash size={16} color="var(--color-text-on-background)" />
+										</button>
+									{/if}
+								</div>
+								<div class="instruction-content-body">
+									<div class="instruction-text">
+										{@render instructionInput(item.id)}
+									</div>
+									<div class="instruction-media">
+										{@render instructionMedia(item.id)}
+									</div>
+								</div>
+
+								<div class="instruction-ingredients">
+									<h4>Ingredients for this step:</h4>
+									{#each [...item.ingredients, { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem (ingredientItem.id)}
+										<div class="ingredient-input" in:scale animate:flip={{ duration: 200 }}>
+											{#if 'isAddButton' in ingredientItem}
+												<Button
+													variant="pill"
+													color="neutral"
+													onclick={() => addIngredient(item.id)}
+													size="sm"
+												>
+													<Plus size={16} color="var(--color-text-on-surface)" />
+													Add Ingredient
+												</Button>
+											{:else}
+												<div class="ingredient-input-container">
+													<div class="ingredient-row">
+														<div class="search">
+															{@render ingredientName(ingredientItem.id, item.id)}
+														</div>
+													</div>
+
+													<div class="quantity-unit-row">
+														<div class="quantity-input">
+															{@render ingredientAmount(ingredientItem.id, item.id)}
+														</div>
+
+														<div class="unit-input">
+															{@render ingredientUnit(ingredientItem.id, item.id)}
+														</div>
+
+														{#if item.ingredients.length > 1}
+															<button
+																type="button"
+																class="remove-btn"
+																onclick={() => removeIngredient(item.id, ingredientItem.id)}
+															>
+																<Trash size={16} color="var(--color-text-on-background)" />
+															</button>
+														{/if}
+													</div>
+												</div>
+											{/if}
+										</div>
+									{/each}
+								</div>
 							</div>
-							<div class="instruction-media">
-								<MediaUpload name={`instructions-${item.id}-media`} />
-							</div>
-						</div>
-						{#if instructions.length > 1}
-							<button type="button" class="remove-btn" onclick={() => removeInstruction(item.id)}>
-								<Trash size={16} color="var(--color-text-on-background)" />
-							</button>
 						{/if}
-					{/if}
-				</div>
-			{/each}
+					</div>
+				{/each}
+			</div>
 		</div>
 	</div>
 
 	<div class="section-title">Tags</div>
 	<div class="section-content">
 		<div class="tags">
-			<div style:width="fit-content">
-				<SuggestionSearch
-					bind:searchValue
-					disabled={selectedTags.length >= 3}
-					placeholder="Search or add custom tag"
-					onSearch={searchTags}
-					onSelect={(tag) => handleTagSelect(tag.name, true)}
-					clearInput={true}
-					actionButton={{
-						text: 'Add',
-						onClick: handleAddCustomTag
-					}}
-				/>
-			</div>
-
-			{#if selectedTags.length > 0}
-				<div class="selected-tags">
-					{#each selectedTags as tag (tag)}
-						<div transition:scale|global={{ duration: 200 }} animate:flip={{ duration: 200 }}>
-							<Button color="neutral" variant="pill" size="sm" onclick={() => removeTag(tag)}>
-								{tag}
-								<X size={14} color="var(--color-text-on-surface)" />
-							</Button>
-						</div>
-					{/each}
-				</div>
-			{/if}
+			{@render tags()}
 		</div>
 	</div>
 
 	<div class="section-title">Nutrition</div>
 	<div class="section-content">
-		<div class="nutrition-mode">
-			<TabSelect
-				options={['auto', 'manual', 'none']}
-				onSelect={(opt) => (nutritionMode = opt as 'auto' | 'manual' | 'none')}
-				selected={nutritionMode}
-			/>
-		</div>
-		{#if nutritionMode === 'manual'}
-			<div class="nutrition-inputs">
-				<Input
-					><input
-						type="number"
-						step="any"
-						name="protein"
-						placeholder="Protein (g)"
-						bind:value={protein}
-					/></Input
-				>
-				<Input
-					><input
-						type="number"
-						step="any"
-						name="carbs"
-						placeholder="Carbs (g)"
-						bind:value={carbs}
-					/></Input
-				>
-				<Input
-					><input
-						type="number"
-						step="any"
-						name="fat"
-						placeholder="Fat (g)"
-						bind:value={fat}
-					/></Input
-				>
-				<Input
-					><input
-						type="text"
-						name="calories"
-						placeholder="Calories"
-						value={`${calories} kcal`}
-						readonly
-					/></Input
-				>
-			</div>
-		{/if}
-		<input type="hidden" name="nutritionMode" value={nutritionMode} />
+		{@render nutrition()}
 	</div>
 
 	<div class="section-title"></div>
@@ -310,6 +208,8 @@
 </div>
 
 <style lang="scss">
+	@import '$lib/global.scss';
+
 	.form-grid {
 		display: grid;
 		grid-template-columns: 120px 1fr;
@@ -333,10 +233,6 @@
 
 	.section-content {
 		grid-column: 2;
-	}
-
-	h3 {
-		margin-bottom: var(--spacing-lg);
 	}
 
 	h4 {
@@ -412,26 +308,53 @@
 	}
 
 	.remove-btn {
-		padding: var(--spacing-md);
+		padding: var(--spacing-sm);
 		transition: all var(--transition-fast) var(--ease-in-out);
 		border-radius: var(--border-radius-lg);
+		color: white;
+		border: none;
+		cursor: pointer;
 
 		&:hover {
-			background-color: var(--color-background-dark);
+			background-color: var(--color-secondary);
 		}
 	}
 
 	.instruction-group {
 		display: flex;
-		gap: var(--spacing-sm);
-		margin-bottom: var(--spacing-sm);
+		gap: var(--spacing-lg);
+		margin-bottom: var(--spacing-xl);
+		padding: var(--spacing-lg);
+		background: var(--color-background-dark);
+		border-radius: var(--border-radius-2xl);
+		border: 1px solid var(--color-neutral-darker);
+		position: relative;
 	}
 
-	.instruction-input {
+	.instruction-content {
 		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
+	}
+
+	.instruction-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.step-title {
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-text-on-surface);
+	}
+
+	.instruction-content-body {
 		display: flex;
 		flex-direction: row;
 		gap: var(--spacing-sm);
+		align-items: flex-start;
 
 		@media (max-width: 600px) {
 			flex-direction: column;
@@ -449,21 +372,119 @@
 
 	.instruction-text {
 		flex: 1;
+		height: 100%;
 	}
 
-	.ingredients-grid {
+	.instruction-ingredients {
+		margin-top: var(--spacing-lg);
+	}
+
+	.ingredient-input {
+		margin-bottom: var(--spacing-md);
+
+		&:last-child {
+			margin-bottom: var(--spacing-lg);
+		}
+	}
+
+	.ingredient-input-container {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+
+		@include tablet-desktop {
+			flex-direction: row;
+			gap: 1px;
+			align-items: center;
+		}
+	}
+
+	.ingredient-row {
+		width: 100%;
+	}
+
+	.quantity-unit-row {
+		display: flex;
+		gap: var(--spacing-xs);
+		align-items: center;
+		width: 100%;
+
+		@include tablet-desktop {
+			gap: 1px;
+		}
+	}
+
+	.search {
+		width: 100%;
+
+		@include tablet-desktop {
+			flex: 1;
+			min-width: 0;
+
+			:global(.input-container) {
+				border-top-right-radius: 0;
+				border-bottom-right-radius: 0;
+			}
+		}
+
+		:global(.search-wrapper) {
+			max-width: none;
+		}
+	}
+
+	.quantity-input {
+		flex: 1;
+
+		@include tablet-desktop {
+			flex: 0 0 auto;
+
+			:global(.input-container) {
+				border-radius: 0;
+				border-left: none;
+				border-right: none;
+			}
+		}
+	}
+
+	.unit-input {
+		flex: 1;
+		position: relative;
+
+		@include tablet-desktop {
+			flex: auto;
+
+			:global(.input-container) {
+				border-top-left-radius: 0;
+				border-bottom-left-radius: 0;
+				border-left: none;
+			}
+		}
+
+		:global(.suggestion-search-wrapper) {
+			max-width: none;
+		}
+	}
+
+	.remove-btn {
+		height: 36px;
+		width: 36px;
+		border-radius: var(--border-radius-lg);
+		transition: all var(--transition-fast) var(--ease-in-out);
+		&:hover {
+			background-color: var(--color-background-dark);
+		}
+
+		@include tablet-desktop {
+			margin-left: var(--spacing-xs);
+		}
+	}
+
+	.steps-grid {
 		display: grid;
 		grid-template-columns: subgrid;
 		row-gap: 8px;
 		grid-column: 1 / span 2;
-	}
-
-	.ingredients-title-row {
-		grid-column: 1 / span 2;
-		grid-row: 2;
-		display: grid;
-		grid-template-columns: subgrid;
-		align-items: center;
 	}
 
 	.mobile-servings {
@@ -490,17 +511,6 @@
 
 	.ingredient-input {
 		flex: 1;
-	}
-
-	.nutrition-mode {
-		margin-bottom: var(--spacing-md);
-	}
-
-	.nutrition-inputs {
-		display: flex;
-		gap: var(--spacing-sm);
-		flex-wrap: wrap;
-		margin-top: var(--spacing-md);
 	}
 
 	@media (max-width: 1000px) {
@@ -535,9 +545,15 @@
 			margin-bottom: var(--spacing-md);
 			margin-top: var(--spacing-md);
 		}
+	}
 
-		.ingredients-title-row .section-title {
-			margin-bottom: 0;
-		}
+	.steps-grid .section-title {
+		grid-row: 2;
+		grid-column: 1;
+	}
+
+	.steps-grid .section-content {
+		grid-row: 2;
+		grid-column: 2;
 	}
 </style>

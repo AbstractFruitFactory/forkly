@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { recipe, recipeLike, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
+import { recipe, recipeLike, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
 import { sql } from 'drizzle-orm'
 
 // Create a test database connection
@@ -13,7 +13,6 @@ export async function setupTestDb() {
   try {
     await testDb.delete(recipeBookmark)
     await testDb.delete(recipeLike)
-    await testDb.delete(recipeIngredient)
     await testDb.delete(recipeNutrition)
     await testDb.delete(recipe)
     await testDb.delete(ingredient)
@@ -32,7 +31,8 @@ export async function createTestUser(id: string = 'test-user-id') {
   return await testDb.insert(user).values({
     id,
     username: 'test-user',
-    passwordHash: 'test-hash'
+    passwordHash: 'test-hash',
+    email: 'test@example.com'
   }).returning()
 }
 
@@ -41,7 +41,6 @@ export async function createTestRecipe(userId: string, recipeData: Partial<typeo
     id: 'test-recipe-id',
     title: 'Test Recipe',
     description: 'Test Description',
-    instructions: [{ text: 'Test instruction' }],
     tags: ['test'],
     userId,
     servings: 1,

@@ -1,4 +1,4 @@
-import { recipe, ingredient, recipeIngredient, recipeNutrition, tag, recipeTag } from './schema'
+import { recipe, ingredient, recipeInstruction, recipeIngredient, recipeNutrition, tag, recipeTag } from './schema'
 import type { Recipe } from './schema'
 import { generateId } from '../id'
 import postgres from 'postgres'
@@ -18,6 +18,7 @@ export const seed = async () => {
   try {
     await db.delete(recipeTag)
     await db.delete(recipeIngredient)
+    await db.delete(recipeInstruction)
     await db.delete(recipeNutrition)
     await db.delete(recipe)
     await db.delete(ingredient)
@@ -82,7 +83,6 @@ export const seed = async () => {
   for (const { id, name } of ingredientMap.values()) {
     await db.insert(ingredient)
       .values({ id, name })
-      .onConflictDoNothing({ target: ingredient.name })
   }
 
   // Insert recipes
@@ -104,18 +104,33 @@ export const seed = async () => {
   console.log('Inserting recipe-tag relationships...')
   await db.insert(recipeTag).values(allRecipeTags)
 
-  // Build and insert recipe-ingredient relationships
-  const allRecipeIngredients = []
+  // Build and insert recipe instructions and their ingredients
+  const allRecipeInstructions = []
+  const allRecipeInstructionIngredients = []
+  
   for (let i = 0; i < sampleRecipes.length; i++) {
     const recipe = sampleRecipes[i]
     // Find the corresponding raw recipe (by modulo, since we duplicated)
     const rawRecipe = sampleRecipesRaw[i % baseCount]
+    
+    // Create instructions from the old ingredients list
+    // For now, we'll create one instruction per recipe with all ingredients
+    const instructionId = generateId()
+    allRecipeInstructions.push({
+      id: instructionId,
+      recipeId: recipe.id,
+      text: `Prepare ${(rawRecipe as any).title || 'this recipe'} with the following ingredients.`,
+      order: 1
+    })
+    
+    // Add ingredients to this instruction
     for (const ing of (rawRecipe as any).ingredients || []) {
       const normalized = normalizeIngredientName(ing.displayName)
       const ingredientEntry = ingredientMap.get(normalized)
       if (!ingredientEntry) continue
-      allRecipeIngredients.push({
+      allRecipeInstructionIngredients.push({
         recipeId: recipe.id,
+        instructionId: instructionId,
         ingredientId: ingredientEntry.id,
         displayName: ing.displayName,
         quantity: ing.quantity,
@@ -123,7 +138,9 @@ export const seed = async () => {
       })
     }
   }
-  await db.insert(recipeIngredient).values(allRecipeIngredients)
+  
+  await db.insert(recipeInstruction).values(allRecipeInstructions)
+  await db.insert(recipeIngredient).values(allRecipeInstructionIngredients)
 
   // Generate random nutrition data for each recipe
   function randomInt(min: number, max: number) {

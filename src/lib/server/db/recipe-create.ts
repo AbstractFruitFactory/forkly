@@ -1,5 +1,5 @@
 import { db } from '.'
-import { recipe, ingredient, recipeIngredient, recipeNutrition, tag, recipeTag } from './schema'
+import { recipe, ingredient, recipeInstruction, recipeIngredient, recipeNutrition, tag, recipeTag } from './schema'
 import { eq } from 'drizzle-orm'
 import { generateId } from '$lib/server/id'
 
@@ -18,16 +18,17 @@ type NutritionInput = {
 }
 
 type InstructionInput = {
+  id: string
   text: string
   mediaUrl?: string
   mediaType?: 'image' | 'video'
+  ingredients?: IngredientInput[]
 }
 
 type RecipeInput = {
   title: string
   description?: string
   servings: number
-  ingredients: IngredientInput[]
   instructions: InstructionInput[]
   nutrition?: NutritionInput | null
   tags: string[]
@@ -43,7 +44,6 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
     title: input.title,
     description: input.description,
     servings: input.servings,
-    instructions: input.instructions,
     tags: input.tags || [],
     imageUrl: input.imageUrl
   }).returning()
@@ -75,33 +75,52 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
     })
   }
 
-  for (const ingredientData of input.ingredients) {
-    let ingredientId: string
-
-    const existingIngredient = await db
-      .select()
-      .from(ingredient)
-      .where(eq(ingredient.name, ingredientData.name))
-      .limit(1)
-
-    if (existingIngredient.length) {
-      ingredientId = existingIngredient[0].id
-    } else {
-      const newIngredient = await db.insert(ingredient).values({
-        id: generateId(),
-        name: ingredientData.name
-      }).returning()
-      ingredientId = newIngredient[0].id
-    }
-
-    await db.insert(recipeIngredient).values({
+  // Insert instructions and their ingredients
+  for (let i = 0; i < input.instructions.length; i++) {
+    const instruction = input.instructions[i]
+    
+    // Insert the instruction
+    const newInstruction = await db.insert(recipeInstruction).values({
+      id: instruction.id,
       recipeId: recipeId,
-      ingredientId: ingredientId,
-      displayName: ingredientData.displayName,
-      quantity: ingredientData.quantity,
-      measurement: ingredientData.measurement
-    })
+      text: instruction.text,
+      mediaUrl: instruction.mediaUrl,
+      mediaType: instruction.mediaType,
+      order: i + 1
+    }).returning()
+
+    // Insert ingredients for this instruction
+    if (instruction.ingredients) {
+      for (const ingredientData of instruction.ingredients) {
+        let ingredientId: string
+
+        const existingIngredient = await db
+          .select()
+          .from(ingredient)
+          .where(eq(ingredient.name, ingredientData.name))
+          .limit(1)
+
+        if (existingIngredient.length) {
+          ingredientId = existingIngredient[0].id
+        } else {
+          const newIngredient = await db.insert(ingredient).values({
+            id: generateId(),
+            name: ingredientData.name
+          }).returning()
+          ingredientId = newIngredient[0].id
+        }
+
+        await db.insert(recipeIngredient).values({
+          recipeId: recipeId,
+          instructionId: instruction.id,
+          ingredientId: ingredientId,
+          displayName: ingredientData.displayName,
+          quantity: ingredientData.quantity,
+          measurement: ingredientData.measurement
+        })
+      }
+    }
   }
 
-  return newRecipe[0]
+    return newRecipe[0]
 } 

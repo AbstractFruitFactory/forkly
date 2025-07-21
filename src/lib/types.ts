@@ -49,6 +49,21 @@ export type Ingredient = {
   displayName: string
 }
 
+export type InstructionIngredient = {
+  quantity?: number
+  measurement?: MeasurementUnit
+  name: string
+  displayName: string
+}
+
+export type Instruction = {
+  id: string
+  text: string
+  mediaUrl?: string
+  mediaType?: 'image' | 'video'
+  ingredients?: InstructionIngredient[]
+}
+
 export type RecipeData = {
   id: string
   userId?: string
@@ -56,11 +71,7 @@ export type RecipeData = {
   description?: string
   servings: number
   ingredients: Ingredient[]
-  instructions: {
-    text: string
-    mediaUrl?: string
-    mediaType?: 'image' | 'video'
-  }[]
+  instructions: Instruction[]
   imageUrl?: string | null
   tags?: string[]
   totalNutrition?: {
