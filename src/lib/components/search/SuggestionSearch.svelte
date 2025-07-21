@@ -83,17 +83,18 @@
 		suggestions={showSuggestions && suggestions.length > 0 ? suggestions : []}
 		onSelect={handleSelect}
 	>
-		<Search
-			bind:value={searchValue}
-			{placeholder}
-			{actionButton}
-			{isLoading}
-			bind:inputElement
-			onInput={handleSearch}
-			{formName}
-			{disabled}
-			{showSearchIcon}
-		/>
+			<Search
+		bind:value={searchValue}
+		{placeholder}
+		{actionButton}
+		{isLoading}
+		bind:inputElement
+		onInput={handleSearch}
+		onConfirm={() => actionButton?.onClick()}
+		{formName}
+		{disabled}
+		{showSearchIcon}
+	/>
 	</Autocomplete>
 </div>
 
