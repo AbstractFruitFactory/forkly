@@ -15,7 +15,8 @@
 		loadMore,
 		onRecipeClick,
 		isLoadingMore = false,
-		isLoading = false
+		isLoading = false,
+		menuOptions
 	}: {
 		recipes: Promise<RecipeItem[]>
 		emptyMessage?: string
@@ -24,6 +25,7 @@
 		onRecipeClick?: (recipe: DetailedRecipe, event: MouseEvent) => Promise<void>
 		isLoadingMore?: boolean
 		isLoading?: boolean
+		menuOptions?: (recipe: DetailedRecipe) => { [key: string]: () => void }
 	} = $props()
 
 	let loadMoreTrigger: HTMLElement
@@ -88,6 +90,7 @@
 			loading={gridItem.id.startsWith('loading')}
 			recipe={gridItem.id.startsWith('loading') ? undefined : (gridItem as RecipeItem)}
 			{onRecipeClick}
+			menu={gridItem.id.startsWith('loading') ? undefined : menuOptions ? { options: menuOptions(gridItem as RecipeItem) } : undefined}
 		/>
 	{/snippet}
 </CardGrid>

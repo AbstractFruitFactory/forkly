@@ -11,6 +11,7 @@
 	import { safeFetch } from '$lib/utils/fetch'
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 	import type { PrivateUser, User } from '$lib/server/db/user'
+	import Popup from '$lib/components/popup/Popup.svelte'
 
 	let {
 		user,
@@ -38,6 +39,8 @@
 	}
 
 	let avatarInput: HTMLInputElement
+	let deletePopupOpen = $state(false)
+	let recipeToDelete: DetailedRecipe | null = null
 
 	async function handleAvatarChange(event: Event) {
 		const input = event.target as HTMLInputElement
@@ -57,6 +60,35 @@
 		} else {
 			console.error('Avatar upload failed')
 		}
+	}
+
+	async function handleDeleteRecipe() {
+		if (!recipeToDelete) return
+
+		const result = await safeFetch<{ success: true }>()('/recipes/delete', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: recipeToDelete.id })
+		})
+
+		if (result.isOk()) {
+			deletePopupOpen = false
+			recipeToDelete = null
+			invalidateAll()
+		}
+	}
+
+	function openDeletePopup(recipe: DetailedRecipe) {
+		recipeToDelete = recipe
+		deletePopupOpen = true
+	}
+
+	function getMenuOptions(recipe: DetailedRecipe) {
+		if (!isOwner) return {}
+		
+		return {
+			'Delete': () => openDeletePopup(recipe)
+		} as { [key: string]: () => void }
 	}
 </script>
 
@@ -176,6 +208,7 @@
 		recipes={createdRecipes}
 		emptyMessage="No recipes created yet!"
 		useAnimation={false}
+		menuOptions={getMenuOptions}
 	/>
 {/snippet}
 
@@ -197,6 +230,21 @@
 		{/await}
 	{/if}
 {/snippet}
+
+<Popup
+	isOpen={deletePopupOpen}
+	onClose={() => (deletePopupOpen = false)}
+	title="Delete Recipe"
+	width="300px"
+>
+	<div class="delete-content">
+		<p>Are you sure you want to delete "{recipeToDelete?.title}"?</p>
+		<div class="delete-actions">
+			<Button color="primary" onclick={handleDeleteRecipe}>Delete</Button>
+			<Button variant="border" onclick={() => (deletePopupOpen = false)}>Cancel</Button>
+		</div>
+	</div>
+</Popup>
 
 <div class="profile-desktop-view">
 	<DesktopLayout
@@ -375,5 +423,16 @@
 			width: 100%;
 			gap: 0.5rem;
 		}
+	}
+
+	.delete-content p {
+		margin-top: 0;
+	}
+
+	.delete-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: var(--spacing-sm);
+		margin-top: var(--spacing-md);
 	}
 </style>
