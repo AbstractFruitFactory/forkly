@@ -9,7 +9,7 @@
 
 	let { data } = $props()
 
-	let recipes: typeof data.recipes = $state(Promise.resolve([]))
+	let recipes: typeof data.recipes = $state(new Promise(() => {}))
 	let isLoading = $state(false)
 
 	$effect(() => {
@@ -37,8 +37,6 @@
 		page: 0,
 		isLoading: false
 	})
-
-
 
 	const handleSearch = async (
 		query: string,
@@ -69,9 +67,7 @@
 	}
 
 	const searchTags = async (query: string): Promise<{ name: string; count: number }[]> => {
-		const response = await safeFetch<TagSearchResponse>()(
-			`/tags?q=${encodeURIComponent(query)}`
-		)
+		const response = await safeFetch<TagSearchResponse>()(`/tags?q=${encodeURIComponent(query)}`)
 		return response.isOk() ? response.value.tags : []
 	}
 

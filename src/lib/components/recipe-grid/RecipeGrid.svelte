@@ -5,7 +5,7 @@
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 
 	type RecipeItem = NonNullable<ComponentProps<typeof RecipeCard>['recipe']>
-	type LoadingItem = { loading: true, id: string }
+	type LoadingItem = { loading: boolean; id: string }
 	type GridItem = RecipeItem | LoadingItem
 
 	let {
@@ -32,7 +32,11 @@
 	let isInitialLoading = $state(true)
 
 	// initial 18 loading items
-	let resolvedRecipes = $state<RecipeItem[]>()
+	let resolvedRecipes = $state<GridItem[]>([
+		...Array(18)
+			.fill(undefined)
+			.map((_, index) => ({ loading: true, id: `loading-${index}` }))
+	])
 
 	$effect(() => {
 		recipes.then((recipeArray) => {
@@ -46,7 +50,9 @@
 			const existingRecipes = resolvedRecipes || []
 			return [
 				...existingRecipes.map((recipe) => ({ ...recipe, loading: false })),
-				...Array(18).fill(undefined).map((_, index) => ({ loading: true, id: `loading-${index}` }))
+				...Array(18)
+					.fill(undefined)
+					.map((_, index) => ({ loading: true, id: `loading-${index}` }))
 			] as GridItem[]
 		}
 		return resolvedRecipes as GridItem[]
@@ -76,17 +82,15 @@
 	})
 </script>
 
-{#if resolvedRecipes}
-	<CardGrid items={renderedItems} {emptyMessage} {useAnimation}>
-		{#snippet item(recipe)}
-			{#if 'loading' in recipe && recipe.loading}
-				<RecipeCard loading />
-			{:else}
-				<RecipeCard recipe={recipe as RecipeItem} {onRecipeClick} />
-			{/if}
-		{/snippet}
-	</CardGrid>
-{/if}
+<CardGrid items={renderedItems} {emptyMessage} {useAnimation}>
+	{#snippet item(gridItem)}
+		<RecipeCard
+			loading={gridItem.id.startsWith('loading')}
+			recipe={gridItem.id.startsWith('loading') ? undefined : (gridItem as RecipeItem)}
+			{onRecipeClick}
+		/>
+	{/snippet}
+</CardGrid>
 
 {#if loadMore}
 	<div bind:this={loadMoreTrigger} class="load-more-trigger"></div>

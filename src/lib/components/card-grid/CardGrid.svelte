@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { gsap } from 'gsap'
-	import { untrack, type Snippet } from 'svelte'
+	import { type Snippet } from 'svelte'
 
 	type Item = $$Generic<{ id: string }>
 

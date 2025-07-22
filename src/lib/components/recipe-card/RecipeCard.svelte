@@ -9,6 +9,7 @@
 	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	import { afterNavigate } from '$app/navigation'
+	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 
 	let {
 		recipe,
@@ -76,7 +77,11 @@
 >
 	<div class="image-container" class:no-image={recipe && !recipe.imageUrl}>
 		{#if loading}
-			<div class="gradient-animate"></div>
+			<div
+				style="width: 100%; height: 100%; aspect-ratio: 16/9; border-radius: var(--border-radius-2xl) var(--border-radius-2xl) 0 0; position: absolute; top: 0; left: 0; overflow: hidden;"
+			>
+				<Skeleton width="100%" height="100%" />
+			</div>
 		{:else if recipe?.imageUrl}
 			<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
 		{:else}
@@ -104,34 +109,36 @@
 		{/if}
 
 		<div>
-			<div>
-				{#if loading}
-					<div class="title">
-						<div class="gradient-animate"></div>
-					</div>
-				{:else if recipe}
-					<h3 class="recipe-title" style:margin="0">{recipe.title}</h3>
-				{/if}
-			</div>
+			{#if loading}
+				<div class="title">
+					<Skeleton width="80%" height="32px" />
+				</div>
+			{:else if recipe}
+				<h3 class="recipe-title" style:margin="0">{recipe.title}</h3>
+			{/if}
 		</div>
 
 		<div class="meta-single" aria-label="Recipe details">
-			<div class="tags">
-				{#if loading}
+			{#if loading}
+				<div class="tags">
 					{#each Array(3) as _}
-						<div class="tag">
-							<div class="gradient-animate"></div>
+						<div
+							style="border-radius: var(--border-radius-xl); overflow: hidden; width: 60px; height: 24px;"
+						>
+							<Skeleton height="100%" />
 						</div>
 					{/each}
-				{:else if recipe?.tags && recipe.tags.length > 0}
+				</div>
+			{:else if recipe?.tags && recipe.tags.length > 0}
+				<div class="tags">
 					{#each recipe.tags as tag}
 						<Pill text={tag} color="var(--color-text-on-surface)" />
 					{/each}
-				{/if}
-			</div>
+				</div>
+			{/if}
 			{#if loading}
 				<span class="text">
-					<div class="gradient-animate"></div>
+					<Skeleton width="60px" height="16px" />
 				</span>
 			{:else if recipe}
 				<span class="meta-content">
@@ -333,74 +340,6 @@
 
 	.skeleton {
 		pointer-events: none;
-	}
-
-	.gradient-animate {
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(
-			90deg,
-			rgba(255, 255, 255, 0.05) 0%,
-			rgba(255, 255, 255, 0.1) 25%,
-			rgba(255, 255, 255, 0.15) 50%,
-			rgba(255, 255, 255, 0.1) 75%,
-			rgba(255, 255, 255, 0.05) 100%
-		);
-		background-size: 200% 100%;
-		animation: gradient-shift 1.5s ease-in-out infinite;
-		will-change: background-position;
-	}
-
-	.skeleton .image-container {
-		position: relative;
-		width: 100%;
-		aspect-ratio: 16 / 9;
-		overflow: hidden;
-		background: var(--color-neutral-darker);
-	}
-
-	.skeleton .like-button {
-		width: 40px;
-		height: 40px;
-		border-radius: 50%;
-		overflow: hidden;
-		background: var(--color-neutral-darker);
-	}
-
-	.skeleton .title {
-		position: relative;
-		width: 80%;
-		height: 24px;
-		margin-bottom: var(--spacing-md);
-		overflow: hidden;
-		background: var(--color-neutral-darker);
-	}
-
-	.skeleton .description {
-		position: relative;
-		width: 100%;
-		height: 40px;
-		margin-bottom: var(--spacing-lg);
-		overflow: hidden;
-		background: var(--color-neutral-darker);
-	}
-
-	.skeleton .text {
-		position: relative;
-		width: 60px;
-		height: 16px;
-		display: inline-block;
-		overflow: hidden;
-		background: var(--color-neutral-darker);
-	}
-
-	.skeleton .tag {
-		position: relative;
-		width: 80px;
-		height: 24px;
-		border-radius: var(--border-radius-sm);
-		overflow: hidden;
-		background: var(--color-neutral-darker);
 	}
 
 	@keyframes gradient-shift {
