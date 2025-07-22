@@ -3,7 +3,6 @@
 	import User from 'lucide-svelte/icons/user'
 	import SquarePlus from 'lucide-svelte/icons/square-plus'
 	import Bookmark from 'lucide-svelte/icons/bookmark'
-	import { goto } from '$app/navigation'
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
 
 	let {
@@ -34,7 +33,6 @@
 	function open(viewName?: typeof view) {
 		view = viewName
 		isDrawerOpen = !!viewName
-		//goto(viewName ? `/profile?tab=${viewName}` : '/profile', { replaceState: true })
 	}
 
 	function handleBack() {
@@ -76,7 +74,7 @@
 	<div class="signout-row">{@render signOut(true)}</div>
 </div>
 
-<Drawer 
+<Drawer
 	bind:isOpen={isDrawerOpen}
 	title={getDrawerTitle()}
 	position="side"

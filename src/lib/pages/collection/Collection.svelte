@@ -59,7 +59,7 @@
 </script>
 
 <div>
-	<a class="back-button" href="/profile?tab=Saved recipes">
+	<a class="back-button" href="/user/{data.user?.username}?tab=Saved recipes">
 		<ArrowLeftIcon size={18} />
 		<span>Back to saved recipes</span>
 	</a>

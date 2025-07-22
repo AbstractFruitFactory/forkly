@@ -22,10 +22,11 @@
 
 <div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 	<Profile
-		user={form?.user ?? data.user!}
-		createdRecipes={data.recipes}
-		collections={data.collections}
-		onLogout={handleLogout}
+		user={Promise.resolve(form?.user ?? data.profileUser!)}
+		createdRecipes={Promise.resolve(data.recipes)}
+		collections={Promise.resolve(data.collections)}
+		onLogout={data.isOwner ? handleLogout : undefined}
 		initialTab={data.initialTab}
+		isOwner={data.isOwner ?? false}
 	/>
-</div>
+</div> 

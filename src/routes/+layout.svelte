@@ -119,7 +119,7 @@
 		<Header
 			loggedIn={!!data.user}
 			newRecipeHref="/new"
-			profileHref="/profile"
+			profileHref={data.user ? `/user/${data.user.username}` : '/profile'}
 			loginHref="/login"
 			profilePicUrl={data.user?.avatarUrl ?? undefined}
 		/>
@@ -147,7 +147,7 @@
 			loggedIn={!!data.user}
 			homeHref="/"
 			newRecipeHref="/new"
-			profileHref="/profile"
+			profileHref={data.user ? `/user/${data.user.username}` : '/profile'}
 			loginHref="/login"
 		/>
 	{/snippet}

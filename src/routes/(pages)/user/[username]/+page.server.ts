@@ -1,11 +1,12 @@
 import { error, fail } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
-import { getUserById, getUserByUsername, updateUserProfile } from '$lib/server/db/user'
+import { getUserById, getUserByUsername, getPublicUserByUsername, updateUserProfile, type User } from '$lib/server/db/user'
 import * as v from 'valibot'
 import { deleteImage } from '$lib/server/cloudinary'
 import { safeFetch } from '$lib/utils/fetch'
-import type { UserRecipes } from '../../(api)/recipes/user/+server'
+import type { UserRecipes } from '../../../(api)/recipes/user/+server'
 import { getCollections } from '$lib/server/db/save'
+import { getRecipes, type RecipeFilter, type DetailedRecipe } from '$lib/server/db/recipe'
 
 const updateProfileSchema = v.object({
   username: v.pipe(
@@ -18,42 +19,71 @@ const updateProfileSchema = v.object({
   avatarUrl: v.nullish(v.string())
 })
 
-export const load: PageServerLoad = ({ locals, fetch, url }) => {
-  if (!locals.user) error(401, 'Unauthorized')
-
-  const recipes = safeFetch<UserRecipes>(fetch)('/recipes/user').then((r) => {
-    if (r.isErr()) error(500, 'Failed to load recipes')
-    return r.value.created
-  })
-
-  const user = getUserById(locals.user.id)
-  const collections = getCollections(locals.user.id)
+export const load: PageServerLoad = async ({ locals, fetch, url, params }) => {
+  const { username } = params
 
   const tab = url.searchParams.get('tab')
+  const isOwner = locals.user && locals.user.username === username
+
+  let profileUser: User
+
+  if (isOwner) {
+    profileUser = await getUserByUsername(username)
+  } else {
+    profileUser = await getPublicUserByUsername(username)
+  }
+
+  if (!profileUser) error(404, 'User not found')
+
+  let recipes: DetailedRecipe[]
+  let collections: { name: string; count: number }[]
+
+  if (isOwner) {
+    const userRecipes = await safeFetch<UserRecipes>(fetch)('/recipes/user')
+    if (userRecipes.isErr()) error(500, 'Failed to load recipes')
+    recipes = userRecipes.value.created
+    collections = await getCollections(locals.user!.id)
+  } else {
+    recipes = await getRecipes({
+      userId: profileUser.id,
+      detailed: true
+    })
+    collections = []
+  }
 
   return {
+    profileUser,
+    currentUser: locals.user,
+    isOwner,
     recipes,
     collections,
-    user,
     initialTab: tab ?? undefined
   }
 }
 
 export const actions = {
-  default: async ({ request, locals }) => {
+  default: async ({ request, locals, params }) => {
     if (!locals.user) error(401, 'Unauthorized')
 
+    const { username } = params
+    if (!username) error(400, 'Username is required')
+
+    const profileUser = await getUserByUsername(username)
+    if (!profileUser) error(404, 'User not found')
+
+    if (profileUser.id !== locals.user.id) error(403, 'Forbidden')
+
     const formData = await request.formData()
-    const username = formData.get('username')
+    const newUsername = formData.get('username')
     const bio = formData.get('bio')
     const avatarUrl = formData.get('avatarUrl')
 
-    if (!username) return fail(400, {
+    if (!newUsername) return fail(400, {
       error: 'Username is required'
     })
 
     const { success, issues, output } = v.safeParse(updateProfileSchema, {
-      username,
+      username: newUsername,
       bio,
       avatarUrl
     })

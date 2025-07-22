@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { User } from '$lib/server/db/schema'
 	import Button from '$lib/components/button/Button.svelte'
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
@@ -8,30 +7,34 @@
 	import CollectionCard from '$lib/components/collection-card/CollectionCard.svelte'
 	import DesktopLayout from './DesktopLayout.svelte'
 	import MobileLayout from './MobileLayout.svelte'
-	import { goto, invalidateAll } from '$app/navigation'
+	import { invalidateAll } from '$app/navigation'
 	import { safeFetch } from '$lib/utils/fetch'
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
+	import type { PrivateUser, User } from '$lib/server/db/user'
 
 	let {
 		user,
 		createdRecipes = Promise.resolve([]),
 		collections = Promise.resolve([]),
 		initialTab,
-		onLogout
+		onLogout,
+		isOwner
 	}: {
-		user: Promise<Omit<User, 'passwordHash'>>
+		user: Promise<User>
 		createdRecipes?: Promise<DetailedRecipe[]>
 		collections?: Promise<{ name: string; count: number }[]>
 		initialTab?: string
 		onLogout?: () => void
+		isOwner?: boolean
 	} = $props()
 
-	const tabOptions = ['Profile info', 'Created recipes', 'Saved recipes']
+	const tabOptions = isOwner
+		? ['Profile info', 'Created recipes', 'Saved recipes']
+		: ['Profile info', 'Created recipes']
 	let selectedTab = $state(initialTab)
 
 	function handleTabSelect(option: (typeof tabOptions)[number]) {
 		selectedTab = option
-		//goto(`/profile?tab=${option}`, { replaceState: true })
 	}
 
 	let avatarInput: HTMLInputElement
@@ -70,26 +73,28 @@
 					<span class="avatar-initial">{user.username[0].toUpperCase()}</span>
 				{/if}
 			</div>
-			<input
-				type="file"
-				accept="image/*"
-				class="hidden-input"
-				bind:this={avatarInput}
-				onchange={handleAvatarChange}
-			/>
-			<div class="avatar-edit-icon" onclick={() => avatarInput.click()}>
-				<svg
-					width="24"
-					height="24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					viewBox="0 0 24 24"
-					><path
-						d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 1 1 2.828 2.828L11.828 15.828a4 4 0 0 1-1.414.94l-4.243 1.415 1.415-4.243a4 4 0 0 1 .94-1.414z"
-					/></svg
-				>
-			</div>
+			{#if isOwner}
+				<input
+					type="file"
+					accept="image/*"
+					class="hidden-input"
+					bind:this={avatarInput}
+					onchange={handleAvatarChange}
+				/>
+				<div class="avatar-edit-icon" onclick={() => avatarInput.click()}>
+					<svg
+						width="24"
+						height="24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24"
+						><path
+							d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 1 1 2.828 2.828L11.828 15.828a4 4 0 0 1-1.414.94l-4.243 1.415 1.415-4.243a4 4 0 0 1 .94-1.414z"
+						/></svg
+					>
+				</div>
+			{/if}
 		{/await}
 	</div>
 {/snippet}
@@ -109,20 +114,24 @@
 {/snippet}
 
 {#snippet email()}
-	<div class="profile-email">
-		{#await user}
-			<Skeleton width="100px" height="24px" />
-		{:then user}
-			{user.email}
-		{/await}
-	</div>
+	{#if isOwner}
+		<div class="profile-email">
+			{#await user}
+				<Skeleton width="100px" height="24px" />
+			{:then user}
+				{(user as PrivateUser).email}
+			{/await}
+		</div>
+	{/if}
 {/snippet}
 
 {#snippet signOut(fullWidth = false)}
-	<Button variant="border" color="neutral" size="sm" onclick={onLogout} {fullWidth}>
-		<LogOut size={16} />
-		Sign out
-	</Button>
+	{#if isOwner && onLogout}
+		<Button variant="border" color="neutral" size="sm" onclick={onLogout} {fullWidth}>
+			<LogOut size={16} />
+			Sign out
+		</Button>
+	{/if}
 {/snippet}
 
 {#snippet profileInfo()}
@@ -137,16 +146,18 @@
 				{/await}
 			</div>
 		</div>
-		<div class="profile-info-row">
-			<div class="profile-info-label">Email</div>
-			<div class="profile-info-value">
-				{#await user}
-					<Skeleton width="100px" height="24px" />
-				{:then user}
-					{user.email}
-				{/await}
+		{#if isOwner}
+			<div class="profile-info-row">
+				<div class="profile-info-label">Email</div>
+				<div class="profile-info-value">
+					{#await user}
+						<Skeleton width="100px" height="24px" />
+					{:then user}
+						{(user as PrivateUser).email}
+					{/await}
+				</div>
 			</div>
-		</div>
+		{/if}
 		<div class="profile-info-row">
 			<div class="profile-info-label">Bio</div>
 			<div class="profile-info-value">
@@ -163,26 +174,28 @@
 {#snippet _createdRecipes()}
 	<RecipeGrid
 		recipes={createdRecipes}
-		emptyMessage="You haven't created any recipes yet."
+		emptyMessage="No recipes created yet!"
 		useAnimation={false}
 	/>
 {/snippet}
 
 {#snippet _savedRecipes()}
-	{#await collections then collections}
-		<CardGrid
-			items={collections.map((collection) => ({
-				...collection,
-				id: collection.name
-			}))}
-			useAnimation={false}
-			emptyMessage="You haven't saved any collections yet."
-		>
-			{#snippet item(item)}
-				<CollectionCard name={item.name} count={item.count} />
-			{/snippet}
-		</CardGrid>
-	{/await}
+	{#if isOwner}
+		{#await collections then collections}
+			<CardGrid
+				items={collections.map((collection) => ({
+					...collection,
+					id: collection.name
+				}))}
+				useAnimation={false}
+				emptyMessage="You haven't saved any collections yet."
+			>
+				{#snippet item(item)}
+					<CollectionCard name={item.name} count={item.count} />
+				{/snippet}
+			</CardGrid>
+		{/await}
+	{/if}
 {/snippet}
 
 <div class="profile-desktop-view">

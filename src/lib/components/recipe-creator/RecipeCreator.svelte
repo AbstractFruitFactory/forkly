@@ -12,7 +12,7 @@
 	} = $props()
 </script>
 
-<a href="/profile/{userId}" class="recipe-creator">
+<a href="/user/{username}" class="recipe-creator">
 	<ProfilePic {profilePicUrl} size="lg" />
 	<span class="username">{username}</span>
 </a>
