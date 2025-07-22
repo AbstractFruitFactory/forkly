@@ -14,7 +14,8 @@
 		useAnimation = true,
 		loadMore,
 		onRecipeClick,
-		isLoadingMore = false
+		isLoadingMore = false,
+		isLoading = false
 	}: {
 		recipes: Promise<RecipeItem[]>
 		emptyMessage?: string
@@ -22,12 +23,15 @@
 		useAnimation?: boolean
 		onRecipeClick?: (recipe: DetailedRecipe, event: MouseEvent) => Promise<void>
 		isLoadingMore?: boolean
+		isLoading?: boolean
 	} = $props()
 
 	let loadMoreTrigger: HTMLElement
 	let observer: IntersectionObserver
 
 	let isInitialLoading = $state(true)
+
+	// initial 18 loading items
 	let resolvedRecipes = $state<RecipeItem[]>()
 
 	$effect(() => {
@@ -53,7 +57,7 @@
 
 		observer = new IntersectionObserver(
 			(entries) => {
-				if (entries[0].isIntersecting && !isLoadingMore && !isInitialLoading) {
+				if (entries[0].isIntersecting && !isLoadingMore && !isInitialLoading && !isLoading) {
 					loadMore()
 				}
 			},

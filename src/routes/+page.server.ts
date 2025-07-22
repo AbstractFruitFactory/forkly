@@ -34,7 +34,7 @@ export const load: PageServerLoad = ({ fetch, cookies }) => {
 
         return {
                 hasMore: recipesPromise.then((r) => r.length === PAGINATION_LIMIT),
-                loadedPage: page !== undefined,
+                loadedPage: !!page,
                 recipes: recipesPromise,
                 initialState: {
                         search: search?.query || '',

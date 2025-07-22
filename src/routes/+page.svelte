@@ -5,7 +5,6 @@
 	import type { IngredientLookupResult } from './(api)/ingredients/lookup/[query]/+server'
 	import type { TagSearchResponse } from './(api)/tags/+server'
 	import { scrolledDownHomepageStore } from './+layout.svelte'
-	import { onMount } from 'svelte'
 	import { useCookies } from '$lib/utils/cookies'
 
 	let { data } = $props()
@@ -146,4 +145,5 @@
 	{onSearchbarSticky}
 	initialSearchValue={searchValue}
 	isLoadingMore={pagination.isLoading}
+	{isLoading}
 />
