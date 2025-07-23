@@ -117,8 +117,6 @@ const parseIngredientOrInstruction = (formData: FormData, keyPrefix: string) =>
       return { id, field, value: value.toString() }
     })
 
-
-
 const parseFormData = (formData: FormData): FormFields => {
   const tags = formData.getAll('tags').map(value => value.toString())
 
@@ -142,8 +140,6 @@ const parseFormData = (formData: FormData): FormFields => {
       mediaType: undefined
     }
   })
-
-
 
   const nutritionMode = formData.get('nutritionMode')?.toString() as 'auto' | 'manual' | 'none' | undefined
   let manualNutrition: FormFields['manualNutrition'] = undefined
@@ -171,219 +167,247 @@ const parseFormData = (formData: FormData): FormFields => {
   }
 }
 
-export const actions = {
-  default: async ({ request, fetch }) => {
-    const formData = await request.formData()
-    console.log(formData)
-    const recipeData = parseFormData(formData)
-    const imageFile = formData.get('image') as File | undefined
+const processRecipeForm = async (formData: FormData, fetch: any, isUpdate = false, recipeId?: string) => {
+  const recipeData = parseFormData(formData)
+  const imageFile = formData.get('image') as File | undefined
 
-    // Parse instructions again to get the IDs for media lookup
-    const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')
-    const instructionById = groupBy(entry => entry.id, instructionEntries)
+  // Parse instructions again to get the IDs for media lookup
+  const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')
+  const instructionById = groupBy(entry => entry.id, instructionEntries)
 
-    const instructionsWithMedia = await Promise.all(
-      recipeData.instructions.map(async (instruction, index) => {
-        // Find the instruction ID from the parsed data
-        const instructionId = Object.keys(instructionById)[index]
-        const mediaFile = formData.get(`instructions-${instructionId}-media`) as File | undefined
+  const instructionsWithMedia = await Promise.all(
+    recipeData.instructions.map(async (instruction, index) => {
+      // Find the instruction ID from the parsed data
+      const instructionId = Object.keys(instructionById)[index]
+      const mediaFile = formData.get(`instructions-${instructionId}-media`) as File | undefined
 
-        if (mediaFile && mediaFile.size > 0) {
-          const arrayBuffer = await mediaFile.arrayBuffer()
-          const buffer = Buffer.from(arrayBuffer)
-          const isVideo = mediaFile.type.startsWith('video/')
-          const mediaUrl = await uploadMedia(buffer, {
-            folder: 'instruction-media',
-            resource_type: isVideo ? 'video' : 'image'
-          })
-
-          return {
-            ...instruction,
-            id: instructionId,
-            mediaUrl,
-            mediaType: isVideo ? ('video' as const) : ('image' as const)
-          }
-        }
+      if (mediaFile && mediaFile.size > 0) {
+        const arrayBuffer = await mediaFile.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+        const isVideo = mediaFile.type.startsWith('video/')
+        const mediaUrl = await uploadMedia(buffer, {
+          folder: 'instruction-media',
+          resource_type: isVideo ? 'video' : 'image'
+        })
 
         return {
           ...instruction,
-          id: instructionId
+          id: instructionId,
+          mediaUrl,
+          mediaType: isVideo ? ('video' as const) : ('image' as const)
         }
-      })
-    )
+      }
 
-    recipeData.instructions = instructionsWithMedia
+      return {
+        ...instruction,
+        id: instructionId
+      }
+    })
+  )
 
-    const result = v.safeParse(formValidationSchema, {
-      title: recipeData.title,
-      description: recipeData.description,
-      servings: Number(recipeData.servings) || 1,
-      ingredients: [], // Ingredients are now scoped to instructions
-      instructions: recipeData.instructions,
-      tags: recipeData.tags
+  recipeData.instructions = instructionsWithMedia
+
+  const result = v.safeParse(formValidationSchema, {
+    title: recipeData.title,
+    description: recipeData.description,
+    servings: Number(recipeData.servings) || 1,
+    ingredients: [], // Ingredients are now scoped to instructions
+    instructions: recipeData.instructions,
+    tags: recipeData.tags
+  })
+
+  if (!result.success) {
+    return fail(400, {
+      success: false,
+      errors: result.issues.map(issue => ({
+        path: issue.path?.map(p => p.key).join('.') || '',
+        message: issue.message
+      }))
+    })
+  }
+
+  let imageUrl: string | undefined = undefined
+  if (imageFile && imageFile.size > 0) {
+    const arrayBuffer = await imageFile.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    imageUrl = await uploadImage(buffer)
+  }
+
+  // Parse ingredients per instruction from form data
+  const ingredientEntries = Array.from(formData.entries())
+    .filter(([key]) => key.startsWith('instructions-') && key.includes('-ingredient-'))
+    .map(([key, value]) => {
+      // Parse: instructions-{instructionId}-ingredient-{ingredientId}-{field}
+      const parts = key.split('-')
+      const instructionId = parts[1]
+      const ingredientId = parts[3]
+      const field = parts[4]
+      return { instructionId, ingredientId, field, value: value.toString() }
     })
 
-    if (!result.success) {
-      return fail(400, {
-        success: false,
-        errors: result.issues.map(issue => ({
-          path: issue.path?.map(p => p.key).join('.') || '',
-          message: issue.message
-        }))
-      })
+  const ingredientsByInstruction = new Map<string, Array<{
+    name: string
+    displayName: string
+    quantity?: number
+    measurement?: string
+  }>>()
+
+  // Group ingredients by their instruction ID
+  const ingredientGroups = new Map<string, Map<string, { [key: string]: string }>>()
+
+  for (const entry of ingredientEntries) {
+    if (!ingredientGroups.has(entry.instructionId)) {
+      ingredientGroups.set(entry.instructionId, new Map())
     }
 
-    let imageUrl: string | undefined = undefined
-    if (imageFile && imageFile.size > 0) {
-      const arrayBuffer = await imageFile.arrayBuffer()
-      const buffer = Buffer.from(arrayBuffer)
-      imageUrl = await uploadImage(buffer)
+    const instructionIngredients = ingredientGroups.get(entry.instructionId)!
+    if (!instructionIngredients.has(entry.ingredientId)) {
+      instructionIngredients.set(entry.ingredientId, {})
     }
 
-    // Parse ingredients per instruction from form data
-    const ingredientEntries = Array.from(formData.entries())
-      .filter(([key]) => key.startsWith('instructions-') && key.includes('-ingredient-'))
-      .map(([key, value]) => {
-        // Parse: instructions-{instructionId}-ingredient-{ingredientId}-{field}
-        const parts = key.split('-')
-        const instructionId = parts[1]
-        const ingredientId = parts[3]
-        const field = parts[4]
-        return { instructionId, ingredientId, field, value: value.toString() }
-      })
+    const ingredient = instructionIngredients.get(entry.ingredientId)!
+    ingredient[entry.field] = entry.value
+  }
 
-    const ingredientsByInstruction = new Map<string, Array<{
+  // Convert grouped ingredients to the expected format
+  for (const [instructionId, ingredientMap] of ingredientGroups) {
+    const ingredients: Array<{
       name: string
       displayName: string
       quantity?: number
       measurement?: string
-    }>>()
+    }> = []
 
-    // Group ingredients by their instruction ID
-    const ingredientGroups = new Map<string, Map<string, { [key: string]: string }>>()
-
-    for (const entry of ingredientEntries) {
-      if (!ingredientGroups.has(entry.instructionId)) {
-        ingredientGroups.set(entry.instructionId, new Map())
+    for (const [ingredientId, ingredientData] of ingredientMap) {
+      if (ingredientData.name) {
+        ingredients.push({
+          name: ingredientData.name,
+          displayName: ingredientData.name,
+          quantity: ingredientData.amount ? parseFloat(ingredientData.amount) : undefined,
+          measurement: ingredientData.unit
+        })
       }
-
-      const instructionIngredients = ingredientGroups.get(entry.instructionId)!
-      if (!instructionIngredients.has(entry.ingredientId)) {
-        instructionIngredients.set(entry.ingredientId, {})
-      }
-
-      const ingredient = instructionIngredients.get(entry.ingredientId)!
-      ingredient[entry.field] = entry.value
     }
 
-    // Convert grouped ingredients to the expected format
-    for (const [instructionId, ingredientMap] of ingredientGroups) {
-      const ingredients: Array<{
-        name: string
-        displayName: string
-        quantity?: number
-        measurement?: string
-      }> = []
+    ingredientsByInstruction.set(instructionId, ingredients)
+  }
 
-      for (const [ingredientId, ingredientData] of ingredientMap) {
-        if (ingredientData.name) {
-          ingredients.push({
-            name: ingredientData.name,
-            displayName: ingredientData.name,
-            quantity: ingredientData.amount ? parseFloat(ingredientData.amount) : undefined,
-            measurement: ingredientData.unit
-          })
-        }
-      }
-
-      ingredientsByInstruction.set(instructionId, ingredients)
+  // Add ingredients to instructions
+  const instructionsWithIngredients = recipeData.instructions.map((instruction, index) => {
+    const instructionId = Object.keys(instructionById)[index]
+    const instructionIngredients = ingredientsByInstruction.get(instructionId) || []
+    return {
+      ...instruction,
+      id: instructionId,
+      ingredients: instructionIngredients
     }
+  })
 
-    // Add ingredients to instructions
-    const instructionsWithIngredients = recipeData.instructions.map((instruction, index) => {
-      const instructionId = Object.keys(instructionById)[index]
-      const instructionIngredients = ingredientsByInstruction.get(instructionId) || []
-      return {
-        ...instruction,
-        id: instructionId,
-        ingredients: instructionIngredients
-      }
+  // Validate that the recipe has at least one ingredient
+  const allIngredients = instructionsWithIngredients.flatMap(instruction => instruction.ingredients || [])
+  if (allIngredients.length === 0) {
+    return fail(400, {
+      success: false,
+      errors: [{
+        path: 'ingredients',
+        message: 'Recipe must have at least one ingredient'
+      }]
     })
+  }
 
-    // Validate that the recipe has at least one ingredient
+  // Calculate nutrition after instructions are processed
+  let nutrition: typeof recipeData.manualNutrition | null = null
+  if (recipeData.nutritionMode === 'manual') {
+    nutrition = recipeData.manualNutrition ?? null
+  } else if (recipeData.nutritionMode === 'auto') {
+    // Collect all ingredients from all instructions for nutrition calculation
     const allIngredients = instructionsWithIngredients.flatMap(instruction => instruction.ingredients || [])
-    if (allIngredients.length === 0) {
+    const nutritionResult = await api('getRecipeInfo')(
+      allIngredients.map(ing => ({
+        amount: ing.quantity,
+        unit: ing.measurement,
+        name: ing.name
+      })),
+      recipeData.instructions.map(i => i.text).join('\n'),
+      recipeData.servings
+    )
+
+    if (nutritionResult.isOk()) {
+      nutrition = {
+        calories: nutritionResult.value.calories,
+        protein: nutritionResult.value.protein,
+        carbs: nutritionResult.value.carbs,
+        fat: nutritionResult.value.fat
+      }
+    }
+  }
+
+  const requestPayload = {
+    ...(isUpdate && recipeId ? { id: recipeId } : {}),
+    title: recipeData.title,
+    description: recipeData.description,
+    servings: recipeData.servings,
+    instructions: instructionsWithIngredients,
+    nutrition: nutrition,
+    tags: recipeData.tags,
+    imageUrl
+  }
+
+  const endpoint = isUpdate ? '/recipes/update' : '/recipes/create'
+  const method = isUpdate ? 'POST' : 'POST'
+
+  const fetchResponse = await safeFetch<RecipeApiResponse>(fetch)(
+    endpoint,
+    {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestPayload)
+    }
+  )
+
+  if (fetchResponse.isErr()) {
+    console.error(`Error ${isUpdate ? 'updating' : 'creating'} recipe`, fetchResponse.error)
+    return fail(500, {
+      success: false,
+      errors: [{
+        path: 'api',
+        message: `An unexpected error occurred while ${isUpdate ? 'updating' : 'creating'} the recipe`
+      }]
+    })
+  }
+
+  return {
+    success: true,
+    recipeId: fetchResponse.value.id
+  }
+}
+
+export const actions = {
+  create: async ({ request, fetch }) => {
+    return await processRecipeForm(await request.formData(), fetch, false)
+  },
+
+  update: async ({ request, fetch }) => {
+    const formData = await request.formData()
+    const recipeId = formData.get('id')?.toString()
+
+    console.log(recipeId)
+    if (!recipeId) {
       return fail(400, {
         success: false,
         errors: [{
-          path: 'ingredients',
-          message: 'Recipe must have at least one ingredient'
+          path: 'id',
+          message: 'Recipe ID is required for updates'
         }]
       })
     }
 
-    // Calculate nutrition after instructions are processed
-    let nutrition: typeof recipeData.manualNutrition | null = null
-    if (recipeData.nutritionMode === 'manual') {
-      nutrition = recipeData.manualNutrition ?? null
-    } else if (recipeData.nutritionMode === 'auto') {
-      // Collect all ingredients from all instructions for nutrition calculation
-      const allIngredients = instructionsWithIngredients.flatMap(instruction => instruction.ingredients || [])
-      const nutritionResult = await api('getRecipeInfo')(
-        allIngredients.map(ing => ({
-          amount: ing.quantity,
-          unit: ing.measurement,
-          name: ing.name
-        })),
-        recipeData.instructions.map(i => i.text).join('\n'),
-        recipeData.servings
-      )
+    console.log(formData)
 
-      if (nutritionResult.isOk()) {
-        nutrition = {
-          calories: nutritionResult.value.calories,
-          protein: nutritionResult.value.protein,
-          carbs: nutritionResult.value.carbs,
-          fat: nutritionResult.value.fat
-        }
-      }
-    }
+    const result = await processRecipeForm(formData, fetch, true, recipeId)
 
-    const requestPayload = {
-      title: recipeData.title,
-      description: recipeData.description,
-      servings: recipeData.servings,
-      instructions: instructionsWithIngredients,
-      nutrition: nutrition,
-      tags: recipeData.tags,
-      imageUrl
-    }
-
-    const fetchResponse = await safeFetch<RecipeApiResponse>(fetch)(
-      '/recipes/create',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestPayload)
-      }
-    )
-
-    if (fetchResponse.isErr()) {
-      console.error('Error creating recipe', fetchResponse.error)
-      return fail(500, {
-        success: false,
-        errors: [{
-          path: 'api',
-          message: 'An unexpected error occurred while creating the recipe'
-        }]
-      })
-    }
-
-    return {
-      success: true,
-      recipeId: fetchResponse.value.id
-    }
+    return result
   }
 } satisfies Actions 

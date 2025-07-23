@@ -12,6 +12,8 @@
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 	import type { PrivateUser, User } from '$lib/server/db/user'
 	import Popup from '$lib/components/popup/Popup.svelte'
+	import NewRecipe from '$lib/pages/new-recipe/NewRecipe.svelte'
+	import Drawer from '$lib/components/drawer/Drawer.svelte'
 
 	let {
 		user,
@@ -40,7 +42,9 @@
 
 	let avatarInput: HTMLInputElement
 	let deletePopupOpen = $state(false)
-	let recipeToDelete: DetailedRecipe | null = null
+	let recipeToDelete: DetailedRecipe | undefined = $state()
+	let editPopupOpen = $state(false)
+	let recipeToEdit: DetailedRecipe | undefined = $state()
 
 	async function handleAvatarChange(event: Event) {
 		const input = event.target as HTMLInputElement
@@ -73,7 +77,7 @@
 
 		if (result.isOk()) {
 			deletePopupOpen = false
-			recipeToDelete = null
+			recipeToDelete = undefined
 			invalidateAll()
 		}
 	}
@@ -83,11 +87,30 @@
 		deletePopupOpen = true
 	}
 
+	function openEditPopup(recipe: DetailedRecipe) {
+		recipeToEdit = recipe
+		editPopupOpen = true
+	}
+
+	const searchTags = async (query: string): Promise<{ name: string; count: number }[]> => {
+		const response = await safeFetch<{ tags: { name: string; count: number }[] }>()(
+			`/tags?q=${encodeURIComponent(query)}`
+		)
+		return response.isOk() ? response.value.tags : []
+	}
+
+	const searchIngredients = async (query: string): Promise<{ id: string; name: string }[]> => {
+		if (!query.trim()) return []
+		const result = await safeFetch<{ id: string; name: string }[]>()(`/ingredients/lookup/${query}`)
+		return result.isOk() ? result.value : []
+	}
+
 	function getMenuOptions(recipe: DetailedRecipe) {
 		if (!isOwner) return {}
-		
+
 		return {
-			'Delete': () => openDeletePopup(recipe)
+			Edit: () => openEditPopup(recipe),
+			Delete: () => openDeletePopup(recipe)
 		} as { [key: string]: () => void }
 	}
 </script>
@@ -113,7 +136,11 @@
 					bind:this={avatarInput}
 					onchange={handleAvatarChange}
 				/>
-				<div class="avatar-edit-icon" onclick={() => avatarInput.click()}>
+				<button
+					class="avatar-edit-icon"
+					onclick={() => avatarInput.click()}
+					aria-label="Edit avatar"
+				>
 					<svg
 						width="24"
 						height="24"
@@ -125,7 +152,7 @@
 							d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 1 1 2.828 2.828L11.828 15.828a4 4 0 0 1-1.414.94l-4.243 1.415 1.415-4.243a4 4 0 0 1 .94-1.414z"
 						/></svg
 					>
-				</div>
+				</button>
 			{/if}
 		{/await}
 	</div>
@@ -245,6 +272,54 @@
 		</div>
 	</div>
 </Popup>
+
+{#snippet editRecipe()}
+	{#if recipeToEdit}
+		<NewRecipe
+			prefilledData={{
+				id: recipeToEdit.id,
+				title: recipeToEdit.title,
+				description: recipeToEdit.description ?? '',
+				image: recipeToEdit.imageUrl ?? '',
+				tags: recipeToEdit.tags,
+				servings: recipeToEdit.servings,
+				nutritionMode: 'auto',
+				instructions: recipeToEdit.instructions
+			}}
+			editMode={{
+				onSave: () => {
+					recipeToEdit = undefined
+					editPopupOpen = false
+					invalidateAll()
+				}
+			}}
+			onSearchTags={searchTags}
+			onSearchIngredients={searchIngredients}
+		/>
+	{/if}
+{/snippet}
+
+<div class="desktop-only">
+	<Popup
+		isOpen={editPopupOpen}
+		onClose={() => (editPopupOpen = false)}
+		title="Edit Recipe"
+		width="90vw"
+	>
+		{@render editRecipe()}
+	</Popup>
+</div>
+
+{#if editPopupOpen}
+	<div
+		class="mobile-only"
+		style="z-index: var(--z-modal); position: fixed; top: 0; left: 0; right: 0; bottom: 0;"
+	>
+		<Drawer position="side" bind:isOpen={editPopupOpen} title="Edit Recipe">
+			{@render editRecipe()}
+		</Drawer>
+	</div>
+{/if}
 
 <div class="profile-desktop-view">
 	<DesktopLayout

@@ -27,6 +27,6 @@
 		collections={Promise.resolve(data.collections)}
 		onLogout={data.isOwner ? handleLogout : undefined}
 		initialTab={data.initialTab}
-		isOwner={data.isOwner ?? false}
+		isOwner={data.isOwner}
 	/>
 </div> 

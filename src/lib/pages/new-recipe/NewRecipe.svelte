@@ -1,5 +1,31 @@
 <script lang="ts" module>
 	export const generateId = () => Math.random().toString(36).slice(2)
+
+	export type RecipeData = {
+		id: string
+		title: string
+		description: string
+		image: string
+		tags: string[]
+		servings: number
+		nutritionMode: 'auto' | 'manual' | 'none'
+		nutrition?: {
+			calories: number
+			protein: number
+			carbs: number
+			fat: number
+		}
+		instructions: {
+			text: string
+			mediaUrl?: string
+			mediaType?: 'image' | 'video'
+			ingredients?: {
+				name: string
+				quantity: number
+				measurement: string
+			}[]
+		}[]
+	}
 </script>
 
 <script lang="ts">
@@ -10,7 +36,6 @@
 	import DesktopLayout from './DesktopLayout.svelte'
 	import MobileLayout from './MobileLayout.svelte'
 	import Button from '$lib/components/button/Button.svelte'
-	import DownloadIcon from 'lucide-svelte/icons/download'
 	import Input from '$lib/components/input/Input.svelte'
 	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
 	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
@@ -23,12 +48,18 @@
 	import { UNIT_DISPLAY_TEXT, UNITS } from '$lib/utils/unitConversion'
 
 	let {
+		prefilledData,
+		editMode,
 		errors,
 		unitSystem = 'imperial',
 		onSearchTags,
 		onSearchIngredients,
 		onUnitChange
 	}: {
+		prefilledData?: RecipeData
+		editMode?: {
+			onSave: () => void
+		}
 		errors?: { path: string; message: string }[]
 		onSearchIngredients?: (query: string) => Promise<Ingredient[]>
 		unitSystem?: UnitSystem
@@ -36,22 +67,23 @@
 		onUnitChange?: (system: UnitSystem) => void
 	} = $props()
 
-	let _title = $state('')
-	let servings = $state(1)
-	let selectedTags = $state<string[]>([])
-	let image = $state<string | null>(null)
+	let _title = $state(prefilledData?.title ?? '')
+	let _description = $state(prefilledData?.description ?? '')
+	let servings = $state(prefilledData?.servings ?? 1)
+	let selectedTags = $state<string[]>(prefilledData?.tags ?? [])
+	let image = $state<string | null>(prefilledData?.image ?? null)
 
-	let nutritionMode = $state<'auto' | 'manual' | 'none'>('auto')
-	let calories = $state('')
-	let protein = $state('')
-	let carbs = $state('')
-	let fat = $state('')
+	let nutritionMode = $state<'auto' | 'manual' | 'none'>(prefilledData?.nutritionMode ?? 'auto')
+	let calories = $state(prefilledData?.nutrition?.calories ?? '')
+	let protein = $state(prefilledData?.nutrition?.protein ?? '')
+	let carbs = $state(prefilledData?.nutrition?.carbs ?? '')
+	let fat = $state(prefilledData?.nutrition?.fat ?? '')
 
 	$effect(() => {
 		if (nutritionMode === 'manual') {
-			const p = parseFloat(protein) || 0
-			const c = parseFloat(carbs) || 0
-			const f = parseFloat(fat) || 0
+			const p = parseFloat(String(protein)) || 0
+			const c = parseFloat(String(carbs)) || 0
+			const f = parseFloat(String(fat)) || 0
 			calories = String(p * 4 + c * 4 + f * 9)
 		} else {
 			calories = ''
@@ -61,8 +93,6 @@
 	let isMobileView = $state(false)
 	let mobileLayoutElement: HTMLElement
 	let desktopLayoutElement: HTMLElement
-
-	let isImportPopupOpen = $state(false)
 	let searchValue = $state('')
 
 	const checkViewport = () => {
@@ -144,14 +174,6 @@
 		onUnitChange?.(system)
 	}
 
-	function openImportPopup() {
-		isImportPopupOpen = true
-	}
-
-	function closeImportPopup() {
-		isImportPopupOpen = false
-	}
-
 	let submitting = $state(false)
 
 	const handleAddCustomTag = () => {
@@ -212,7 +234,12 @@
 
 {#snippet description()}
 	<Input>
-		<textarea name="description" placeholder="Describe your recipe (optional)" rows="3"></textarea>
+		<textarea
+			bind:value={_description}
+			name="description"
+			placeholder="Describe your recipe (optional)"
+			rows="3"
+		></textarea>
 	</Input>
 {/snippet}
 
@@ -291,7 +318,12 @@
 	{/if}
 {/snippet}
 
-{#snippet ingredientName(id: string, instructionId: string, onInput?: (value: string) => void)}
+{#snippet ingredientName(
+	id: string,
+	instructionId: string,
+	onInput?: (value: string) => void,
+	value?: string
+)}
 	<SuggestionSearch
 		placeholder="Enter ingredient"
 		onSearch={searchIngredients}
@@ -299,10 +331,16 @@
 		clearInput={false}
 		onInput={(value) => onInput?.(value)}
 		onSelect={(item) => onInput?.(item.name)}
+		searchValue={value}
 	/>
 {/snippet}
 
-{#snippet ingredientAmount(id: string, instructionId: string, onInput?: (value: string) => void)}
+{#snippet ingredientAmount(
+	id: string,
+	instructionId: string,
+	onInput?: (value: string) => void,
+	value?: string
+)}
 	<Input>
 		<input
 			type="number"
@@ -310,11 +348,17 @@
 			name="instructions-{instructionId}-ingredient-{id}-amount"
 			placeholder="Enter amount"
 			onchange={(e) => onInput?.(e.currentTarget.value)}
+			{value}
 		/>
 	</Input>
 {/snippet}
 
-{#snippet ingredientUnit(id: string, instructionId: string, onInput?: (value: string) => void)}
+{#snippet ingredientUnit(
+	id: string,
+	instructionId: string,
+	onInput?: (value: string) => void,
+	value?: string
+)}
 	<SuggestionSearch
 		placeholder="Unit"
 		formName="instructions-{instructionId}-ingredient-{id}-unit"
@@ -325,6 +369,7 @@
 		useId={true}
 		onInput={(value) => onInput?.(value)}
 		onSelect={(item) => onInput?.(item.name)}
+		searchValue={value}
 	/>
 {/snippet}
 
@@ -336,12 +381,13 @@
 	<UnitToggle state={unitSystem} onSelect={handleUnitChange} />
 {/snippet}
 
-{#snippet instructionInput(id?: string, onInput?: (value: string) => void)}
+{#snippet instructionInput(id?: string, onInput?: (value: string) => void, value?: string)}
 	<Input>
 		<textarea
 			name={id ? `instructions-${id}-text` : undefined}
 			placeholder="Enter instruction step"
 			onchange={(e) => onInput?.(e.currentTarget.value)}
+			{value}
 		></textarea>
 	</Input>
 {/snippet}
@@ -354,12 +400,20 @@
 	/>
 {/snippet}
 
+{#snippet submitButton()}
+	<Button loading={submitting} type="submit" color="primary"
+		>{editMode ? 'Save' : 'Create'} Recipe</Button
+	>
+{/snippet}
+
 <div class="new-recipe">
 	<form
 		method="POST"
+		action={editMode ? '/new?/update' : '/new?/create'}
 		enctype="multipart/form-data"
 		use:enhance={({ formData }) => {
 			submitting = true
+			formData.append('id', prefilledData?.id ?? '')
 			formData.append('servings', servings.toString())
 
 			selectedTags.forEach((tag) => {
@@ -370,6 +424,7 @@
 
 			return async ({ update }) => {
 				submitting = false
+				editMode?.onSave()
 				update()
 			}
 		}}
@@ -384,6 +439,7 @@
 
 		<div class="mobile-layout" bind:this={mobileLayoutElement}>
 			<MobileLayout
+				prefilledInstructions={prefilledData?.instructions}
 				{title}
 				{description}
 				{recipeImage}
@@ -391,16 +447,17 @@
 				{nutrition}
 				{servingsAdjuster}
 				{unitToggle}
-				{submitting}
 				{instructionInput}
 				{instructionMedia}
 				{ingredientName}
 				{ingredientAmount}
 				{ingredientUnit}
+				{submitButton}
 			/>
 		</div>
 		<div class="desktop-layout" bind:this={desktopLayoutElement}>
 			<DesktopLayout
+				prefilledInstructions={prefilledData?.instructions}
 				{title}
 				{description}
 				{recipeImage}
@@ -413,7 +470,7 @@
 				{ingredientName}
 				{ingredientAmount}
 				{ingredientUnit}
-				{submitting}
+				{submitButton}
 			/>
 		</div>
 	</form>

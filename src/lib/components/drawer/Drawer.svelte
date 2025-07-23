@@ -151,7 +151,6 @@
 			border-radius: 0;
 			box-shadow: none;
 			max-width: none;
-			z-index: var(--z-modal);
 
 			@include mobile {
 				width: 100%;

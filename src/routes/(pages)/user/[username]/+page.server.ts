@@ -23,7 +23,7 @@ export const load: PageServerLoad = async ({ locals, fetch, url, params }) => {
   const { username } = params
 
   const tab = url.searchParams.get('tab')
-  const isOwner = locals.user && locals.user.username === username
+  const isOwner = locals.user && locals.user.username === username || false
 
   let profileUser: User
 

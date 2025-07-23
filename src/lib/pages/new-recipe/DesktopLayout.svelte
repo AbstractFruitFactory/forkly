@@ -4,10 +4,11 @@
 	import Plus from 'lucide-svelte/icons/plus'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
-	import { generateId } from './NewRecipe.svelte'
+	import { generateId, type RecipeData } from './NewRecipe.svelte'
 	import type { Snippet } from 'svelte'
 
 	let {
+		prefilledInstructions,
 		title,
 		description,
 		recipeImage,
@@ -15,13 +16,14 @@
 		nutrition,
 		servingsAdjuster,
 		unitToggle,
-		submitting,
 		instructionInput,
 		instructionMedia,
 		ingredientName,
 		ingredientAmount,
-		ingredientUnit
+		ingredientUnit,
+		submitButton
 	}: {
+		prefilledInstructions?: RecipeData['instructions']
 		title: Snippet
 		description: Snippet
 		recipeImage: Snippet
@@ -29,22 +31,42 @@
 		nutrition: Snippet
 		servingsAdjuster: Snippet
 		unitToggle: Snippet
-		ingredientName: Snippet<[id: string, instructionId: string, onInput?: (value: string) => void]>
-		ingredientAmount: Snippet<
-			[id: string, instructionId: string, onInput?: (value: string) => void]
+		ingredientName: Snippet<
+			[id: string, instructionId: string, onInput?: (value: string) => void, value?: string]
 		>
-		ingredientUnit: Snippet<[id: string, instructionId: string, onInput?: (value: string) => void]>
-		instructionInput: Snippet<[id: string]>
+		ingredientAmount: Snippet<
+			[id: string, instructionId: string, onInput?: (value: string) => void, value?: string]
+		>
+		ingredientUnit: Snippet<
+			[id: string, instructionId: string, onInput?: (value: string) => void, value?: string]
+		>
+		instructionInput: Snippet<[id: string, onInput?: (value: string) => void, value?: string]>
 		instructionMedia: Snippet<[id: string]>
-		submitting: boolean
+		submitButton: Snippet
 	} = $props()
 
-	let instructions: { id: string; ingredients: { id: string }[] }[] = $state([
-		{ id: generateId(), ingredients: [] }
-	])
+	let instructions: {
+		id: string
+		ingredients: { id: string; name?: string; quantity?: number; unit?: string }[]
+		text?: string
+	}[] = $state(
+		prefilledInstructions
+			? prefilledInstructions.map((instruction) => ({
+					id: generateId(),
+					ingredients:
+						instruction.ingredients?.map((ingredient) => ({
+							id: generateId(),
+							name: ingredient.name,
+							quantity: ingredient.quantity,
+							unit: ingredient.measurement
+						})) ?? [],
+					text: instruction.text
+				}))
+			: [{ id: generateId(), ingredients: [] }]
+	)
 
-	const addInstruction = () => {
-		instructions = [...instructions, { id: generateId(), ingredients: [] }]
+	const addInstruction = (text?: string) => {
+		instructions = [...instructions, { id: generateId(), ingredients: [], text }]
 	}
 
 	const removeInstruction = (id: string) => {
@@ -107,7 +129,7 @@
 				{#each [...instructions, { id: '', isAddButton: true }] as item, i (item.id)}
 					<div class={'isAddButton' in item ? undefined : 'instruction-group'}>
 						{#if 'isAddButton' in item}
-							<Button variant="pill" color="neutral" onclick={addInstruction} size="sm">
+							<Button variant="pill" color="neutral" onclick={() => addInstruction()} size="sm">
 								<Plus size={16} color="var(--color-text-on-surface)" /> Add Step
 							</Button>
 						{:else}
@@ -126,7 +148,7 @@
 								</div>
 								<div class="instruction-content-body">
 									<div class="instruction-text">
-										{@render instructionInput(item.id)}
+										{@render instructionInput(item.id, undefined, item.text)}
 									</div>
 									<div class="instruction-media">
 										{@render instructionMedia(item.id)}
@@ -151,17 +173,32 @@
 												<div class="ingredient-input-container">
 													<div class="ingredient-row">
 														<div class="search">
-															{@render ingredientName(ingredientItem.id, item.id)}
+															{@render ingredientName(
+																ingredientItem.id,
+																item.id,
+																undefined,
+																ingredientItem.name
+															)}
 														</div>
 													</div>
 
 													<div class="quantity-unit-row">
 														<div class="quantity-input">
-															{@render ingredientAmount(ingredientItem.id, item.id)}
+															{@render ingredientAmount(
+																ingredientItem.id,
+																item.id,
+																undefined,
+																ingredientItem.quantity?.toString()
+															)}
 														</div>
 
 														<div class="unit-input">
-															{@render ingredientUnit(ingredientItem.id, item.id)}
+															{@render ingredientUnit(
+																ingredientItem.id,
+																item.id,
+																undefined,
+																ingredientItem.unit
+															)}
 														</div>
 
 														{#if item.ingredients.length > 1}
@@ -202,7 +239,7 @@
 	<div class="section-title"></div>
 	<div class="section-content">
 		<div class="submit-section">
-			<Button loading={submitting} type="submit" color="primary">Create Recipe</Button>
+			{@render submitButton()}
 		</div>
 	</div>
 </div>

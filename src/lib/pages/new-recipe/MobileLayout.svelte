@@ -3,15 +3,14 @@
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
 	import Plus from 'lucide-svelte/icons/plus'
 	import Input from '$lib/components/input/Input.svelte'
-	import { scale } from 'svelte/transition'
-	import { flip } from 'svelte/animate'
 	import Trash from 'lucide-svelte/icons/trash-2'
 	import Edit from 'lucide-svelte/icons/edit-2'
 	import type { Snippet } from 'svelte'
-	import { generateId } from './NewRecipe.svelte'
+	import { generateId, type RecipeData } from './NewRecipe.svelte'
 
 	let {
-		submitting,
+		prefilledInstructions,
+		submitButton,
 		title,
 		description,
 		recipeImage,
@@ -25,7 +24,8 @@
 		ingredientAmount,
 		ingredientUnit
 	}: {
-		submitting: boolean
+		prefilledInstructions?: RecipeData['instructions']
+		submitButton: Snippet
 		servingsAdjuster: Snippet
 		title: Snippet
 		description: Snippet
@@ -35,11 +35,15 @@
 		unitToggle: Snippet
 		instructionInput: Snippet<[id?: string, onInput?: (value: string) => void]>
 		instructionMedia: Snippet<[id?: string, onFile?: (file: File) => void]>
-		ingredientName: Snippet<[id: string, instructionId: string, onInput?: (value: string) => void]>
-		ingredientAmount: Snippet<
-			[id: string, instructionId: string, onInput?: (value: string) => void]
+		ingredientName: Snippet<
+			[id: string, instructionId: string, onInput?: (value: string) => void, value?: string]
 		>
-		ingredientUnit: Snippet<[id: string, instructionId: string, onInput?: (value: string) => void]>
+		ingredientAmount: Snippet<
+			[id: string, instructionId: string, onInput?: (value: string) => void, value?: string]
+		>
+		ingredientUnit: Snippet<
+			[id: string, instructionId: string, onInput?: (value: string) => void, value?: string]
+		>
 	} = $props()
 
 	let isInstructionDrawerOpen = $state(false)
@@ -49,7 +53,7 @@
 	let currentInstructionId = $state<string>()
 
 	let newInstructionText = $state('')
-	let newInstructionMedia: File | undefined
+	let newInstructionMedia: File | string | undefined
 
 	let drawerIngredientAmount = $state('')
 	let drawerIngredientUnit = $state('')
@@ -58,9 +62,27 @@
 	let instructions: {
 		id: string
 		text: string
-		media: File | undefined
+		media: File | string | undefined
 		ingredients: { id: string; amount: string; unit: string; name: string }[]
 	}[] = $state([])
+
+	$effect(() => {
+		if (prefilledInstructions && prefilledInstructions.length > 0) {
+			instructions = prefilledInstructions.map((instruction) => ({
+				id: generateId(),
+				text: instruction.text || '',
+				media: instruction.mediaUrl ? instruction.mediaUrl : undefined,
+				ingredients: (instruction.ingredients || [])
+					.filter((ingredient) => ingredient != null)
+					.map((ingredient) => ({
+						id: generateId(),
+						amount: ingredient.quantity?.toString() || '',
+						unit: ingredient.measurement || '',
+						name: ingredient.name || ''
+					}))
+			}))
+		}
+	})
 
 	const resetInstructionDrawerFields = () => {
 		newInstructionText = ''
@@ -79,11 +101,11 @@
 	const openInstructionDrawerForEdit = (instruction: {
 		id: string
 		text: string
-		media: File | undefined
+		media: File | string | undefined
 	}) => {
 		editingInstructionId = instruction.id
 		newInstructionText = instruction.text
-		newInstructionMedia = instruction.media || undefined
+		newInstructionMedia = instruction.media
 		isInstructionDrawerOpen = true
 	}
 
@@ -94,7 +116,6 @@
 
 	const openIngredientDrawer = (instructionId: string, ingredientId?: string) => {
 		currentInstructionId = instructionId
-		console.log('currentInstructionId', currentInstructionId)
 		if (ingredientId) {
 			editingIngredientId = ingredientId
 			const instruction = instructions.find((inst) => inst.id === instructionId)
@@ -229,11 +250,7 @@
 	<h4>Steps</h4>
 	<div class="form-group">
 		{#each [...instructions, { id: '', isAddButton: true }] as item, i (item.id)}
-			<div
-				class={'isAddButton' in item ? 'add-instruction-button' : 'instruction-card'}
-				in:scale
-				animate:flip={{ duration: 200 }}
-			>
+			<div class={'isAddButton' in item ? 'add-instruction-button' : 'instruction-card'}>
 				{#if 'isAddButton' in item}
 					<Button fullWidth color="neutral" onclick={openInstructionDrawer} size="sm">
 						<Plus size={16} color="var(--color-text-on-surface)" />
@@ -345,7 +362,8 @@
 				{@render ingredientName(
 					'drawer-ingredient',
 					currentInstructionId!,
-					(value) => (drawerIngredientName = value)
+					(value) => (drawerIngredientName = value),
+					drawerIngredientName
 				)}
 			</div>
 		</div>
@@ -354,14 +372,16 @@
 				{@render ingredientAmount(
 					'drawer-ingredient',
 					currentInstructionId!,
-					(value) => (drawerIngredientAmount = value)
+					(value) => (drawerIngredientAmount = value),
+					drawerIngredientAmount
 				)}
 			</div>
 			<div class="unit-input">
 				{@render ingredientUnit(
 					'drawer-ingredient',
 					currentInstructionId!,
-					(value) => (drawerIngredientUnit = value)
+					(value) => (drawerIngredientUnit = value),
+					drawerIngredientUnit
 				)}
 			</div>
 		</div>
@@ -418,7 +438,7 @@
 </div>
 
 <div class="submit-section">
-	<Button fullWidth loading={submitting} type="submit" color="primary">Create Recipe</Button>
+	{@render submitButton()}
 </div>
 
 <style lang="scss">

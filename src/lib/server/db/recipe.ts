@@ -1,8 +1,9 @@
 import { db } from '.'
-import { recipe, recipeLike, recipeInstruction, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag } from './schema'
+import { recipe, recipeLike, recipeInstruction, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag, tag } from './schema'
 import { eq, ilike, desc, sql, and, SQL, or, asc } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 import type { MeasurementUnit } from '$lib/types'
+import { generateId } from '$lib/server/id'
 
 function escapeSqlString(str: string): string {
   return str.replace(/'/g, "''")
@@ -490,6 +491,156 @@ export async function deleteRecipe(recipeId: string, userId: string) {
   }
 
   await db.delete(recipe).where(eq(recipe.id, recipeId))
+  return true
+}
+
+/**
+ * Update a recipe
+ * @param recipeId The recipe ID
+ * @param userId The user ID (for authorization)
+ * @param input The updated recipe data
+ * @returns Whether the recipe was updated
+ */
+export async function updateRecipe(recipeId: string, userId: string, input: {
+  title: string
+  description?: string
+  servings: number
+  instructions: Array<{
+    id: string
+    text: string
+    mediaUrl?: string
+    mediaType?: 'image' | 'video'
+    ingredients?: Array<{
+      name: string
+      quantity?: number
+      measurement?: string
+      displayName: string
+    }>
+  }>
+  nutrition?: {
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
+  } | null
+  tags: string[]
+  imageUrl?: string
+}) {
+  const recipeToUpdate = await db
+    .select()
+    .from(recipe)
+    .where(and(
+      eq(recipe.id, recipeId),
+      eq(recipe.userId, userId)
+    ))
+    .limit(1)
+
+  if (!recipeToUpdate.length) {
+    return false
+  }
+
+  // Update the main recipe
+  await db.update(recipe)
+    .set({
+      title: input.title,
+      description: input.description,
+      servings: input.servings,
+      tags: input.tags,
+      imageUrl: input.imageUrl
+    })
+    .where(eq(recipe.id, recipeId))
+
+  // Update nutrition
+  if (input.nutrition) {
+    await db.insert(recipeNutrition)
+      .values({
+        recipeId: recipeId,
+        calories: input.nutrition.calories,
+        protein: input.nutrition.protein,
+        carbs: input.nutrition.carbs,
+        fat: input.nutrition.fat
+      })
+      .onConflictDoUpdate({
+        target: recipeNutrition.recipeId,
+        set: {
+          calories: input.nutrition.calories,
+          protein: input.nutrition.protein,
+          carbs: input.nutrition.carbs,
+          fat: input.nutrition.fat
+        }
+      })
+  } else {
+    await db.delete(recipeNutrition).where(eq(recipeNutrition.recipeId, recipeId))
+  }
+
+  // Delete existing instructions and ingredients
+  await db.delete(recipeIngredient).where(eq(recipeIngredient.recipeId, recipeId))
+  await db.delete(recipeInstruction).where(eq(recipeInstruction.recipeId, recipeId))
+
+  // Insert new instructions and their ingredients
+  for (let i = 0; i < input.instructions.length; i++) {
+    const instruction = input.instructions[i]
+    
+    // Insert the instruction
+    await db.insert(recipeInstruction).values({
+      id: instruction.id,
+      recipeId: recipeId,
+      text: instruction.text,
+      mediaUrl: instruction.mediaUrl,
+      mediaType: instruction.mediaType,
+      order: i + 1
+    })
+
+    // Insert ingredients for this instruction
+    if (instruction.ingredients) {
+      for (const ingredientData of instruction.ingredients) {
+        let ingredientId: string
+
+        const existingIngredient = await db
+          .select()
+          .from(ingredient)
+          .where(eq(ingredient.name, ingredientData.name))
+          .limit(1)
+
+        if (existingIngredient.length) {
+          ingredientId = existingIngredient[0].id
+        } else {
+          const newIngredient = await db.insert(ingredient).values({
+            id: generateId(),
+            name: ingredientData.name
+          }).returning()
+          ingredientId = newIngredient[0].id
+        }
+
+        await db.insert(recipeIngredient).values({
+          recipeId: recipeId,
+          instructionId: instruction.id,
+          ingredientId: ingredientId,
+          displayName: ingredientData.displayName,
+          quantity: ingredientData.quantity,
+          measurement: ingredientData.measurement
+        })
+      }
+    }
+  }
+
+  // Update tags
+  await db.delete(recipeTag).where(eq(recipeTag.recipeId, recipeId))
+  
+  for (const tagName of input.tags) {
+    const existingTag = await db
+      .select({ name: tag.name })
+      .from(tag)
+      .where(eq(tag.name, tagName))
+      .limit(1)
+
+    if (!existingTag.length) {
+      await db.insert(tag).values({ name: tagName })
+    }
+
+    await db.insert(recipeTag).values({ recipeId, tagName })
+  }
+
   return true
 }
 
