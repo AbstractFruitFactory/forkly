@@ -128,7 +128,7 @@
 </div>
 
 <div class="submit-section">
-	{@render submitButton()}
+	{@render submitButton(true)}
 </div>
 
 <style lang="scss">

@@ -341,7 +341,13 @@
 	{/if}
 {/snippet}
 
-{#snippet ingredientRow(id: string, instructionId: string, nameValue?: string, amountValue?: string, unitValue?: string)}
+{#snippet ingredientRow(
+	id: string,
+	instructionId: string,
+	nameValue?: string,
+	amountValue?: string,
+	unitValue?: string
+)}
 	<div class="ingredient-input-container">
 		<div class="ingredient-row">
 			<div class="search">
@@ -403,8 +409,7 @@
 
 {#snippet instructionInput(id: string, value?: string)}
 	<Input>
-		<textarea name={`instructions-${id}-text`} placeholder="Enter instruction step" rows="5"
-			{value}
+		<textarea name={`instructions-${id}-text`} placeholder="Enter instruction step" rows="5" {value}
 		></textarea>
 	</Input>
 {/snippet}
@@ -413,14 +418,14 @@
 	<MediaUpload name={`instructions-${id}-media`} {onFile} previewAlt="Instruction media" />
 {/snippet}
 
-{#snippet submitButton()}
-	<Button loading={submitting} type="submit" color="primary"
+{#snippet submitButton(fullWidth?: boolean)}
+	<Button {fullWidth} loading={submitting} type="submit" color="primary"
 		>{editMode ? 'Save' : 'Create'} Recipe</Button
 	>
 {/snippet}
 
 {#snippet addInstructionButton(fullWidth?: boolean)}
-	<Button color="neutral" onclick={() => addInstruction()} size="sm" {fullWidth}>
+	<Button {fullWidth} color="neutral" onclick={() => addInstruction()} size="sm">
 		<Plus size={16} color="var(--color-text-on-surface)" />
 		Add step
 	</Button>
