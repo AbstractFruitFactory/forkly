@@ -12,6 +12,8 @@
 
 	let { data } = $props()
 
+	const currentUrl = $derived(page.url.href)
+
 	$effect(() => {
 		data.recipe.then((r) => {
 			if (!r) {
@@ -96,6 +98,21 @@
 
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
 </script>
+
+<svelte:head>
+	{#await data.recipe then recipe}
+		<title>{recipe.title} - Forkly</title>
+		<meta property="og:type" content="article" />
+		<meta property="og:title" content={recipe.title} />
+		{#if recipe.description}
+			<meta property="og:description" content={recipe.description} />
+		{/if}
+		{#if recipe.imageUrl}
+			<meta property="og:image" content={recipe.imageUrl} />
+		{/if}
+		<meta property="og:url" content={currentUrl} />
+	{/await}
+</svelte:head>
 
 <div class="recipe-page" data-page="recipe">
 	<Recipe
