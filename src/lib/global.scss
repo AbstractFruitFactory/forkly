@@ -36,6 +36,14 @@ $breakpoint-xl: 1280px; // Large desktop
   }
 }
 
+@mixin hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @content;
+    }
+  }
+}
+
 :root {
   // Primary colors
   $primary-color: #EF561A;

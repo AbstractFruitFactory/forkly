@@ -52,7 +52,20 @@
 		}
 	}
 
-	const handleMenuToggle = (e: MouseEvent) => {
+	const handleMenuToggle = (e: MouseEvent | TouchEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		menuOpen = !menuOpen
+		if (menuOpen) {
+			updateDropdownPosition()
+		}
+	}
+
+	const handleTouchStart = (e: TouchEvent) => {
+		e.stopPropagation()
+	}
+
+	const handleTouchEnd = (e: TouchEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
 		menuOpen = !menuOpen
@@ -93,6 +106,8 @@
 					bind:this={menuButton}
 					class="menu-btn"
 					onclick={handleMenuToggle}
+					ontouchstart={handleTouchStart}
+					ontouchend={handleTouchEnd}
 					aria-label="Recipe menu"
 				>
 					<MoreVertical size={20} color="black" />
@@ -238,7 +253,7 @@
 			will-change: opacity;
 		}
 
-		&:hover {
+		@include hover {
 			transform: translateY(calc(var(--spacing-xs) * -1));
 			box-shadow: var(--shadow-lg);
 			border-color: rgba(255, 255, 255, 0.2);
@@ -310,8 +325,10 @@
 		z-index: var(--z-index-elevated);
 	}
 
-	.recipe-card:hover .image-container img {
-		transform: scale(1.05);
+	.recipe-card .image-container img {
+		@include hover {
+			transform: scale(1.05);
+		}
 	}
 
 	.content {
