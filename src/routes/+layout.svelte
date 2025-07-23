@@ -72,6 +72,7 @@
 	const slots = initSlots()
 
 	let homepage = $derived(page.url.pathname === '/')
+	const currentUrl = $derived(page.url.href)
 
 	let homepageHeaderTransition = $state(true)
 
@@ -106,6 +107,11 @@
 
 <svelte:head>
 	<title>Forkly - Discover and Share Recipes</title>
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="Forkly" />
+	<meta property="og:description" content="Discover and share recipes on Forkly." />
+	<meta property="og:image" content="/favicon.png" />
+	<meta property="og:url" content={currentUrl} />
 </svelte:head>
 
 {@render children()}
