@@ -41,6 +41,8 @@
 	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
 	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 	import X from 'lucide-svelte/icons/x'
+	import Plus from 'lucide-svelte/icons/plus'
+	import Trash from 'lucide-svelte/icons/trash-2'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
@@ -79,6 +81,26 @@
 	let carbs = $state(prefilledData?.nutrition?.carbs ?? '')
 	let fat = $state(prefilledData?.nutrition?.fat ?? '')
 
+	let instructions: {
+		id: string
+		ingredients: { id: string; name?: string; quantity?: number; unit?: string }[]
+		text?: string
+	}[] = $state(
+		prefilledData?.instructions
+			? prefilledData.instructions.map((instruction) => ({
+					id: generateId(),
+					ingredients:
+						instruction.ingredients?.map((ingredient) => ({
+							id: generateId(),
+							name: ingredient.name,
+							quantity: ingredient.quantity,
+							unit: ingredient.measurement
+						})) ?? [],
+					text: instruction.text
+				}))
+			: [{ id: generateId(), ingredients: [] }]
+	)
+
 	$effect(() => {
 		if (nutritionMode === 'manual') {
 			const p = parseFloat(String(protein)) || 0
@@ -97,30 +119,6 @@
 
 	const checkViewport = () => {
 		isMobileView = window.innerWidth <= 480
-		disableInactiveInputs()
-	}
-
-	const disableInactiveInputs = () => {
-		if (mobileLayoutElement && desktopLayoutElement) {
-			const mobileInputs = mobileLayoutElement.querySelectorAll('input, textarea, button, select')
-			const desktopInputs = desktopLayoutElement.querySelectorAll('input, textarea, button, select')
-
-			mobileInputs.forEach((input) => {
-				if (isMobileView) {
-					input.removeAttribute('disabled')
-				} else {
-					input.setAttribute('disabled', 'disabled')
-				}
-			})
-
-			desktopInputs.forEach((input) => {
-				if (isMobileView) {
-					input.setAttribute('disabled', 'disabled')
-				} else {
-					input.removeAttribute('disabled')
-				}
-			})
-		}
 	}
 
 	onMount(() => {
@@ -132,9 +130,34 @@
 		}
 	})
 
-	$effect(() => {
-		disableInactiveInputs()
-	})
+	const addInstruction = (text?: string) => {
+		instructions = [...instructions, { id: generateId(), ingredients: [], text }]
+	}
+
+	const removeInstruction = (id: string) => {
+		instructions = instructions.filter((instruction) => instruction.id !== id)
+	}
+
+	const addIngredient = (instructionId: string) => {
+		instructions = instructions.map((instruction) =>
+			instruction.id === instructionId
+				? { ...instruction, ingredients: [...instruction.ingredients, { id: generateId() }] }
+				: instruction
+		)
+	}
+
+	const removeIngredient = (instructionId: string, ingredientId: string) => {
+		instructions = instructions.map((instruction) =>
+			instruction.id === instructionId
+				? {
+						...instruction,
+						ingredients: instruction.ingredients.filter(
+							(ingredient) => ingredient.id !== ingredientId
+						)
+					}
+				: instruction
+		)
+	}
 
 	const searchTags = async (query: string): Promise<{ id: string; name: string }[]> => {
 		if (!onSearchTags) return []
@@ -318,59 +341,56 @@
 	{/if}
 {/snippet}
 
-{#snippet ingredientName(
-	id: string,
-	instructionId: string,
-	onInput?: (value: string) => void,
-	value?: string
-)}
-	<SuggestionSearch
-		placeholder="Enter ingredient"
-		onSearch={searchIngredients}
-		formName="instructions-{instructionId}-ingredient-{id}-name"
-		clearInput={false}
-		onInput={(value) => onInput?.(value)}
-		onSelect={(item) => onInput?.(item.name)}
-		searchValue={value}
-	/>
-{/snippet}
+{#snippet ingredientRow(id: string, instructionId: string, nameValue?: string, amountValue?: string, unitValue?: string)}
+	<div class="ingredient-input-container">
+		<div class="ingredient-row">
+			<div class="search">
+				<SuggestionSearch
+					placeholder="Enter ingredient"
+					onSearch={searchIngredients}
+					formName="instructions-{instructionId}-ingredient-{id}-name"
+					clearInput={false}
+					searchValue={nameValue}
+				/>
+			</div>
+		</div>
 
-{#snippet ingredientAmount(
-	id: string,
-	instructionId: string,
-	onInput?: (value: string) => void,
-	value?: string
-)}
-	<Input>
-		<input
-			type="number"
-			step="any"
-			name="instructions-{instructionId}-ingredient-{id}-amount"
-			placeholder="Enter amount"
-			onchange={(e) => onInput?.(e.currentTarget.value)}
-			{value}
-		/>
-	</Input>
-{/snippet}
+		<div class="quantity-unit-row">
+			<div class="quantity-input">
+				<Input>
+					<input
+						type="number"
+						step="any"
+						name="instructions-{instructionId}-ingredient-{id}-amount"
+						placeholder="Enter amount"
+						value={amountValue}
+					/>
+				</Input>
+			</div>
 
-{#snippet ingredientUnit(
-	id: string,
-	instructionId: string,
-	onInput?: (value: string) => void,
-	value?: string
-)}
-	<SuggestionSearch
-		placeholder="Unit"
-		formName="instructions-{instructionId}-ingredient-{id}-unit"
-		onSearch={searchUnits}
-		clearInput={false}
-		showSearchIcon={false}
-		minSearchLength={2}
-		useId={true}
-		onInput={(value) => onInput?.(value)}
-		onSelect={(item) => onInput?.(item.name)}
-		searchValue={value}
-	/>
+			<div class="unit-input">
+				<SuggestionSearch
+					placeholder="Unit"
+					formName="instructions-{instructionId}-ingredient-{id}-unit"
+					onSearch={searchUnits}
+					clearInput={false}
+					showSearchIcon={false}
+					minSearchLength={2}
+					useId={true}
+					searchValue={unitValue}
+				/>
+			</div>
+		</div>
+
+		<button
+			type="button"
+			class="remove-btn"
+			onclick={() => removeIngredient(instructionId, id)}
+			aria-label="Remove ingredient"
+		>
+			<Trash size={16} />
+		</button>
+	</div>
 {/snippet}
 
 {#snippet servingsAdjuster()}
@@ -381,29 +401,49 @@
 	<UnitToggle state={unitSystem} onSelect={handleUnitChange} />
 {/snippet}
 
-{#snippet instructionInput(id?: string, onInput?: (value: string) => void, value?: string)}
+{#snippet instructionInput(id: string, value?: string)}
 	<Input>
-		<textarea
-			name={id ? `instructions-${id}-text` : undefined}
-			placeholder="Enter instruction step"
-			onchange={(e) => onInput?.(e.currentTarget.value)}
+		<textarea name={`instructions-${id}-text`} placeholder="Enter instruction step" rows="5"
 			{value}
 		></textarea>
 	</Input>
 {/snippet}
 
-{#snippet instructionMedia(id?: string, onFile?: (file: File) => void)}
-	<MediaUpload
-		name={id ? `instructions-${id}-media` : undefined}
-		{onFile}
-		previewAlt="Instruction media"
-	/>
+{#snippet instructionMedia(id: string, onFile?: (file: File) => void)}
+	<MediaUpload name={`instructions-${id}-media`} {onFile} previewAlt="Instruction media" />
 {/snippet}
 
 {#snippet submitButton()}
 	<Button loading={submitting} type="submit" color="primary"
 		>{editMode ? 'Save' : 'Create'} Recipe</Button
 	>
+{/snippet}
+
+{#snippet addInstructionButton(fullWidth?: boolean)}
+	<Button color="neutral" onclick={() => addInstruction()} size="sm" {fullWidth}>
+		<Plus size={16} color="var(--color-text-on-surface)" />
+		Add step
+	</Button>
+{/snippet}
+
+{#snippet addIngredientButton(instructionId: string, fullWidth?: boolean)}
+	<Button color="neutral" onclick={() => addIngredient(instructionId)} size="sm" {fullWidth}>
+		<Plus size={16} color="var(--color-text-on-surface)" />
+		Add Ingredient
+	</Button>
+{/snippet}
+
+{#snippet removeInstructionButton(instructionId: string)}
+	{#if instructions.length > 1}
+		<button
+			type="button"
+			class="remove-btn"
+			onclick={() => removeInstruction(instructionId)}
+			aria-label="Remove instruction"
+		>
+			<Trash size={16} />
+		</button>
+	{/if}
 {/snippet}
 
 <div class="new-recipe">
@@ -437,42 +477,47 @@
 			</div>
 		{/if}
 
-		<div class="mobile-layout" bind:this={mobileLayoutElement}>
-			<MobileLayout
-				prefilledInstructions={prefilledData?.instructions}
-				{title}
-				{description}
-				{recipeImage}
-				{tags}
-				{nutrition}
-				{servingsAdjuster}
-				{unitToggle}
-				{instructionInput}
-				{instructionMedia}
-				{ingredientName}
-				{ingredientAmount}
-				{ingredientUnit}
-				{submitButton}
-			/>
-		</div>
-		<div class="desktop-layout" bind:this={desktopLayoutElement}>
-			<DesktopLayout
-				prefilledInstructions={prefilledData?.instructions}
-				{title}
-				{description}
-				{recipeImage}
-				{tags}
-				{nutrition}
-				{servingsAdjuster}
-				{unitToggle}
-				{instructionInput}
-				{instructionMedia}
-				{ingredientName}
-				{ingredientAmount}
-				{ingredientUnit}
-				{submitButton}
-			/>
-		</div>
+		{#if isMobileView}
+			<div class="mobile-layout" bind:this={mobileLayoutElement}>
+				<MobileLayout
+					{instructions}
+					{title}
+					{description}
+					{recipeImage}
+					{tags}
+					{nutrition}
+					{servingsAdjuster}
+					{unitToggle}
+					{instructionInput}
+					{instructionMedia}
+					{ingredientRow}
+					{addInstructionButton}
+					{addIngredientButton}
+					{removeInstructionButton}
+					{submitButton}
+				/>
+			</div>
+		{:else}
+			<div class="desktop-layout" bind:this={desktopLayoutElement}>
+				<DesktopLayout
+					{instructions}
+					{title}
+					{description}
+					{recipeImage}
+					{tags}
+					{nutrition}
+					{servingsAdjuster}
+					{unitToggle}
+					{instructionInput}
+					{instructionMedia}
+					{ingredientRow}
+					{addInstructionButton}
+					{addIngredientButton}
+					{removeInstructionButton}
+					{submitButton}
+				/>
+			</div>
+		{/if}
 	</form>
 </div>
 
@@ -517,5 +562,112 @@
 		gap: var(--spacing-sm);
 		flex-wrap: wrap;
 		margin-top: var(--spacing-md);
+	}
+
+	.ingredient-input-container {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+
+		@include tablet-desktop {
+			flex-direction: row;
+			gap: 1px;
+			align-items: center;
+		}
+	}
+
+	.ingredient-row {
+		width: 100%;
+	}
+
+	.quantity-unit-row {
+		display: flex;
+		gap: var(--spacing-xs);
+		align-items: center;
+		width: 100%;
+
+		@include tablet-desktop {
+			gap: 1px;
+		}
+	}
+
+	.search {
+		width: 100%;
+
+		@include tablet-desktop {
+			flex: 1;
+			min-width: 0;
+
+			:global(.input-container) {
+				border-top-right-radius: 0;
+				border-bottom-right-radius: 0;
+			}
+		}
+
+		:global(.search-wrapper) {
+			max-width: none;
+		}
+	}
+
+	.quantity-input {
+		flex: 1;
+
+		@include tablet-desktop {
+			flex: 0 0 auto;
+
+			:global(.input-container) {
+				border-radius: 0;
+				border-left: none;
+				border-right: none;
+			}
+		}
+	}
+
+	.unit-input {
+		flex: 1;
+		position: relative;
+
+		@include tablet-desktop {
+			flex: auto;
+
+			:global(.input-container) {
+				border-top-left-radius: 0;
+				border-bottom-left-radius: 0;
+				border-left: none;
+			}
+		}
+
+		:global(.suggestion-search-wrapper) {
+			max-width: none;
+		}
+	}
+
+	.ingredient-input {
+		margin-bottom: var(--spacing-md);
+
+		&:last-child {
+			margin-bottom: var(--spacing-lg);
+		}
+	}
+
+	.remove-btn {
+		height: 36px;
+		width: 36px;
+		border-radius: var(--border-radius-lg);
+		transition: all var(--transition-fast) var(--ease-in-out);
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: var(--spacing-xs);
+		color: var(--color-text-on-surface);
+
+		&:hover {
+			background-color: var(--color-background-dark);
+		}
+
+		@include tablet-desktop {
+			margin-left: var(--spacing-xs);
+		}
 	}
 </style>

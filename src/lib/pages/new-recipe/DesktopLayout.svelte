@@ -4,11 +4,10 @@
 	import Plus from 'lucide-svelte/icons/plus'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
-	import { generateId, type RecipeData } from './NewRecipe.svelte'
 	import type { Snippet } from 'svelte'
 
 	let {
-		prefilledInstructions,
+		instructions,
 		title,
 		description,
 		recipeImage,
@@ -18,12 +17,17 @@
 		unitToggle,
 		instructionInput,
 		instructionMedia,
-		ingredientName,
-		ingredientAmount,
-		ingredientUnit,
+		ingredientRow,
+		addInstructionButton,
+		addIngredientButton,
+		removeInstructionButton,
 		submitButton
 	}: {
-		prefilledInstructions?: RecipeData['instructions']
+		instructions: {
+			id: string
+			ingredients: { id: string; name?: string; quantity?: number; unit?: string }[]
+			text?: string
+		}[]
 		title: Snippet
 		description: Snippet
 		recipeImage: Snippet
@@ -31,68 +35,14 @@
 		nutrition: Snippet
 		servingsAdjuster: Snippet
 		unitToggle: Snippet
-		ingredientName: Snippet<
-			[id: string, instructionId: string, onInput?: (value: string) => void, value?: string]
-		>
-		ingredientAmount: Snippet<
-			[id: string, instructionId: string, onInput?: (value: string) => void, value?: string]
-		>
-		ingredientUnit: Snippet<
-			[id: string, instructionId: string, onInput?: (value: string) => void, value?: string]
-		>
-		instructionInput: Snippet<[id: string, onInput?: (value: string) => void, value?: string]>
+		ingredientRow: Snippet<[id: string, instructionId: string, nameValue?: string, amountValue?: string, unitValue?: string]>
+		instructionInput: Snippet<[id: string, value?: string]>
 		instructionMedia: Snippet<[id: string]>
+		addInstructionButton: Snippet
+		addIngredientButton: Snippet<[instructionId: string]>
+		removeInstructionButton: Snippet<[instructionId: string]>
 		submitButton: Snippet
 	} = $props()
-
-	let instructions: {
-		id: string
-		ingredients: { id: string; name?: string; quantity?: number; unit?: string }[]
-		text?: string
-	}[] = $state(
-		prefilledInstructions
-			? prefilledInstructions.map((instruction) => ({
-					id: generateId(),
-					ingredients:
-						instruction.ingredients?.map((ingredient) => ({
-							id: generateId(),
-							name: ingredient.name,
-							quantity: ingredient.quantity,
-							unit: ingredient.measurement
-						})) ?? [],
-					text: instruction.text
-				}))
-			: [{ id: generateId(), ingredients: [] }]
-	)
-
-	const addInstruction = (text?: string) => {
-		instructions = [...instructions, { id: generateId(), ingredients: [], text }]
-	}
-
-	const removeInstruction = (id: string) => {
-		instructions = instructions.filter((instruction) => instruction.id !== id)
-	}
-
-	const addIngredient = (instructionId: string) => {
-		instructions = instructions.map((instruction) =>
-			instruction.id === instructionId
-				? { ...instruction, ingredients: [...instruction.ingredients, { id: generateId() }] }
-				: instruction
-		)
-	}
-
-	const removeIngredient = (instructionId: string, ingredientId: string) => {
-		instructions = instructions.map((instruction) =>
-			instruction.id === instructionId
-				? {
-						...instruction,
-						ingredients: instruction.ingredients.filter(
-							(ingredient) => ingredient.id !== ingredientId
-						)
-					}
-				: instruction
-		)
-	}
 </script>
 
 <div class="form-grid">
@@ -114,7 +64,7 @@
 	</div>
 
 	<div class="steps-grid" style="grid-column: 1 / span 2;">
-		<div class="servings-controls">
+		<div class="servings-controls desktop">
 			<div class="unit-toggle-container">
 				{@render unitToggle()}
 			</div>
@@ -124,31 +74,31 @@
 		</div>
 
 		<div class="section-title">Steps</div>
+
+		<div class="servings-controls tablet">
+			<div class="unit-toggle-container">
+				{@render unitToggle()}
+			</div>
+			<div class="servings">
+				{@render servingsAdjuster()}
+			</div>
+		</div>
+
 		<div class="section-content">
 			<div id="instructions">
 				{#each [...instructions, { id: '', isAddButton: true }] as item, i (item.id)}
 					<div class={'isAddButton' in item ? undefined : 'instruction-group'}>
 						{#if 'isAddButton' in item}
-							<Button variant="pill" color="neutral" onclick={() => addInstruction()} size="sm">
-								<Plus size={16} color="var(--color-text-on-surface)" /> Add Step
-							</Button>
+							{@render addInstructionButton()}
 						{:else}
 							<div class="instruction-content">
 								<div class="instruction-header">
 									<div class="step-title">Step {i + 1}</div>
-									{#if instructions.length > 1}
-										<button
-											type="button"
-											class="remove-btn"
-											onclick={() => removeInstruction(item.id)}
-										>
-											<Trash size={16} color="var(--color-text-on-background)" />
-										</button>
-									{/if}
+									{@render removeInstructionButton(item.id)}
 								</div>
 								<div class="instruction-content-body">
 									<div class="instruction-text">
-										{@render instructionInput(item.id, undefined, item.text)}
+										{@render instructionInput(item.id, item.text)}
 									</div>
 									<div class="instruction-media">
 										{@render instructionMedia(item.id)}
@@ -160,58 +110,15 @@
 									{#each [...item.ingredients, { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem (ingredientItem.id)}
 										<div class="ingredient-input" in:scale animate:flip={{ duration: 200 }}>
 											{#if 'isAddButton' in ingredientItem}
-												<Button
-													variant="pill"
-													color="neutral"
-													onclick={() => addIngredient(item.id)}
-													size="sm"
-												>
-													<Plus size={16} color="var(--color-text-on-surface)" />
-													Add Ingredient
-												</Button>
+												{@render addIngredientButton(item.id)}
 											{:else}
-												<div class="ingredient-input-container">
-													<div class="ingredient-row">
-														<div class="search">
-															{@render ingredientName(
-																ingredientItem.id,
-																item.id,
-																undefined,
-																ingredientItem.name
-															)}
-														</div>
-													</div>
-
-													<div class="quantity-unit-row">
-														<div class="quantity-input">
-															{@render ingredientAmount(
-																ingredientItem.id,
-																item.id,
-																undefined,
-																ingredientItem.quantity?.toString()
-															)}
-														</div>
-
-														<div class="unit-input">
-															{@render ingredientUnit(
-																ingredientItem.id,
-																item.id,
-																undefined,
-																ingredientItem.unit
-															)}
-														</div>
-
-														{#if item.ingredients.length > 1}
-															<button
-																type="button"
-																class="remove-btn"
-																onclick={() => removeIngredient(item.id, ingredientItem.id)}
-															>
-																<Trash size={16} color="var(--color-text-on-background)" />
-															</button>
-														{/if}
-													</div>
-												</div>
+												{@render ingredientRow(
+													ingredientItem.id, 
+													item.id,
+													ingredientItem.name,
+													ingredientItem.quantity?.toString(),
+													ingredientItem.unit
+												)}
 											{/if}
 										</div>
 									{/each}
@@ -424,85 +331,6 @@
 		}
 	}
 
-	.ingredient-input-container {
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-sm);
-
-		@include tablet-desktop {
-			flex-direction: row;
-			gap: 1px;
-			align-items: center;
-		}
-	}
-
-	.ingredient-row {
-		width: 100%;
-	}
-
-	.quantity-unit-row {
-		display: flex;
-		gap: var(--spacing-xs);
-		align-items: center;
-		width: 100%;
-
-		@include tablet-desktop {
-			gap: 1px;
-		}
-	}
-
-	.search {
-		width: 100%;
-
-		@include tablet-desktop {
-			flex: 1;
-			min-width: 0;
-
-			:global(.input-container) {
-				border-top-right-radius: 0;
-				border-bottom-right-radius: 0;
-			}
-		}
-
-		:global(.search-wrapper) {
-			max-width: none;
-		}
-	}
-
-	.quantity-input {
-		flex: 1;
-
-		@include tablet-desktop {
-			flex: 0 0 auto;
-
-			:global(.input-container) {
-				border-radius: 0;
-				border-left: none;
-				border-right: none;
-			}
-		}
-	}
-
-	.unit-input {
-		flex: 1;
-		position: relative;
-
-		@include tablet-desktop {
-			flex: auto;
-
-			:global(.input-container) {
-				border-top-left-radius: 0;
-				border-bottom-left-radius: 0;
-				border-left: none;
-			}
-		}
-
-		:global(.suggestion-search-wrapper) {
-			max-width: none;
-		}
-	}
-
 	.remove-btn {
 		height: 36px;
 		width: 36px;
@@ -550,23 +378,44 @@
 		flex: 1;
 	}
 
+	.tablet {
+		display: none;
+	}
+
 	@media (max-width: 1000px) {
+		.desktop {
+			display: none;
+		}
+
+		.tablet {
+			display: flex;
+		}
+
+		.servings-controls {
+			margin-bottom: var(--spacing-md);
+		}
+
 		.form-grid {
 			display: block;
 			padding: var(--spacing-lg) var(--spacing-sm);
 		}
 
-		.servings-controls {
-			display: none;
+		.steps-grid {
+			display: block;
+		}
+
+		.steps-grid .section-content {
+			width: 100%;
 		}
 
 		.mobile-servings {
-			display: block;
+			display: none;
 		}
 
 		.section-title {
 			text-align: left;
 			margin-bottom: var(--spacing-md);
+			margin-top: var(--spacing-xl);
 			opacity: 1;
 			font-size: var(--font-size-md);
 		}
