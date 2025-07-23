@@ -235,7 +235,7 @@
 		recipes={createdRecipes}
 		emptyMessage="No recipes created yet!"
 		useAnimation={false}
-		menuOptions={getMenuOptions}
+		menuOptions={isOwner ? getMenuOptions : undefined}
 	/>
 {/snippet}
 
