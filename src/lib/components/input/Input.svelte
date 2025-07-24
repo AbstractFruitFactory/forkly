@@ -32,7 +32,7 @@
 	<div class="input-container">
 		{@render children()}
 		<div class="right-elements">
-			<button class="clear-button" onclick={onClear} aria-label="Clear input">
+			<button class="clear-button" type="button" onclick={onClear} aria-label="Clear input">
 				{#if clearButton}
 					{@render clearButton()}
 				{:else if showClear}
