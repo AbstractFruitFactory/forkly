@@ -115,7 +115,6 @@
 </script>
 
 <svelte:head>
-	<title>{`${(data.recipe as any).title} - Forkly`}</title>
 	<meta property="og:type" content="article" />
 	<meta property="og:title" content={(data.recipe as any).title} />
 
