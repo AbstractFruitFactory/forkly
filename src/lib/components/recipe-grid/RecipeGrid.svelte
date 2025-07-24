@@ -56,6 +56,12 @@
 					.fill(undefined)
 					.map((_, index) => ({ loading: true, id: `loading-${index}` }))
 			] as GridItem[]
+		} else if (isLoading) {
+			return [
+				...Array(18)
+					.fill(undefined)
+					.map((_, index) => ({ loading: true, id: `loading-${index}` }))
+			] as GridItem[]
 		}
 		return resolvedRecipes as GridItem[]
 	})
@@ -90,7 +96,11 @@
 			loading={gridItem.id.startsWith('loading')}
 			recipe={gridItem.id.startsWith('loading') ? undefined : (gridItem as RecipeItem)}
 			{onRecipeClick}
-			menu={gridItem.id.startsWith('loading') ? undefined : menuOptions ? { options: menuOptions(gridItem as RecipeItem) } : undefined}
+			menu={gridItem.id.startsWith('loading')
+				? undefined
+				: menuOptions
+					? { options: menuOptions(gridItem as RecipeItem) }
+					: undefined}
 		/>
 	{/snippet}
 </CardGrid>

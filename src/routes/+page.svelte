@@ -57,6 +57,8 @@
 			sort: sortParam
 		})
 
+		recipes = new Promise(() => {})
+
 		invalidateAll()
 	}
 
