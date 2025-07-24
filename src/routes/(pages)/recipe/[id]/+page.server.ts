@@ -7,7 +7,7 @@ import { getCollections } from '$lib/server/db/save'
 import { safeFetch } from '$lib/utils/fetch'
 import type { CommentsResponse } from '../../../(api)/recipes/[id]/comments/+server'
 
-export const load: PageServerLoad = ({ params, locals, fetch }) => {
+export const load: PageServerLoad = async ({ params, locals, fetch, isDataRequest }) => {
   const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(r => {
     return r as NonNullable<typeof r>
   })
@@ -25,9 +25,9 @@ export const load: PageServerLoad = ({ params, locals, fetch }) => {
     : Promise.resolve([])
 
   return {
-    recipe,
-    comments,
-    collections
+    recipe: isDataRequest ? recipe : await recipe,
+    comments: isDataRequest ? comments : await comments,
+    collections: isDataRequest ? collections : await collections
   }
 }
 

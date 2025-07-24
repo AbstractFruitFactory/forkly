@@ -107,11 +107,10 @@
 
 <svelte:head>
 	<title>Forkly - Discover and Share Recipes</title>
-	<meta property="og:type" content="website" />
-	<meta property="og:title" content="Forkly" />
-	<meta property="og:description" content="Discover and share recipes on Forkly." />
-	<meta property="og:image" content="/favicon.png" />
-	<meta property="og:url" content={currentUrl} />
+
+	{#if homepage}
+		<meta property="og:image" content="/og-image.png" />
+	{/if}
 </svelte:head>
 
 {@render children()}

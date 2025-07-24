@@ -14,8 +14,20 @@
 
 	const currentUrl = $derived(page.url.href)
 
+	const getRecipe = async () => {
+		return data.recipe instanceof Promise ? await data.recipe : data.recipe
+	}
+
+	const getComments = async () => {
+		return data.comments instanceof Promise ? await data.comments : data.comments
+	}
+
+	const getCollections = async () => {
+		return data.collections instanceof Promise ? await data.collections : data.collections
+	}
+
 	$effect(() => {
-		data.recipe.then((r) => {
+		getRecipe().then((r) => {
 			if (!r) {
 				errorStore.setError(404, 'Recipe not found')
 			}
@@ -28,28 +40,30 @@
 	let hasMore = $state(false)
 
 	$effect(() => {
-		data.comments.then((c) => {
+		getComments().then((c) => {
 			hasMore = c.comments.length === COMMENTS_PER_PAGE
 		})
 	})
 
 	const handleLike = async () => {
+		const recipe = await getRecipe()
 		await safeFetch<RecipesLikeResponse>()(`/recipes/like`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ id: (await data.recipe).id })
+			body: JSON.stringify({ id: recipe.id })
 		})
 	}
 
 	const handleSave = async (collectionName?: string) => {
+		const recipe = await getRecipe()
 		await safeFetch<RecipesSaveResponse>()(`/recipes/save`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ id: (await data.recipe).id, collectionName })
+			body: JSON.stringify({ id: recipe.id, collectionName })
 		})
 	}
 
@@ -72,8 +86,9 @@
 	}
 
 	const loadComments = async (pageNum: number) => {
+		const recipe = await getRecipe()
 		const result = await safeFetch<CommentsResponse>()(
-			`/recipes/${(await data.recipe).id}/comments?page=${pageNum}`
+			`/recipes/${recipe.id}/comments?page=${pageNum}`
 		)
 		if (result.isOk()) {
 			comments = Promise.resolve(result.value)
@@ -100,23 +115,20 @@
 </script>
 
 <svelte:head>
-	{#await data.recipe then recipe}
-		<title>{recipe.title} - Forkly</title>
-		<meta property="og:type" content="article" />
-		<meta property="og:title" content={recipe.title} />
-		{#if recipe.description}
-			<meta property="og:description" content={recipe.description} />
-		{/if}
-		{#if recipe.imageUrl}
-			<meta property="og:image" content={recipe.imageUrl} />
-		{/if}
-		<meta property="og:url" content={currentUrl} />
-	{/await}
+	<title>{`${(data.recipe as any).title} - Forkly`}</title>
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content={(data.recipe as any).title} />
+
+	<meta property="og:description" content={(data.recipe as any).description} />
+
+	<meta property="og:image" content={(data.recipe as any).imageUrl} />
+
+	<meta property="og:url" content={currentUrl} />
 </svelte:head>
 
 <div class="recipe-page" data-page="recipe">
 	<Recipe
-		recipe={data.recipe}
+		recipe={Promise.resolve(getRecipe())}
 		{unitSystem}
 		onUnitChange={handleUnitChange}
 		onLike={handleLike}
@@ -124,8 +136,8 @@
 		onBackClick={() => goto('/')}
 		onCreateCollection={createCollection}
 		isLoggedIn={!!data.user}
-		collections={data.collections.then((c) => c.map((c) => c.name))}
-		recipeComments={comments}
+		collections={getCollections().then((c) => c.map((c) => c.name))}
+		recipeComments={Promise.resolve(getComments())}
 		formError={page.form?.error}
 		onCommentAdded={handleCommentAdded}
 		page={currentPage}
