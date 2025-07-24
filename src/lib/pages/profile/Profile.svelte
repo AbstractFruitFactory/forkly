@@ -14,6 +14,7 @@
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import NewRecipe from '$lib/pages/new-recipe/NewRecipe.svelte'
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
+	import { mobileStore } from '$lib/state/mobile.svelte'
 
 	let {
 		user,
@@ -310,7 +311,7 @@
 	</Popup>
 </div>
 
-{#if editPopupOpen}
+{#if editPopupOpen && mobileStore.isMobile}
 	<div
 		class="mobile-only"
 		style="z-index: var(--z-modal); position: fixed; top: 0; left: 0; right: 0; bottom: 0;"
