@@ -112,7 +112,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
       const titleCondition = ilike(recipe.title, `%${term}%`)
       const tagCondition = sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${recipe.tags}) AS tag WHERE tag ILIKE ${'%' + term + '%'})`
       const ingredientCondition = sql`EXISTS (
-        SELECT 1 FROM recipe_instruction_ingredient rii
+        SELECT 1 FROM recipe_ingredient rii
         JOIN ingredient i ON rii.ingredient_id = i.id
         WHERE rii.recipe_id = ${recipe.id} AND i.name ILIKE ${'%' + term + '%'}
       )`
@@ -146,7 +146,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     const ingredientsList = ingredients.map(ing => `'${escapeSqlString(ing)}'`).join(',')
     conditions.push(sql`${recipe.id} IN (
       SELECT rii.recipe_id 
-      FROM recipe_instruction_ingredient rii
+      FROM recipe_ingredient rii
       JOIN ingredient i ON rii.ingredient_id = i.id
       WHERE i.name IN (${sql.raw(ingredientsList)})
       GROUP BY rii.recipe_id
@@ -159,7 +159,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     const excludedList = excludedIngredients.map(ing => `'${escapeSqlString(ing)}'`).join(',')
     conditions.push(sql`${recipe.id} NOT IN (
       SELECT rii.recipe_id 
-      FROM recipe_instruction_ingredient rii
+      FROM recipe_ingredient rii
       JOIN ingredient i ON rii.ingredient_id = i.id
       WHERE i.name IN (${sql.raw(excludedList)})
       GROUP BY rii.recipe_id
@@ -182,7 +182,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         return [
           asc(sql`(
             SELECT COUNT(*) 
-            FROM recipe_instruction_ingredient rii 
+            FROM recipe_ingredient rii 
             WHERE rii.recipe_id = ${recipe.id}
           )`),
           asc(sql`(
