@@ -16,25 +16,27 @@
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
 	import { mobileStore } from '$lib/state/mobile.svelte'
 
-	let {
-		user,
-		createdRecipes = Promise.resolve([]),
-		collections = Promise.resolve([]),
-		initialTab,
-		onLogout,
-		isOwner
-	}: {
-		user: Promise<User>
-		createdRecipes?: Promise<DetailedRecipe[]>
-		collections?: Promise<{ name: string; count: number }[]>
-		initialTab?: string
-		onLogout?: () => void
-		isOwner?: boolean
-	} = $props()
+        let {
+                user,
+                createdRecipes = Promise.resolve([]),
+                draftRecipes = Promise.resolve([]),
+                collections = Promise.resolve([]),
+                initialTab,
+                onLogout,
+                isOwner
+        }: {
+                user: Promise<User>
+                createdRecipes?: Promise<DetailedRecipe[]>
+                draftRecipes?: Promise<DetailedRecipe[]>
+                collections?: Promise<{ name: string; count: number }[]>
+                initialTab?: string
+                onLogout?: () => void
+                isOwner?: boolean
+        } = $props()
 
-	const tabOptions = isOwner
-		? ['Profile info', 'Created recipes', 'Saved recipes']
-		: ['Profile info', 'Created recipes']
+        const tabOptions = isOwner
+                ? ['Profile info', 'Created recipes', 'Drafts', 'Saved recipes']
+                : ['Profile info', 'Created recipes']
 	let selectedTab = $state(initialTab)
 
 	function handleTabSelect(option: (typeof tabOptions)[number]) {
@@ -232,12 +234,21 @@
 {/snippet}
 
 {#snippet _createdRecipes()}
-	<RecipeGrid
-		recipes={createdRecipes}
-		emptyMessage="No recipes created yet!"
-		useAnimation={false}
-		menuOptions={isOwner ? getMenuOptions : undefined}
-	/>
+        <RecipeGrid
+                recipes={createdRecipes}
+                emptyMessage="No recipes created yet!"
+                useAnimation={false}
+                menuOptions={isOwner ? getMenuOptions : undefined}
+        />
+{/snippet}
+
+{#snippet _draftRecipes()}
+        <RecipeGrid
+                recipes={draftRecipes}
+                emptyMessage="No drafts yet!"
+                useAnimation={false}
+                menuOptions={isOwner ? getMenuOptions : undefined}
+        />
 {/snippet}
 
 {#snippet _savedRecipes()}
@@ -323,31 +334,33 @@
 {/if}
 
 <div class="profile-desktop-view">
-	<DesktopLayout
-		{avatar}
-		{name}
-		{email}
-		{signOut}
-		{profileInfo}
-		createdRecipes={_createdRecipes}
-		savedRecipes={_savedRecipes}
-		{tabOptions}
-		{selectedTab}
-		onTabSelect={handleTabSelect}
-	/>
+        <DesktopLayout
+                {avatar}
+                {name}
+                {email}
+                {signOut}
+                {profileInfo}
+                createdRecipes={_createdRecipes}
+                draftRecipes={_draftRecipes}
+                savedRecipes={_savedRecipes}
+                {tabOptions}
+                {selectedTab}
+                onTabSelect={handleTabSelect}
+        />
 </div>
 
 <div class="profile-mobile-view">
-	<MobileLayout
-		{avatar}
-		{name}
-		{email}
-		{signOut}
-		{profileInfo}
-		createdRecipes={_createdRecipes}
-		savedRecipes={_savedRecipes}
-		initialView={initialTab}
-	/>
+        <MobileLayout
+                {avatar}
+                {name}
+                {email}
+                {signOut}
+                {profileInfo}
+                createdRecipes={_createdRecipes}
+                draftRecipes={_draftRecipes}
+                savedRecipes={_savedRecipes}
+                initialView={initialTab}
+        />
 </div>
 
 <style lang="scss">

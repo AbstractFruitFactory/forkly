@@ -218,7 +218,13 @@ const parseFormData = (formData: FormData): FormFields => {
   }
 }
 
-const processRecipeForm = async (formData: FormData, fetch: any, isUpdate = false, recipeId?: string) => {
+const processRecipeForm = async (
+  formData: FormData,
+  fetch: any,
+  isUpdate = false,
+  recipeId?: string,
+  draft = false
+) => {
   console.log(formData)
   const recipeData = parseFormData(formData)
   const imageFile = formData.get('image') as File | undefined
@@ -340,7 +346,8 @@ const processRecipeForm = async (formData: FormData, fetch: any, isUpdate = fals
     instructions: instructionsWithIds,
     nutrition: nutrition,
     tags: recipeData.tags,
-    imageUrl
+    imageUrl,
+    draft
   }
 
   const endpoint = isUpdate ? '/recipes/update' : '/recipes/create'
@@ -377,6 +384,10 @@ const processRecipeForm = async (formData: FormData, fetch: any, isUpdate = fals
 export const actions = {
   create: async ({ request, fetch }) => {
     return await processRecipeForm(await request.formData(), fetch, false)
+  },
+
+  saveDraft: async ({ request, fetch }) => {
+    return await processRecipeForm(await request.formData(), fetch, false, undefined, true)
   },
 
   update: async ({ request, fetch }) => {

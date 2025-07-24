@@ -15,6 +15,7 @@ export type BasicRecipe = {
   imageUrl?: string
   tags: string[]
   likes: number
+  draft: boolean
 }
 
 export type DetailedRecipe = {
@@ -38,6 +39,7 @@ export type DetailedRecipe = {
   tags: string[]
   imageUrl?: string
   createdAt: Date
+  draft: boolean
   likes: number
   bookmarks: number
   servings: number
@@ -70,6 +72,7 @@ export type RecipeFilterBase = {
   excludedIngredients?: string[]
   recipeIds?: string[]
   userId?: string
+  draft?: boolean
   limit?: number
   page?: number
   sort?: 'popular' | 'newest' | 'easiest'
@@ -92,7 +95,8 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     limit = 18,
     page = 0,
     detailed = false,
-    sort
+    sort,
+    draft
   } = filters
 
   // Early return if all filters are empty unless explicitly searching for all recipes
@@ -139,6 +143,13 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
   // User ID filter (for created recipes)
   if (userId) {
     conditions.push(eq(recipe.userId, userId))
+  }
+
+  // Draft filter
+  if (draft === true) {
+    conditions.push(eq(recipe.draft, true))
+  } else if (draft === false || draft === undefined) {
+    conditions.push(eq(recipe.draft, false))
   }
 
   // Ingredient filtering using raw SQL subquery
@@ -210,6 +221,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         tags: sql<string[]>`coalesce(array_agg(distinct ${recipeTag.tagName}) filter (where ${recipeTag.tagName} is not null), '{}')`,
         imageUrl: recipe.imageUrl,
         createdAt: recipe.createdAt,
+        draft: recipe.draft,
         servings: recipe.servings,
         likes: sql<number>`count(DISTINCT ${recipeLike.userId})::int`,
         nutrition: sql<{ calories: number, protein: number, carbs: number, fat: number }>`json_build_object(
@@ -244,6 +256,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         recipe.tags,
         recipe.imageUrl,
         recipe.createdAt,
+        recipe.draft,
         recipe.servings,
         user.username,
         user.avatarUrl,
@@ -367,6 +380,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         id: recipe.id,
         title: recipe.title,
         imageUrl: recipe.imageUrl,
+        draft: recipe.draft,
         tags: sql<string[]>`coalesce(array_agg(distinct ${recipeTag.tagName}) filter (where ${recipeTag.tagName} is not null), '{}')`,
         likes: sql<number>`count(${recipeLike.userId})::int`
       })
@@ -525,6 +539,7 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
   } | null
   tags: string[]
   imageUrl?: string
+  draft?: boolean
 }) {
   const recipeToUpdate = await db
     .select()
@@ -546,7 +561,8 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
       description: input.description,
       servings: input.servings,
       tags: input.tags,
-      imageUrl: input.imageUrl
+      imageUrl: input.imageUrl,
+      ...(input.draft !== undefined ? { draft: input.draft } : {})
     })
     .where(eq(recipe.id, recipeId))
 

@@ -12,8 +12,9 @@
 		signOut,
 		location,
 		profileInfo,
-		createdRecipes,
-		savedRecipes,
+                createdRecipes,
+                draftRecipes,
+                savedRecipes,
 		initialView
 	}: {
 		avatar: Snippet
@@ -22,8 +23,9 @@
 		signOut: Snippet<[fullWidth: boolean]>
 		location?: Snippet
 		profileInfo: Snippet
-		createdRecipes: Snippet
-		savedRecipes: Snippet
+                createdRecipes: Snippet
+                draftRecipes: Snippet
+                savedRecipes: Snippet
 		initialView?: string
 	} = $props()
 
@@ -39,13 +41,15 @@
 		open()
 	}
 
-	function getDrawerTitle() {
-		return view === 'Profile info'
-			? 'Profile'
-			: view === 'Created recipes'
-				? 'Created recipes'
-				: 'Saved recipes'
-	}
+        function getDrawerTitle() {
+                return view === 'Profile info'
+                        ? 'Profile'
+                        : view === 'Created recipes'
+                                ? 'Created recipes'
+                                : view === 'Drafts'
+                                        ? 'Drafts'
+                                        : 'Saved recipes'
+        }
 </script>
 
 <div class="profile-view">
@@ -62,14 +66,18 @@
 			<span class="menu-icon"><User size={20} /></span>
 			<span>Profile info</span>
 		</button>
-		<button class="menu-btn card" onclick={() => open('Created recipes')}>
-			<span class="menu-icon"><SquarePlus size={20} /></span>
-			<span>Created recipes</span>
-		</button>
-		<button class="menu-btn card" onclick={() => open('Saved recipes')}>
-			<span class="menu-icon"><Bookmark size={20} /></span>
-			<span>Saved recipes</span>
-		</button>
+                <button class="menu-btn card" onclick={() => open('Created recipes')}>
+                        <span class="menu-icon"><SquarePlus size={20} /></span>
+                        <span>Created recipes</span>
+                </button>
+                <button class="menu-btn card" onclick={() => open('Drafts')}>
+                        <span class="menu-icon"><SquarePlus size={20} /></span>
+                        <span>Drafts</span>
+                </button>
+                <button class="menu-btn card" onclick={() => open('Saved recipes')}>
+                        <span class="menu-icon"><Bookmark size={20} /></span>
+                        <span>Saved recipes</span>
+                </button>
 	</div>
 	<div class="signout-row">{@render signOut(true)}</div>
 </div>
@@ -81,15 +89,17 @@
 	showBackButton={true}
 	onBack={handleBack}
 >
-	{#if view === 'Profile info'}
-		<div class="card">
-			{@render profileInfo()}
-		</div>
-	{:else if view === 'Created recipes'}
-		{@render createdRecipes()}
-	{:else if view === 'Saved recipes'}
-		{@render savedRecipes()}
-	{/if}
+        {#if view === 'Profile info'}
+                <div class="card">
+                        {@render profileInfo()}
+                </div>
+        {:else if view === 'Created recipes'}
+                {@render createdRecipes()}
+        {:else if view === 'Drafts'}
+                {@render draftRecipes()}
+        {:else if view === 'Saved recipes'}
+                {@render savedRecipes()}
+        {/if}
 </Drawer>
 
 <style lang="scss">

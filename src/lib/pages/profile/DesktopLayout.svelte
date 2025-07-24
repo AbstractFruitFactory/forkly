@@ -7,9 +7,10 @@
 		name,
 		email,
 		signOut,
-		profileInfo,
-		createdRecipes,
-		savedRecipes,
+                profileInfo,
+                createdRecipes,
+                draftRecipes,
+                savedRecipes,
 		tabOptions,
 		selectedTab = tabOptions[0],
 		onTabSelect
@@ -19,8 +20,9 @@
 		email: Snippet
 		signOut: Snippet
 		profileInfo: Snippet
-		createdRecipes: Snippet
-		savedRecipes: Snippet
+                createdRecipes: Snippet
+                draftRecipes: Snippet
+                savedRecipes: Snippet
 		tabOptions: string[]
 		selectedTab?: string
 		onTabSelect: (option: string) => void
@@ -49,11 +51,13 @@
 				<div class="card">
 					{@render profileInfo()}
 				</div>
-			{:else if selectedTab === 'Created recipes'}
-				{@render createdRecipes()}
-			{:else if selectedTab === 'Saved recipes'}
-				{@render savedRecipes()}
-			{/if}
+                        {:else if selectedTab === 'Created recipes'}
+                                {@render createdRecipes()}
+                        {:else if selectedTab === 'Drafts'}
+                                {@render draftRecipes()}
+                        {:else if selectedTab === 'Saved recipes'}
+                                {@render savedRecipes()}
+                        {/if}
 		</div>
 	</div>
 </div>

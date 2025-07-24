@@ -8,9 +8,12 @@ import { safeFetch } from '$lib/utils/fetch'
 import type { CommentsResponse } from '../../../(api)/recipes/[id]/comments/+server'
 
 export const load: PageServerLoad = async ({ params, locals, fetch, isDataRequest }) => {
-  const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(r => {
-    return r as NonNullable<typeof r>
-  })
+  const recipeData = await getRecipeWithDetails(params.id, locals.user?.id)
+  if (recipeData.draft && recipeData.userId !== locals.user?.id) {
+    throw error(404, 'Recipe not found')
+  }
+
+  const recipePromise = Promise.resolve(recipeData)
 
   const comments = safeFetch<CommentsResponse>(fetch)(`/recipes/${params.id}/comments?page=0`).then((result) => {
     if (result.isErr()) {
@@ -25,7 +28,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, isDataReques
     : Promise.resolve([])
 
   return {
-    recipe: isDataRequest ? recipe : await recipe,
+    recipe: isDataRequest ? recipePromise : await recipePromise,
     comments: isDataRequest ? comments : await comments,
     collections: isDataRequest ? collections : await collections
   }

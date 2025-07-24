@@ -419,9 +419,20 @@
 {/snippet}
 
 {#snippet submitButton(fullWidth?: boolean)}
-	<Button {fullWidth} loading={submitting} type="submit" color="primary"
-		>{editMode ? 'Save' : 'Create'} Recipe</Button
-	>
+        <div class="btn-row">
+                <Button
+                        {fullWidth}
+                        loading={submitting}
+                        type="submit"
+                        color="primary"
+                >{editMode ? 'Save' : 'Create'} Recipe</Button>
+                <Button
+                        {fullWidth}
+                        type="submit"
+                        formaction="/new?/saveDraft"
+                        color="neutral"
+                >Save Draft</Button>
+        </div>
 {/snippet}
 
 {#snippet addInstructionButton(fullWidth?: boolean)}
@@ -582,9 +593,14 @@
 		}
 	}
 
-	.ingredient-row {
-		width: 100%;
-	}
+        .ingredient-row {
+                width: 100%;
+        }
+
+        .btn-row {
+                display: flex;
+                gap: var(--spacing-md);
+        }
 
 	.quantity-unit-row {
 		display: flex;

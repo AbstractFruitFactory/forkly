@@ -36,12 +36,14 @@ export const load: PageServerLoad = async ({ locals, fetch, url, params }) => {
   if (!profileUser) error(404, 'User not found')
 
   let recipes: DetailedRecipe[]
+  let drafts: DetailedRecipe[]
   let collections: { name: string; count: number }[]
 
   if (isOwner) {
     const userRecipes = await safeFetch<UserRecipes>(fetch)('/recipes/user')
     if (userRecipes.isErr()) error(500, 'Failed to load recipes')
     recipes = userRecipes.value.created
+    drafts = userRecipes.value.drafts
     collections = await getCollections(locals.user!.id)
   } else {
     recipes = await getRecipes({
@@ -49,6 +51,7 @@ export const load: PageServerLoad = async ({ locals, fetch, url, params }) => {
       detailed: true
     })
     collections = []
+    drafts = []
   }
 
   return {
@@ -56,6 +59,7 @@ export const load: PageServerLoad = async ({ locals, fetch, url, params }) => {
     currentUser: locals.user,
     isOwner,
     recipes,
+    drafts,
     collections,
     initialTab: tab ?? undefined
   }

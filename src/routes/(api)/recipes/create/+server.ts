@@ -92,7 +92,8 @@ const createRecipeSchema = v.object({
     ),
     v.maxLength(3, 'A recipe can have at most 3 tags')
   ),
-  imageUrl: v.optional(v.string())
+  imageUrl: v.optional(v.string()),
+  draft: v.optional(v.boolean())
 })
 
 export const POST: RequestHandler = async ({ request, locals }) => {

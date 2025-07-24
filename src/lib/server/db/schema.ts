@@ -34,9 +34,10 @@ export const recipe = pgTable('recipe', {
 	title: text('title').notNull(),
 	description: text('description'),
 	tags: jsonb('tags').$type<string[]>().default([]).notNull(),
-	imageUrl: text('image_url'),
-	servings: integer('servings').notNull().default(1),
-	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+        imageUrl: text('image_url'),
+        servings: integer('servings').notNull().default(1),
+        draft: boolean('draft').notNull().default(false),
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => {
 	return {
 		titleLength: check('recipe_title_length', sql`length(${table.title}) <= 80 and length(${table.title}) >= 5`)

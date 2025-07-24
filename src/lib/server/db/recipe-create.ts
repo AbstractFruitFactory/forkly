@@ -33,6 +33,7 @@ type RecipeInput = {
   nutrition?: NutritionInput | null
   tags: string[]
   imageUrl?: string
+  draft?: boolean
 }
 
 export async function createRecipe(input: RecipeInput, userId?: string) {
@@ -45,7 +46,8 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
     description: input.description,
     servings: input.servings,
     tags: input.tags || [],
-    imageUrl: input.imageUrl
+    imageUrl: input.imageUrl,
+    draft: input.draft ?? false
   }).returning()
 
   // Insert tags into tag and recipeTag tables

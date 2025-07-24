@@ -7,6 +7,7 @@ import map from 'ramda/src/map'
 export type UserRecipes = {
   created: DetailedRecipe[]
   saved: (DetailedRecipe & { collectionName?: string })[]
+  drafts: DetailedRecipe[]
 }
 
 export const GET: RequestHandler = async ({ locals }) => {
@@ -14,10 +15,20 @@ export const GET: RequestHandler = async ({ locals }) => {
 
   const createdFilters: RecipeFilter = {
     userId: locals.user.id,
-    detailed: true
+    detailed: true,
+    draft: false
   }
 
-  const createdRecipes = await getRecipes(createdFilters)
+  const draftFilters: RecipeFilter = {
+    userId: locals.user.id,
+    detailed: true,
+    draft: true
+  }
+
+  const [createdRecipes, draftRecipes] = await Promise.all([
+    getRecipes(createdFilters),
+    getRecipes(draftFilters)
+  ])
   const savedRecipeIds = await getSavedRecipesByUser(locals.user.id)
 
   let savedRecipes: (DetailedRecipe & { collectionName?: string })[] = []
@@ -34,6 +45,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 
   return json({
     created: createdRecipes,
-    saved: savedRecipes
+    saved: savedRecipes,
+    drafts: draftRecipes
   } satisfies UserRecipes)
 } 
