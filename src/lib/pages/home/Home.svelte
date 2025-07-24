@@ -78,31 +78,6 @@
 	let searchTimeout: ReturnType<typeof setTimeout> | null = null
 	let appliedSearchValue = $state('')
 
-	const searchProps = {
-		placeholder: 'Search recipes...',
-		roundedCorners: true,
-		onInput: (query: string) => {
-			if (!isMobile) {
-				if (searchTimeout) {
-					clearTimeout(searchTimeout)
-				}
-				searchTimeout = setTimeout(() => {
-					appliedSearchValue = query
-					onSearch?.(query)
-					scrollToFiltersSentinel()
-				}, 300)
-			}
-		},
-		onConfirm: () => {
-			if (searchTimeout) {
-				clearTimeout(searchTimeout)
-			}
-			appliedSearchValue = searchValue
-			onSearch?.(searchValue)
-			scrollToFiltersSentinel()
-		}
-	}
-
 	onMount(() => {
 		checkMobile()
 		window.addEventListener('resize', checkMobile)
@@ -326,16 +301,6 @@
 	setSlots({ homepageHeader, content })
 </script>
 
-{#snippet search(placement: 'header' | 'filters')}
-	<div
-		class:header-searchbar={placement === 'header'}
-		class:filters-searchbar={placement === 'filters'}
-		data-flip-id="searchbar"
-	>
-		<Search bind:value={searchValue} {...searchProps} />
-	</div>
-{/snippet}
-
 {#snippet homepageHeader()}
 	<div class="large-header">
 		<div class="mobile-logo">
@@ -356,16 +321,32 @@
 		<div class="filters" class:sticky={searchbarIsSticky}>
 			<div class="buttons">
 				<div class="left-section">
-					<div class="mobile-searchbar tablet-only" class:expanded={mobileSearchExpanded}>
-						<SearchButton
-							bind:expanded={mobileSearchExpanded}
-							{...searchProps}
+					<div class="filters-search">
+						<Search
 							bind:value={searchValue}
+							placeholder="Search recipes..."
+							roundedCorners
+							onInput={(query: string) => {
+								if (!isMobile) {
+									if (searchTimeout) {
+										clearTimeout(searchTimeout)
+									}
+									searchTimeout = setTimeout(() => {
+										appliedSearchValue = query
+										onSearch?.(query)
+										scrollToFiltersSentinel()
+									}, 300)
+								}
+							}}
+							onConfirm={() => {
+								if (searchTimeout) {
+									clearTimeout(searchTimeout)
+								}
+								appliedSearchValue = searchValue
+								onSearch?.(searchValue)
+								scrollToFiltersSentinel()
+							}}
 						/>
-					</div>
-
-					<div class="filters-search desktop-only">
-						{@render search('filters')}
 					</div>
 
 					{#if !mobileSearchExpanded}
@@ -435,7 +416,7 @@
 					emptyMessage={emptyStateMessage}
 					{loadMore}
 					onRecipeClick={openRecipePopup}
-					isLoadingMore={isLoadingMore}
+					{isLoadingMore}
 					{isLoading}
 				/>
 			</div>
