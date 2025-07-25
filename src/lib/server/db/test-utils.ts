@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { recipe, recipeLike, ingredient, recipeNutrition, user, recipeBookmark } from './schema'
+import { recipe, recipeLike, ingredient, recipeNutrition, user, recipeBookmark, recipeTag, tag } from './schema'
 import { sql } from 'drizzle-orm'
 
 // Create a test database connection
@@ -37,13 +37,21 @@ export async function createTestUser(id: string = 'test-user-id') {
 }
 
 export async function createTestRecipe(userId: string, recipeData: Partial<typeof recipe.$inferInsert> = {}) {
-  return await testDb.insert(recipe).values({
-    id: 'test-recipe-id',
-    title: 'Test Recipe',
-    description: 'Test Description',
-    tags: ['test'],
-    userId,
-    servings: 1,
-    ...recipeData
+  const tags: string[] = (recipeData as any).tags ?? ['test']
+  const recipeInsert = { ...recipeData, tags: undefined, userId }
+  const [createdRecipe] = await testDb.insert(recipe).values({
+    id: recipeInsert.id ?? 'test-recipe-id',
+    title: recipeInsert.title ?? 'Test Recipe',
+    description: recipeInsert.description ?? 'Test Description',
+    imageUrl: recipeInsert.imageUrl,
+    servings: recipeInsert.servings ?? 1,
+    userId: recipeInsert.userId,
+    createdAt: recipeInsert.createdAt
   }).returning()
+  // Ensure tags exist in tag table before inserting into recipeTag
+  for (const tagName of tags) {
+    await testDb.insert(tag).values({ name: tagName }).onConflictDoNothing()
+    await testDb.insert(recipeTag).values({ recipeId: createdRecipe.id, tagName })
+  }
+  return [createdRecipe]
 } 

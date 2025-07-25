@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import { getRecipes, getRecipeById, getRecipeWithDetails } from '../recipe'
 import { setupTestDb, teardownTestDb, createTestUser, createTestRecipe, testDb } from '../test-utils'
-import { recipe, recipeLike, recipeBookmark, ingredient, recipeNutrition } from '../schema'
+import { recipeLike, recipeBookmark, ingredient, recipeNutrition } from '../schema'
 import { randomUUID } from 'crypto'
 
 describe('recipe.ts', () => {
@@ -32,7 +32,7 @@ describe('recipe.ts', () => {
       expect(recipes[0]).toMatchObject({
         id: recipe.id,
         title: recipe.title,
-        tags: recipe.tags,
+        tags: ['test'],
         likes: 0
       })
     })
@@ -47,7 +47,7 @@ describe('recipe.ts', () => {
         id: recipe.id,
         title: recipe.title,
         description: recipe.description,
-        tags: recipe.tags,
+        tags: ['test'],
         servings: recipe.servings,
         likes: 0,
         user: {
@@ -107,7 +107,6 @@ describe('recipe.ts', () => {
         id: recipe.id,
         title: recipe.title,
         description: recipe.description,
-        tags: recipe.tags,
         servings: recipe.servings
       })
       expect(result?.createdAt).toBeInstanceOf(Date)
@@ -147,7 +146,7 @@ describe('recipe.ts', () => {
         id: recipe.id,
         title: recipe.title,
         description: recipe.description,
-        tags: recipe.tags,
+        tags: ['test'],
         servings: recipe.servings,
         isLiked: true,
         isSaved: true,
