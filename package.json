@@ -27,6 +27,7 @@
     "chromatic": "npx chromatic --project-token=chpt_ab3b71157b15f21 --storybook-build-dir=storybook-static",
     "test": "dotenv -e .env.test vitest run",
     "test:watch": "dotenv -e .env.test vitest",
+    "pretest": "tsx scripts/create-test-db.ts && dotenv -e .env.test drizzle-kit migrate",
     "cleanup:unverified": "tsx src/lib/server/db/cleanup-unverified.ts"
   },
   "devDependencies": {
@@ -52,6 +53,8 @@
     "dotenv-cli": "^8.0.0",
     "drizzle-kit": "^0.30.5",
     "drizzle-seed": "^0.3.1",
+    "pg": "^8.16.3",
+    "pg-connection-string": "^2.9.1",
     "prettier": "^3.4.2",
     "prettier-plugin-svelte": "^3.3.3",
     "redis-commander": "^0.8.0",

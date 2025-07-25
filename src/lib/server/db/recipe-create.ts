@@ -1,7 +1,8 @@
 import { db } from '.'
-import { recipe, ingredient, recipeInstruction, recipeIngredient, recipeNutrition, tag, recipeTag } from './schema'
+import { recipe, recipeInstruction, recipeIngredient, recipeNutrition, tag, recipeTag } from './schema'
 import { eq } from 'drizzle-orm'
 import { generateId } from '$lib/server/id'
+import { addIngredient } from './ingredient'
 
 type IngredientInput = {
   name: string
@@ -94,21 +95,8 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
       for (const ingredientData of instruction.ingredients) {
         let ingredientId: string
 
-        const existingIngredient = await db
-          .select()
-          .from(ingredient)
-          .where(eq(ingredient.name, ingredientData.name))
-          .limit(1)
-
-        if (existingIngredient.length) {
-          ingredientId = existingIngredient[0].id
-        } else {
-          const newIngredient = await db.insert(ingredient).values({
-            id: generateId(),
-            name: ingredientData.name
-          }).returning()
-          ingredientId = newIngredient[0].id
-        }
+        const ingredientObj = await addIngredient(ingredientData.name)
+        ingredientId = ingredientObj.id
 
         await db.insert(recipeIngredient).values({
           recipeId: recipeId,

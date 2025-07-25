@@ -23,7 +23,7 @@ export const session = pgTable('session', {
 
 export const ingredient = pgTable('ingredient', {
 	id: text('id').primaryKey(),
-	name: text('name').notNull(),
+	name: text('name').notNull().unique(),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 })
 

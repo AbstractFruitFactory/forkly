@@ -19,33 +19,45 @@ const PREP_ADJECTIVES = [
   'defrosted', 'dehydrated', 'deshelled', 'dried', 'frozen', 'hydrated',
   'marinated', 'organic', 'packaged', 'pickled', 'powdered', 'preserved',
   'raw', 'rehydrated', 'rindless', 'salted', 'shelled', 'skinless', 'softened',
-  'strained', 'thawed', 'unflavored', 'unpeeled', 'unsalted', 'whole'
+  'strained', 'thawed', 'unflavored', 'unpeeled', 'unsalted', 'whole', 'crushed'
 ]
 
 export const normalizeIngredientName = (input: string): string => {
   let name = input.toLowerCase().trim()
 
-  // Step 1: Remove parentheses
+  // Remove parentheses
   name = name.replace(/\(.*?\)/g, '').trim()
 
-  // Step 2: Remove punctuation
-  name = name.replace(/[.,/#!$%^&*;:{}=\-_`~()\[\]"]/g, '').trim()
+  // Remove numbers
+  name = name.replace(/[0-9]/g, '')
 
-  // Step 3: Remove "for ..." phrases (usage notes)
+  // Remove emoji (unicode emoji ranges)
+  name = name.replace(/[\p{Emoji}\uFE0F]/gu, '').trim()
+
+  // Remove all special characters (punctuation), keep only letters (including accents), spaces, and hyphens
+  name = name.replace(/[^\p{L}\s-]/gu, '').trim()
+
+  // Remove 'for ...' phrases (usage notes)
   name = name.replace(/\bfor\b.*$/, '').trim()
 
-  // Step 4: Strip known safe prep adjectives
+  // Strip known safe prep adjectives
   const tokens = name.split(/\s+/).filter(word => !PREP_ADJECTIVES.includes(word))
   const cleaned = tokens.join(' ')
 
-  // Step 5: Normalize nouns
+  //  Normalize nouns (preserve accents)
+  // compromise may remove accents, so fallback to cleaned if accents are lost
   const doc = nlp(cleaned)
-
-  const normalized = doc.nouns().toSingular().out('text').trim()
-
+  let normalized = doc.nouns().toSingular().out('text').trim()
+  if (normalized && !/[\u00C0-\u017F]/.test(normalized) && /[\u00C0-\u017F]/.test(cleaned)) {
+    normalized = cleaned
+  }
   if (normalized == '') {
     return cleaned
   }
+  // Fallback: singularize common accented Spanish/Portuguese plurals
+  normalized = normalized.replace(/([aeiouáéíóú])s\b/g, '$1')
 
+  // Replace dashes with spaces
+  normalized = normalized.replace(/-/g, ' ')
   return normalized
 }
