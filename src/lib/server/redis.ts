@@ -1,9 +1,9 @@
 import { createClient } from '@redis/client'
-import { REDIS_URL } from '$env/static/private'
+// import { REDIS_URL } from '$env/static/private'
 import type { IngredientSearchResult } from './food-api'
 
 const redis = createClient({
-  url: REDIS_URL
+  url: process.env.REDIS_URL
 })
 
 redis.on('error', (err: Error) => console.error('Redis Client Error', err))

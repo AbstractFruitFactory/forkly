@@ -26,6 +26,24 @@
 		}
 	}
 
+	async function pollJobStatus(jobId: string, maxAttempts = 60, interval = 2000): Promise<any> {
+		for (let attempt = 0; attempt < maxAttempts; attempt++) {
+			await new Promise((res) => setTimeout(res, interval))
+			const statusResult = await safeFetch()(`/import-recipe/status/${jobId}`)
+			if (statusResult.isErr()) {
+				throw new Error(statusResult.error.message)
+			}
+			const data = statusResult.value as any
+			if (data.status === 'completed' && data.result) {
+				return data.result
+			}
+			if (data.status === 'failed') {
+				throw new Error(data.error || 'Recipe import failed')
+			}
+		}
+		throw new Error('Timed out waiting for recipe import')
+	}
+
 	async function handleScrape() {
 		if (!url.trim()) {
 			error = 'Please enter a recipe URL'
@@ -49,23 +67,22 @@
 			if (result.isErr()) {
 				error = result.error.message
 			} else {
-				const recipe = result.value as any
+				const { jobId } = result.value as any
+				if (!jobId) {
+					error = 'Failed to start recipe import. Please try again.'
+					return
+				}
+				const recipe = await pollJobStatus(jobId)
 				if (!recipe.title || !recipe.instructions) {
 					error = 'The recipe data appears to be incomplete. Please try a different recipe URL.'
 					return
 				}
-
 				onRecipeScraped?.(recipe)
 				onClose?.()
 			}
 		} catch (err) {
 			console.error('Recipe scraping error:', err)
-
-			// Provide more specific error messages based on the error type
-			if (err instanceof TypeError && err.message.includes('fetch')) {
-				error =
-					'Unable to connect to the recipe scraper. Please check your internet connection and try again.'
-			} else if (err instanceof Error) {
+			if (err instanceof Error) {
 				error = err.message || 'Failed to scrape recipe'
 			} else {
 				error = 'An unexpected error occurred while scraping the recipe'
