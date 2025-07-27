@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { scrapeRecipe, type RecipeData } from '$lib/utils/recipeScraper'
 	import Button from '$lib/components/button/Button.svelte'
 	import Input from '$lib/components/input/Input.svelte'
 	import WarningBox from '$lib/components/warning-box/WarningBox.svelte'
+	import { safeFetch } from '$lib/utils/fetch'
+	import type { RecipeData } from '../../pages/new-recipe/NewRecipe.svelte'
 
 	let {
 		onClose,
@@ -40,18 +41,21 @@
 		error = null
 
 		try {
-			const result = await scrapeRecipe(url)
+			const result = await safeFetch()('/import-recipe', {
+				method: 'POST',
+				body: JSON.stringify({ url })
+			})
 
-			if ('error' in result) {
-				error = result.error
+			if (result.isErr()) {
+				error = result.error.message
 			} else {
-				// Additional validation on the frontend
-				if (!result.title || !result.ingredients || !result.instructions) {
+				const recipe = result.value as any
+				if (!recipe.title || !recipe.instructions) {
 					error = 'The recipe data appears to be incomplete. Please try a different recipe URL.'
 					return
 				}
 
-				onRecipeScraped?.(result)
+				onRecipeScraped?.(recipe)
 				onClose?.()
 			}
 		} catch (err) {

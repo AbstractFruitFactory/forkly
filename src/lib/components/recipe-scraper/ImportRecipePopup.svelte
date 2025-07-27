@@ -1,15 +1,16 @@
 <script lang="ts">
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import RecipeScraper from './RecipeScraper.svelte'
-	import type { RecipeData } from '$lib/utils/recipeScraper'
+	import type { RecipeData } from '../../pages/new-recipe/NewRecipe.svelte'
+
 	let {
 		isOpen = $bindable(false),
-		onRecipeScraped,
-		onClose
+		onClose,
+		onRecipeScraped
 	}: {
 		isOpen?: boolean
-		onRecipeScraped?: (recipe: RecipeData) => void
 		onClose?: () => void
+		onRecipeScraped?: (recipe: RecipeData) => void
 	} = $props()
 
 	function handleClose() {

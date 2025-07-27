@@ -48,6 +48,8 @@
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import { UNIT_DISPLAY_TEXT, UNITS } from '$lib/utils/unitConversion'
+	import DownloadIcon from 'lucide-svelte/icons/download'
+	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
 
 	let {
 		prefilledData,
@@ -90,7 +92,7 @@
 		id: string
 		ingredients: { id: string; name?: string; quantity?: number; unit?: string }[]
 		text?: string
-	}[] = $state(
+	}[] = $derived(
 		prefilledData?.instructions
 			? prefilledData.instructions.map((instruction) => ({
 					id: generateId(),
@@ -121,6 +123,7 @@
 	let mobileLayoutElement: HTMLElement
 	let desktopLayoutElement: HTMLElement
 	let searchValue = $state('')
+	let isImportPopupOpen = $state(false)
 
 	const checkViewport = () => {
 		isMobileView = window.innerWidth <= 480
@@ -242,6 +245,31 @@
 		return filteredUnits.map((unit) => ({
 			id: unit,
 			name: UNIT_DISPLAY_TEXT[unit as keyof typeof UNIT_DISPLAY_TEXT] || unit
+		}))
+	}
+
+	const populateFromRecipe = (recipe: RecipeData) => {
+		_title = recipe.title ?? ''
+		_description = recipe.description ?? ''
+		servings = recipe.servings ?? 1
+		selectedTags = recipe.tags ?? []
+		image = recipe.image ?? null
+		nutritionMode = recipe.nutritionMode ?? 'auto'
+		if (recipe.nutrition) {
+			calories = recipe.nutrition.calories ?? ''
+			protein = recipe.nutrition.protein ?? ''
+			carbs = recipe.nutrition.carbs ?? ''
+			fat = recipe.nutrition.fat ?? ''
+		}
+		instructions = (recipe.instructions ?? []).map((instruction) => ({
+			id: generateId(),
+			text: instruction.text,
+			ingredients: (instruction.ingredients ?? []).map((ingredient) => ({
+				id: generateId(),
+				name: ingredient.name,
+				quantity: ingredient.quantity,
+				unit: ingredient.measurement
+			}))
 		}))
 	}
 </script>
@@ -505,6 +533,20 @@
 			</div>
 		{/if}
 
+		<div class="page-header">
+			<div></div>
+			<Button
+				onclick={() => {
+					isImportPopupOpen = true
+				}}
+				variant="border"
+				color="neutral"
+			>
+				<DownloadIcon color="var(--color-text-on-surface)" size={16} />
+				Import Recipe
+			</Button>
+		</div>
+
 		{#if isMobileView}
 			<div class="mobile-layout" bind:this={mobileLayoutElement}>
 				<MobileLayout
@@ -551,6 +593,12 @@
 	</form>
 </div>
 
+<ImportRecipePopup
+	bind:isOpen={isImportPopupOpen}
+	onClose={() => (isImportPopupOpen = false)}
+	onRecipeScraped={populateFromRecipe}
+/>
+
 <style lang="scss">
 	@import '../../global.scss';
 
@@ -584,6 +632,25 @@
 
 		@include mobile {
 			display: none;
+		}
+	}
+
+	.page-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-xl);
+
+		h1 {
+			margin: 0;
+			font-size: var(--font-size-2xl);
+			font-weight: 600;
+		}
+
+		@include mobile {
+			flex-direction: column;
+			gap: var(--spacing-md);
+			align-items: stretch;
 		}
 	}
 
