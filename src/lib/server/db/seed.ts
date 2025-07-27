@@ -36,10 +36,19 @@ export const seed = async () => {
   const baseCount = sampleRecipesRaw.length
   const multiplier = Math.ceil(TARGET_RECIPE_COUNT / baseCount)
   let sampleRecipes: Recipe[] = []
+  const titleCountMap = new Map<string, number>()
   for (let m = 0; m < multiplier; m++) {
     for (const recipe of sampleRecipesRaw) {
+      const baseTitle = recipe.title
+      const count = (titleCountMap.get(baseTitle) || 0) + 1
+      titleCountMap.set(baseTitle, count)
+      let newTitle = baseTitle
+      if (count > 1) {
+        newTitle = `${baseTitle} ${count}`
+      }
       sampleRecipes.push({
         ...recipe,
+        title: newTitle,
         id: generateId(),
         createdAt: new Date()
       })
