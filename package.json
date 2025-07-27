@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "engines": {
-    "node": "22.17.1"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "dev": "concurrently \"vite dev\" \"tsx scripts/import-recipe-worker.ts\"",
