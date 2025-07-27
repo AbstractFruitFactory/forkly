@@ -90,7 +90,6 @@
 		border: none;
 		text-decoration: none;
 		position: relative;
-		overflow: hidden;
 		text-wrap: nowrap;
 		white-space: nowrap;
 		width: fit-content;

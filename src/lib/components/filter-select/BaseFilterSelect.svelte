@@ -118,8 +118,8 @@
 		{:else}
 			{@render label()}
 		{/if}
-		{#if count}
-			<span class="count">({count})</span>
+		{#if count && count > 0}
+			<span class="badge">{count}</span>
 		{/if}
 	</Button>
 
@@ -207,5 +207,25 @@
 		border-radius: 50%;
 		color: white;
 		flex-shrink: 0;
+	}
+
+	.badge {
+		position: absolute;
+		top: -8px;
+		right: 0px;
+		min-width: 20px;
+		height: 20px;
+		padding: 0 6px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--color-primary);
+		color: #fff;
+		border-radius: 999px;
+		font-size: 12px;
+		font-weight: 600;
+		z-index: 1;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+		pointer-events: none;
 	}
 </style>
