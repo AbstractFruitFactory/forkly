@@ -3,13 +3,18 @@ import type { RequestHandler } from './$types'
 import { redis } from '$lib/server/redis'
 
 export const GET: RequestHandler = async ({ params }) => {
-  const { jobId } = params
-  if (!jobId) return json({ error: 'Missing jobId' }, { status: 400 })
-  const key = `import-recipe:result:${jobId}`
-  const value = await redis.get(key)
-  if (!value) {
-    // Could check BullMQ for job existence, but for now just return pending
-    return json({ status: 'pending' })
+  try {
+    const { jobId } = params
+    if (!jobId) return json({ error: 'Missing jobId' }, { status: 400 })
+    const key = `import-recipe:result:${jobId}`
+    const value = await redis.get(key)
+    if (!value) {
+      return json({ status: 'pending' })
+    }
+    return json(JSON.parse(value as string))
+  } catch (error) {
+    console.error('Error in import-recipe status endpoint:', error)
+    const message = error instanceof Error ? error.message : String(error)
+    return json({ error: message }, { status: 500 })
   }
-  return json(JSON.parse(value))
 } 

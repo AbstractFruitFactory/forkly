@@ -1,5 +1,8 @@
 import { Redis } from '@upstash/redis'
 import type { IngredientSearchResult } from './food-api'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,

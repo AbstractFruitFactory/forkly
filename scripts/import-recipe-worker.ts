@@ -92,6 +92,8 @@ const worker = new Worker(
     try {
       const rawText = await fetchAndCleanHtml(url)
       const recipe = await extractRecipe(rawText)
+      console.log(recipe)
+
       const recipeData = {
         title: recipe.title || '',
         description: recipe.description || '',
@@ -115,16 +117,20 @@ const worker = new Worker(
             }))
           : []
       }
+      console.log('Writing completed recipe to Redis:', `import-recipe:result:${job.id}`)
+      console.log('Value:', JSON.stringify({ status: 'completed', result: recipeData }))
       await redis.set(
         `import-recipe:result:${job.id}`,
         JSON.stringify({ status: 'completed', result: recipeData }),
-        { EX: 3600 }
+        { ex: 3600 }
       )
     } catch (err: any) {
+      console.log('Writing failed recipe to Redis:', `import-recipe:result:${job.id}`)
+      console.log('Value:', JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }))
       await redis.set(
         `import-recipe:result:${job.id}`,
         JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }),
-        { EX: 3600 }
+        { ex: 3600 }
       )
     }
   },
