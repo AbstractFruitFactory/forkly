@@ -47,7 +47,7 @@
 	.header-actions {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-lg);
+		gap: var(--spacing-sm);
 	}
 
 	.recipe-actions {
