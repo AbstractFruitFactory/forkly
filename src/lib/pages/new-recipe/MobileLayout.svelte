@@ -21,14 +21,15 @@
 		ingredientRow,
 		addInstructionButton,
 		addIngredientButton,
-		removeInstructionButton
+		removeInstructionButton,
+		saveDraftButton
 	}: {
 		instructions: {
 			id: string
 			ingredients: { id: string; name?: string; quantity?: number; unit?: string }[]
 			text?: string
 		}[]
-		submitButton: Snippet
+		submitButton: Snippet<[fullWidth?: boolean]>
 		servingsAdjuster: Snippet
 		title: Snippet
 		description: Snippet
@@ -38,10 +39,19 @@
 		unitToggle: Snippet
 		instructionInput: Snippet<[id: string, value?: string]>
 		instructionMedia: Snippet<[id: string]>
-		ingredientRow: Snippet<[id: string, instructionId: string, nameValue?: string, amountValue?: string, unitValue?: string]>
+		ingredientRow: Snippet<
+			[
+				id: string,
+				instructionId: string,
+				nameValue?: string,
+				amountValue?: string,
+				unitValue?: string
+			]
+		>
 		addInstructionButton: Snippet<[fullWidth?: boolean]>
 		addIngredientButton: Snippet<[instructionId: string, fullWidth?: boolean]>
 		removeInstructionButton: Snippet<[instructionId: string]>
+		saveDraftButton: Snippet<[fullWidth?: boolean]>
 	} = $props()
 </script>
 
@@ -96,12 +106,12 @@
 									{@render addIngredientButton(item.id, true)}
 								{:else}
 									{@render ingredientRow(
-									ingredientItem.id, 
-									item.id,
-									ingredientItem.name,
-									ingredientItem.quantity?.toString(),
-									ingredientItem.unit
-								)}
+										ingredientItem.id,
+										item.id,
+										ingredientItem.name,
+										ingredientItem.quantity?.toString(),
+										ingredientItem.unit
+									)}
 								{/if}
 							</div>
 						{/each}
@@ -128,6 +138,7 @@
 </div>
 
 <div class="submit-section">
+	{@render saveDraftButton?.(true)}
 	{@render submitButton(true)}
 </div>
 
@@ -242,6 +253,7 @@
 
 	.submit-section {
 		display: flex;
+		gap: var(--spacing-md);
 		justify-content: center;
 		margin-top: var(--spacing-xl);
 		padding-top: var(--spacing-lg);

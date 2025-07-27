@@ -1,5 +1,5 @@
 import { db } from '.'
-import { recipe, recipeLike, recipeInstruction, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag, tag } from './schema'
+import { recipe, recipeLike, recipeInstruction, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag, tag, recipeDraft } from './schema'
 import { eq, ilike, desc, sql, and, SQL, or, asc } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 import type { MeasurementUnit } from '$lib/types'
@@ -932,4 +932,8 @@ export const getSimilarRecipes = async (recipeId: string, limit: number = 5) => 
     .map(score => score.recipeId)
 
   return getRecipes({ recipeIds: topRecipeIds })
+} 
+
+export async function getRecipeDraftsByUser(userId: string) {
+  return db.select().from(recipeDraft).where(eq(recipeDraft.userId, userId))
 } 

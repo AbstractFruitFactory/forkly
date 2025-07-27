@@ -19,7 +19,8 @@
 		href,
 		children,
 		loading = false,
-		fullHeight = false
+		fullHeight = false,
+		formaction
 	}: {
 		variant?: Variant
 		color?: Color
@@ -35,6 +36,7 @@
 		children?: Snippet
 		loading?: boolean
 		fullHeight?: boolean
+		formaction?: string
 	} = $props()
 </script>
 
@@ -44,6 +46,7 @@
 	{href}
 	{type}
 	{disabled}
+	{formaction}
 	class="button"
 	class:primary={color === 'primary'}
 	class:secondary={color === 'secondary'}

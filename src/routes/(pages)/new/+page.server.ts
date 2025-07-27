@@ -1,4 +1,4 @@
-import { fail } from '@sveltejs/kit'
+import { fail, redirect } from '@sveltejs/kit'
 import type { Actions } from './$types'
 import type { Ingredient } from '$lib/types'
 import groupBy from 'ramda/src/groupBy'
@@ -125,7 +125,6 @@ const parseIngredientOrInstruction = (formData: FormData, keyPrefix: string) =>
 const parseFormData = (formData: FormData): FormFields => {
   const tags = formData.getAll('tags').map(value => value.toString())
 
-  // Parse instructions
   const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')
   const instructionById = groupBy(entry => entry.id, instructionEntries)
 
@@ -140,28 +139,25 @@ const parseFormData = (formData: FormData): FormFields => {
       }
     }
 
-    // Parse ingredients for this instruction
     const instructionId = entries![0]?.id
     if (instructionId) {
-      // Parse ingredient fields with the pattern: instructions-{instructionId}-ingredient-{ingredientId}-{field}
       const ingredientEntries = Array.from(formData.entries())
         .filter(([key]) => key.startsWith(`instructions-${instructionId}-ingredient-`))
         .map(([key, value]) => {
-          // Parse: instructions-{instructionId}-ingredient-{ingredientId}-{field}
           const parts = key.split('-')
           const ingredientId = parts[3]
           const field = parts[4]
           return { id: ingredientId, field, value: value.toString() }
         })
-      
+
       const ingredientById = groupBy(entry => entry.id, ingredientEntries)
-      
+
       Object.values(ingredientById).forEach(ingredientEntries => {
         if (ingredientEntries) {
           let name = ''
           let quantity: number | undefined
           let measurement = ''
-          
+
           for (const entry of ingredientEntries) {
             const { field, value } = entry
             if (field === 'name') {
@@ -172,7 +168,7 @@ const parseFormData = (formData: FormData): FormFields => {
               measurement = value
             }
           }
-          
+
           if (name) {
             ingredients.push({
               name,
@@ -218,18 +214,15 @@ const parseFormData = (formData: FormData): FormFields => {
   }
 }
 
-const processRecipeForm = async (formData: FormData, fetch: any, isUpdate = false, recipeId?: string) => {
-  console.log(formData)
+const buildRecipePayloadFromForm = async (formData: FormData, skipValidation: boolean = false) => {
   const recipeData = parseFormData(formData)
   const imageFile = formData.get('image') as File | undefined
 
-  // Parse instructions again to get the IDs for media lookup
   const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')
   const instructionById = groupBy(entry => entry.id, instructionEntries)
 
   const instructionsWithMedia = await Promise.all(
     recipeData.instructions.map(async (instruction, index) => {
-      // Find the instruction ID from the parsed data
       const instructionId = Object.keys(instructionById)[index]
       const mediaFile = formData.get(`instructions-${instructionId}-media`) as File | undefined
 
@@ -241,7 +234,6 @@ const processRecipeForm = async (formData: FormData, fetch: any, isUpdate = fals
           folder: 'instruction-media',
           resource_type: isVideo ? 'video' : 'image'
         })
-
         return {
           ...instruction,
           id: instructionId,
@@ -249,32 +241,34 @@ const processRecipeForm = async (formData: FormData, fetch: any, isUpdate = fals
           mediaType: isVideo ? ('video' as const) : ('image' as const)
         }
       }
-
       return {
         ...instruction,
         id: instructionId
       }
     })
   )
-
   recipeData.instructions = instructionsWithMedia
 
-  const result = v.safeParse(formValidationSchema, {
-    title: recipeData.title,
-    description: recipeData.description,
-    servings: Number(recipeData.servings) || 1,
-    instructions: recipeData.instructions,
-    tags: recipeData.tags
-  })
-
-  if (!result.success) {
-    return fail(400, {
-      success: false,
-      errors: result.issues.map(issue => ({
-        path: issue.path?.map(p => p.key).join('.') || '',
-        message: issue.message
-      }))
+  if (!skipValidation) {
+    const result = v.safeParse(formValidationSchema, {
+      title: recipeData.title,
+      description: recipeData.description,
+      servings: Number(recipeData.servings) || 1,
+      instructions: recipeData.instructions,
+      tags: recipeData.tags
     })
+
+    if (!result.success) {
+      return {
+        error: fail(400, {
+          success: false,
+          errors: result.issues.map(issue => ({
+            path: issue.path?.map(p => p.key).join('.') || '',
+            message: issue.message
+          }))
+        })
+      }
+    }
   }
 
   let imageUrl: string | undefined = undefined
@@ -284,7 +278,6 @@ const processRecipeForm = async (formData: FormData, fetch: any, isUpdate = fals
     imageUrl = await uploadImage(buffer)
   }
 
-  // Add IDs to instructions (ingredients already parsed in parseFormData)
   const instructionsWithIds = recipeData.instructions.map((instruction, index) => {
     const instructionId = Object.keys(instructionById)[index]
     return {
@@ -293,24 +286,23 @@ const processRecipeForm = async (formData: FormData, fetch: any, isUpdate = fals
     }
   })
 
-  // Validate that the recipe has at least one ingredient
   const allIngredients = instructionsWithIds.flatMap(instruction => instruction.ingredients || [])
-  if (allIngredients.length === 0) {
-    return fail(400, {
-      success: false,
-      errors: [{
-        path: 'ingredients',
-        message: 'Recipe must have at least one ingredient'
-      }]
-    })
+  if (allIngredients.length === 0 && !skipValidation) {
+    return {
+      error: fail(400, {
+        success: false,
+        errors: [{
+          path: 'ingredients',
+          message: 'Recipe must have at least one ingredient'
+        }]
+      })
+    }
   }
 
-  // Calculate nutrition after instructions are processed
   let nutrition: typeof recipeData.manualNutrition | null = null
   if (recipeData.nutritionMode === 'manual') {
     nutrition = recipeData.manualNutrition ?? null
   } else if (recipeData.nutritionMode === 'auto') {
-    // Collect all ingredients from all instructions for nutrition calculation
     const allIngredients = instructionsWithIds.flatMap(instruction => instruction.ingredients || [])
     const nutritionResult = await api('getRecipeInfo')(
       allIngredients.map(ing => ({
@@ -321,7 +313,6 @@ const processRecipeForm = async (formData: FormData, fetch: any, isUpdate = fals
       recipeData.instructions.map(i => i.text).join('\n'),
       recipeData.servings
     )
-
     if (nutritionResult.isOk()) {
       nutrition = {
         calories: nutritionResult.value.calories,
@@ -332,57 +323,62 @@ const processRecipeForm = async (formData: FormData, fetch: any, isUpdate = fals
     }
   }
 
-  const requestPayload = {
-    ...(isUpdate && recipeId ? { id: recipeId } : {}),
-    title: recipeData.title,
-    description: recipeData.description,
-    servings: recipeData.servings,
-    instructions: instructionsWithIds,
-    nutrition: nutrition,
-    tags: recipeData.tags,
-    imageUrl
-  }
-
-  const endpoint = isUpdate ? '/recipes/update' : '/recipes/create'
-  const method = isUpdate ? 'POST' : 'POST'
-
-  const fetchResponse = await safeFetch<RecipeApiResponse>(fetch)(
-    endpoint,
-    {
-      method,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestPayload)
-    }
-  )
-
-  if (fetchResponse.isErr()) {
-    console.error(`Error ${isUpdate ? 'updating' : 'creating'} recipe`, fetchResponse.error)
-    return fail(500, {
-      success: false,
-      errors: [{
-        path: 'api',
-        message: `An unexpected error occurred while ${isUpdate ? 'updating' : 'creating'} the recipe`
-      }]
-    })
-  }
-
   return {
-    success: true,
-    recipeId: fetchResponse.value.id
+    payload: {
+      title: recipeData.title,
+      description: recipeData.description,
+      servings: recipeData.servings,
+      instructions: instructionsWithIds,
+      nutrition: nutrition,
+      tags: recipeData.tags,
+      imageUrl
+    }
   }
 }
 
 export const actions = {
   create: async ({ request, fetch }) => {
-    return await processRecipeForm(await request.formData(), fetch, false)
-  },
+    const formData = await request.formData()
+    const { payload, error } = await buildRecipePayloadFromForm(formData)
+    if (error) return error
 
+    const fetchResponse = await safeFetch<RecipeApiResponse>(fetch)(
+      '/recipes/create',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }
+    )
+    if (fetchResponse.isErr()) {
+      console.error('Error creating recipe', fetchResponse.error)
+      return fail(500, {
+        success: false,
+        errors: [{
+          path: 'api',
+          message: 'An unexpected error occurred while creating the recipe'
+        }]
+      })
+    }
+
+    if (formData.get('draft') === 'true') {
+      const draftId = formData.get('id')?.toString()
+      const deleteResponse = await safeFetch(fetch)(`/recipes/draft/${draftId}`, {
+        method: 'DELETE'
+      })
+      if (deleteResponse.isErr()) {
+        console.error('Failed to delete draft', deleteResponse.error)
+      }
+    }
+
+    return {
+      success: true,
+      recipeId: fetchResponse.value.id
+    }
+  },
   update: async ({ request, fetch }) => {
     const formData = await request.formData()
     const recipeId = formData.get('id')?.toString()
-    
     if (!recipeId) {
       return fail(400, {
         success: false,
@@ -393,8 +389,68 @@ export const actions = {
       })
     }
 
-    const result = await processRecipeForm(formData, fetch, true, recipeId)
+    const { payload, error } = await buildRecipePayloadFromForm(formData)
+    if (error) return error
 
-    return result
+    const fetchResponse = await safeFetch<RecipeApiResponse>(fetch)(
+      '/recipes/update',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, id: recipeId })
+      }
+    )
+    if (fetchResponse.isErr()) {
+      console.error('Error updating recipe', fetchResponse.error)
+      return fail(500, {
+        success: false,
+        errors: [{
+          path: 'api',
+          message: 'An unexpected error occurred while updating the recipe'
+        }]
+      })
+    }
+    return {
+      success: true,
+      recipeId: fetchResponse.value.id
+    }
+  },
+  saveDraft: async ({ request, fetch, locals }) => {
+    const { user } = locals
+    if (!user) {
+      return fail(401, {
+        success: false,
+        errors: [{ path: 'user', message: 'Unauthorized' }]
+      })
+    }
+    const formData = await request.formData()
+    const draftId = formData.get('id')?.toString()
+    const { payload, error } = await buildRecipePayloadFromForm(formData, true)
+    if (error) {
+      console.error(error?.data.errors)
+      return error
+    }
+
+    let fetchResponse = await safeFetch<RecipeApiResponse>(fetch)(
+      draftId ? `/recipes/draft/${draftId}` : '/recipes/draft',
+      {
+        method: draftId ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }
+    )
+
+    if (fetchResponse.isErr()) {
+      console.error('Error saving draft', fetchResponse.error)
+      return fail(500, {
+        success: false,
+        errors: [{
+          path: 'api',
+          message: 'An unexpected error occurred while saving the draft'
+        }]
+      })
+    }
+
+    redirect(302, `/user/${user.username}?tab=Drafts`)
   }
 } satisfies Actions 

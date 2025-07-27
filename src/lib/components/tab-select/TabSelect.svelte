@@ -11,7 +11,7 @@
 		selected?: string
 	}>()
 
-	let currentSelected = $state(selected)
+	let currentSelected = $derived(selected)
 
 	const handleSelect = (option: string) => {
 		currentSelected = option

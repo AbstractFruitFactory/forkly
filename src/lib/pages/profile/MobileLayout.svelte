@@ -14,7 +14,9 @@
 		profileInfo,
 		createdRecipes,
 		savedRecipes,
-		initialView
+		drafts,
+		selectedTab,
+		onTabSelect
 	}: {
 		avatar: Snippet
 		name: Snippet
@@ -24,15 +26,21 @@
 		profileInfo: Snippet
 		createdRecipes: Snippet
 		savedRecipes: Snippet
-		initialView?: string
+		drafts: Snippet
+		selectedTab?: string
+		onTabSelect: (tab: string) => void
 	} = $props()
 
-	let view = $state(initialView)
-	let isDrawerOpen = $state(!!initialView)
+	let view = $derived(selectedTab)
+	let isDrawerOpen = $derived(!!selectedTab)
 
 	function open(viewName?: typeof view) {
 		view = viewName
 		isDrawerOpen = !!viewName
+
+		if (viewName) {
+			onTabSelect(viewName)
+		}
 	}
 
 	function handleBack() {
@@ -44,7 +52,11 @@
 			? 'Profile'
 			: view === 'Created recipes'
 				? 'Created recipes'
-				: 'Saved recipes'
+				: view === 'Saved recipes'
+					? 'Saved recipes'
+					: view === 'Drafts'
+						? 'Drafts'
+						: 'Saved recipes'
 	}
 </script>
 
@@ -70,6 +82,10 @@
 			<span class="menu-icon"><Bookmark size={20} /></span>
 			<span>Saved recipes</span>
 		</button>
+		<button class="menu-btn card" onclick={() => open('Drafts')}>
+			<span class="menu-icon"><SquarePlus size={20} /></span>
+			<span>Drafts</span>
+		</button>
 	</div>
 	<div class="signout-row">{@render signOut(true)}</div>
 </div>
@@ -89,6 +105,8 @@
 		{@render createdRecipes()}
 	{:else if view === 'Saved recipes'}
 		{@render savedRecipes()}
+	{:else if view === 'Drafts'}
+		{@render drafts()}
 	{/if}
 </Drawer>
 

@@ -1,7 +1,4 @@
 <script lang="ts">
-	import Button from '$lib/components/button/Button.svelte'
-	import Trash from 'lucide-svelte/icons/trash-2'
-	import Plus from 'lucide-svelte/icons/plus'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
 	import type { Snippet } from 'svelte'
@@ -21,7 +18,8 @@
 		addInstructionButton,
 		addIngredientButton,
 		removeInstructionButton,
-		submitButton
+		submitButton,
+		saveDraftButton
 	}: {
 		instructions: {
 			id: string
@@ -35,13 +33,22 @@
 		nutrition: Snippet
 		servingsAdjuster: Snippet
 		unitToggle: Snippet
-		ingredientRow: Snippet<[id: string, instructionId: string, nameValue?: string, amountValue?: string, unitValue?: string]>
+		ingredientRow: Snippet<
+			[
+				id: string,
+				instructionId: string,
+				nameValue?: string,
+				amountValue?: string,
+				unitValue?: string
+			]
+		>
 		instructionInput: Snippet<[id: string, value?: string]>
 		instructionMedia: Snippet<[id: string]>
 		addInstructionButton: Snippet
 		addIngredientButton: Snippet<[instructionId: string]>
 		removeInstructionButton: Snippet<[instructionId: string]>
 		submitButton: Snippet
+		saveDraftButton: Snippet<[fullWidth?: boolean]>
 	} = $props()
 </script>
 
@@ -113,7 +120,7 @@
 												{@render addIngredientButton(item.id)}
 											{:else}
 												{@render ingredientRow(
-													ingredientItem.id, 
+													ingredientItem.id,
 													item.id,
 													ingredientItem.name,
 													ingredientItem.quantity?.toString(),
@@ -146,6 +153,7 @@
 	<div class="section-title"></div>
 	<div class="section-content">
 		<div class="submit-section">
+			{@render saveDraftButton?.()}
 			{@render submitButton()}
 		</div>
 	</div>
@@ -226,6 +234,7 @@
 
 	.submit-section {
 		display: flex;
+		gap: var(--spacing-sm);
 		justify-content: flex-end;
 		margin-top: var(--spacing-xl);
 		padding-top: var(--spacing-lg);

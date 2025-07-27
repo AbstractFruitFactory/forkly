@@ -28,5 +28,6 @@
 		onLogout={data.isOwner ? handleLogout : undefined}
 		initialTab={data.initialTab}
 		isOwner={data.isOwner}
+		drafts={Promise.resolve(data.drafts)}
 	/>
 </div> 

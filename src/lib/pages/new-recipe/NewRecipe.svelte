@@ -52,6 +52,7 @@
 	let {
 		prefilledData,
 		editMode,
+		draftMode,
 		errors,
 		unitSystem = 'imperial',
 		onSearchTags,
@@ -61,6 +62,10 @@
 		prefilledData?: RecipeData
 		editMode?: {
 			onSave: () => void
+		}
+		draftMode?: {
+			onSaveDraft: () => void
+			onPublish: () => void
 		}
 		errors?: { path: string; message: string }[]
 		onSearchIngredients?: (query: string) => Promise<Ingredient[]>
@@ -418,9 +423,25 @@
 	<MediaUpload name={`instructions-${id}-media`} {onFile} previewAlt="Instruction media" />
 {/snippet}
 
+{#snippet saveDraftButton(fullWidth?: boolean)}
+	{#if !editMode}
+		<Button
+			{fullWidth}
+			formaction="/new?/saveDraft"
+			loading={submitting}
+			type="submit"
+			color="neutral">Save Draft</Button
+		>
+	{/if}
+{/snippet}
+
 {#snippet submitButton(fullWidth?: boolean)}
-	<Button {fullWidth} loading={submitting} type="submit" color="primary"
-		>{editMode ? 'Save' : 'Create'} Recipe</Button
+	<Button
+		{fullWidth}
+		formaction={editMode ? '/new?/update' : '/new?/create'}
+		loading={submitting}
+		type="submit"
+		color="primary">{editMode ? 'Save' : 'Upload'} Recipe</Button
 	>
 {/snippet}
 
@@ -454,7 +475,6 @@
 <div class="new-recipe">
 	<form
 		method="POST"
-		action={editMode ? '/new?/update' : '/new?/create'}
 		enctype="multipart/form-data"
 		use:enhance={({ formData }) => {
 			submitting = true
@@ -467,9 +487,12 @@
 
 			formData.append('nutritionMode', nutritionMode)
 
+			formData.append('draft', draftMode ? 'true' : 'false')
+
 			return async ({ update }) => {
 				submitting = false
 				editMode?.onSave()
+				draftMode?.onPublish()
 				update()
 			}
 		}}
@@ -500,6 +523,7 @@
 					{addIngredientButton}
 					{removeInstructionButton}
 					{submitButton}
+					{saveDraftButton}
 				/>
 			</div>
 		{:else}
@@ -520,6 +544,7 @@
 					{addIngredientButton}
 					{removeInstructionButton}
 					{submitButton}
+					{saveDraftButton}
 				/>
 			</div>
 		{/if}

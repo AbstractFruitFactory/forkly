@@ -22,7 +22,8 @@
 		collections = Promise.resolve([]),
 		initialTab,
 		onLogout,
-		isOwner
+		isOwner,
+		drafts = Promise.resolve([])
 	}: {
 		user: Promise<User>
 		createdRecipes?: Promise<DetailedRecipe[]>
@@ -30,10 +31,11 @@
 		initialTab?: string
 		onLogout?: () => void
 		isOwner?: boolean
+		drafts?: Promise<any[]>
 	} = $props()
 
 	const tabOptions = isOwner
-		? ['Profile info', 'Created recipes', 'Saved recipes']
+		? ['Profile info', 'Created recipes', 'Saved recipes', 'Drafts']
 		: ['Profile info', 'Created recipes']
 	let selectedTab = $state(initialTab)
 
@@ -46,6 +48,10 @@
 	let recipeToDelete: DetailedRecipe | undefined = $state()
 	let editPopupOpen = $state(false)
 	let recipeToEdit: DetailedRecipe | undefined = $state()
+	let draftToEdit: any = $state()
+	let editDraftPopupOpen = $state(false)
+	let draftToDelete: any = $state()
+	let deleteDraftPopupOpen = $state(false)
 
 	async function handleAvatarChange(event: Event) {
 		const input = event.target as HTMLInputElement
@@ -91,6 +97,28 @@
 	function openEditPopup(recipe: DetailedRecipe) {
 		recipeToEdit = recipe
 		editPopupOpen = true
+	}
+
+	function openEditDraftPopup(draft: any) {
+		draftToEdit = draft
+		editDraftPopupOpen = true
+	}
+
+	function openDeleteDraftPopup(draft: any) {
+		draftToDelete = draft
+		deleteDraftPopupOpen = true
+	}
+
+	async function handleDeleteDraft() {
+		if (!draftToDelete) return
+		const result = await safeFetch<{ success: true }>()(`/recipes/draft/${draftToDelete.id}`, {
+			method: 'DELETE'
+		})
+		if (result.isOk()) {
+			deleteDraftPopupOpen = false
+			draftToDelete = undefined
+			invalidateAll()
+		}
 	}
 
 	const searchTags = async (query: string): Promise<{ name: string; count: number }[]> => {
@@ -259,6 +287,30 @@
 	{/if}
 {/snippet}
 
+{#snippet _drafts()}
+	{#await drafts then draftsList}
+		{#if draftsList.length === 0}
+			<div class="empty-message">No drafts yet!</div>
+		{:else}
+			<div class="drafts-list">
+				{#each draftsList as draft}
+					<div class="draft-card card">
+						<div class="draft-title">{draft.title || 'Untitled draft'}</div>
+						<div class="draft-meta">Created: {new Date(draft.createdAt).toLocaleString()}</div>
+						<div class="draft-description">{draft.description}</div>
+						<Button variant="border" size="sm" onclick={() => openEditDraftPopup(draft)}
+							>Edit</Button
+						>
+						<Button variant="border" size="sm" onclick={() => openDeleteDraftPopup(draft)}
+							>Delete</Button
+						>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	{/await}
+{/snippet}
+
 <Popup
 	isOpen={deletePopupOpen}
 	onClose={() => (deletePopupOpen = false)}
@@ -274,7 +326,7 @@
 	</div>
 </Popup>
 
-{#snippet editRecipe()}
+{#snippet editRecipe(draft = false)}
 	{#if recipeToEdit}
 		<NewRecipe
 			prefilledData={{
@@ -300,6 +352,53 @@
 	{/if}
 {/snippet}
 
+{#snippet editDraft()}
+	{#if draftToEdit}
+		<NewRecipe
+			prefilledData={{
+				id: draftToEdit.id,
+				title: draftToEdit.title,
+				description: draftToEdit.description ?? '',
+				image: draftToEdit.imageUrl ?? '',
+				tags: draftToEdit.tags ?? [],
+				servings: draftToEdit.servings,
+				nutritionMode: 'auto',
+				instructions: draftToEdit.instructions
+			}}
+			draftMode={{
+				onSaveDraft: () => {
+					draftToEdit = undefined
+					editDraftPopupOpen = false
+					invalidateAll()
+				},
+				onPublish: () => {
+					draftToEdit = undefined
+					editDraftPopupOpen = false
+					selectedTab = 'Created recipes'
+					invalidateAll()
+				}
+			}}
+			onSearchTags={searchTags}
+			onSearchIngredients={searchIngredients}
+		/>
+	{/if}
+{/snippet}
+
+<Popup
+	isOpen={deleteDraftPopupOpen}
+	onClose={() => (deleteDraftPopupOpen = false)}
+	title="Delete Draft"
+	width="300px"
+>
+	<div class="delete-content">
+		<p>Are you sure you want to delete "{draftToDelete?.title || 'Untitled draft'}"?</p>
+		<div class="delete-actions">
+			<Button color="primary" onclick={handleDeleteDraft}>Delete</Button>
+			<Button variant="border" onclick={() => (deleteDraftPopupOpen = false)}>Cancel</Button>
+		</div>
+	</div>
+</Popup>
+
 <div class="desktop-only">
 	<Popup
 		isOpen={editPopupOpen}
@@ -322,6 +421,28 @@
 	</div>
 {/if}
 
+<div class="desktop-only">
+	<Popup
+		isOpen={editDraftPopupOpen}
+		onClose={() => (editDraftPopupOpen = false)}
+		title="Edit Draft"
+		width="90vw"
+	>
+		{@render editDraft()}
+	</Popup>
+</div>
+
+{#if editDraftPopupOpen && mobileStore.isMobile}
+	<div
+		class="mobile-only"
+		style="z-index: var(--z-modal); position: fixed; top: 0; left: 0; right: 0; bottom: 0;"
+	>
+		<Drawer position="side" bind:isOpen={editDraftPopupOpen} title="Edit Draft">
+			{@render editDraft()}
+		</Drawer>
+	</div>
+{/if}
+
 <div class="profile-desktop-view">
 	<DesktopLayout
 		{avatar}
@@ -331,6 +452,7 @@
 		{profileInfo}
 		createdRecipes={_createdRecipes}
 		savedRecipes={_savedRecipes}
+		drafts={_drafts}
 		{tabOptions}
 		{selectedTab}
 		onTabSelect={handleTabSelect}
@@ -346,7 +468,9 @@
 		{profileInfo}
 		createdRecipes={_createdRecipes}
 		savedRecipes={_savedRecipes}
-		initialView={initialTab}
+		drafts={_drafts}
+		{selectedTab}
+		onTabSelect={handleTabSelect}
 	/>
 </div>
 
@@ -510,5 +634,77 @@
 		justify-content: flex-end;
 		gap: var(--spacing-sm);
 		margin-top: var(--spacing-md);
+	}
+
+	.empty-message {
+		text-align: center;
+		padding: var(--spacing-md);
+		color: var(--color-text-on-surface);
+		font-size: var(--font-size-md);
+	}
+
+	.drafts-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+	}
+
+	.draft-card {
+		padding: var(--spacing-md);
+		border-radius: var(--border-radius-md);
+		background: var(--color-surface);
+		border: 1px solid var(--color-neutral);
+		box-shadow: var(--shadow-sm);
+	}
+
+	.draft-title {
+		font-size: var(--font-size-lg);
+		font-weight: 700;
+		margin-bottom: var(--spacing-sm);
+		color: var(--color-text-on-surface);
+	}
+
+	.draft-meta {
+		font-size: var(--font-size-sm);
+		color: var(--color-text-on-surface-secondary);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.draft-description {
+		font-size: var(--font-size-md);
+		color: var(--color-text-on-surface);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+	}
+	.edit-draft-btn {
+		margin-top: var(--spacing-sm);
+		padding: 0.5em 1em;
+		background: var(--color-primary);
+		color: #fff;
+		border: none;
+		border-radius: var(--border-radius-sm);
+		cursor: pointer;
+		font-size: var(--font-size-md);
+		transition: background 0.2s;
+	}
+	.edit-draft-btn:hover {
+		background: var(--color-primary-dark);
+	}
+	.delete-draft-btn {
+		margin-top: var(--spacing-sm);
+		padding: 0.5em 1em;
+		background: var(--color-danger);
+		color: #fff;
+		border: none;
+		border-radius: var(--border-radius-sm);
+		cursor: pointer;
+		font-size: var(--font-size-md);
+		transition: background 0.2s;
+	}
+	.delete-draft-btn:hover {
+		background: var(--color-danger-dark);
 	}
 </style>
