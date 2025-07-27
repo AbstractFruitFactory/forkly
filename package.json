@@ -89,6 +89,7 @@
     "string-similarity": "^4.0.4",
     "ts-results": "^3.3.0",
     "ts-results-es": "^5.0.1",
+    "unique-username-generator": "^1.4.0",
     "valibot": "1.0.0-rc.0"
   },
   "pnpm": {

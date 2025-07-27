@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm"
 import { generateId } from "$lib/server/id"
 import { generateAvailableUsername } from "$lib/server/utils/username"
 import type { RequestHandler } from "@sveltejs/kit"
+import { generateUsername } from "unique-username-generator"
 
 export const GET: RequestHandler = async (event) => {
     const code = event.url.searchParams.get("code")
@@ -28,7 +29,7 @@ export const GET: RequestHandler = async (event) => {
     }
     const claims = decodeIdToken(tokens.idToken()) as { sub: string; name?: string; email?: string }
     const googleUserId = claims.sub
-    const baseUsername = claims.name || (claims.email ? claims.email.split("@")[0] : "googleuser")
+    const baseUsername = generateUsername("-", 2)
     const username = await generateAvailableUsername(baseUsername)
     const email = claims.email || `${googleUserId}@googleuser.com`
 
