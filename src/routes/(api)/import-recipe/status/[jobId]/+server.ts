@@ -11,7 +11,8 @@ export const GET: RequestHandler = async ({ params }) => {
     if (!value) {
       return json({ status: 'pending' })
     }
-    return json(JSON.parse(value as string))
+
+    return json(value)
   } catch (error) {
     console.error('Error in import-recipe status endpoint:', error)
     const message = error instanceof Error ? error.message : String(error)
