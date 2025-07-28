@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
-	import { fade } from 'svelte/transition'
+	import { fade, scale } from 'svelte/transition'
 	import { tick } from 'svelte'
 	import gsap from 'gsap'
 
@@ -140,41 +140,51 @@
 		transition:fade={{ duration: animateFrom ? 0 : 200 }}
 		onclick={handleClickOutside}
 	>
-		<div bind:this={popupContainer} class="popup-container" style="width: {width};">
-			{#if title || showCloseButton}
-				<div class="popup-header">
-					<div>
-						{#if title}
-							<h3 class="popup-title">{title}</h3>
-						{/if}
+		{#snippet container()}
+			<div bind:this={popupContainer} class="popup-container" style="width: {width};">
+				{#if title || showCloseButton}
+					<div class="popup-header">
+						<div>
+							{#if title}
+								<h3 class="popup-title">{title}</h3>
+							{/if}
+						</div>
+						<div class="popup-actions">
+							{@render headerActions?.()}
+							{#if showCloseButton}
+								<button class="popup-close" onclick={handleClose} aria-label="Close popup">
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="20"
+										height="20"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									>
+										<line x1="18" y1="6" x2="6" y2="18" />
+										<line x1="6" y1="6" x2="18" y2="18" />
+									</svg>
+								</button>
+							{/if}
+						</div>
 					</div>
-					<div class="popup-actions">
-						{@render headerActions?.()}
-						{#if showCloseButton}
-							<button class="popup-close" onclick={handleClose} aria-label="Close popup">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									width="20"
-									height="20"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								>
-									<line x1="18" y1="6" x2="6" y2="18" />
-									<line x1="6" y1="6" x2="18" y2="18" />
-								</svg>
-							</button>
-						{/if}
-					</div>
+				{/if}
+				<div class="popup-content">
+					{@render children?.()}
 				</div>
-			{/if}
-			<div class="popup-content">
-				{@render children?.()}
 			</div>
-		</div>
+		{/snippet}
+
+		{#if animateFrom}
+			{@render container()}
+		{:else}
+			<div transition:scale|global>
+				{@render container()}
+			</div>
+		{/if}
 	</div>
 {/if}
 
