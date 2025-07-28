@@ -79,34 +79,44 @@ export const UNIT_EQUIVALENTS = {
   feet: { unit: 'centimeters', factor: CONVERSION_FACTORS.feet_to_centimeters }
 } as const
 
+// Add normalization function for user-entered units
+const normalizeUnit = (input: string): MeasurementUnit | string => {
+  const trimmed = input.trim().toLowerCase()
+  // Try to match canonical unit keys
+  for (const unit of measurementUnits) {
+    if (unit.toLowerCase() === trimmed) return unit
+  }
+  // Try to match display text
+  for (const [unit, display] of Object.entries(UNIT_DISPLAY_TEXT)) {
+    if (display.toLowerCase() === trimmed) return unit as MeasurementUnit
+  }
+  return input
+}
+
 export const convertMeasurement = (
   quantity: number,
   fromUnit: MeasurementUnit,
   toSystem: 'metric' | 'imperial'
 ): { quantity: number; unit: MeasurementUnit } => {
+  // Normalize user input unit
+  const normalizedUnit = normalizeUnit(fromUnit as string) as MeasurementUnit
   // If the unit is not in our known units, return it as-is
-  if (!measurementUnits.includes(fromUnit as any)) {
+  if (!measurementUnits.includes(normalizedUnit as any)) {
     return { quantity, unit: fromUnit }
   }
-
-  if (UNITS.other.includes(fromUnit as string)) {
-    return { quantity, unit: fromUnit }
+  if (UNITS.other.includes(normalizedUnit as string)) {
+    return { quantity, unit: normalizedUnit }
   }
-
-  const isMetricUnit = METRIC_UNITS.includes(fromUnit as string)
-  const isImperialUnit = IMPERIAL_UNITS.includes(fromUnit as string)
-
+  const isMetricUnit = METRIC_UNITS.includes(normalizedUnit as string)
+  const isImperialUnit = IMPERIAL_UNITS.includes(normalizedUnit as string)
   if ((isMetricUnit && toSystem === 'metric') || (isImperialUnit && toSystem === 'imperial')) {
-    return { quantity, unit: fromUnit }
+    return { quantity, unit: normalizedUnit }
   }
-
-  if (fromUnit === 'teaspoons' || fromUnit === 'tablespoons') {
-    return { quantity, unit: fromUnit }
+  if (normalizedUnit === 'teaspoons' || normalizedUnit === 'tablespoons') {
+    return { quantity, unit: normalizedUnit }
   }
-
   // Special handling for common recipe measurements
-  if (fromUnit === 'milliliters' && toSystem === 'imperial') {
-    // For common cooking measurements, use more intuitive conversions
+  if (normalizedUnit === 'milliliters' && toSystem === 'imperial') {
     if (quantity <= 5) {
       return { quantity: 1, unit: 'teaspoons' as MeasurementUnit }
     } else if (quantity <= 15) {
@@ -117,9 +127,7 @@ export const convertMeasurement = (
       return { quantity: 2, unit: 'cups' as MeasurementUnit }
     }
   }
-
-  if (fromUnit === 'grams' && toSystem === 'imperial') {
-    // Common cooking measurements for weight
+  if (normalizedUnit === 'grams' && toSystem === 'imperial') {
     if (quantity >= 450 && quantity <= 500) {
       return { quantity: 1, unit: 'pounds' as MeasurementUnit }
     } else if (quantity >= 225 && quantity <= 250) {
@@ -128,15 +136,12 @@ export const convertMeasurement = (
       return { quantity: 4, unit: 'ounces' as MeasurementUnit }
     }
   }
-
-  const equivalent = UNIT_EQUIVALENTS[fromUnit as keyof typeof UNIT_EQUIVALENTS]
+  const equivalent = UNIT_EQUIVALENTS[normalizedUnit as keyof typeof UNIT_EQUIVALENTS]
   if (!equivalent) {
-    return { quantity, unit: fromUnit }
+    return { quantity, unit: normalizedUnit }
   }
-
   const convertedQuantity = quantity * equivalent.factor
-
-  if (fromUnit === 'milliliters' && toSystem === 'imperial') {
+  if (normalizedUnit === 'milliliters' && toSystem === 'imperial') {
     if (convertedQuantity < 0.1) {
       return {
         quantity: quantity / CONVERSION_FACTORS.teaspoons_to_milliliters,
@@ -144,8 +149,7 @@ export const convertMeasurement = (
       }
     }
   }
-
-  if (fromUnit === 'liters' && toSystem === 'imperial') {
+  if (normalizedUnit === 'liters' && toSystem === 'imperial') {
     if (convertedQuantity < 0.1) {
       return {
         quantity: quantity * 1000 / CONVERSION_FACTORS.fluid_ounces_to_milliliters,
@@ -153,7 +157,6 @@ export const convertMeasurement = (
       }
     }
   }
-
   return {
     quantity: convertedQuantity,
     unit: equivalent.unit as MeasurementUnit
@@ -161,45 +164,41 @@ export const convertMeasurement = (
 }
 
 export const chooseBestUnit = (quantity: number, unit: MeasurementUnit): { quantity: number; unit: MeasurementUnit } => {
-  if (unit === 'grams' && quantity >= 1000) {
+  const normalizedUnit = normalizeUnit(unit as string) as MeasurementUnit
+  if (normalizedUnit === 'grams' && quantity >= 1000) {
     return { quantity: quantity / 1000, unit: 'kilograms' as MeasurementUnit }
   }
-  if (unit === 'kilograms' && quantity < 0.1) {
+  if (normalizedUnit === 'kilograms' && quantity < 0.1) {
     return { quantity: quantity * 1000, unit: 'grams' as MeasurementUnit }
   }
-  if (unit === 'milliliters' && quantity >= 1000) {
+  if (normalizedUnit === 'milliliters' && quantity >= 1000) {
     return { quantity: quantity / 1000, unit: 'liters' as MeasurementUnit }
   }
-  if (unit === 'liters' && quantity < 0.1) {
+  if (normalizedUnit === 'liters' && quantity < 0.1) {
     return { quantity: quantity * 1000, unit: 'milliliters' as MeasurementUnit }
   }
-  if (unit === 'millimeters' && quantity >= 100) {
+  if (normalizedUnit === 'millimeters' && quantity >= 100) {
     return { quantity: quantity / 10, unit: 'centimeters' as MeasurementUnit }
   }
-  if (unit === 'centimeters' && quantity >= 100) {
+  if (normalizedUnit === 'centimeters' && quantity >= 100) {
     return { quantity: quantity / 100, unit: 'meters' as MeasurementUnit }
   }
-  if (unit === 'meters' && quantity < 0.1) {
+  if (normalizedUnit === 'meters' && quantity < 0.1) {
     return { quantity: quantity * 100, unit: 'centimeters' as MeasurementUnit }
   }
-  if (unit === 'inches' && quantity >= 12) {
+  if (normalizedUnit === 'inches' && quantity >= 12) {
     return { quantity: quantity / 12, unit: 'feet' as MeasurementUnit }
   }
-  if (unit === 'feet' && quantity < 0.1) {
+  if (normalizedUnit === 'feet' && quantity < 0.1) {
     return { quantity: quantity * 12, unit: 'inches' as MeasurementUnit }
   }
-
-  // Handle small volumes in imperial units - prefer smaller units for better readability
-  if (unit === 'gallons' && quantity < 0.1) {
-    // Convert to fluid ounces for very small amounts
+  if (normalizedUnit === 'gallons' && quantity < 0.1) {
     return { quantity: quantity * 128, unit: 'fluid_ounces' as MeasurementUnit }
   }
-  if (unit === 'fluid_ounces' && quantity < 1) {
-    // For very small fluid ounces, convert to teaspoons
+  if (normalizedUnit === 'fluid_ounces' && quantity < 1) {
     return { quantity: quantity * 6, unit: 'teaspoons' as MeasurementUnit }
   }
-
-  return { quantity, unit }
+  return { quantity, unit: normalizedUnit }
 }
 
 export const formatMeasurement = (quantity: number, unit?: MeasurementUnit): string => {

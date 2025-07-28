@@ -92,7 +92,6 @@ const worker = new Worker(
     try {
       const rawText = await fetchAndCleanHtml(url)
       const recipe = await extractRecipe(rawText)
-      console.log(recipe)
 
       const recipeData = {
         title: recipe.title || '',
