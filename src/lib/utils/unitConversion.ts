@@ -1,5 +1,6 @@
 import type { MeasurementUnit } from '$lib/types'
 import { measurementUnits } from '$lib/types'
+import Fraction from 'fraction.js'
 
 export const UNITS = {
   weight: {
@@ -13,8 +14,7 @@ export const UNITS = {
   length: {
     metric: ['millimeters', 'centimeters', 'meters'],
     imperial: ['inches', 'feet']
-  },
-  other: ['pieces', 'to taste', 'pinch']
+  }
 }
 
 export const METRIC_UNITS = [
@@ -59,9 +59,7 @@ export const UNIT_DISPLAY_TEXT: Record<MeasurementUnit, string> = {
   meters: 'm',
   inches: 'in',
   feet: 'ft',
-  pieces: 'pc',
-  'to taste': 'to taste',
-  pinch: 'pinch'
+  pieces: 'pc'
 }
 
 export const UNIT_EQUIVALENTS = {
@@ -103,9 +101,6 @@ export const convertMeasurement = (
   // If the unit is not in our known units, return it as-is
   if (!measurementUnits.includes(normalizedUnit as any)) {
     return { quantity, unit: fromUnit }
-  }
-  if (UNITS.other.includes(normalizedUnit as string)) {
-    return { quantity, unit: normalizedUnit }
   }
   const isMetricUnit = METRIC_UNITS.includes(normalizedUnit as string)
   const isImperialUnit = IMPERIAL_UNITS.includes(normalizedUnit as string)
@@ -201,6 +196,13 @@ export const chooseBestUnit = (quantity: number, unit: MeasurementUnit): { quant
   return { quantity, unit: normalizedUnit }
 }
 
+// Helper to get the best numeric value from an ingredient object
+export function getIngredientNumericQuantity(ingredient: { numericQuantity?: number; quantity?: number }): number | undefined {
+  if (typeof ingredient.numericQuantity === 'number' && !isNaN(ingredient.numericQuantity)) return ingredient.numericQuantity;
+  if (typeof ingredient.quantity === 'number' && !isNaN(ingredient.quantity)) return ingredient.quantity;
+  return undefined;
+}
+
 export const formatMeasurement = (quantity: number, unit?: MeasurementUnit): string => {
   if (!unit) {
     return quantity.toString()
@@ -244,4 +246,38 @@ export const formatMeasurement = (quantity: number, unit?: MeasurementUnit): str
   }
 
   return `${formattedQuantity} ${displayUnit}`
+} 
+
+// Helper to parse a quantity string to a number using fraction.js
+export function parseQuantityToNumber(input: string | undefined): number | undefined {
+  if (!input) return undefined
+  try {
+    const frac = new Fraction(input)
+    return frac.valueOf()
+  } catch (e) {
+    const num = parseFloat(input)
+    return isNaN(num) ? undefined : num
+  }
+} 
+
+export function formatQuantity(value: number): string {
+  const frac = new Fraction(value)
+  const whole = Math.floor(frac.valueOf())
+  const remainder = frac.sub(whole)
+
+  // If the denominator is too large, just show a rounded decimal
+  const maxDenominator = 8n
+  if (remainder.n === 0n) {
+    return `${whole}`
+  } else if (whole === 0) {
+    if (remainder.d > maxDenominator) {
+      return value.toFixed(2).replace(/\.00$/, '')
+    }
+    return `${remainder.toFraction(false)}`
+  } else {
+    if (remainder.d > maxDenominator) {
+      return value.toFixed(2).replace(/\.00$/, '')
+    }
+    return `${whole} ${remainder.toFraction(false)}`
+  }
 } 

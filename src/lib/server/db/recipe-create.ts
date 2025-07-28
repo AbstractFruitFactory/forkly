@@ -7,7 +7,7 @@ import { addIngredient } from './ingredient'
 type IngredientInput = {
   name: string
   displayName: string
-  quantity?: number
+  quantity?: { text: string, numeric?: number }
   measurement?: string
 }
 
@@ -37,6 +37,7 @@ type RecipeInput = {
 }
 
 export async function createRecipe(input: RecipeInput, userId?: string) {
+  console.log('createRecipe', input.instructions.map(i => i.ingredients?.map(i => i.quantity)))
   const recipeId = generateId()
 
   const newRecipe = await db.insert(recipe).values({
@@ -45,7 +46,6 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
     title: input.title,
     description: input.description,
     servings: input.servings,
-
     imageUrl: input.imageUrl
   }).returning()
 
@@ -79,7 +79,7 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
   // Insert instructions and their ingredients
   for (let i = 0; i < input.instructions.length; i++) {
     const instruction = input.instructions[i]
-    
+
     // Insert the instruction
     const newInstruction = await db.insert(recipeInstruction).values({
       id: instruction.id,
@@ -103,12 +103,13 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
           instructionId: instruction.id,
           ingredientId: ingredientId,
           displayName: ingredientData.displayName,
-          quantity: ingredientData.quantity,
+          quantity: ingredientData.quantity?.text,
+          numericQuantity: ingredientData.quantity?.numeric,
           measurement: ingredientData.measurement
         })
       }
     }
   }
 
-    return newRecipe[0]
+  return newRecipe[0]
 } 

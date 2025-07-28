@@ -86,6 +86,7 @@
     "compromise": "^14.14.4",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.38.4",
+    "fraction.js": "^5.2.2",
     "gsap": "^3.13.0",
     "lucide-svelte": "^0.475.0",
     "node-fetch": "^3.3.2",

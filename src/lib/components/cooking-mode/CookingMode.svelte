@@ -135,7 +135,7 @@
 								{#each step.ingredients ?? [] as ingredient}
 									<li class="ingredient-item">
 										<span class="ingredient-quantity">
-											{ingredient.quantity}
+											{ingredient.quantity?.text}
 											{ingredient.measurement}
 										</span>
 										<span class="ingredient-name">

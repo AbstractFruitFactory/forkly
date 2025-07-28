@@ -2,11 +2,12 @@ import { error, json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { createRecipe } from '$lib/server/db/recipe-create'
 import * as v from 'valibot'
-import { isValidTag, measurementUnits } from '$lib/types'
+import { isValidTag } from '$lib/types'
+import { parseQuantityToNumber } from '$lib/utils/unitConversion'
 
 const baseIngredientSchema = v.pipe(
   v.object({
-    quantity: v.optional(v.number()),
+    quantity: v.optional(v.string()),
     measurement: v.optional(v.string()),
     name: v.pipe(
       v.string(),
@@ -18,7 +19,7 @@ const baseIngredientSchema = v.pipe(
   v.rawTransform(({ dataset, addIssue }) => {
     if (
       dataset.value.measurement !== undefined && dataset.value.measurement !== '' &&
-      (dataset.value.quantity === undefined || isNaN(dataset.value.quantity))
+      (dataset.value.quantity === undefined || dataset.value.quantity.trim() === '')
     ) {
       addIssue({
         message: 'A quantity is required if a measurement is specified',
@@ -109,6 +110,20 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     error(400, { message: 'Recipe must have at least one ingredient' })
   }
 
-  const newRecipe = await createRecipe(input, locals.user?.id)
+  // Transform ingredient quantities to { text, numeric }
+  const transformedInput = {
+    ...input,
+    instructions: input.instructions.map(instruction => ({
+      ...instruction,
+      ingredients: instruction.ingredients?.map(ingredient => ({
+        ...ingredient,
+        quantity: typeof ingredient.quantity === 'string' && ingredient.quantity.trim() !== ''
+          ? { text: ingredient.quantity, numeric: parseQuantityToNumber(ingredient.quantity) }
+          : undefined
+      }))
+    }))
+  }
+
+  const newRecipe = await createRecipe(transformedInput, locals.user?.id)
   return json(newRecipe)
 } 

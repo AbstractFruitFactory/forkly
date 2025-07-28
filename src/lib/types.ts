@@ -28,9 +28,7 @@ export const measurementUnits = [
   // Common units (no conversion needed)
   'teaspoons',
   'tablespoons',
-  'pieces',
-  'to taste',
-  'pinch'
+  'pieces'
 ] as const
 
 export type MeasurementUnit = typeof measurementUnits[number]
@@ -43,14 +41,14 @@ export const isValidTag = (tag: string): boolean => {
 }
 
 export type Ingredient = {
-  quantity?: number
+  quantity?: { text: string, numeric?: number }
   measurement?: MeasurementUnit
   name: string
   displayName: string
 }
 
 export type InstructionIngredient = {
-  quantity?: number
+  quantity?: { text: string, numeric?: number }
   measurement?: MeasurementUnit
   name: string
   displayName: string

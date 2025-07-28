@@ -1,22 +1,14 @@
 import { fail, redirect } from '@sveltejs/kit'
 import type { Actions } from './$types'
-import type { Ingredient } from '$lib/types'
 import groupBy from 'ramda/src/groupBy'
 import { api } from '$lib/server/food-api'
-import { Ok, Result } from 'ts-results-es'
 import * as v from 'valibot'
 import { uploadImage, uploadMedia } from '$lib/server/cloudinary'
 import { safeFetch } from '$lib/utils/fetch'
-import { normalizeIngredientName } from '$lib/server/utils/normalize-ingredient'
-import stringSimilarity from 'string-similarity'
-import { getAllIngredients } from '$lib/server/db/ingredient'
-import { db } from '$lib/server/db'
-import { ingredient as ingredientTable } from '$lib/server/db/schema'
-import { generateId } from '$lib/server/id'
 
 const ingredientSchema = v.pipe(
   v.object({
-    quantity: v.optional(v.number()),
+    quantity: v.optional(v.string()),
     measurement: v.optional(v.string()),
     name: v.pipe(
       v.string(),
@@ -28,7 +20,7 @@ const ingredientSchema = v.pipe(
   v.rawTransform(({ dataset, addIssue }) => {
     if (
       dataset.value.measurement !== undefined && dataset.value.measurement !== '' &&
-      (dataset.value.quantity === undefined || isNaN(dataset.value.quantity))
+      (dataset.value.quantity === undefined || dataset.value.quantity.trim() === '')
     ) {
       addIssue({
         message: 'A quantity is required if a measurement is specified',
@@ -93,7 +85,7 @@ type FormFields = {
     mediaUrl?: string
     mediaType?: 'image' | 'video'
     ingredients?: {
-      quantity?: number
+      quantity?: string
       measurement?: string
       name: string
       displayName: string
@@ -155,7 +147,7 @@ const parseFormData = (formData: FormData): FormFields => {
       Object.values(ingredientById).forEach(ingredientEntries => {
         if (ingredientEntries) {
           let name = ''
-          let quantity: number | undefined
+          let quantity: string | undefined
           let measurement = ''
 
           for (const entry of ingredientEntries) {
@@ -163,7 +155,7 @@ const parseFormData = (formData: FormData): FormFields => {
             if (field === 'name') {
               name = value
             } else if (field === 'amount') {
-              quantity = parseFloat(value) || undefined
+              quantity = value
             } else if (field === 'unit') {
               measurement = value
             }
@@ -306,7 +298,7 @@ const buildRecipePayloadFromForm = async (formData: FormData, skipValidation: bo
     const allIngredients = instructionsWithIds.flatMap(instruction => instruction.ingredients || [])
     const nutritionResult = await api('getRecipeInfo')(
       allIngredients.map(ing => ({
-        amount: ing.quantity,
+        amount: ing.quantity ? parseFloat(ing.quantity) : undefined,
         unit: ing.measurement,
         name: ing.name
       })),

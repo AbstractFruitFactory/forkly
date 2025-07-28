@@ -2,8 +2,8 @@ import { db } from '.'
 import { recipe, recipeLike, recipeInstruction, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag, tag, recipeDraft } from './schema'
 import { eq, ilike, desc, sql, and, SQL, or, asc } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
-import type { MeasurementUnit } from '$lib/types'
 import { generateId } from '$lib/server/id'
+import { parseQuantityToNumber } from '$lib/utils/unitConversion'
 
 function escapeSqlString(str: string): string {
   return str.replace(/'/g, "''")
@@ -30,8 +30,8 @@ export type DetailedRecipe = {
     ingredients?: Array<{
       id: string
       name: string
-      quantity: number
-      measurement: MeasurementUnit
+      quantity: { text: string, numeric?: number }
+      measurement: string
       displayName: string
     }>
   }>
@@ -44,8 +44,8 @@ export type DetailedRecipe = {
   ingredients: Array<{
     id: string
     name: string
-    quantity: number
-    measurement: MeasurementUnit
+    quantity: { text: string, numeric?: number }
+    measurement: string
     custom?: boolean
     displayName: string
   }>
@@ -283,6 +283,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
             instructionId: recipeIngredient.instructionId,
             ingredient: ingredient,
             quantity: recipeIngredient.quantity,
+            numericQuantity: recipeIngredient.numericQuantity,
             measurement: recipeIngredient.measurement,
             displayName: recipeIngredient.displayName
           })
@@ -294,21 +295,21 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         const ingredientsByInstruction = new Map<string, Array<{
           id: string
           name: string
-          quantity: number | null
+          quantity: { text: string, numeric?: number }
           measurement: string
           displayName: string
         }>>()
 
-        for (const ii of instructionIngredients) {
-          if (!ingredientsByInstruction.has(ii.instructionId)) {
-            ingredientsByInstruction.set(ii.instructionId, [])
+        for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName, instructionId } of instructionIngredients) {
+          if (!ingredientsByInstruction.has(instructionId)) {
+            ingredientsByInstruction.set(instructionId, [])
           }
-          ingredientsByInstruction.get(ii.instructionId)!.push({
-            id: ii.ingredient.id,
-            name: ii.ingredient.name,
-            quantity: ii.quantity,
-            measurement: ii.measurement || '',
-            displayName: ii.displayName
+          ingredientsByInstruction.get(instructionId)!.push({
+            id: ingr.id,
+            name: ingr.name,
+            quantity: { text: quantity, numeric: numericQuantity ?? undefined },
+            measurement: measurement || '',
+            displayName: displayName
           })
         }
 
@@ -316,25 +317,24 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         const ingredientMap = new Map<string, {
           id: string
           name: string
-          quantity: number | null
+          quantity: { text?: string, numeric?: number }
           measurement: string
           displayName: string
         }>()
 
-        for (const ii of instructionIngredients) {
-          const key = `${ii.ingredient.id}-${ii.measurement}-${ii.displayName}`
+        for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName } of instructionIngredients) {
+          const key = `${ingr.id}-${measurement}-${displayName}`
           if (ingredientMap.has(key)) {
-            const quantity = ingredientMap.get(key)!.quantity
-            if (quantity != null) {
-              ingredientMap.get(key)!.quantity = quantity + (ii.quantity ?? 0)
-            }
+            const addQty = typeof numericQuantity === 'number' ? numericQuantity : 0
+            const prevQty = ingredientMap.get(key)!.quantity?.numeric ?? 0
+            ingredientMap.get(key)!.quantity = { numeric: prevQty + addQty }
           } else {
             ingredientMap.set(key, {
-              id: ii.ingredient.id,
-              name: ii.ingredient.name,
-              quantity: ii.quantity,
-              measurement: ii.measurement || '',
-              displayName: ii.displayName
+              id: ingr.id,
+              name: ingr.name,
+              quantity: { text: quantity ?? undefined, numeric: numericQuantity ?? undefined },
+              measurement: measurement || '',
+              displayName: displayName
             })
           }
         }
@@ -513,7 +513,7 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
     mediaType?: 'image' | 'video'
     ingredients?: Array<{
       name: string
-      quantity?: number
+      quantity?: string
       measurement?: string
       displayName: string
     }>
@@ -580,7 +580,7 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
   // Insert new instructions and their ingredients
   for (let i = 0; i < input.instructions.length; i++) {
     const instruction = input.instructions[i]
-    
+
     // Insert the instruction
     await db.insert(recipeInstruction).values({
       id: instruction.id,
@@ -617,8 +617,9 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
           instructionId: instruction.id,
           ingredientId: ingredientId,
           displayName: ingredientData.displayName,
-          quantity: ingredientData.quantity,
-          measurement: ingredientData.measurement
+          quantity: ingredientData.quantity ?? undefined,
+          numericQuantity: parseQuantityToNumber(ingredientData.quantity) ?? undefined,
+          measurement: ingredientData.measurement ?? null
         })
       }
     }
@@ -626,7 +627,7 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
 
   // Update tags
   await db.delete(recipeTag).where(eq(recipeTag.recipeId, recipeId))
-  
+
   for (const tagName of input.tags) {
     const existingTag = await db
       .select({ name: tag.name })
@@ -717,6 +718,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
       instructionId: recipeIngredient.instructionId,
       ingredient: ingredient,
       quantity: recipeIngredient.quantity,
+      numericQuantity: recipeIngredient.numericQuantity,
       measurement: recipeIngredient.measurement,
       displayName: recipeIngredient.displayName
     })
@@ -728,21 +730,21 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
   const ingredientsByInstruction = new Map<string, Array<{
     id: string
     name: string
-    quantity: number | null
+    quantity: { text?: string, numeric?: number }
     measurement: string
     displayName: string
   }>>()
 
-  for (const ii of instructionIngredients) {
-    if (!ingredientsByInstruction.has(ii.instructionId)) {
-      ingredientsByInstruction.set(ii.instructionId, [])
+  for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName, instructionId } of instructionIngredients) {
+    if (!ingredientsByInstruction.has(instructionId)) {
+      ingredientsByInstruction.set(instructionId, [])
     }
-    ingredientsByInstruction.get(ii.instructionId)!.push({
-      id: ii.ingredient.id,
-      name: ii.ingredient.name,
-      quantity: ii.quantity,
-      measurement: ii.measurement || '',
-      displayName: ii.displayName
+    ingredientsByInstruction.get(instructionId)!.push({
+      id: ingr.id,
+      name: ingr.name,
+      quantity: { text: quantity ?? undefined, numeric: numericQuantity ?? undefined },
+      measurement: measurement || '',
+      displayName: displayName
     })
   }
 
@@ -750,25 +752,24 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
   const ingredientMap = new Map<string, {
     id: string
     name: string
-    quantity: number | null
+    quantity: { text?: string, numeric?: number }
     measurement: string
     displayName: string
   }>()
 
-  for (const ii of instructionIngredients) {
-    const key = `${ii.ingredient.id}-${ii.measurement}-${ii.displayName}`
+  for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName } of instructionIngredients) {
+    const key = `${ingr.id}-${measurement}-${displayName}`
     if (ingredientMap.has(key)) {
-      const quantity = ingredientMap.get(key)!.quantity
-      if (quantity != null) {
-        ingredientMap.get(key)!.quantity = quantity + (ii.quantity ?? 0)
-      }
+      const addQty = typeof numericQuantity === 'number' ? numericQuantity : 0
+      const prevQty = ingredientMap.get(key)!.quantity?.numeric ?? 0
+      ingredientMap.get(key)!.quantity = { numeric: prevQty + addQty }
     } else {
       ingredientMap.set(key, {
-        id: ii.ingredient.id,
-        name: ii.ingredient.name,
-        quantity: ii.quantity,
-        measurement: ii.measurement || '',
-        displayName: ii.displayName
+        id: ingr.id,
+        name: ingr.name,
+        quantity: { text: quantity ?? undefined, numeric: numericQuantity ?? undefined },
+        measurement: measurement || '',
+        displayName: displayName
       })
     }
   }
@@ -850,11 +851,11 @@ const calculateIngredientSimilarity = (ingredients1: DetailedRecipe['ingredients
 
   const normalized1 = ingredients1.map(i => ({
     name: i.name.toLowerCase(),
-    quantity: i.quantity
+    quantity: i.quantity?.numeric ?? 0
   }))
   const normalized2 = ingredients2.map(i => ({
     name: i.name.toLowerCase(),
-    quantity: i.quantity
+    quantity: i.quantity?.numeric ?? 0
   }))
 
   let totalSimilarity = 0
@@ -863,9 +864,11 @@ const calculateIngredientSimilarity = (ingredients1: DetailedRecipe['ingredients
   for (const ing1 of normalized1) {
     const matchingIng = normalized2.find(ing2 => ing2.name === ing1.name)
     if (matchingIng) {
-      const quantityDiff = Math.abs(ing1.quantity - matchingIng.quantity)
-      const maxQuantity = Math.max(ing1.quantity, matchingIng.quantity)
-      const quantitySimilarity = 1 - (quantityDiff / maxQuantity)
+      const q1 = typeof ing1.quantity === 'number' ? ing1.quantity : 0
+      const q2 = typeof matchingIng.quantity === 'number' ? matchingIng.quantity : 0
+      const quantityDiff = Math.abs(q1 - q2)
+      const maxQuantity = Math.max(q1, q2)
+      const quantitySimilarity = maxQuantity === 0 ? 1 : 1 - (quantityDiff / maxQuantity)
       totalSimilarity += quantitySimilarity
     }
   }
@@ -932,7 +935,7 @@ export const getSimilarRecipes = async (recipeId: string, limit: number = 5) => 
     .map(score => score.recipeId)
 
   return getRecipes({ recipeIds: topRecipeIds })
-} 
+}
 
 export async function getRecipeDraftsByUser(userId: string) {
   return db.select().from(recipeDraft).where(eq(recipeDraft.userId, userId))

@@ -21,7 +21,7 @@
 			mediaType?: 'image' | 'video'
 			ingredients?: {
 				name: string
-				quantity: number
+				quantity: { text: string, numeric: number }
 				measurement: string
 			}[]
 		}[]
@@ -90,7 +90,7 @@
 
 	let instructions: {
 		id: string
-		ingredients: { id: string; name?: string; quantity?: number; unit?: string }[]
+		ingredients: { id: string; name?: string; quantity?: { text: string, numeric: number }; unit?: string }[]
 		text?: string
 	}[] = $derived(
 		prefilledData?.instructions
@@ -398,8 +398,7 @@
 			<div class="quantity-input">
 				<Input>
 					<input
-						type="number"
-						step="any"
+						type="text"
 						name="instructions-{instructionId}-ingredient-{id}-amount"
 						placeholder="Enter amount"
 						value={amountValue}

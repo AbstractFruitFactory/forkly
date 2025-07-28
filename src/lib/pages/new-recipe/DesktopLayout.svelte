@@ -23,7 +23,7 @@
 	}: {
 		instructions: {
 			id: string
-			ingredients: { id: string; name?: string; quantity?: number; unit?: string }[]
+			ingredients: { id: string; name?: string; quantity?: { text: string, numeric: number }; unit?: string }[]
 			text?: string
 		}[]
 		title: Snippet
@@ -123,7 +123,7 @@
 													ingredientItem.id,
 													item.id,
 													ingredientItem.name,
-													ingredientItem.quantity?.toString(),
+													ingredientItem.quantity?.text,
 													ingredientItem.unit
 												)}
 											{/if}

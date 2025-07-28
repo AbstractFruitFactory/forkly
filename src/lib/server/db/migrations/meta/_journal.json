@@ -5,85 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1747071329385,
-      "tag": "0000_rapid_talkback",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1747171134106,
-      "tag": "0001_yellow_rogue",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1747175800003,
-      "tag": "0002_thick_robbie_robertson",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1749807150967,
-      "tag": "0003_wooden_machine_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1749825716310,
-      "tag": "0004_free_plazm",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1750266068703,
-      "tag": "0005_worried_magneto",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1750422473969,
-      "tag": "0006_burly_zuras",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1752523956771,
-      "tag": "0007_sharp_mac_gargan",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1753104193122,
-      "tag": "0008_puzzling_mimic",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1753437158608,
-      "tag": "0009_real_doctor_octopus",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1753437503929,
-      "tag": "0010_funny_cerebro",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1753607960715,
-      "tag": "0011_steady_madelyne_pryor",
+      "when": 1753731715003,
+      "tag": "0000_aberrant_anita_blake",
       "breakpoints": true
     }
   ]

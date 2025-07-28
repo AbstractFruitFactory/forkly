@@ -4,10 +4,13 @@
 		currentServings: number,
 		originalServings: number
 	) => {
-		if (!ingredient.quantity) return ingredient
+		if (!ingredient.quantity || typeof ingredient.quantity.numeric !== 'number' || isNaN(ingredient.quantity.numeric)) return ingredient
 		return {
 			...ingredient,
-			quantity: ingredient.quantity * (currentServings / originalServings)
+			quantity: {
+				text: ingredient.quantity.text, // Optionally update text if you want to scale the display
+				numeric: ingredient.quantity.numeric * (currentServings / originalServings)
+			}
 		}
 	}
 </script>
@@ -17,7 +20,7 @@
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import { convertMeasurement, formatMeasurement } from '$lib/utils/unitConversion'
+	import { convertMeasurement, formatMeasurement, formatQuantity } from '$lib/utils/unitConversion'
 
 	let {
 		ingredients,
@@ -47,19 +50,33 @@
 		scaledIngredients.map((ingredient: Ingredient) => {
 			if (ingredient.quantity) {
 				if (!ingredient.measurement) {
-					return {
-						...ingredient,
-						displayMeasurement: ingredient.quantity.toString()
+					if (typeof ingredient.quantity.numeric === 'number' && !isNaN(ingredient.quantity.numeric)) {
+						return {
+							...ingredient,
+							displayMeasurement: formatQuantity(ingredient.quantity.numeric)
+						}
+					} else {
+						return {
+							...ingredient,
+							displayMeasurement: ingredient.quantity.text
+						}
 					}
 				}
-				const { quantity, unit } = convertMeasurement(
-					ingredient.quantity,
-					ingredient.measurement,
-					unitSystem
-				)
-				return {
-					...ingredient,
-					displayMeasurement: formatMeasurement(quantity, unit)
+				if (typeof ingredient.quantity.numeric === 'number' && !isNaN(ingredient.quantity.numeric)) {
+					const { quantity, unit } = convertMeasurement(
+						ingredient.quantity.numeric,
+						ingredient.measurement,
+						unitSystem
+					)
+					return {
+						...ingredient,
+						displayMeasurement: formatMeasurement(quantity, unit)
+					}
+				} else {
+					return {
+						...ingredient,
+						displayMeasurement: ingredient.quantity.text
+					}
 				}
 			}
 			return { ...ingredient, displayMeasurement: undefined }
