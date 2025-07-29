@@ -51,7 +51,7 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--spacing-sm);
-		background: var(--color-gradient);
+		background: var(--color-secondary);
 		padding: var(--spacing-sm);
 		border-radius: var(--border-radius-full);
 		transition: all 0.2s ease;
