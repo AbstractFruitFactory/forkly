@@ -294,12 +294,13 @@
 		z-index: 10;
 	}
 
-	.button.primary .loader {
+	.button.primary .loader,
+	.button.secondary .loader {
 		border: 0.2em solid rgba(255, 255, 255, 0.3);
 		border-top: 0.2em solid #fff;
 	}
 
-	.button.secondary .loader,
+	.button.neutral .loader,
 	.button.text .loader,
 	.button.dotted .loader {
 		border: 0.2em solid rgba(0, 0, 0, 0.1);

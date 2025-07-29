@@ -23,8 +23,15 @@
 	}: {
 		instructions: {
 			id: string
-			ingredients: { id: string; name?: string; quantity?: { text: string, numeric: number }; unit?: string }[]
+			ingredients: {
+				id: string
+				name?: string
+				quantity?: { text: string; numeric: number }
+				unit?: string
+			}[]
 			text?: string
+			mediaUrl?: string
+			mediaType?: 'image' | 'video'
 		}[]
 		title: Snippet
 		description: Snippet
@@ -43,7 +50,7 @@
 			]
 		>
 		instructionInput: Snippet<[id: string, value?: string]>
-		instructionMedia: Snippet<[id: string]>
+		instructionMedia: Snippet<[id: string, initialMedia?: { url: string; type: 'image' | 'video' }]>
 		addInstructionButton: Snippet
 		addIngredientButton: Snippet<[instructionId: string]>
 		removeInstructionButton: Snippet<[instructionId: string]>
@@ -108,7 +115,10 @@
 										{@render instructionInput(item.id, item.text)}
 									</div>
 									<div class="instruction-media">
-										{@render instructionMedia(item.id)}
+										{@render instructionMedia(
+											item.id,
+											item.mediaUrl ? { url: item.mediaUrl!, type: item.mediaType! } : undefined
+										)}
 									</div>
 								</div>
 

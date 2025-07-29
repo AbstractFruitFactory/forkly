@@ -52,9 +52,9 @@ Respond only with JSON, in this format:
       "mediaType": "image" | "video" | null,
       "ingredients": [
         {
-          "name": "string",
-          "quantity": number,
-          "measurement": "string"
+          "name": string,
+          "quantity": string,
+          "measurement": string
         }, ...
       ]
     }, ...
@@ -70,6 +70,8 @@ If any field is missing, set it to null, empty string, or empty array as appropr
 If the recipe has no image, set the image to null.
 
 If the recipe has no clear input for anything, set it empty instead of guessing.
+
+For ingredients, quantity is required if measurement is provided. For non-quantifiable inputs like "to taste", enter it into the quantity field.
 
 Recipe text:
 """${text.slice(0, 8000)}"""
@@ -103,17 +105,17 @@ const worker = new Worker(
         nutrition: recipe.nutrition || undefined,
         instructions: Array.isArray(recipe.instructions)
           ? recipe.instructions.map((inst: any) => ({
-              text: inst.text || '',
-              mediaUrl: inst.mediaUrl || undefined,
-              mediaType: inst.mediaType || undefined,
-              ingredients: Array.isArray(inst.ingredients)
-                ? inst.ingredients.map((ing: any) => ({
-                    name: ing.name || '',
-                    quantity: ing.quantity ?? 0,
-                    measurement: ing.measurement || ''
-                  }))
-                : []
-            }))
+            text: inst.text || '',
+            mediaUrl: inst.mediaUrl || undefined,
+            mediaType: inst.mediaType || undefined,
+            ingredients: Array.isArray(inst.ingredients)
+              ? inst.ingredients.map((ing: any) => ({
+                name: ing.name || '',
+                quantity: ing.quantity ?? 0,
+                measurement: ing.measurement || ''
+              }))
+              : []
+          }))
           : []
       }
       console.log('Writing completed recipe to Redis:', `import-recipe:result:${job.id}`)

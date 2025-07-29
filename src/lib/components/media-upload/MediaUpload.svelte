@@ -1,19 +1,4 @@
 <script lang="ts">
-	/**
-	 * Media Upload Component
-	 *
-	 * @component
-	 * @example
-	 * ```svelte
-	 * <MediaUpload
-	 *   type="video"
-	 *   maxSize={50}
-	 *   maxDuration={10}
-	 *   name="video-upload"
-	 *   bind:error
-	 * />
-	 * ```
-	 */
 	import { onDestroy } from 'svelte'
 	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
 	import { createEventDispatcher } from 'svelte'
@@ -28,7 +13,7 @@
 		aspectRatio = '16/9',
 		previewAlt = 'Media preview',
 		onFile,
-		initialImageUrl = ''
+		initialMedia
 	}: {
 		error?: string
 		id?: string
@@ -38,21 +23,64 @@
 		aspectRatio?: string
 		previewAlt?: string
 		onFile?: (file: File) => void
-		initialImageUrl?: string
+		initialMedia?: {
+			url: string
+			type: 'image' | 'video'
+		}
 	} = $props()
 
-	let preview = $state(initialImageUrl || '')
+	let preview = $derived(initialMedia?.url || '')
 	let inputElement: HTMLInputElement
 	let dragOver = $state(false)
-	let mediaType = $state<'image' | 'video' | null>(initialImageUrl ? 'image' : null)
+	let mediaType = $derived<'image' | 'video' | undefined>(initialMedia?.type)
 
 	// Update preview when initialImageUrl changes
 	$effect(() => {
-		if (initialImageUrl && !preview) {
-			preview = initialImageUrl
-			mediaType = 'image'
+		if (initialMedia) {
+			preview = initialMedia.url
+			mediaType = initialMedia.type
+
+			// Fetch the media from URL and create a file for form submission
+			fetchAndCreateFile(initialMedia.url, initialMedia.type)
 		}
 	})
+
+	const fetchAndCreateFile = async (url: string, type: 'image' | 'video') => {
+		try {
+			// Use our proxy endpoint to avoid CORS issues
+			const proxyUrl = `/proxy-media?url=${encodeURIComponent(url)}`
+			const response = await fetch(proxyUrl)
+			
+			if (!response.ok) {
+				console.error('Failed to fetch media from URL:', url, 'Status:', response.status)
+				// Don't create a file, but still show the preview
+				return
+			}
+
+			const blob = await response.blob()
+			const file = new File(
+				[blob],
+				`imported-${type}-${Date.now()}.${type === 'image' ? 'jpg' : 'mp4'}`,
+				{
+					type: blob.type || (type === 'image' ? 'image/jpeg' : 'video/mp4')
+				}
+			)
+
+			// Set the file on the input element so it gets sent with form data
+			const dataTransfer = new DataTransfer()
+			dataTransfer.items.add(file)
+			console.log(dataTransfer.files)
+			inputElement.files = dataTransfer.files
+
+			// Dispatch change event to notify parent components
+			dispatch('change', file)
+			onFile?.(file)
+		} catch (error) {
+			console.error('Error fetching media from URL:', url, error)
+			// Don't throw the error - just log it and continue without the file
+			// The preview will still be shown
+		}
+	}
 
 	const MAX_VIDEO_DURATION_SECONDS = 10
 	const MAX_VIDEO_SIZE_MB = 10
@@ -140,7 +168,7 @@
 	{#if preview && mediaType === 'image'}
 		<img src={preview} alt={previewAlt} loading="eager" decoding="sync" />
 		<div class="preview-overlay">
-			<span>Change Image</span>
+			<span style:color="white">Change Image</span>
 		</div>
 	{:else if preview && mediaType === 'video'}
 		<video src={preview} controls muted class="video-preview"></video>

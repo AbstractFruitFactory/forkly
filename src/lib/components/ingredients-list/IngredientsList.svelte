@@ -50,7 +50,7 @@
 		scaledIngredients.map((ingredient: Ingredient) => {
 			if (ingredient.quantity) {
 				if (!ingredient.measurement) {
-					if (typeof ingredient.quantity.numeric === 'number' && !isNaN(ingredient.quantity.numeric)) {
+					if (ingredient.quantity.numeric && !isNaN(ingredient.quantity.numeric)) {
 						return {
 							...ingredient,
 							displayMeasurement: formatQuantity(ingredient.quantity.numeric)
@@ -62,7 +62,7 @@
 						}
 					}
 				}
-				if (typeof ingredient.quantity.numeric === 'number' && !isNaN(ingredient.quantity.numeric)) {
+				if (ingredient.quantity.numeric && !isNaN(ingredient.quantity.numeric)) {
 					const { quantity, unit } = convertMeasurement(
 						ingredient.quantity.numeric,
 						ingredient.measurement,

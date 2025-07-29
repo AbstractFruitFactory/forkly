@@ -125,7 +125,7 @@
 
 	{#if isLoading}
 		<div class="loading-message">
-			<p>Scraping recipe data...</p>
+			<p>Please wait while we import the recipe...</p>
 			<p class="loading-note">This may take a few moments depending on the website.</p>
 		</div>
 	{/if}

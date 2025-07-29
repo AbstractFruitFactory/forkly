@@ -21,7 +21,7 @@
 			mediaType?: 'image' | 'video'
 			ingredients?: {
 				name: string
-				quantity: { text: string, numeric: number }
+				quantity: { text: string; numeric: number }
 				measurement: string
 			}[]
 		}[]
@@ -90,8 +90,15 @@
 
 	let instructions: {
 		id: string
-		ingredients: { id: string; name?: string; quantity?: { text: string, numeric: number }; unit?: string }[]
+		ingredients: {
+			id: string
+			name?: string
+			quantity?: { text: string; numeric: number }
+			unit?: string
+		}[]
 		text?: string
+		mediaUrl?: string
+		mediaType?: 'image' | 'video'
 	}[] = $derived(
 		prefilledData?.instructions
 			? prefilledData.instructions.map((instruction) => ({
@@ -103,7 +110,9 @@
 							quantity: ingredient.quantity,
 							unit: ingredient.measurement
 						})) ?? [],
-					text: instruction.text
+					text: instruction.text,
+					mediaUrl: instruction.mediaUrl,
+					mediaType: instruction.mediaType
 				}))
 			: [{ id: generateId(), ingredients: [] }]
 	)
@@ -227,9 +236,6 @@
 		// Add length units
 		units.push(...(system === 'metric' ? UNITS.length.metric : UNITS.length.imperial))
 
-		// Add other units
-		units.push(...UNITS.other)
-
 		return units
 	}
 
@@ -261,9 +267,12 @@
 			carbs = recipe.nutrition.carbs ?? ''
 			fat = recipe.nutrition.fat ?? ''
 		}
+
 		instructions = (recipe.instructions ?? []).map((instruction) => ({
 			id: generateId(),
 			text: instruction.text,
+			mediaUrl: instruction.mediaUrl,
+			mediaType: instruction.mediaType,
 			ingredients: (instruction.ingredients ?? []).map((ingredient) => ({
 				id: generateId(),
 				name: ingredient.name,
@@ -304,7 +313,7 @@
 		name="image"
 		type="image"
 		previewAlt="Recipe preview"
-		initialImageUrl={image ?? undefined}
+		initialMedia={image ? { url: image, type: 'image' } : undefined}
 	/>
 {/snippet}
 
@@ -446,8 +455,17 @@
 	</Input>
 {/snippet}
 
-{#snippet instructionMedia(id: string, onFile?: (file: File) => void)}
-	<MediaUpload name={`instructions-${id}-media`} {onFile} previewAlt="Instruction media" />
+{#snippet instructionMedia(
+	id: string,
+	initialMedia?: { url: string; type: 'image' | 'video' },
+	onFile?: (file: File) => void
+)}
+	<MediaUpload
+		name={`instructions-${id}-media`}
+		{onFile}
+		previewAlt="Instruction media"
+		{initialMedia}
+	/>
 {/snippet}
 
 {#snippet saveDraftButton(fullWidth?: boolean)}

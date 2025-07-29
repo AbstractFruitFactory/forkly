@@ -50,13 +50,13 @@ export function validateMediaSize(
  * @param file File object with type property
  * @returns 'image', 'video', or null if not a valid media type
  */
-export function getMediaType(file: { type: string }): 'image' | 'video' | null {
+export function getMediaType(file: { type: string }): 'image' | 'video' | undefined {
   if (file.type.startsWith('image/')) {
     return 'image'
   } else if (file.type.startsWith('video/')) {
     return 'video'
   } else {
-    return null
+    return undefined
   }
 }
 

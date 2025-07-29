@@ -248,7 +248,6 @@ export const formatMeasurement = (quantity: number, unit?: MeasurementUnit): str
   return `${formattedQuantity} ${displayUnit}`
 } 
 
-// Helper to parse a quantity string to a number using fraction.js
 export function parseQuantityToNumber(input: string | undefined): number | undefined {
   if (!input) return undefined
   try {
