@@ -16,10 +16,12 @@
 
 	let loading = $state(false)
 
-	const title = mode === 'login' ? 'Login' : 'Sign Up'
-	const submitText = mode === 'login' ? 'Login' : 'Sign Up'
-	const alternateText = mode === 'login' ? "Don't have an account?" : 'Already have an account?'
-	const alternateLinkText = mode === 'login' ? 'Register' : 'Login'
+	let title = $derived(mode === 'login' ? 'Login' : 'Sign Up')
+	let submitText = $derived(mode === 'login' ? 'Login' : 'Sign Up')
+	let alternateText = $derived(
+		mode === 'login' ? "Don't have an account?" : 'Already have an account?'
+	)
+	let alternateLinkText = $derived(mode === 'login' ? 'Register' : 'Login')
 </script>
 
 <div class="auth-form card">
@@ -27,14 +29,14 @@
 	<form method="POST" use:enhance>
 		<div class="form-group">
 			<label for="username">Username</label>
-			<Input --background=white>
+			<Input --background="white">
 				<input id="username" name="username" type="text" placeholder="Enter username" required />
 			</Input>
 		</div>
 
 		<div class="form-group">
 			<label for="password">Password</label>
-			<Input --background=white>
+			<Input --background="white">
 				<input
 					id="password"
 					name="password"
@@ -48,7 +50,7 @@
 		{#if mode === 'signup'}
 			<div class="form-group">
 				<label for="email">Email</label>
-				<Input --background=white>
+				<Input --background="white">
 					<input id="email" name="email" type="email" placeholder="Enter email" required />
 				</Input>
 			</div>
@@ -64,10 +66,7 @@
 
 		{#if mode === 'login'}
 			<a href="/login/google" class="google-button">
-				<button
-					type="button"
-					class="google-button-inner"
-				>
+				<button type="button" class="google-button-inner">
 					<GoogleIcon />
 					Sign in with Google
 				</button>
@@ -107,7 +106,7 @@
 		display: block;
 		margin-top: var(--spacing-md);
 		text-align: center;
-		
+
 		.google-button-inner {
 			width: 100%;
 			padding: 0.75em;
