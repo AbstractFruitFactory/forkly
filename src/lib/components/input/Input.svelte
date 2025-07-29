@@ -155,17 +155,17 @@
 	}
 
 	.action-button {
-		background: none;
 		border: none;
-		color: var(--color-primary);
+		color: var(--color-text-on-secondary);
 		cursor: pointer;
 		font-size: var(--font-size-sm);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		background-color: var(--color-neutral-darker, rgba(255, 255, 255, 0.05));
-		border-radius: var(--border-radius-sm);
+		padding: var(--spacing-xs) var(--spacing-md);
+		background: var(--color-secondary);
+		border-radius: var(--border-radius-lg);
+		transition: background var(--transition-fast) var(--ease-in-out);
 
 		&:hover {
-			color: var(--color-primary-dark);
+			background: var(--color-secondary-dark);
 		}
 	}
 
