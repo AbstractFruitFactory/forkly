@@ -6,6 +6,7 @@ import { drizzle } from 'drizzle-orm/postgres-js'
 import * as dotenv from 'dotenv'
 import { readFile } from 'fs/promises'
 import { normalizeIngredientName } from '../utils/normalize-ingredient'
+import { parseQuantityToNumber } from '../../utils/unitConversion'
 
 dotenv.config()
 
@@ -31,12 +32,13 @@ export const seed = async () => {
   const recipesJson = await readFile(new URL('./seedRecipes.json', import.meta.url), 'utf-8')
   const sampleRecipesRaw: Array<Omit<Recipe, 'id' | 'createdAt'>> = JSON.parse(recipesJson)
 
-  // Duplicate recipes to reach 1000 total
-  const TARGET_RECIPE_COUNT = 1000
+  const TARGET_RECIPE_COUNT = 100
+  
   const baseCount = sampleRecipesRaw.length
   const multiplier = Math.ceil(TARGET_RECIPE_COUNT / baseCount)
   let sampleRecipes: Recipe[] = []
   const titleCountMap = new Map<string, number>()
+  
   for (let m = 0; m < multiplier; m++) {
     for (const recipe of sampleRecipesRaw) {
       const baseTitle = recipe.title
@@ -149,6 +151,7 @@ export const seed = async () => {
           ingredientId: ingredientEntry.id,
           displayName: ing.displayName,
           quantity: ing.quantity,
+          numericQuantity: parseQuantityToNumber(ing.quantity),
           measurement: ing.measurement
         })
       }

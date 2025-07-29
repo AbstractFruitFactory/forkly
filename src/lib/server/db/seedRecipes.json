@@ -3,55 +3,55 @@
     "title": "Chef John's Fresh Salmon Cakes",
     "description": "Delicious salmon cakes made with fresh salmon, sautéed vegetables, and seasonings. A perfect emergency meal that's easy to add to anyone's rotation.",
     "instructions": [
-      { 
+      {
         "id": "salmon-cakes-1",
         "text": "Heat extra virgin olive oil in a skillet over medium heat. Cook and stir onion, red pepper, celery, and a pinch of salt until onion is soft and translucent, about 5 minutes.",
         "ingredients": [
-          { "name": "extra-virgin olive oil", "displayName": "extra-virgin olive oil", "quantity": 2, "measurement": "tablespoons" },
-          { "name": "onion", "displayName": "onion, finely chopped", "quantity": 0.25, "measurement": "cups" },
-          { "name": "red bell pepper", "displayName": "red bell pepper, finely chopped", "quantity": 0.25, "measurement": "cups" },
-          { "name": "celery", "displayName": "celery, finely chopped", "quantity": 0.25, "measurement": "cups" },
-          { "name": "salt", "displayName": "salt", "quantity": 1, "measurement": "pinch" }
+          { "name": "extra-virgin olive oil", "displayName": "extra-virgin olive oil", "quantity": "2", "measurement": "tablespoons" },
+          { "name": "onion", "displayName": "onion, finely chopped", "quantity": "1/4", "measurement": "cups" },
+          { "name": "red bell pepper", "displayName": "red bell pepper, finely chopped", "quantity": "1/4", "measurement": "cups" },
+          { "name": "celery", "displayName": "celery, finely chopped", "quantity": "1/4", "measurement": "cups" },
+          { "name": "salt", "displayName": "salt", "quantity": "1", "measurement": "pinch" }
         ]
       },
-      { 
+      {
         "id": "salmon-cakes-2",
         "text": "Add capers; cook and stir until fragrant, about 2 minutes. Remove from heat and cool to room temperature.",
         "ingredients": [
-          { "name": "capers", "displayName": "capers, drained and chopped", "quantity": 1, "measurement": "tablespoon" }
+          { "name": "capers", "displayName": "capers, drained and chopped", "quantity": "1", "measurement": "tablespoon" }
         ]
       },
-      { 
+      {
         "id": "salmon-cakes-3",
         "text": "Stir salmon, onion mixture, mayonnaise, bread crumbs, garlic, mustard, cayenne, seafood seasoning, salt, and ground black pepper together in a bowl until well-mixed.",
         "ingredients": [
-          { "name": "fresh wild salmon", "displayName": "fresh wild salmon", "quantity": 1.25, "measurement": "pounds" },
-          { "name": "mayonnaise", "displayName": "mayonnaise", "quantity": 0.25, "measurement": "cups" },
-          { "name": "panko bread crumbs", "displayName": "panko bread crumbs, divided", "quantity": 0.5, "measurement": "cups" },
-          { "name": "garlic", "displayName": "garlic, minced", "quantity": 2, "measurement": "cloves" },
-          { "name": "Dijon mustard", "displayName": "Dijon mustard", "quantity": 1, "measurement": "teaspoon" },
-          { "name": "cayenne pepper", "displayName": "cayenne pepper", "quantity": 1, "measurement": "pinch" },
-          { "name": "seafood seasoning", "displayName": "seafood seasoning (e.g., Old Bay)", "quantity": 1, "measurement": "teaspoon" },
-          { "name": "salt", "displayName": "salt", "quantity": 0.5, "measurement": "teaspoon" },
-          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": 0.25, "measurement": "teaspoon" }
+          { "name": "fresh wild salmon", "displayName": "fresh wild salmon", "quantity": "1 1/4", "measurement": "pounds" },
+          { "name": "mayonnaise", "displayName": "mayonnaise", "quantity": "1/4", "measurement": "cups" },
+          { "name": "panko bread crumbs", "displayName": "panko bread crumbs, divided", "quantity": "1/2", "measurement": "cups" },
+          { "name": "garlic", "displayName": "garlic, minced", "quantity": "2", "measurement": "cloves" },
+          { "name": "Dijon mustard", "displayName": "Dijon mustard", "quantity": "1", "measurement": "teaspoon" },
+          { "name": "cayenne pepper", "displayName": "cayenne pepper", "quantity": "1", "measurement": "pinch" },
+          { "name": "seafood seasoning", "displayName": "seafood seasoning (e.g., Old Bay)", "quantity": "1", "measurement": "teaspoon" },
+          { "name": "salt", "displayName": "salt", "quantity": "1/2", "measurement": "teaspoon" },
+          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": "1/4", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "salmon-cakes-4",
         "text": "Cover the bowl with plastic wrap and refrigerate until firmed and chilled, 1 to 2 hours."
       },
-      { 
+      {
         "id": "salmon-cakes-5",
         "text": "Form salmon mixture into four 1-inch thick patties; sprinkle remaining panko bread crumbs over each patty.",
         "ingredients": [
-          { "name": "panko bread crumbs", "displayName": "remaining panko bread crumbs", "quantity": 0.25, "measurement": "cups" }
+          { "name": "panko bread crumbs", "displayName": "remaining panko bread crumbs", "quantity": "1/4", "measurement": "cups" }
         ]
       },
-      { 
+      {
         "id": "salmon-cakes-6",
         "text": "Heat olive oil in a skillet over medium-heat. Cook patties in hot oil until golden and cooked through, 3 to 4 minutes per side.",
         "ingredients": [
-          { "name": "olive oil", "displayName": "olive oil", "quantity": 2, "measurement": "tablespoons" }
+          { "name": "olive oil", "displayName": "olive oil", "quantity": "2", "measurement": "tablespoons" }
         ]
       }
     ],
@@ -64,65 +64,65 @@
     "title": "Grilled Salmon with Asparagus",
     "description": "Perfectly grilled salmon fillet served with fresh asparagus and creamy mashed potatoes, garnished with lemon and microgreens.",
     "instructions": [
-      { 
+      {
         "id": "grilled-salmon-1",
         "text": "Peel and quarter potatoes. Boil until tender, about 15-20 minutes.",
         "ingredients": [
-          { "name": "russet potatoes", "displayName": "russet potatoes, peeled and quartered", "quantity": 2, "measurement": "medium" }
+          { "name": "russet potatoes", "displayName": "russet potatoes, peeled and quartered", "quantity": "2", "measurement": "medium" }
         ]
       },
-      { 
+      {
         "id": "grilled-salmon-2",
         "text": "While potatoes cook, season salmon with salt, pepper, and olive oil.",
         "ingredients": [
-          { "name": "salmon fillets", "displayName": "salmon fillets", "quantity": 2, "measurement": "pieces" },
-          { "name": "salt", "displayName": "salt", "quantity": 0.5, "measurement": "teaspoon" },
-          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": 0.25, "measurement": "teaspoon" },
-          { "name": "olive oil", "displayName": "olive oil", "quantity": 1, "measurement": "tablespoon" }
+          { "name": "salmon fillets", "displayName": "salmon fillets", "quantity": "2", "measurement": "pieces" },
+          { "name": "salt", "displayName": "salt", "quantity": "1/2", "measurement": "teaspoon" },
+          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": "1/4", "measurement": "teaspoon" },
+          { "name": "olive oil", "displayName": "olive oil", "quantity": "1", "measurement": "tablespoon" }
         ]
       },
-      { 
+      {
         "id": "grilled-salmon-3",
         "text": "Trim asparagus ends and toss with olive oil, salt, and pepper.",
         "ingredients": [
-          { "name": "fresh asparagus", "displayName": "fresh asparagus, trimmed", "quantity": 8, "measurement": "spears" },
-          { "name": "olive oil", "displayName": "olive oil", "quantity": 1, "measurement": "tablespoon" },
-          { "name": "salt", "displayName": "salt", "quantity": 0.25, "measurement": "teaspoon" },
-          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": 0.125, "measurement": "teaspoon" }
+          { "name": "fresh asparagus", "displayName": "fresh asparagus, trimmed", "quantity": "8", "measurement": "spears" },
+          { "name": "olive oil", "displayName": "olive oil", "quantity": "1", "measurement": "tablespoon" },
+          { "name": "salt", "displayName": "salt", "quantity": "1/4", "measurement": "teaspoon" },
+          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": "1/8", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "grilled-salmon-4",
         "text": "Preheat grill or grill pan to medium-high heat."
       },
-      { 
+      {
         "id": "grilled-salmon-5",
         "text": "Grill salmon for 4-5 minutes per side until desired doneness."
       },
-      { 
+      {
         "id": "grilled-salmon-6",
         "text": "Grill asparagus for 3-4 minutes, turning occasionally."
       },
-      { 
+      {
         "id": "grilled-salmon-7",
         "text": "Mash potatoes with butter, milk, salt, and pepper until creamy.",
         "ingredients": [
-          { "name": "unsalted butter", "displayName": "unsalted butter", "quantity": 2, "measurement": "tablespoons" },
-          { "name": "whole milk", "displayName": "whole milk", "quantity": 0.25, "measurement": "cups" },
-          { "name": "salt", "displayName": "salt", "quantity": 0.25, "measurement": "teaspoon" },
-          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": 0.125, "measurement": "teaspoon" }
+          { "name": "unsalted butter", "displayName": "unsalted butter", "quantity": "2", "measurement": "tablespoons" },
+          { "name": "whole milk", "displayName": "whole milk", "quantity": "1/4", "measurement": "cups" },
+          { "name": "salt", "displayName": "salt", "quantity": "1/4", "measurement": "teaspoon" },
+          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": "1/8", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "grilled-salmon-8",
         "text": "Plate mashed potatoes, arrange asparagus, and top with grilled salmon."
       },
-      { 
+      {
         "id": "grilled-salmon-9",
         "text": "Garnish with lemon wedges and microgreens. Serve immediately.",
         "ingredients": [
-          { "name": "lemon wedges", "displayName": "lemon wedges", "quantity": 1, "measurement": "lemon" },
-          { "name": "microgreens", "displayName": "microgreens for garnish", "quantity": 0.25, "measurement": "cups" }
+          { "name": "lemon wedges", "displayName": "lemon wedges", "quantity": "1", "measurement": "lemon" },
+          { "name": "microgreens", "displayName": "microgreens for garnish", "quantity": "1/4", "measurement": "cups" }
         ]
       }
     ],
@@ -135,35 +135,35 @@
     "title": "Classic Spaghetti Carbonara",
     "description": "A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.",
     "instructions": [
-      { 
+      {
         "id": "carbonara-1",
         "text": "Bring a large pot of salted water to boil and cook spaghetti according to package instructions.",
         "ingredients": [
-          { "name": "spaghetti", "displayName": "spaghetti", "quantity": 400, "measurement": "grams" },
-          { "name": "salt", "displayName": "salt", "quantity": 1, "measurement": "teaspoon" }
+          { "name": "spaghetti", "displayName": "spaghetti", "quantity": "400", "measurement": "grams" },
+          { "name": "salt", "displayName": "salt", "quantity": "1", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "carbonara-2",
         "text": "While pasta cooks, cut pancetta into small cubes and fry until crispy.",
         "ingredients": [
-          { "name": "pancetta", "displayName": "pancetta, diced", "quantity": 150, "measurement": "grams" }
+          { "name": "pancetta", "displayName": "pancetta, diced", "quantity": "150", "measurement": "grams" }
         ]
       },
-      { 
+      {
         "id": "carbonara-3",
         "text": "In a bowl, whisk together eggs, grated pecorino romano, and black pepper.",
         "ingredients": [
-          { "name": "large eggs", "displayName": "large eggs", "quantity": 4, "measurement": "pieces" },
-          { "name": "pecorino romano cheese", "displayName": "pecorino romano cheese, grated", "quantity": 100, "measurement": "grams" },
-          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": 1, "measurement": "teaspoon" }
+          { "name": "large eggs", "displayName": "large eggs", "quantity": "4", "measurement": "pieces" },
+          { "name": "pecorino romano cheese", "displayName": "pecorino romano cheese, grated", "quantity": "100", "measurement": "grams" },
+          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": "1", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "carbonara-4",
         "text": "Drain pasta, reserving some pasta water. While pasta is still very hot, quickly stir in the egg mixture and pancetta."
       },
-      { 
+      {
         "id": "carbonara-5",
         "text": "Add pasta water as needed to create a creamy sauce. Serve immediately with extra cheese and black pepper."
       }
@@ -177,52 +177,52 @@
     "title": "Classic Chocolate Chip Cookies",
     "description": "Soft and chewy cookies with melty chocolate chips - a timeless favorite!",
     "instructions": [
-      { 
+      {
         "id": "cookies-1",
         "text": "Preheat oven to 375°F (190°C)"
       },
-      { 
+      {
         "id": "cookies-2",
         "text": "Cream together butter and sugars until light and fluffy",
         "mediaUrl": "https://images.unsplash.com/photo-1612207339340-8fa5ed562f88?auto=format&fit=crop&q=80",
         "mediaType": "image",
         "ingredients": [
-          { "name": "unsalted butter", "displayName": "unsalted butter, softened", "quantity": 1, "measurement": "cup" },
-          { "name": "granulated sugar", "displayName": "granulated sugar", "quantity": 0.75, "measurement": "cups" },
-          { "name": "packed brown sugar", "displayName": "packed brown sugar", "quantity": 0.75, "measurement": "cups" }
+          { "name": "unsalted butter", "displayName": "unsalted butter, softened", "quantity": "1", "measurement": "cup" },
+          { "name": "granulated sugar", "displayName": "granulated sugar", "quantity": "3/4", "measurement": "cups" },
+          { "name": "packed brown sugar", "displayName": "packed brown sugar", "quantity": "3/4", "measurement": "cups" }
         ]
       },
-      { 
+      {
         "id": "cookies-3",
         "text": "Beat in eggs one at a time, then stir in vanilla",
         "ingredients": [
-          { "name": "large eggs", "displayName": "large eggs", "quantity": 2, "measurement": "pieces" },
-          { "name": "vanilla extract", "displayName": "vanilla extract", "quantity": 1, "measurement": "teaspoon" }
+          { "name": "large eggs", "displayName": "large eggs", "quantity": "2", "measurement": "pieces" },
+          { "name": "vanilla extract", "displayName": "vanilla extract", "quantity": "1", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "cookies-4",
         "text": "Combine flour, baking soda, and salt; gradually blend into the butter mixture",
         "ingredients": [
-          { "name": "all-purpose flour", "displayName": "all-purpose flour", "quantity": 2.25, "measurement": "cups" },
-          { "name": "baking soda", "displayName": "baking soda", "quantity": 1, "measurement": "teaspoon" },
-          { "name": "salt", "displayName": "salt", "quantity": 1, "measurement": "teaspoon" }
+          { "name": "all-purpose flour", "displayName": "all-purpose flour", "quantity": "2 1/4", "measurement": "cups" },
+          { "name": "baking soda", "displayName": "baking soda", "quantity": "1", "measurement": "teaspoon" },
+          { "name": "salt", "displayName": "salt", "quantity": "1", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "cookies-5",
         "text": "Stir in chocolate chips",
         "mediaUrl": "https://images.unsplash.com/photo-1621236378699-8597faf6a176?auto=format&fit=crop&q=80",
         "mediaType": "image",
         "ingredients": [
-          { "name": "semi-sweet chocolate chips", "displayName": "semi-sweet chocolate chips", "quantity": 2, "measurement": "cups" }
+          { "name": "semi-sweet chocolate chips", "displayName": "semi-sweet chocolate chips", "quantity": "2", "measurement": "cups" }
         ]
       },
-      { 
+      {
         "id": "cookies-6",
         "text": "Drop by rounded tablespoons onto ungreased baking sheets"
       },
-      { 
+      {
         "id": "cookies-7",
         "text": "Bake for 9 to 11 minutes or until golden brown",
         "mediaUrl": "https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?auto=format&fit=crop&q=80",
@@ -238,46 +238,46 @@
     "title": "Fresh Garden Salad",
     "description": "A light and refreshing salad packed with seasonal vegetables and a zesty vinaigrette.",
     "instructions": [
-      { 
+      {
         "id": "salad-1",
         "text": "Wash and dry all vegetables thoroughly",
         "ingredients": [
-          { "name": "mixed salad greens", "displayName": "mixed salad greens", "quantity": 6, "measurement": "cups" },
-          { "name": "cherry tomatoes", "displayName": "cherry tomatoes, halved", "quantity": 1, "measurement": "cup" },
-          { "name": "cucumber", "displayName": "cucumber, sliced", "quantity": 1, "measurement": "medium" },
-          { "name": "red onion", "displayName": "red onion, thinly sliced", "quantity": 0.25, "measurement": "cup" }
+          { "name": "mixed salad greens", "displayName": "mixed salad greens", "quantity": "6", "measurement": "cups" },
+          { "name": "cherry tomatoes", "displayName": "cherry tomatoes, halved", "quantity": "1", "measurement": "cup" },
+          { "name": "cucumber", "displayName": "cucumber, sliced", "quantity": "1", "measurement": "medium" },
+          { "name": "red onion", "displayName": "red onion, thinly sliced", "quantity": "1/4", "measurement": "cup" }
         ]
       },
-      { 
+      {
         "id": "salad-2",
         "text": "Slice cucumber and red onion thinly"
       },
-      { 
+      {
         "id": "salad-3",
         "text": "Halve the cherry tomatoes"
       },
-      { 
+      {
         "id": "salad-4",
         "text": "In a small bowl, whisk together olive oil, balsamic vinegar, and honey",
         "ingredients": [
-          { "name": "extra-virgin olive oil", "displayName": "extra-virgin olive oil", "quantity": 3, "measurement": "tablespoons" },
-          { "name": "balsamic vinegar", "displayName": "balsamic vinegar", "quantity": 2, "measurement": "tablespoons" },
-          { "name": "honey", "displayName": "honey", "quantity": 1, "measurement": "teaspoon" }
+          { "name": "extra-virgin olive oil", "displayName": "extra-virgin olive oil", "quantity": "3", "measurement": "tablespoons" },
+          { "name": "balsamic vinegar", "displayName": "balsamic vinegar", "quantity": "2", "measurement": "tablespoons" },
+          { "name": "honey", "displayName": "honey", "quantity": "1", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "salad-5",
         "text": "Combine all vegetables in a large bowl"
       },
-      { 
+      {
         "id": "salad-6",
         "text": "Drizzle with dressing just before serving",
         "ingredients": [
-          { "name": "salt", "displayName": "salt", "quantity": 0.5, "measurement": "teaspoon" },
-          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": 0.25, "measurement": "teaspoon" }
+          { "name": "salt", "displayName": "salt", "quantity": "1/2", "measurement": "teaspoon" },
+          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": "1/4", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "salad-7",
         "text": "Toss gently and serve immediately"
       }
@@ -291,55 +291,55 @@
     "title": "Homemade Pizza",
     "description": "A delicious pizza with a crispy crust and classic toppings.",
     "instructions": [
-      { 
+      {
         "id": "pizza-1",
         "text": "Preheat oven to 450°F (230°C)"
       },
-      { 
+      {
         "id": "pizza-2",
         "text": "Roll out pizza dough on a floured surface",
         "mediaUrl": "https://videos.pexels.com/video-files/3209831/3209831-uhd_2560_1440_25fps.mp4",
         "mediaType": "video",
         "ingredients": [
-          { "name": "pizza dough", "displayName": "pizza dough", "quantity": 1, "measurement": "pound" }
+          { "name": "pizza dough", "displayName": "pizza dough", "quantity": "1", "measurement": "pound" }
         ]
       },
-      { 
+      {
         "id": "pizza-3",
         "text": "Brush the dough with olive oil",
         "ingredients": [
-          { "name": "olive oil", "displayName": "olive oil", "quantity": 1, "measurement": "tablespoon" }
+          { "name": "olive oil", "displayName": "olive oil", "quantity": "1", "measurement": "tablespoon" }
         ]
       },
-      { 
+      {
         "id": "pizza-4",
         "text": "Spread tomato sauce evenly over the dough",
         "mediaUrl": "https://videos.pexels.com/video-files/6603320/6603320-uhd_2560_1440_25fps.mp4",
         "mediaType": "video",
         "ingredients": [
-          { "name": "tomato sauce", "displayName": "tomato sauce", "quantity": 0.75, "measurement": "cup" }
+          { "name": "tomato sauce", "displayName": "tomato sauce", "quantity": "3/4", "measurement": "cup" }
         ]
       },
-      { 
+      {
         "id": "pizza-5",
         "text": "Top with mozzarella cheese and pepperoni",
         "mediaUrl": "https://videos.pexels.com/video-files/7008568/7008568-hd_1920_1080_25fps.mp4",
         "mediaType": "video",
         "ingredients": [
-          { "name": "shredded mozzarella cheese", "displayName": "shredded mozzarella cheese", "quantity": 2, "measurement": "cups" },
-          { "name": "pepperoni slices", "displayName": "pepperoni slices", "quantity": 0.5, "measurement": "cup" }
+          { "name": "shredded mozzarella cheese", "displayName": "shredded mozzarella cheese", "quantity": "2", "measurement": "cups" },
+          { "name": "pepperoni slices", "displayName": "pepperoni slices", "quantity": "1/2", "measurement": "cup" }
         ]
       },
-      { 
+      {
         "id": "pizza-6",
         "text": "Sprinkle with dried oregano",
         "mediaUrl": "https://videos.pexels.com/video-files/18775889/18775889-uhd_2560_1440_25fps.mp4",
         "mediaType": "video",
         "ingredients": [
-          { "name": "dried oregano", "displayName": "dried oregano", "quantity": 1, "measurement": "teaspoon" }
+          { "name": "dried oregano", "displayName": "dried oregano", "quantity": "1", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "pizza-7",
         "text": "Bake for 15-20 minutes until crust is golden and cheese is bubbly",
         "mediaUrl": "https://videos.pexels.com/video-files/30627970/13111089_1440_2560_25fps.mp4",
@@ -355,57 +355,57 @@
     "title": "Chicken Stir-Fry",
     "description": "A quick and healthy Asian-inspired stir-fry with colorful vegetables.",
     "instructions": [
-      { 
+      {
         "id": "stir-fry-1",
         "text": "Cut chicken into bite-sized pieces",
         "ingredients": [
-          { "name": "boneless skinless chicken breasts", "displayName": "boneless skinless chicken breasts", "quantity": 1, "measurement": "pound" }
+          { "name": "boneless skinless chicken breasts", "displayName": "boneless skinless chicken breasts", "quantity": "1", "measurement": "pound" }
         ]
       },
-      { 
+      {
         "id": "stir-fry-2",
         "text": "Slice vegetables into uniform pieces",
         "ingredients": [
-          { "name": "broccoli florets", "displayName": "broccoli florets", "quantity": 2, "measurement": "cups" },
-          { "name": "carrots", "displayName": "carrots, sliced", "quantity": 2, "measurement": "medium" },
-          { "name": "red bell pepper", "displayName": "red bell pepper, sliced", "quantity": 1, "measurement": "large" }
+          { "name": "broccoli florets", "displayName": "broccoli florets", "quantity": "2", "measurement": "cups" },
+          { "name": "carrots", "displayName": "carrots, sliced", "quantity": "2", "measurement": "medium" },
+          { "name": "red bell pepper", "displayName": "red bell pepper, sliced", "quantity": "1", "measurement": "large" }
         ]
       },
-      { 
+      {
         "id": "stir-fry-3",
         "text": "Heat oil in a large wok or skillet over high heat",
         "ingredients": [
-          { "name": "vegetable oil", "displayName": "vegetable oil", "quantity": 2, "measurement": "tablespoons" }
+          { "name": "vegetable oil", "displayName": "vegetable oil", "quantity": "2", "measurement": "tablespoons" }
         ]
       },
-      { 
+      {
         "id": "stir-fry-4",
         "text": "Stir-fry chicken until cooked through, remove from pan"
       },
-      { 
+      {
         "id": "stir-fry-5",
         "text": "Add vegetables, ginger, and garlic to the pan",
         "ingredients": [
-          { "name": "fresh ginger", "displayName": "fresh ginger, minced", "quantity": 1, "measurement": "tablespoon" },
-          { "name": "garlic", "displayName": "garlic, minced", "quantity": 2, "measurement": "cloves" }
+          { "name": "fresh ginger", "displayName": "fresh ginger, minced", "quantity": "1", "measurement": "tablespoon" },
+          { "name": "garlic", "displayName": "garlic, minced", "quantity": "2", "measurement": "cloves" }
         ]
       },
-      { 
+      {
         "id": "stir-fry-6",
         "text": "Return chicken to pan, add soy sauce",
         "ingredients": [
-          { "name": "soy sauce", "displayName": "soy sauce", "quantity": 3, "measurement": "tablespoons" }
+          { "name": "soy sauce", "displayName": "soy sauce", "quantity": "3", "measurement": "tablespoons" }
         ]
       },
-      { 
+      {
         "id": "stir-fry-7",
         "text": "Stir-fry until vegetables are crisp-tender",
         "ingredients": [
-          { "name": "salt", "displayName": "salt", "quantity": 0.5, "measurement": "teaspoon" },
-          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": 0.25, "measurement": "teaspoon" }
+          { "name": "salt", "displayName": "salt", "quantity": "1/2", "measurement": "teaspoon" },
+          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": "1/4", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "stir-fry-8",
         "text": "Serve hot over rice"
       }
@@ -419,65 +419,65 @@
     "title": "Vegan Quinoa Buddha Bowl",
     "description": "A nutrient-packed vegan and gluten-free bowl with quinoa, roasted vegetables, avocado, and a tahini dressing.",
     "instructions": [
-      { 
+      {
         "id": "buddha-bowl-1",
         "text": "Rinse quinoa thoroughly and cook according to package instructions.",
         "ingredients": [
-          { "name": "cooked quinoa", "displayName": "cooked quinoa", "quantity": 1, "measurement": "cup" }
+          { "name": "cooked quinoa", "displayName": "cooked quinoa", "quantity": "1", "measurement": "cup" }
         ]
       },
-      { 
+      {
         "id": "buddha-bowl-2",
         "text": "Preheat oven to 425°F (220°C)."
       },
-      { 
+      {
         "id": "buddha-bowl-3",
         "text": "Toss sweet potatoes and chickpeas with olive oil, cumin, paprika, salt, and pepper.",
         "mediaUrl": "https://images.unsplash.com/photo-1604328727766-a151d1045ab4?auto=format&fit=crop&q=80",
         "mediaType": "image",
         "ingredients": [
-          { "name": "sweet potato", "displayName": "sweet potato, cubed", "quantity": 1, "measurement": "medium" },
-          { "name": "canned chickpeas", "displayName": "canned chickpeas, drained and rinsed", "quantity": 1, "measurement": "cup" },
-          { "name": "olive oil", "displayName": "olive oil", "quantity": 1, "measurement": "tablespoon" },
-          { "name": "ground cumin", "displayName": "ground cumin", "quantity": 1, "measurement": "teaspoon" },
-          { "name": "smoked paprika", "displayName": "smoked paprika", "quantity": 0.5, "measurement": "teaspoon" },
-          { "name": "salt", "displayName": "salt", "quantity": 0.5, "measurement": "teaspoon" },
-          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": 0.25, "measurement": "teaspoon" }
+          { "name": "sweet potato", "displayName": "sweet potato, cubed", "quantity": "1", "measurement": "medium" },
+          { "name": "canned chickpeas", "displayName": "canned chickpeas, drained and rinsed", "quantity": "1", "measurement": "cup" },
+          { "name": "olive oil", "displayName": "olive oil", "quantity": "1", "measurement": "tablespoon" },
+          { "name": "ground cumin", "displayName": "ground cumin", "quantity": "1", "measurement": "teaspoon" },
+          { "name": "smoked paprika", "displayName": "smoked paprika", "quantity": "1/2", "measurement": "teaspoon" },
+          { "name": "salt", "displayName": "salt", "quantity": "1/2", "measurement": "teaspoon" },
+          { "name": "black pepper", "displayName": "black pepper, freshly ground", "quantity": "1/4", "measurement": "teaspoon" }
         ]
       },
-      { 
+      {
         "id": "buddha-bowl-4",
         "text": "Spread on a baking sheet and roast for 25-30 minutes until golden.",
         "mediaUrl": "https://images.unsplash.com/photo-1592415499556-74fcb9f18667?auto=format&fit=crop&q=80",
         "mediaType": "image"
       },
-      { 
+      {
         "id": "buddha-bowl-5",
         "text": "Prepare the tahini dressing by whisking tahini, lemon juice, garlic, water, and salt.",
         "ingredients": [
-          { "name": "tahini", "displayName": "tahini", "quantity": 2, "measurement": "tablespoons" },
-          { "name": "lemon juice", "displayName": "lemon juice", "quantity": 1, "measurement": "tablespoon" },
-          { "name": "garlic", "displayName": "garlic, minced", "quantity": 1, "measurement": "clove" }
+          { "name": "tahini", "displayName": "tahini", "quantity": "2", "measurement": "tablespoons" },
+          { "name": "lemon juice", "displayName": "lemon juice", "quantity": "1", "measurement": "tablespoon" },
+          { "name": "garlic", "displayName": "garlic, minced", "quantity": "1", "measurement": "clove" }
         ]
       },
-      { 
+      {
         "id": "buddha-bowl-6",
         "text": "Assemble bowls with quinoa as the base, topped with roasted vegetables, chickpeas, avocado, and kale.",
         "mediaUrl": "https://images.unsplash.com/photo-1546007600-8c2e5a9b8ea3?auto=format&fit=crop&q=80",
         "mediaType": "image",
         "ingredients": [
-          { "name": "avocado", "displayName": "avocado, sliced", "quantity": 1, "measurement": "medium" },
-          { "name": "kale", "displayName": "kale, chopped", "quantity": 2, "measurement": "cups" }
+          { "name": "avocado", "displayName": "avocado, sliced", "quantity": "1", "measurement": "medium" },
+          { "name": "kale", "displayName": "kale, chopped", "quantity": "2", "measurement": "cups" }
         ]
       },
-      { 
+      {
         "id": "buddha-bowl-7",
         "text": "Drizzle with tahini dressing and sprinkle with sesame seeds.",
         "ingredients": [
-          { "name": "sesame seeds", "displayName": "sesame seeds", "quantity": 1, "measurement": "tablespoon" }
+          { "name": "sesame seeds", "displayName": "sesame seeds", "quantity": "1", "measurement": "tablespoon" }
         ]
       },
-      { 
+      {
         "id": "buddha-bowl-8",
         "text": "Garnish with fresh herbs and serve immediately."
       }
