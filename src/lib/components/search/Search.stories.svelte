@@ -1,7 +1,6 @@
 <script lang="ts" module>
 	import { defineMeta } from '@storybook/addon-svelte-csf'
 	import Search from './Search.svelte'
-	import SuggestionSearch from './SuggestionSearch.svelte'
 	import type { Component, ComponentProps } from 'svelte'
 
 	type StoryProps = ComponentProps<typeof Search> & {

@@ -3,95 +3,60 @@
 	import Autocomplete from './Autocomplete.svelte'
 	import Input from '../input/Input.svelte'
 	import type { Component, ComponentProps } from 'svelte'
-	import type { IngredientSearchResult } from '$lib/server/food-api'
 
 	const { Story } = defineMeta<Component<ComponentProps<typeof Autocomplete>>>({
 		component: Autocomplete,
-		tags: ['autodocs']
+		tags: ['autodocs'],
+		parameters: {
+			controls: {
+				hideNoControlsWarning: true,
+				exclude: [, 'onSelect', 'loadSuggestions', 'input']
+			}
+		}
 	})
 
-	const mockSuggestions: IngredientSearchResult = [
-		{ name: 'Chicken', id: 5006, custom: false },
-		{ name: 'Chicken Breast', id: 5062, custom: false },
-		{ name: 'Chicken Thighs', id: 5091, custom: false },
-		{ name: 'Chicken Stock', id: 6172, custom: false },
-		{ name: 'Chicken Wings', id: 5100, custom: false }
+	const mockSuggestions = [
+		{ name: 'Chicken' },
+		{ name: 'Chicken Breast' },
+		{ name: 'Chicken Thighs' },
+		{ name: 'Chicken Stock' },
+		{ name: 'Chicken Wings' }
 	]
 
+	const loadSuggestions = (query: string) =>
+		mockSuggestions.filter((suggestion) =>
+			suggestion.name.toLowerCase().includes(query.toLowerCase())
+		)
+
+	let value = $state('')
 </script>
 
-<Story name="Empty">
+<Story name="Default">
 	{#snippet children(args)}
-		<div style="width: 300px; padding: 20px;">
+		<div class="wrapper">
+			<i> start typing "chicken" to see suggestions </i>
 			<Autocomplete
-				suggestions={[]}
+				{loadSuggestions}
 				isLoading={false}
-				onSelect={(suggestion) => console.log('Selected:', suggestion)}
+				onSelect={(suggestion) => (value = suggestion.name)}
 				{...args}
 			>
-				<Input>
-					<input type="text" placeholder="Search ingredients..." />
-				</Input>
+				{#snippet input(onInput)}
+					<Input>
+						<input type="text" placeholder="Search ingredients..." oninput={onInput} bind:value />
+					</Input>
+				{/snippet}
 			</Autocomplete>
 		</div>
 	{/snippet}
 </Story>
 
-<Story name="Loading">
-	{#snippet children(args)}
-		<div style="width: 300px; padding: 20px;">
-			<Autocomplete
-				suggestions={[]}
-				isLoading={true}
-				onSelect={(suggestion) => console.log('Selected:', suggestion)}
-				{...args}
-			>
-				<Input>
-					<input type="text" placeholder="Search ingredients..." value="chi" />
-				</Input>
-			</Autocomplete>
-		</div>
-	{/snippet}
-</Story>
-
-<Story name="With Suggestions">
-	{#snippet children(args)}
-		<div style="width: 300px; padding: 20px;">
-			<Autocomplete
-				suggestions={mockSuggestions}
-				isLoading={false}
-				onSelect={(suggestion) => console.log('Selected:', suggestion)}
-				{...args}
-			>
-				<Input>
-					<input type="text" placeholder="Search ingredients..." value="chicken" />
-				</Input>
-			</Autocomplete>
-		</div>
-	{/snippet}
-</Story>
-
-<Story
-	name="Interactive"
-	play={async ({ canvasElement }) => {
-		const input = canvasElement.querySelector('input')
-		if (input) {
-			input.focus()
-		}
-	}}
->
-	{#snippet children(args)}
-		<div style="width: 300px; padding: 20px;">
-			<Autocomplete
-				suggestions={mockSuggestions}
-				isLoading={false}
-				onSelect={(suggestion) => console.log('Selected:', suggestion)}
-				{...args}
-			>
-				<Input>
-					<input type="text" placeholder="Type 'chicken' to see suggestions..." />
-				</Input>
-			</Autocomplete>
-		</div>
-	{/snippet}
-</Story>
+<style>
+	.wrapper {
+		width: 300px;
+		height: 25rem;
+		display: flex;
+		gap: 20px;
+		flex-direction: column;
+	}
+</style>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Dropdown from '../dropdown/Dropdown.svelte'
-	import { onMount, type ComponentProps, type Snippet } from 'svelte'
+	import { onMount, type Snippet } from 'svelte'
 	import Button from '../button/Button.svelte'
 	import Drawer from '../drawer/Drawer.svelte'
 	import Check from 'lucide-svelte/icons/check'
@@ -24,7 +24,11 @@
 			[
 				handleSelect: (itemLabel: string, itemData: Omit<Item, 'label'>) => void,
 				selected: Item | Item[],
-				item?: (itemContent: Snippet, onclick: () => void, selected: boolean) => ReturnType<Snippet>
+				item?: (
+					itemContent: Snippet,
+					onclick: () => void,
+					selected: boolean
+				) => ReturnType<Snippet>
 			]
 		>
 		isOpen?: boolean
@@ -124,7 +128,7 @@
 	</Button>
 
 	{#if !isMobile}
-		<Dropdown bind:isOpen>
+		<Dropdown bind:isOpen nbrOfItems={Array.isArray(selected) ? selected.length : 1}>
 			{#snippet dropdownContent(item)}
 				<div class="items-container" role="listbox" onkeydown={handleKeyDown}>
 					{@render content(handleSelect, selected, item)}

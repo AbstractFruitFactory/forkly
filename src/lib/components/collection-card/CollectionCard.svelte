@@ -47,7 +47,7 @@
 				<MoreVertical size={16} />
 			</button>
 
-			<Dropdown bind:isOpen={menuOpen}>
+			<Dropdown bind:isOpen={menuOpen} nbrOfItems={2}>
 				{#snippet dropdownContent(item)}
 					{#snippet rename()}
 						Rename
@@ -57,14 +57,22 @@
 						Delete
 					{/snippet}
 
-					{@render item(rename, () => {
-						menuOpen = false
-						renameOpen = true
-					})}
-					{@render item(_delete, () => {
-						menuOpen = false
-						deleteOpen = true
-					})}
+					{@render item(
+						rename,
+						() => {
+							menuOpen = false
+							renameOpen = true
+						},
+						0
+					)}
+					{@render item(
+						_delete,
+						() => {
+							menuOpen = false
+							deleteOpen = true
+						},
+						1
+					)}
 				{/snippet}
 			</Dropdown>
 		</div>

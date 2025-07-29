@@ -6,23 +6,36 @@
 
 	let {
 		isLoading = false,
-		suggestions = [],
-		children,
-		onSelect
+		loadSuggestions,
+		input,
+		onSelect,
+		hasHighlight = $bindable(false)
 	}: {
 		isLoading?: boolean
-		suggestions?: T[]
-		children: Snippet
+		loadSuggestions: (query: string) => Promise<T[]> | T[]
+		input: Snippet<[onInput: typeof onInput]>
 		onSelect: (suggestion: T) => void
+		hasHighlight?: boolean
 	} = $props()
+
+	let suggestions = $state<T[]>([])
 
 	const handleSelect = (suggestion: T) => {
 		onSelect(suggestion)
 	}
+
+	const onInput = async (event: Event | { target: { value: string } }) => {
+		const value = (event.target as HTMLInputElement).value
+		if (value === '') {
+			suggestions = []
+			return
+		}
+		suggestions = await loadSuggestions(value)
+	}
 </script>
 
 <div class="autocomplete-wrapper">
-	{@render children()}
+	{@render input(onInput)}
 
 	{#if isLoading}
 		<div class="loading-indicator" aria-live="polite">
@@ -51,13 +64,13 @@
 		</div>
 	{/if}
 
-	<Dropdown isOpen={suggestions.length > 0}>
+	<Dropdown bind:hasHighlight isOpen={suggestions.length > 0} nbrOfItems={suggestions.length}>
 		{#snippet dropdownContent(itemContent)}
 			{#each suggestions as suggestion, i}
 				{#snippet item()}
 					{suggestion.name}
 				{/snippet}
-				{@render itemContent(item, () => handleSelect(suggestion))}
+				{@render itemContent(item, () => handleSelect(suggestion), i)}
 			{/each}
 		{/snippet}
 	</Dropdown>

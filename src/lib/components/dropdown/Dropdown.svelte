@@ -7,20 +7,63 @@
 
 	let {
 		isOpen = $bindable(false),
-		dropdownContent
+		dropdownContent,
+		nbrOfItems,
+		hasHighlight = $bindable(false)
 	}: {
 		isOpen?: boolean
 		dropdownContent: Snippet<
-			[item: (itemContent: Snippet, onclick: () => void) => ReturnType<Snippet>]
+			[item: (itemContent: Snippet, onclick: () => void, index: number) => ReturnType<Snippet>]
 		>
+		nbrOfItems: number
+		hasHighlight?: boolean
 	} = $props()
 
 	let dropdownEl: HTMLElement | null = null
 	let parentEl: HTMLElement | null = null
 	let cleanup: (() => void) | undefined
+	let selectedIndex = $state(-1)
 
 	const closeDropdown = () => {
 		isOpen = false
+		selectedIndex = -1
+	}
+
+	$effect(() => {
+		if (selectedIndex >= 0 && isOpen) {
+			hasHighlight = true
+		} else {
+			hasHighlight = false
+		}
+	})
+
+	const handleKeydown = (event: KeyboardEvent) => {
+		if (!isOpen) return
+
+		switch (event.key) {
+			case 'ArrowDown':
+				event.preventDefault()
+				selectedIndex = selectedIndex < nbrOfItems - 1 ? selectedIndex + 1 : 0
+				break
+			case 'ArrowUp':
+				event.preventDefault()
+				selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : nbrOfItems - 1
+				break
+			case 'Enter':
+				event.preventDefault()
+				if (selectedIndex >= 0 && selectedIndex < nbrOfItems) {
+					const item = dropdownEl?.querySelectorAll('.item')[selectedIndex] as HTMLButtonElement
+					if (item) {
+						item.click()
+					}
+				}
+				closeDropdown()
+				break
+			case 'Escape':
+				event.preventDefault()
+				closeDropdown()
+				break
+		}
 	}
 
 	async function updatePosition() {
@@ -52,6 +95,8 @@
 	})
 </script>
 
+<svelte:document onkeydown={handleKeydown} />
+
 {#if isOpen}
 	<div
 		bind:this={dropdownEl}
@@ -64,8 +109,8 @@
 	</div>
 {/if}
 
-{#snippet item(itemContent: Snippet, onclick: () => void)}
-	<button type="button" class="item" {onclick}>
+{#snippet item(itemContent: Snippet, onclick: () => void, index: number)}
+	<button type="button" class="item" class:selected={selectedIndex === index} {onclick}>
 		{@render itemContent()}
 	</button>
 {/snippet}
@@ -97,8 +142,12 @@
 		text-align: left;
 
 		&:hover {
-			background-color: var(--color-secondary);
-			color: var(--color-text-on-background);
+			@extend .selected;
 		}
+	}
+
+	.selected {
+		background-color: var(--color-secondary);
+		color: var(--color-text-on-background);
 	}
 </style>

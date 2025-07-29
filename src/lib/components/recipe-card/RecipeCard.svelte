@@ -186,17 +186,21 @@
 		class="portal-dropdown-container"
 		style="position: fixed; top: {dropdownPosition.top}px; left: {dropdownPosition.left}px; z-index: 1000;"
 	>
-		<Dropdown bind:isOpen={menuOpen}>
+		<Dropdown bind:isOpen={menuOpen} nbrOfItems={Object.keys(menu.options).length}>
 			{#snippet dropdownContent(item)}
-				{#each Object.entries(menu.options) as [label, action]}
+				{#each Object.entries(menu.options) as [label, action], i}
 					{#snippet menuLabel()}
 						{label}
 					{/snippet}
 
-					{@render item(menuLabel, () => {
-						menuOpen = false
-						action()
-					})}
+					{@render item(
+						menuLabel,
+						() => {
+							menuOpen = false
+							action()
+						},
+						i
+					)}
 				{/each}
 			{/snippet}
 		</Dropdown>
