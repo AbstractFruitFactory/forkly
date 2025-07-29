@@ -63,7 +63,7 @@
 	@import '$lib/global.scss';
 
 	$content-max-width: 1200px;
-	$header-height: 4rem;
+	$header-height: 5rem;
 	$bottom-bar-height: 3.5rem;
 
 	.layout {
