@@ -1,12 +1,11 @@
 <script lang="ts">
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import type { NutritionInfo } from '$lib/server/food-api'
 	import DesktopLayout from '$lib/pages/recipe/DesktopLayout.svelte'
 	import MobileLayout from '$lib/pages/recipe/MobileLayout.svelte'
 	import FloatingLikeButton from '$lib/components/floating-action-button/FloatingLikeButton.svelte'
 	import FloatingSaveButton from '$lib/components/floating-action-button/FloatingSaveButton.svelte'
 	import FloatingShareButton from '$lib/components/floating-action-button/FloatingShareButton.svelte'
-	import SharePopup from '$lib/components/share-button/SharePopup.svelte'
+	import SharePopup from '$lib/components/share-popup/SharePopup.svelte'
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import MessageSquare from 'lucide-svelte/icons/message-square'
 	import Description from '$lib/components/Description.svelte'
@@ -479,7 +478,9 @@
 
 <Toast bind:this={toastRef} type="info">
 	{#snippet message()}
-		Please <a class="toast-link" href="/login">log in</a> to {toastType === 'like' ? 'like' : 'save'} recipes.
+		Please <a class="toast-link" href="/login">log in</a> to {toastType === 'like'
+			? 'like'
+			: 'save'} recipes.
 	{/snippet}
 </Toast>
 
