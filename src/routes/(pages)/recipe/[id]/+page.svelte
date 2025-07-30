@@ -136,7 +136,7 @@
 		onCreateCollection={createCollection}
 		isLoggedIn={!!data.user}
 		collections={getCollections().then((c) => c.map((c) => c.name))}
-		recipeComments={Promise.resolve(getComments())}
+		recipeComments={comments}
 		formError={page.form?.error}
 		onCommentAdded={handleCommentAdded}
 		page={currentPage}
