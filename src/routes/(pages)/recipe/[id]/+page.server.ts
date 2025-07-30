@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, isDataReques
 
   return {
     recipe: isDataRequest ? recipe : await recipe,
-    comments: isDataRequest ? comments : await comments,
+    comments,
     collections: isDataRequest ? collections : await collections
   }
 }

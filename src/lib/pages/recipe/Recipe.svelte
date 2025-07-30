@@ -13,10 +13,10 @@
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
 	import RecipeInstructions from '$lib/components/recipe-instructions/RecipeInstructions.svelte'
-	import CommentList from '$lib/components/comment/CommentList.svelte'
+	import CommentList, { type CommentT } from '$lib/components/comment/CommentList.svelte'
 	import NutritionFacts from '$lib/components/nutrition-facts/NutritionFacts.svelte'
 	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
-	import { onMount, type ComponentProps } from 'svelte'
+	import { onMount } from 'svelte'
 	import Toast from '$lib/components/toast/Toast.svelte'
 	import Button from '$lib/components/button/Button.svelte'
 	import Input from '$lib/components/input/Input.svelte'
@@ -38,11 +38,7 @@
 		onBackClick,
 		recipeComments = Promise.resolve({ comments: [], total: 0 }),
 		formError,
-		onCommentAdded,
-		page = 0,
-		hasMore = false,
-		onNextPage,
-		onPrevPage
+		loadComments
 	}: {
 		recipe: Promise<DetailedRecipe>
 		onLike?: () => void
@@ -54,15 +50,11 @@
 		onCreateCollection: (name: string) => Promise<void>
 		onBackClick?: () => void
 		recipeComments?: Promise<{
-			comments: ComponentProps<typeof CommentList>['comments']
+			comments: CommentT[]
 			total: number
 		}>
 		formError?: string
-		onCommentAdded?: () => void
-		page?: number
-		hasMore?: boolean
-		onNextPage?: () => void
-		onPrevPage?: () => void
+		loadComments: (pageNum: number) => Promise<{ comments: CommentT[]; total: number }>
 	} = $props()
 
 	let isLiked = $derived.by(() => recipe.then((r) => r.isLiked))
@@ -78,6 +70,13 @@
 	let localCollections = $state<string[]>([])
 	let selectedCollection = $state<string | undefined>('All Recipes')
 	let showDuplicateWarning = $state(false)
+	let totalComments = $state<number>(0)
+
+	$effect(() => {
+		recipeComments.then((r) => {
+			totalComments = r.total
+		})
+	})
 
 	$effect(() => {
 		collections.then((c) => {
@@ -335,11 +334,11 @@
 			<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
 				<MessageSquare size={20} />
 				Comments
-				{#await recipeComments then res}
+				{#if totalComments}
 					<span style:font-size="var(--font-size-xl)" style:font-weight="500">
-						({res.total ?? '0'})
+						({totalComments})
 					</span>
-				{/await}
+				{/if}
 			</h3>
 		</div>
 		{#await Promise.all([recipe, recipeComments])}
@@ -349,10 +348,8 @@
 				recipeId=""
 				{formError}
 				loading={true}
-				{onCommentAdded}
-				page={0}
-				hasMore={false}
 				total={0}
+				loadComments={() => Promise.resolve({ comments: [], total: 0 })}
 			/>
 		{:then [recipe, res]}
 			<CommentList
@@ -360,12 +357,8 @@
 				{isLoggedIn}
 				recipeId={recipe.id}
 				{formError}
-				{onCommentAdded}
-				{page}
-				{hasMore}
-				total={res.total}
-				{onNextPage}
-				{onPrevPage}
+				bind:total={totalComments}
+				{loadComments}
 			/>
 		{/await}
 	</div>

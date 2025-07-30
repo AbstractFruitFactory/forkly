@@ -18,10 +18,6 @@
 		return data.recipe instanceof Promise ? await data.recipe : data.recipe
 	}
 
-	const getComments = async () => {
-		return data.comments instanceof Promise ? await data.comments : data.comments
-	}
-
 	const getCollections = async () => {
 		return data.collections instanceof Promise ? await data.collections : data.collections
 	}
@@ -31,17 +27,6 @@
 			if (!r) {
 				errorStore.setError(404, 'Recipe not found')
 			}
-		})
-	})
-
-	const COMMENTS_PER_PAGE = 10
-	let comments = $state(data.comments)
-	let currentPage = $state(parseInt(page.url.searchParams.get('page') || '0', 10))
-	let hasMore = $state(false)
-
-	$effect(() => {
-		getComments().then((c) => {
-			hasMore = c.comments.length === COMMENTS_PER_PAGE
 		})
 	})
 
@@ -91,24 +76,9 @@
 			`/recipes/${recipe.id}/comments?page=${pageNum}`
 		)
 		if (result.isOk()) {
-			comments = Promise.resolve(result.value)
-			hasMore = result.value.comments.length === COMMENTS_PER_PAGE
-			currentPage = pageNum
+			return result.value
 		}
-	}
-
-	const nextPage = async () => {
-		if (!hasMore) return
-		await loadComments(currentPage + 1)
-	}
-
-	const prevPage = async () => {
-		if (currentPage === 0) return
-		await loadComments(currentPage - 1)
-	}
-
-	const handleCommentAdded = async () => {
-		await loadComments(0)
+		throw new Error('Failed to load comments')
 	}
 
 	const unitSystem = $derived(unitPreferenceStore.unitSystem)
@@ -136,12 +106,8 @@
 		onCreateCollection={createCollection}
 		isLoggedIn={!!data.user}
 		collections={getCollections().then((c) => c.map((c) => c.name))}
-		recipeComments={comments}
+		recipeComments={data.comments}
 		formError={page.form?.error}
-		onCommentAdded={handleCommentAdded}
-		page={currentPage}
-		{hasMore}
-		onNextPage={nextPage}
-		onPrevPage={prevPage}
+		{loadComments}
 	/>
 </div>

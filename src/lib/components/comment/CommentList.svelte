@@ -1,3 +1,17 @@
+<script lang="ts" module>
+	export type CommentT = {
+		id: string
+		content: string
+		createdAt: string | Date
+		imageUrl?: string
+		user: {
+			id: string
+			username: string
+			avatarUrl?: string
+		}
+	}
+</script>
+
 <script lang="ts">
 	import Comment from './Comment.svelte'
 	import ImageIcon from 'lucide-svelte/icons/image'
@@ -7,6 +21,7 @@
 	import Skeleton from '../skeleton/Skeleton.svelte'
 	import Input from '../input/Input.svelte'
 	import { flip } from 'svelte/animate'
+	import { tick } from 'svelte'
 	import { fade } from 'svelte/transition'
 
 	const COMMENTS_PER_PAGE = 10
@@ -17,37 +32,19 @@
 		recipeId,
 		formError = null,
 		loading = false,
-		onCommentAdded,
-		page = 0,
-		hasMore = false,
-		onNextPage,
-		onPrevPage,
-		total = 0
+		loadComments,
+		total = $bindable()
 	}: {
-		comments: {
-			id: string
-			content: string
-			createdAt: string | Date
-			imageUrl?: string | null
-			user: {
-				id: string
-				username: string
-				avatarUrl: string | null
-			}
-		}[]
+		comments: CommentT[]
 		isLoggedIn: boolean
-		onAddComment?: (content: string, imageUrl?: string) => Promise<void>
 		recipeId: string
 		formError?: string | null
 		loading?: boolean
-		onCommentAdded?: () => void
-		page?: number
-		hasMore?: boolean
-		onNextPage?: () => void
-		onPrevPage?: () => void
-		total?: number
+		loadComments: (page: number) => Promise<{ comments: CommentT[]; total: number }>
+		total: number
 	} = $props()
 
+	let page = $state(0)
 	let imagePreview = $state<string | null>(null)
 	let isSubmitting = $state(false)
 	let imageError = $state<string | null>(null)
@@ -55,7 +52,7 @@
 
 	const totalPages = $derived(Math.max(1, Math.ceil(total / COMMENTS_PER_PAGE)))
 
-	async function handleImageSelect(event: Event) {
+	const handleImageSelect = async (event: Event) => {
 		const input = event.target as HTMLInputElement
 		if (!input.files || input.files.length === 0) {
 			imagePreview = null
@@ -81,12 +78,48 @@
 		imageError = null
 	}
 
-	function removeImage() {
+	const removeImage = () => {
 		if (imagePreview) {
 			cleanupPreview(imagePreview)
 			imagePreview = null
 		}
 	}
+
+	const onNextPage = async () => {
+		if (page < totalPages - 1) {
+			preventAnimate()
+			page += 1
+			// return if we have already loaded this page
+
+			if (comments.length > page * COMMENTS_PER_PAGE) return
+
+			const loadedComments = await loadComments(page)
+			comments = [...comments, ...loadedComments.comments]
+			total = loadedComments.total
+		}
+	}
+
+	const onPrevPage = () => {
+		if (page > 0) {
+			preventAnimate()
+			page -= 1
+		}
+	}
+
+	const commentsOnCurrentPage = $derived(
+		comments.slice(page * COMMENTS_PER_PAGE, (page + 1) * COMMENTS_PER_PAGE)
+	)
+
+	let preventAnimation = $state(false)
+
+	const preventAnimate = () => {
+		preventAnimation = true
+		tick().then(() => {
+			preventAnimation = false
+		})
+	}
+
+	let shouldAnimate = $state(false)
 </script>
 
 <div class="comments-section">
@@ -109,7 +142,16 @@
 							imagePreview = null
 						}
 
-						onCommentAdded?.()
+						shouldAnimate = true
+
+						const res = await loadComments(0)
+						page = 0
+						comments = res.comments
+						total = res.total
+
+						tick().then(() => {
+							shouldAnimate = false
+						})
 					}
 				}
 			}}
@@ -213,8 +255,11 @@
 				<p>No comments yet. Be the first to comment!</p>
 			</div>
 		{:else}
-			{#each comments as comment, i (comment.id)}
-				<div animate:flip={{ duration: 300 }} transition:fade|global={{ duration: 1000 }}>
+			{#each commentsOnCurrentPage as comment, i (comment.id)}
+				<div
+					animate:flip={{ duration: shouldAnimate ? 300 : 0 }}
+					transition:fade={{ duration: shouldAnimate ? 1000 : 0 }}
+				>
 					<Comment
 						username={comment.user.username}
 						content={comment.content}
@@ -234,7 +279,7 @@
 		<div class="pagination">
 			<Button onclick={onPrevPage} disabled={page === 0}>Previous</Button>
 			<span class="page-info">Page {page + 1} of {totalPages}</span>
-			<Button onclick={onNextPage} disabled={!hasMore}>Next</Button>
+			<Button onclick={onNextPage} disabled={page === totalPages - 1}>Next</Button>
 		</div>
 	{/if}
 </div>
