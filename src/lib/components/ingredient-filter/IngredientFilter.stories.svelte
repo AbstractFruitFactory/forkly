@@ -9,7 +9,7 @@
 	const mockIngredients = ['Almonds', 'Apples', 'Bananas', 'Blackberries', 'Chicken', 'Eggs']
 
 	const mockSearch = (query: string) => {
-		return mockIngredients.filter(ingredient => 
+		return mockIngredients.filter((ingredient) =>
 			ingredient.toLowerCase().includes(query.toLowerCase())
 		)
 	}
@@ -17,7 +17,15 @@
 	const { Story } = defineMeta<Component<StoryProps>>({
 		title: 'lib/components/IngredientFilter',
 		component: IngredientFilter,
-		tags: ['autodocs']
+		tags: ['autodocs'],
+		argTypes: {
+			selected: {
+				table: { disable: true }
+			},
+			onSearch: {
+				table: { disable: true }
+			}
+		}
 	})
 
 	let selected = $state<IngredientItem[]>([])
@@ -25,7 +33,8 @@
 
 <Story name="Default">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a;">
+		start typing 'a' to see result
+		<div style="padding: 20px;">
 			<IngredientFilter bind:selected onSearch={mockSearch} {...args} />
 
 			<div style="margin-top: 20px; color: #fff;">
@@ -43,12 +52,13 @@
 				</div>
 			</div>
 		</div>
+		<div class="height-div" />
 	{/snippet}
 </Story>
 
 <Story name="With Pre-selected Items">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a;">
+		<div style="padding: 20px;">
 			<IngredientFilter
 				selected={[
 					{ label: 'Almonds', include: true },
@@ -63,7 +73,7 @@
 
 <Story name="Interactive Example">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a;">
+		<div style="padding: 20px;">
 			<IngredientFilter bind:selected onSearch={mockSearch} {...args} />
 
 			<div style="margin-top: 20px; color: #fff;">
@@ -82,6 +92,9 @@
 </Story>
 
 <style lang="scss">
+	.height-div {
+		height: 10rem;
+	}
 	.ingredient-list {
 		display: flex;
 		flex-wrap: wrap;
