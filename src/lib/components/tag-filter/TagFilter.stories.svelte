@@ -30,7 +30,7 @@
 
 <Story name="Default">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a;">
+		<div style="padding: 20px; ">
 			<TagFilter bind:selected onSearch={mockSearch} {...args} />
 
 			<div style="margin-top: 20px; color: #fff;">

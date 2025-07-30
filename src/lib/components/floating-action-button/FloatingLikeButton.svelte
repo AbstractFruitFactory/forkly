@@ -1,22 +1,22 @@
 <script lang="ts">
-       import Heart from 'lucide-svelte/icons/heart'
-       import FloatingActionButton from './FloatingActionButton.svelte'
-       import { formatNumberShort } from '$lib/utils/format'
+	import Heart from 'lucide-svelte/icons/heart'
+	import FloatingActionButton from './FloatingActionButton.svelte'
+	import { formatNumberShort } from '$lib/utils/format'
 
-       let {
-               count = 0,
-               isActive = false,
-               onClick,
-               loading = false
-       }: { count?: number; isActive?: boolean; onClick?: () => void; loading?: boolean } = $props()
+	let {
+		count = 0,
+		isActive = false,
+		onClick,
+		loading = false
+	}: { count?: number; isActive?: boolean; onClick?: () => void; loading?: boolean } = $props()
 
-       const displayedCount = $derived(formatNumberShort(count))
+	const displayedCount = $derived(formatNumberShort(count))
 </script>
 
 <div class="like-button-container">
-       <FloatingActionButton text={displayedCount} {onClick} {isActive} {loading}>
-               <Heart />
-       </FloatingActionButton>
+	<FloatingActionButton text={displayedCount} {onClick} {isActive} {loading}>
+		<Heart />
+	</FloatingActionButton>
 </div>
 
 <style lang="scss">

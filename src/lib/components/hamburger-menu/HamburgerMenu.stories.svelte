@@ -25,7 +25,7 @@
 
 <Story name="Default">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a;">
+		<div style="padding: 20px; ">
 			<HamburgerMenu isOpen={false} size="md" ariaLabel="Toggle menu" {...args} />
 		</div>
 	{/snippet}
@@ -33,7 +33,7 @@
 
 <Story name="Open">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a;">
+		<div style="padding: 20px; ">
 			<HamburgerMenu isOpen={true} size="md" ariaLabel="Toggle menu" {...args} />
 		</div>
 	{/snippet}
@@ -41,7 +41,7 @@
 
 <Story name="Small">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a;">
+		<div style="padding: 20px; ">
 			<HamburgerMenu isOpen={false} size="sm" ariaLabel="Toggle menu" {...args} />
 		</div>
 	{/snippet}
@@ -49,7 +49,7 @@
 
 <Story name="Large">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a;">
+		<div style="padding: 20px; ">
 			<HamburgerMenu isOpen={false} size="lg" ariaLabel="Toggle menu" {...args} />
 		</div>
 	{/snippet}
@@ -57,7 +57,7 @@
 
 <Story name="Different Colors">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a; display: flex; gap: 20px;">
+		<div style="padding: 20px;  display: flex; gap: 20px;">
 			<div style="color: #10b981;">
 				<HamburgerMenu isOpen={false} size="md" ariaLabel="Toggle menu" {...args} />
 			</div>

@@ -4,6 +4,7 @@
 
 	const { Story } = defineMeta({
 		component: WarningBox,
+		title: 'lib/components/Warning Box',
 		tags: ['autodocs']
 	})
 </script>

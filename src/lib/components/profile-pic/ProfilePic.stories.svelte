@@ -19,7 +19,7 @@
 
 <Story name="With Image">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a;">
+		<div style="padding: 20px; ">
 			<ProfilePic
 				profilePicUrl="https://i.pravatar.cc/150?u=user123"
 				{...args}
@@ -30,7 +30,7 @@
 
 <Story name="Default (No Image)">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a;">
+		<div style="padding: 20px; ">
 			<ProfilePic {...args} />
 		</div>
 	{/snippet}
@@ -38,7 +38,7 @@
 
 <Story name="Different Sizes">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a; display: flex; gap: 16px; align-items: center;">
+		<div style="padding: 20px;  display: flex; gap: 16px; align-items: center;">
 			<ProfilePic
 				profilePicUrl="https://i.pravatar.cc/150?u=user123"
 				size="sm"
@@ -55,7 +55,7 @@
 
 <Story name="Different Placeholder Sizes">
 	{#snippet children(args)}
-		<div style="padding: 20px; background-color: #1a1a1a; display: flex; gap: 16px; align-items: center;">
+		<div style="padding: 20px;  display: flex; gap: 16px; align-items: center;">
 			<ProfilePic size="sm" {...args} />
 			<ProfilePic size="lg" {...args} />
 		</div>
