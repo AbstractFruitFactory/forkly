@@ -10,6 +10,7 @@
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	import { afterNavigate } from '$app/navigation'
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
+	import { formatNumberShort } from '$lib/utils/format'
 
 	let {
 		recipe,
@@ -167,7 +168,7 @@
 					</span>
 					<span class="meta-item likes">
 						<Heart size={16} />
-						{recipe.likes}
+						{formatNumberShort(recipe.likes)}
 					</span>
 				</span>
 			{/if}
@@ -326,7 +327,7 @@
 		position: absolute;
 		top: -16px;
 		right: var(--spacing-md);
-		z-index: var(--z-index-elevated);
+		z-index: var(--z-dropdown);
 	}
 
 	.recipe-card .image-container img {

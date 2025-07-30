@@ -9,6 +9,7 @@
 		component: RecipeCard,
 		tags: ['autodocs'],
 		argTypes: {
+			// @ts-expect-error
 			title: {
 				control: { type: 'text' },
 				description: 'Recipe title'
@@ -26,7 +27,7 @@
 				description: 'Number of instructions to display'
 			},
 			likes: {
-				control: { type: 'range', min: 0, max: 1000, step: 1 },
+				control: { type: 'range', min: 0, max: 50000, step: 1 },
 				description: 'Number of likes'
 			}
 		}
@@ -47,44 +48,44 @@
 		likes: 42,
 		tags: ['Italian', 'Pasta'],
 		instructions: [
-			{ text: 'Bring a large pot of salted water to boil' },
-			{ text: 'Cook spaghetti according to package directions' },
-			{ text: 'In a large skillet, cook pancetta until crispy' },
-			{ text: 'Mix eggs and cheese, then combine with hot pasta' }
+			{ id: '1', text: 'Bring a large pot of salted water to boil' },
+			{ id: '2', text: 'Cook spaghetti according to package directions' },
+			{ id: '3', text: 'In a large skillet, cook pancetta until crispy' },
+			{ id: '4', text: 'Mix eggs and cheese, then combine with hot pasta' }
 		],
 		ingredients: [
 			{
 				id: '1',
 				name: 'Spaghetti',
-				quantity: 400,
+				quantity: { text: '400', numeric: 400 },
 				measurement: 'grams',
 				displayName: '400g Spaghetti'
 			},
 			{
 				id: '2',
 				name: 'Eggs',
-				quantity: 4,
+				quantity: { text: '4', numeric: 4 },
 				measurement: 'pieces',
 				displayName: '4 Eggs'
 			},
 			{
 				id: '3',
 				name: 'Parmesan Cheese',
-				quantity: 100,
+				quantity: { text: '100', numeric: 100 },
 				measurement: 'grams',
 				displayName: '100g Parmesan Cheese'
 			},
 			{
 				id: '4',
 				name: 'Pancetta',
-				quantity: 150,
+				quantity: { text: '150', numeric: 150 },
 				measurement: 'grams',
 				displayName: '150g Pancetta'
 			},
 			{
 				id: '5',
 				name: 'Black Pepper',
-				quantity: 1,
+				quantity: { text: '1', numeric: 1 },
 				measurement: 'teaspoons',
 				displayName: '1 tsp Black Pepper'
 			}
@@ -104,20 +105,25 @@
 	function createMockRecipe(args: any): DetailedRecipe {
 		const tagOptions = ['Italian', 'Pasta', 'Quick', 'Dinner', 'Vegetarian', 'Spicy', 'Healthy', 'Comfort', 'Traditional', 'Modern']
 		const ingredientOptions = ['Pasta', 'Eggs', 'Cheese', 'Pancetta', 'Black Pepper', 'Olive Oil', 'Garlic', 'Onion', 'Tomatoes', 'Basil', 'Salt', 'Butter', 'Cream', 'Mushrooms', 'Spinach', 'Chicken', 'Beef', 'Fish', 'Shrimp', 'Bacon']
-		const measurementUnits: MeasurementUnit[] = ['grams', 'kilograms', 'ounces', 'pounds', 'milliliters', 'liters', 'cups', 'fluid_ounces', 'teaspoons', 'tablespoons', 'pieces', 'to taste', 'pinch']
+		const measurementUnits: MeasurementUnit[] = ['grams', 'kilograms', 'ounces', 'pounds', 'milliliters', 'liters', 'cups', 'fluid_ounces', 'teaspoons', 'tablespoons', 'pieces']
 		
 		return {
 			...baseRecipe,
 			title: args.title || 'Classic Spaghetti Carbonara',
 			tags: tagOptions.slice(0, args.tagCount || 2),
-			ingredients: Array.from({ length: args.ingredientCount || 5 }, (_, i) => ({
-				id: `ingredient-${i}`,
-				name: ingredientOptions[i % ingredientOptions.length],
-				quantity: Math.floor(Math.random() * 10) + 1,
-				measurement: measurementUnits[Math.floor(Math.random() * measurementUnits.length)],
-				displayName: `${ingredientOptions[i % ingredientOptions.length]} ${Math.floor(Math.random() * 10) + 1}${measurementUnits[Math.floor(Math.random() * measurementUnits.length)]}`
-			})),
+			ingredients: Array.from({ length: args.ingredientCount || 5 }, (_, i) => {
+				const quantity = Math.floor(Math.random() * 10) + 1
+				const measurement = measurementUnits[Math.floor(Math.random() * measurementUnits.length)]
+				return {
+					id: `ingredient-${i}`,
+					name: ingredientOptions[i % ingredientOptions.length],
+					quantity: { text: quantity.toString(), numeric: quantity },
+					measurement,
+					displayName: `${quantity} ${measurement} ${ingredientOptions[i % ingredientOptions.length]}`
+				}
+			}),
 			instructions: Array.from({ length: args.instructionCount || 4 }, (_, i) => ({
+				id: `instruction-${i}`,
 				text: `Step ${i + 1}: ${['Boil water', 'Cook pasta', 'Prepare sauce', 'Mix ingredients', 'Season to taste', 'Garnish and serve'][i % 6]}`,
 				mediaUrl: undefined,
 				mediaType: undefined
