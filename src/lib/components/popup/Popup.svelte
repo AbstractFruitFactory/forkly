@@ -34,7 +34,7 @@
 		await handleClose()
 	}
 
-	let ANIMATION_DURATION = 0.4
+	let ANIMATION_DURATION = 0.3
 
 	let popupContainer: HTMLDivElement
 
@@ -60,7 +60,7 @@
 
 			flip.from(state, {
 				duration: ANIMATION_DURATION,
-				ease: 'power2.inOut',
+				ease: 'power1.out',
 				scale: true,
 				onStart: () => {
 					gsap.set(content, {
