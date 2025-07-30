@@ -5,68 +5,52 @@
 	const { Story } = defineMeta({
 		title: 'lib/components/Nutrition Facts',
 		component: NutritionFacts,
-		tags: ['autodocs']
+		tags: ['autodocs'],
+		argTypes: {
+			// @ts-expect-error
+			protein: {
+				control: 'number'
+			},
+			carbs: {
+				control: 'number'
+			},
+			fat: {
+				control: 'number'
+			},
+			calories: {
+				control: 'number'
+			},
+			nutrition: {
+				table: { disable: true }
+			}
+		}
 	})
 
 	const mockNutrition = {
-		totalNutrition: {
-			calories: 450,
-			protein: 30,
-			carbs: 45,
-			fat: 15
-		},
-		hasCustomIngredients: false
-	}
-
-	const highCalorieMock = {
-		totalNutrition: {
-			calories: 850,
-			protein: 45,
-			carbs: 80,
-			fat: 35
-		},
-		hasCustomIngredients: false
-	}
-
-	const lowCalorieMock = {
-		totalNutrition: {
-			calories: 180,
-			protein: 12,
-			carbs: 20,
-			fat: 6
-		},
-		hasCustomIngredients: true
+		calories: 450,
+		protein: 30,
+		carbs: 45,
+		fat: 15
 	}
 </script>
 
 <Story name="Default">
 	{#snippet children(args)}
-		<div style="width: 600px; padding: 20px; background-color: #1a1a1a;">
-			<NutritionFacts nutrition={mockNutrition} {...args} />
+		<div style="width: 600px; padding: 20px; ">
+			<NutritionFacts
+				nutrition={(args as any).calories ||
+				(args as any).protein ||
+				(args as any).carbs ||
+				(args as any).fat
+					? {
+							calories: (args as any).calories ?? 0,
+							protein: (args as any).protein ?? 0,
+							carbs: (args as any).carbs ?? 0,
+							fat: (args as any).fat ?? 0
+						}
+					: mockNutrition}
+				{...args}
+			/>
 		</div>
 	{/snippet}
 </Story>
-
-<Story name="High Calorie">
-	{#snippet children(args)}
-		<div style="width: 600px; padding: 20px; background-color: #1a1a1a;">
-			<NutritionFacts nutrition={highCalorieMock} {...args} />
-		</div>
-	{/snippet}
-</Story>
-
-<Story name="Low Calorie">
-	{#snippet children(args)}
-		<div style="width: 600px; padding: 20px; background-color: #1a1a1a;">
-			<NutritionFacts nutrition={lowCalorieMock} {...args} />
-		</div>
-	{/snippet}
-</Story>
-
-<Story name="Mobile View">
-	{#snippet children(args)}
-		<div style="width: 320px; padding: 20px; background-color: #1a1a1a;">
-			<NutritionFacts nutrition={mockNutrition} {...args} />
-		</div>
-	{/snippet}
-</Story> 

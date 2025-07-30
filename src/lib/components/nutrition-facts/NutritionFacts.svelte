@@ -8,47 +8,47 @@
 	} = $props()
 
 	// Calculate calories from macros
-	const carbCalories = nutrition.carbs * 4 // 4 calories per gram of carbs
-	const fatCalories = nutrition.fat * 9 // 9 calories per gram of fat
-	const proteinCalories = nutrition.protein * 4 // 4 calories per gram of protein
-	const totalCalories = carbCalories + fatCalories + proteinCalories
+	const carbCalories = $derived(nutrition.carbs * 4) // 4 calories per gram of carbs
+	const fatCalories = $derived(nutrition.fat * 9) // 9 calories per gram of fat
+	const proteinCalories = $derived(nutrition.protein * 4) // 4 calories per gram of protein
+	const totalCalories = $derived(carbCalories + fatCalories + proteinCalories)
 
 	// Prevent NaN by checking if totalCalories is 0
-	const carbsPercent = totalCalories === 0 ? 0 : Math.round((carbCalories / totalCalories) * 100)
-	const fatPercent = totalCalories === 0 ? 0 : Math.round((fatCalories / totalCalories) * 100)
-	const proteinPercent = totalCalories === 0 ? 0 : Math.round((proteinCalories / totalCalories) * 100)
+	const carbsPercent = $derived(totalCalories === 0 ? 0 : Math.round((carbCalories / totalCalories) * 100))
+	const fatPercent = $derived(totalCalories === 0 ? 0 : Math.round((fatCalories / totalCalories) * 100))
+	const proteinPercent = $derived(totalCalories === 0 ? 0 : Math.round((proteinCalories / totalCalories) * 100))
 
-	const carbsProportion = totalCalories === 0 ? 0 : carbCalories / totalCalories
-	const fatProportion = totalCalories === 0 ? 0 : fatCalories / totalCalories
-	const proteinProportion = totalCalories === 0 ? 0 : proteinCalories / totalCalories
+	const carbsProportion = $derived(totalCalories === 0 ? 0 : carbCalories / totalCalories)
+	const fatProportion = $derived(totalCalories === 0 ? 0 : fatCalories / totalCalories)
+	const proteinProportion = $derived(totalCalories === 0 ? 0 : proteinCalories / totalCalories)
 
 	// Calculate circle parameters
-	const radius = 36
-	const circumference = 2 * Math.PI * radius
+	const radius = $derived(36)
+	const circumference = $derived(2 * Math.PI * radius)
 
 	// Add gap between segments (in percentage of the total circumference)
-	const gapSize = 0.03 // 2% gap
-	const totalGapSize = gapSize * 3 // 3 gaps (one between each segment)
+	const gapSize = $derived(0.03) // 2% gap
+	const totalGapSize = $derived(gapSize * 3) // 3 gaps (one between each segment)
 
 	// Adjust proportions to account for gaps
-	const adjustedCarbsProportion = carbsProportion * (1 - totalGapSize)
-	const adjustedFatProportion = fatProportion * (1 - totalGapSize)
-	const adjustedProteinProportion = proteinProportion * (1 - totalGapSize)
+	const adjustedCarbsProportion = $derived(carbsProportion * (1 - totalGapSize))
+	const adjustedFatProportion = $derived(fatProportion * (1 - totalGapSize))
+	const adjustedProteinProportion = $derived(proteinProportion * (1 - totalGapSize))
 
 	// Calculate stroke-dasharray and stroke-dashoffset values for each segment
-	const gapPixels = circumference * gapSize
-	const carbsDash = circumference * adjustedCarbsProportion
-	const fatDash = circumference * adjustedFatProportion
-	const proteinDash = circumference * adjustedProteinProportion
+	const gapPixels = $derived(circumference * gapSize)
+	const carbsDash = $derived(circumference * adjustedCarbsProportion)
+	const fatDash = $derived(circumference * adjustedFatProportion)
+	const proteinDash = $derived(circumference * adjustedProteinProportion)
 
 	// Calculate offsets (each offset needs to account for previous segment + gap)
-	const fatOffset = carbsDash + gapPixels
-	const proteinOffset = fatOffset + fatDash + gapPixels
+	const fatOffset = $derived(carbsDash + gapPixels)
+	const proteinOffset = $derived(fatOffset + fatDash + gapPixels)
 
 	// Ensure gaps are visible by adjusting offsets
-	const adjustedCarbsDash = Math.max(carbsDash - gapPixels, 0)
-	const adjustedFatDash = Math.max(fatDash - gapPixels, 0)
-	const adjustedProteinDash = Math.max(proteinDash - gapPixels, 0)
+	const adjustedCarbsDash = $derived(Math.max(carbsDash - gapPixels, 0))
+	const adjustedFatDash = $derived(Math.max(fatDash - gapPixels, 0))
+	const adjustedProteinDash = $derived(Math.max(proteinDash - gapPixels, 0))
 </script>
 
 <div class="nutrition-data">
