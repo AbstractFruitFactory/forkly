@@ -1,18 +1,20 @@
 <script lang="ts">
 	import { formatDistanceToNow } from 'date-fns'
+	import ProfilePic from '../profile-pic/ProfilePic.svelte'
+	import TruncatedText from '../truncated-text/TruncatedText.svelte'
 
 	let {
 		username,
 		content,
 		createdAt,
-		avatarUrl = null,
-		imageUrl = null
+		avatarUrl,
+		imageUrl
 	}: {
 		username: string
 		content: string
 		createdAt: string | Date
-		avatarUrl: string | null
-		imageUrl?: string | null
+		avatarUrl?: string
+		imageUrl?: string
 	} = $props()
 
 	function formatDate(date: string | Date): string {
@@ -22,13 +24,8 @@
 </script>
 
 <div class="comment">
-	<div class="comment-avatar">
-		{#if avatarUrl}
-			<img src={avatarUrl} alt={username} />
-		{:else}
-			<div class="avatar-placeholder">{username[0].toUpperCase()}</div>
-		{/if}
-	</div>
+	<ProfilePic profilePicUrl={avatarUrl} background={true} />
+
 	<div class="comment-content">
 		<div class="comment-header">
 			<div class="user-info">
@@ -36,7 +33,9 @@
 				<span class="timestamp">{formatDate(createdAt)}</span>
 			</div>
 		</div>
-		<p class="comment-text">{content}</p>
+		<p class="comment-text">
+			<TruncatedText text={content} maxLength={300} />
+		</p>
 		{#if imageUrl}
 			<div class="comment-image">
 				<img src={imageUrl} alt="Comment attachment" />
@@ -52,37 +51,9 @@
 		display: flex;
 		gap: var(--spacing-md);
 		padding: var(--spacing-md);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-		background-color: rgba(255, 255, 255, 0.03);
+		background-color: var(--color-surface);
 		margin-bottom: var(--spacing-sm);
 		border-radius: var(--border-radius-md);
-	}
-
-	.comment-avatar {
-		flex-shrink: 0;
-		width: 36px;
-		height: 36px;
-		border-radius: 50%;
-		overflow: hidden;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-
-		img {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-		}
-
-		.avatar-placeholder {
-			width: 100%;
-			height: 100%;
-			background-color: var(--color-primary-dark);
-			color: var(--color-neutral-lightest);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-weight: var(--font-weight-bold);
-			font-size: var(--font-size-md);
-		}
 	}
 
 	.comment-content {
