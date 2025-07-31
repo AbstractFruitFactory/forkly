@@ -31,11 +31,10 @@
 	}
 
 	export const close = async () => {
-		isOpen = false
 		await handleClose()
 	}
 
-	let ANIMATION_DURATION = 0.3
+	let ANIMATION_DURATION = 0.35
 
 	let popupContainer: HTMLDivElement
 
