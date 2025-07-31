@@ -66,7 +66,6 @@ Respond only with JSON, in this format:
   "title": "string",
   "description": "string",
   "image": "string (URL)",
-  "tags": ["string", ...] (max 3),
   "servings": number,
   "nutrition": {
     "calories": number,
@@ -101,8 +100,6 @@ If the recipe has no image, set the image to null.
 If the recipe has no clear input for anything, set it empty instead of guessing.
 
 For ingredients, quantity is required if measurement is provided. For non-quantifiable inputs like "to taste", enter it into the quantity field.
-
-Tags must be less than 15 characters.
 
 Recipe text:
 """${text.slice(0, 8000)}"""
