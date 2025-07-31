@@ -87,10 +87,17 @@ Recipe text:
   return JSON.parse(content)
 }
 
+const idleTimeoutMs = 5 * 60 * 1000
+const idleTimer = setTimeout(() => {
+  console.log('No jobs received — exiting worker')
+  worker.close().then(() => process.exit(0))
+}, idleTimeoutMs)
+
 const worker = new Worker(
   'import-recipe',
   async job => {
-    const { url } = job.data
+    const { url, userId, username } = job.data
+    console.log(`Processing import job for user ${username} (${userId}): ${url}`)
     try {
       const rawText = await fetchAndCleanHtml(url)
       const recipe = await extractRecipe(rawText)
@@ -125,6 +132,10 @@ const worker = new Worker(
         JSON.stringify({ status: 'completed', result: recipeData }),
         { ex: 3600 }
       )
+      
+      // Clean up the deduplication cache key
+      const cacheKey = `imported-url:${userId}:${url}`
+      await redis.del(cacheKey)
     } catch (err: any) {
       console.log('Writing failed recipe to Redis:', `import-recipe:result:${job.id}`)
       console.log('Value:', JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }))
@@ -133,7 +144,16 @@ const worker = new Worker(
         JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }),
         { ex: 3600 }
       )
+      
+      // Clean up the deduplication cache key on failure too
+      const cacheKey = `imported-url:${userId}:${url}`
+      await redis.del(cacheKey)
     }
+    
+    console.log('Exiting worker after processing job')
+    clearTimeout(idleTimer)
+    await worker.close()
+    process.exit(0)
   },
   {
     connection: { url: process.env.REDIS_URL }
@@ -143,6 +163,27 @@ const worker = new Worker(
 worker.on('completed', job => {
   console.log(`Job ${job.id} completed`)
 })
+
 worker.on('failed', (job, err) => {
   console.error(`Job ${job?.id} failed:`, err)
+})
+
+// Cancel idle timer when job starts processing
+worker.on('active', () => {
+  clearTimeout(idleTimer)
+})
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM, shutting down gracefully')
+  worker.close().then(() => {
+    process.exit(0)
+  })
+})
+
+process.on('SIGINT', () => {
+  console.log('Received SIGINT, shutting down gracefully')
+  worker.close().then(() => {
+    process.exit(0)
+  })
 }) 

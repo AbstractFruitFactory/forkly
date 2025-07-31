@@ -31,7 +31,12 @@
     "test": "dotenv -e .env.test vitest run",
     "test:watch": "dotenv -e .env.test vitest",
     "pretest": "tsx scripts/create-test-db.ts && dotenv -e .env.test drizzle-kit migrate",
-    "cleanup:unverified": "tsx src/lib/server/db/cleanup-unverified.ts"
+    "cleanup:unverified": "tsx src/lib/server/db/cleanup-unverified.ts",
+    "worker": "tsx scripts/import-recipe-worker.ts",
+    "test:worker-spawn": "tsx scripts/test-worker-spawn.ts",
+    "test:rate-limiter": "tsx scripts/test-rate-limiter.ts",
+    "test:rate-limiter:unit": "vitest run src/lib/server/rate-limit.test.ts",
+    "test:import-api": "tsx scripts/test-import-api.ts"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.4",
