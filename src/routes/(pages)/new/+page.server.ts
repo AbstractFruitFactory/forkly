@@ -5,6 +5,7 @@ import { api } from '$lib/server/food-api'
 import * as v from 'valibot'
 import { uploadImage, uploadMedia } from '$lib/server/cloudinary'
 import { safeFetch } from '$lib/utils/fetch'
+import { generateId } from '$lib/server/id'
 
 const ingredientSchema = v.pipe(
   v.object({
@@ -215,8 +216,8 @@ const buildRecipePayloadFromForm = async (formData: FormData, skipValidation: bo
 
   const instructionsWithMedia = await Promise.all(
     recipeData.instructions.map(async (instruction, index) => {
-      const instructionId = Object.keys(instructionById)[index]
-      const mediaFile = formData.get(`instructions-${instructionId}-media`) as File | undefined
+      const clientInstructionId = Object.keys(instructionById)[index]
+      const mediaFile = formData.get(`instructions-${clientInstructionId}-media`) as File | undefined
 
       if (mediaFile && mediaFile.size > 0) {
         const arrayBuffer = await mediaFile.arrayBuffer()
@@ -228,14 +229,14 @@ const buildRecipePayloadFromForm = async (formData: FormData, skipValidation: bo
         })
         return {
           ...instruction,
-          id: instructionId,
+          id: generateId(),
           mediaUrl,
           mediaType: isVideo ? ('video' as const) : ('image' as const)
         }
       }
       return {
         ...instruction,
-        id: instructionId
+        id: generateId()
       }
     })
   )
@@ -270,15 +271,7 @@ const buildRecipePayloadFromForm = async (formData: FormData, skipValidation: bo
     imageUrl = await uploadImage(buffer)
   }
 
-  const instructionsWithIds = recipeData.instructions.map((instruction, index) => {
-    const instructionId = Object.keys(instructionById)[index]
-    return {
-      ...instruction,
-      id: instructionId
-    }
-  })
-
-  const allIngredients = instructionsWithIds.flatMap(instruction => instruction.ingredients || [])
+  const allIngredients = recipeData.instructions.flatMap(instruction => instruction.ingredients || [])
   if (allIngredients.length === 0 && !skipValidation) {
     return {
       error: fail(400, {
@@ -295,7 +288,7 @@ const buildRecipePayloadFromForm = async (formData: FormData, skipValidation: bo
   if (recipeData.nutritionMode === 'manual') {
     nutrition = recipeData.manualNutrition ?? null
   } else if (recipeData.nutritionMode === 'auto') {
-    const allIngredients = instructionsWithIds.flatMap(instruction => instruction.ingredients || [])
+    const allIngredients = recipeData.instructions.flatMap(instruction => instruction.ingredients || [])
     const nutritionResult = await api('getRecipeInfo')(
       allIngredients.map(ing => ({
         amount: ing.quantity ? parseFloat(ing.quantity) : undefined,
@@ -320,7 +313,7 @@ const buildRecipePayloadFromForm = async (formData: FormData, skipValidation: bo
       title: recipeData.title,
       description: recipeData.description,
       servings: recipeData.servings,
-      instructions: instructionsWithIds,
+      instructions: recipeData.instructions,
       nutrition: nutrition,
       tags: recipeData.tags,
       imageUrl

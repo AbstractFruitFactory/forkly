@@ -2,7 +2,6 @@
 	export const generateId = () => Math.random().toString(36).slice(2)
 
 	export type RecipeData = {
-		id: string
 		title: string
 		description: string
 		image: string
@@ -539,8 +538,7 @@
 			}
 
 			submitting = true
-
-			formData.append('id', prefilledData?.id ?? '')
+			
 			formData.append('servings', servings.toString())
 
 			selectedTags.forEach((tag) => {
