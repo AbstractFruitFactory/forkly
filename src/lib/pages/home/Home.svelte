@@ -12,9 +12,7 @@
 	import { scrollStore } from '$lib/state/scroll.svelte'
 	import RecipePopup from '$lib/components/recipe-popup/RecipePopup.svelte'
 	import { preloadData, pushState, goto, replaceState } from '$app/navigation'
-	import { page } from '$app/state'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
-	import SearchButton from '$lib/components/search-button/SearchButton.svelte'
 	import { fade } from 'svelte/transition'
 	import TaglineTypewriter from '$lib/components/tagline-typewriter/TaglineTypewriter.svelte'
 	import Logo from '$lib/components/logo/Logo.svelte'
@@ -263,7 +261,6 @@
 	const closePopup = async (_replaceState = true) => {
 		if (!resolveRecipePopup) return
 
-		page.state.recipeModal = undefined
 		animateFromElement = null
 		resolveRecipePopup()
 

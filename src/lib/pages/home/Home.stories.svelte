@@ -17,10 +17,10 @@
 			title: 'Classic Spaghetti Carbonara',
 			description: 'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
 			instructions: [
-				{ text: 'Bring a large pot of salted water to boil' },
-				{ text: 'Cook spaghetti according to package directions' },
-				{ text: 'In a large skillet, cook pancetta until crispy' },
-				{ text: 'Mix eggs and cheese, then combine with hot pasta' }
+				{ id: '1', text: 'Bring a large pot of salted water to boil' },
+				{ id: '2', text: 'Cook spaghetti according to package directions' },
+				{ id: '3', text: 'In a large skillet, cook pancetta until crispy' },
+				{ id: '4', text: 'Mix eggs and cheese, then combine with hot pasta' }
 			],
 			tags: ['Italian', 'Pasta', 'Quick'],
 			imageUrl: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?q=80&w=800&auto=format&fit=crop',
@@ -32,35 +32,35 @@
 				{
 					id: '1',
 					name: 'Spaghetti',
-					quantity: 400,
+					quantity: { text: '400', numeric: 400 },
 					measurement: 'grams',
 					displayName: '400g Spaghetti'
 				},
 				{
 					id: '2',
 					name: 'Eggs',
-					quantity: 4,
+					quantity: { text: '4', numeric: 4 },
 					measurement: 'pieces',
 					displayName: '4 Eggs'
 				},
 				{
 					id: '3',
 					name: 'Parmesan Cheese',
-					quantity: 100,
+					quantity: { text: '100', numeric: 100 },
 					measurement: 'grams',
 					displayName: '100g Parmesan Cheese'
 				},
 				{
 					id: '4',
 					name: 'Pancetta',
-					quantity: 150,
+					quantity: { text: '150', numeric: 150 },
 					measurement: 'grams',
 					displayName: '150g Pancetta'
 				},
 				{
 					id: '5',
 					name: 'Black Pepper',
-					quantity: 1,
+					quantity: { text: '1', numeric: 1 },
 					measurement: 'teaspoons',
 					displayName: '1 tsp Black Pepper'
 				}
@@ -83,10 +83,10 @@
 			title: 'Chicken Tikka Masala',
 			description: 'Grilled chicken chunks in a creamy spiced curry sauce.',
 			instructions: [
-				{ text: 'Marinate chicken in yogurt and spices for 30 minutes' },
-				{ text: 'Grill chicken until charred and cooked through' },
-				{ text: 'Prepare creamy tomato sauce with spices' },
-				{ text: 'Combine chicken with sauce and simmer' }
+				{ id: '1', text: 'Marinate chicken in yogurt and spices for 30 minutes' },
+				{ id: '2', text: 'Grill chicken until charred and cooked through' },
+				{ id: '3', text: 'Prepare creamy tomato sauce with spices' },
+				{ id: '4', text: 'Combine chicken with sauce and simmer' }
 			],
 			tags: ['Indian', 'Curry', 'Chicken'],
 			imageUrl: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?q=80&w=800&auto=format&fit=crop',
@@ -98,35 +98,35 @@
 				{
 					id: '6',
 					name: 'Chicken Breast',
-					quantity: 600,
+					quantity: { text: '600', numeric: 600 },
 					measurement: 'grams',
 					displayName: '600g Chicken Breast'
 				},
 				{
 					id: '7',
 					name: 'Yogurt',
-					quantity: 200,
+					quantity: { text: '200', numeric: 200 },
 					measurement: 'milliliters',
 					displayName: '200ml Yogurt'
 				},
 				{
 					id: '8',
 					name: 'Tomato Sauce',
-					quantity: 400,
+					quantity: { text: '400', numeric: 400 },
 					measurement: 'milliliters',
 					displayName: '400ml Tomato Sauce'
 				},
 				{
 					id: '9',
 					name: 'Heavy Cream',
-					quantity: 200,
+					quantity: { text: '200', numeric: 200 },
 					measurement: 'milliliters',
 					displayName: '200ml Heavy Cream'
 				},
 				{
 					id: '10',
 					name: 'Garam Masala',
-					quantity: 2,
+					quantity: { text: '2', numeric: 2 },
 					measurement: 'teaspoons',
 					displayName: '2 tsp Garam Masala'
 				}
@@ -147,13 +147,7 @@
 	]
 </script>
 
-<Story name="Empty">
-	{#snippet children(args)}
-		<Home recipes={Promise.resolve([])} {...args} />
-	{/snippet}
-</Story>
-
-<Story name="With Recipes">
+<Story name="Default">
 	{#snippet children(args)}
 		<Home recipes={Promise.resolve(mockRecipes)} {...args} />
 	{/snippet}
