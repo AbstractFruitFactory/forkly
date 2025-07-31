@@ -102,6 +102,8 @@ If the recipe has no clear input for anything, set it empty instead of guessing.
 
 For ingredients, quantity is required if measurement is provided. For non-quantifiable inputs like "to taste", enter it into the quantity field.
 
+Tags must be less than 15 characters.
+
 Recipe text:
 """${text.slice(0, 8000)}"""
 `
