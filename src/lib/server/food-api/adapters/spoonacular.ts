@@ -93,7 +93,6 @@ export const getRecipeInfo: FoodAPI['getRecipeInfo'] = async (ingredients, instr
 		instructions
 	}
 
-	console.log('Analyze Recipe payload:', payload)
 
 	const url = `https://api.spoonacular.com/recipes/analyze?apiKey=${SPOONACULAR_API_KEY}&language=en&includeNutrition=true`
 
@@ -106,7 +105,6 @@ export const getRecipeInfo: FoodAPI['getRecipeInfo'] = async (ingredients, instr
 	)
 
 	const data = await res.json()
-	console.log('Analyze Recipe response:', data)
 
 	const totals = {
 		calories: data.nutrition?.nutrients?.find((n: any) => n.name === 'Calories')?.amount ?? 0,
