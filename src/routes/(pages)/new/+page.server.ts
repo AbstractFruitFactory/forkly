@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit'
-import type { Actions } from './$types'
+import type { Actions, PageServerLoad } from './$types'
 import groupBy from 'ramda/src/groupBy'
 import { api } from '$lib/server/food-api'
 import * as v from 'valibot'
@@ -445,4 +445,10 @@ export const actions = {
 
     redirect(302, `/user/${user.username}?tab=Drafts`)
   }
-} satisfies Actions 
+} satisfies Actions
+
+export const load: PageServerLoad = async ({ locals }) => {
+  return {
+    isLoggedIn: !!locals.user
+  }
+} 

@@ -31,6 +31,7 @@
 	}
 
 	export const close = async () => {
+		isOpen = false
 		await handleClose()
 	}
 
@@ -152,7 +153,7 @@
 						<div class="popup-actions">
 							{@render headerActions?.()}
 							{#if showCloseButton}
-								<button class="popup-close" onclick={handleClose} aria-label="Close popup">
+								<button type="button" class="popup-close" onclick={close} aria-label="Close popup">
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
 										width="20"

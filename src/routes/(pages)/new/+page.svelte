@@ -8,7 +8,7 @@
 	import { fly } from 'svelte/transition'
 	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
 
-	let { form } = $props()
+	let { form, data } = $props()
 
 	let searchTimeout: ReturnType<typeof setTimeout>
 	let tagSearchTimeout: ReturnType<typeof setTimeout>
@@ -73,6 +73,7 @@
 			onSearchTags={handleSearchTags}
 			{unitSystem}
 			onUnitChange={handleUnitChange}
+			isLoggedIn={data.isLoggedIn}
 		/>
 	</div>
 {/if}

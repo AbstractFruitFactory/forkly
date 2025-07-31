@@ -50,6 +50,7 @@
 	import { parseQuantityToNumber, UNIT_DISPLAY_TEXT, UNITS } from '$lib/utils/unitConversion'
 	import DownloadIcon from 'lucide-svelte/icons/download'
 	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
+	import LoginPopup from '$lib/components/recipe-scraper/LoginPopup.svelte'
 	import type { ImportedRecipeData } from '../../../../scripts/import-recipe-worker'
 
 	let {
@@ -60,7 +61,8 @@
 		unitSystem = 'imperial',
 		onSearchTags,
 		onSearchIngredients,
-		onUnitChange
+		onUnitChange,
+		isLoggedIn = false
 	}: {
 		prefilledData?: RecipeData
 		editMode?: {
@@ -75,6 +77,7 @@
 		unitSystem?: UnitSystem
 		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 		onUnitChange?: (system: UnitSystem) => void
+		isLoggedIn?: boolean
 	} = $props()
 
 	let _title = $state(prefilledData?.title ?? '')
@@ -134,6 +137,8 @@
 	let desktopLayoutElement: HTMLElement
 	let searchValue = $state('')
 	let isImportPopupOpen = $state(false)
+	let isLoginPopupOpen = $state(false)
+	let willUploadAnonymously = $state(false)
 
 	const checkViewport = () => {
 		isMobileView = window.innerWidth <= 480
@@ -526,8 +531,15 @@
 	<form
 		method="POST"
 		enctype="multipart/form-data"
-		use:enhance={({ formData }) => {
+		use:enhance={({ formData, cancel }) => {
+			if (!isLoggedIn && !willUploadAnonymously) {
+				isLoginPopupOpen = true
+				cancel()
+				return
+			}
+
 			submitting = true
+
 			formData.append('id', prefilledData?.id ?? '')
 			formData.append('servings', servings.toString())
 
@@ -612,6 +624,14 @@
 				/>
 			</div>
 		{/if}
+
+		<LoginPopup
+			bind:isOpen={isLoginPopupOpen}
+			onClose={() => (isLoginPopupOpen = false)}
+			onUploadAnonymously={() => {
+				willUploadAnonymously = true
+			}}
+		/>
 	</form>
 </div>
 

@@ -4,14 +4,14 @@
 	import WarningBox from '$lib/components/warning-box/WarningBox.svelte'
 	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 	import { safeFetch } from '$lib/utils/fetch'
-	import type { RecipeData } from '../../pages/new-recipe/NewRecipe.svelte'
+	import type { ImportedRecipeData } from '../../../../scripts/import-recipe-worker'
 
 	let {
 		onClose,
 		onRecipeScraped
 	}: {
 		onClose?: () => void
-		onRecipeScraped?: (recipe: RecipeData) => void
+		onRecipeScraped?: (recipe: ImportedRecipeData) => void
 	} = $props()
 
 	let activeTab = $state<'url' | 'text'>('url')
@@ -22,7 +22,7 @@
 
 	const tabOptions = ['Import from URL', 'Import from text']
 
-	function isValidUrl(urlString: string): boolean {
+	const isValidUrl = (urlString: string) => {
 		try {
 			new URL(urlString)
 			return true
@@ -31,11 +31,11 @@
 		}
 	}
 
-	function isValidText(textContent: string): boolean {
+	const isValidText = (textContent: string) => {
 		return textContent.trim().length >= 50 && textContent.length <= 10000
 	}
 
-	async function pollJobStatus(jobId: string, maxAttempts = 60, interval = 2000): Promise<any> {
+	const pollJobStatus = async (jobId: string, maxAttempts = 60, interval = 2000) => {
 		for (let attempt = 0; attempt < maxAttempts; attempt++) {
 			await new Promise((resolve) => setTimeout(resolve, interval))
 			const statusResult = await safeFetch()(`/import-recipe/status/${jobId}`)
@@ -53,7 +53,7 @@
 		throw new Error('Timed out waiting for recipe import')
 	}
 
-	async function handleScrape() {
+	const handleScrape = async () => {
 		error = null
 
 		if (activeTab === 'url') {
@@ -121,24 +121,24 @@
 		}
 	}
 
-	function handleUrlInput(event: Event) {
+	const handleUrlInput = (event: Event) => {
 		const target = event.target as HTMLInputElement
 		url = target.value
 		error = null
 	}
 
-	function handleTextInput(event: Event) {
+	const handleTextInput = (event: Event) => {
 		const target = event.target as HTMLTextAreaElement
 		text = target.value
 		error = null
 	}
 
-	function handleTabSelect(option: string) {
+	const handleTabSelect = (option: string) => {
 		activeTab = option === tabOptions[0] ? 'url' : 'text'
 		error = null
 	}
 
-	function isFormValid(): boolean {
+	const isFormValid = () => {
 		if (activeTab === 'url') {
 			return url.trim().length > 0 && isValidUrl(url)
 		} else {

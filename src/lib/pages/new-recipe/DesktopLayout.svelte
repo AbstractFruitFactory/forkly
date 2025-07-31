@@ -26,7 +26,7 @@
 			ingredients: {
 				id: string
 				name?: string
-				quantity?: { text: string; numeric: number }
+				quantity?: { text: string; numeric?: number }
 				unit?: string
 			}[]
 			text?: string
