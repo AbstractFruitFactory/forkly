@@ -12,15 +12,38 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ error: 'Authentication required' }, { status: 401 })
 	}
 
-	const { url } = await request.json()
-	if (!url || typeof url !== 'string') {
-		return json({ error: 'Missing or invalid URL' }, { status: 400 })
+	const body = await request.json()
+	const { url, text, inputType } = body
+
+	// Validate input type
+	if (!inputType || !['url', 'text'].includes(inputType)) {
+		return json({ error: 'Invalid input type. Must be either "url" or "text"' }, { status: 400 })
 	}
 
-	// Validate URL format and security
-	const urlValidation = validateImportUrl(url)
-	if (!urlValidation.isValid) {
-		return json({ error: urlValidation.error }, { status: 400 })
+	// Validate input based on type
+	let urlValidation: any = null
+	if (inputType === 'url') {
+		if (!url || typeof url !== 'string') {
+			return json({ error: 'Missing or invalid URL' }, { status: 400 })
+		}
+
+		// Validate URL format and security
+		urlValidation = validateImportUrl(url)
+		if (!urlValidation.isValid) {
+			return json({ error: urlValidation.error }, { status: 400 })
+		}
+	} else if (inputType === 'text') {
+		if (!text || typeof text !== 'string') {
+			return json({ error: 'Missing or invalid text content' }, { status: 400 })
+		}
+
+		if (text.trim().length < 50) {
+			return json({ error: 'Text content must be at least 50 characters long' }, { status: 400 })
+		}
+
+		if (text.length > 10000) {
+			return json({ error: 'Text content must be less than 10,000 characters' }, { status: 400 })
+		}
 	}
 
 	// Rate limiting per user
@@ -50,26 +73,39 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		})
 	}
 
-	// Check for duplicate requests
-	const normalizedUrl = urlValidation.normalizedUrl!
-	const cacheKey = `imported-url:${locals.user.id}:${normalizedUrl}`
-	const alreadyQueued = await redis.get(cacheKey)
+	// Check for duplicate requests (only for URL imports)
+	let cacheKey: string | null = null
+	let normalizedUrl: string | null = null
 
-	if (alreadyQueued) {
-		return json({
-			error: 'This recipe is already being imported or was imported recently. Please wait a few minutes before trying again.'
-		}, { status: 409 })
+	if (inputType === 'url') {
+		normalizedUrl = urlValidation.normalizedUrl!
+		cacheKey = `imported-url:${locals.user.id}:${normalizedUrl}`
+		const alreadyQueued = await redis.get(cacheKey)
+
+		if (alreadyQueued) {
+			return json({
+				error: 'This recipe is already being imported or was imported recently. Please wait a few minutes before trying again.'
+			}, { status: 409 })
+		}
+
+		// Mark it as in-progress (TTL = 15 min)
+		await redis.set(cacheKey, 'in-progress', { ex: 900 })
 	}
 
-	// Mark it as in-progress (TTL = 15 min)
-	await redis.set(cacheKey, 'in-progress', { ex: 900 })
-
 	// Add job to queue with user context
-	const job = await importRecipeQueue.add('import', {
-		url: normalizedUrl,
+	const jobData: any = {
 		userId: locals.user.id,
-		username: locals.user.username
-	})
+		username: locals.user.username,
+		inputType
+	}
+
+	if (inputType === 'url') {
+		jobData.url = normalizedUrl!
+	} else {
+		jobData.text = text.trim()
+	}
+
+	const job = await importRecipeQueue.add('import', jobData)
 
 	// Spawn worker on demand
 	spawnImportWorker().catch(err => {

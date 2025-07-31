@@ -21,7 +21,7 @@
 			mediaType?: 'image' | 'video'
 			ingredients?: {
 				name: string
-				quantity: { text: string; numeric: number }
+				quantity: { text: string; numeric?: number }
 				measurement: string
 			}[]
 		}[]
@@ -47,9 +47,10 @@
 	import { flip } from 'svelte/animate'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
-	import { UNIT_DISPLAY_TEXT, UNITS } from '$lib/utils/unitConversion'
+	import { parseQuantityToNumber, UNIT_DISPLAY_TEXT, UNITS } from '$lib/utils/unitConversion'
 	import DownloadIcon from 'lucide-svelte/icons/download'
 	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
+	import type { ImportedRecipeData } from '../../../../scripts/import-recipe-worker'
 
 	let {
 		prefilledData,
@@ -93,7 +94,7 @@
 		ingredients: {
 			id: string
 			name?: string
-			quantity?: { text: string; numeric: number }
+			quantity?: { text: string; numeric?: number }
 			unit?: string
 		}[]
 		text?: string
@@ -254,7 +255,8 @@
 		}))
 	}
 
-	const populateFromRecipe = (recipe: RecipeData) => {
+	const populateFromRecipe = (recipe: ImportedRecipeData) => {
+		console.log('recipe', recipe)
 		_title = recipe.title ?? ''
 		_description = recipe.description ?? ''
 		servings = recipe.servings ?? 1
@@ -276,7 +278,10 @@
 			ingredients: (instruction.ingredients ?? []).map((ingredient) => ({
 				id: generateId(),
 				name: ingredient.name,
-				quantity: ingredient.quantity,
+				quantity: {
+					text: ingredient.quantity,
+					numeric: parseQuantityToNumber(ingredient.quantity)
+				},
 				unit: ingredient.measurement
 			}))
 		}))

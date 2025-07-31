@@ -4,6 +4,31 @@ import OpenAI from 'openai'
 import * as cheerio from 'cheerio'
 import dotenv from 'dotenv'
 
+export type ImportedRecipeData = {
+  title: string
+  description: string
+  image: string
+  tags: string[]
+  servings: number
+  nutritionMode: 'auto' | 'manual' | 'none'
+  nutrition?: {
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
+  }
+  instructions: {
+    text: string
+    mediaUrl?: string
+    mediaType?: 'image' | 'video'
+    ingredients: {
+      name: string
+      quantity: string
+      measurement: string
+    }[]
+  }[]
+}
+
 dotenv.config()
 
 const openai = new OpenAI({
@@ -25,6 +50,10 @@ async function fetchAndCleanHtml(url: string): Promise<string> {
     }
   })
   const text = $('body').text()
+  return text.replace(/\s+/g, ' ').trim()
+}
+
+function cleanTextInput(text: string): string {
   return text.replace(/\s+/g, ' ').trim()
 }
 
@@ -96,10 +125,22 @@ const idleTimer = setTimeout(() => {
 const worker = new Worker(
   'import-recipe',
   async job => {
-    const { url, userId, username } = job.data
-    console.log(`Processing import job for user ${username} (${userId}): ${url}`)
+    const { url, text, userId, username, inputType } = job.data
+    console.log(`Processing import job for user ${username} (${userId}): ${inputType === 'url' ? url : 'text input'}`)
+    
     try {
-      const rawText = await fetchAndCleanHtml(url)
+      let rawText: string
+      
+      if (inputType === 'url') {
+        if (!url) throw new Error('URL is required for URL-based imports')
+        rawText = await fetchAndCleanHtml(url)
+      } else if (inputType === 'text') {
+        if (!text) throw new Error('Text content is required for text-based imports')
+        rawText = cleanTextInput(text)
+      } else {
+        throw new Error('Invalid input type. Must be either "url" or "text"')
+      }
+      
       const recipe = await extractRecipe(rawText)
 
       const recipeData = {
@@ -133,9 +174,11 @@ const worker = new Worker(
         { ex: 3600 }
       )
       
-      // Clean up the deduplication cache key
-      const cacheKey = `imported-url:${userId}:${url}`
-      await redis.del(cacheKey)
+      // Clean up the deduplication cache key (only for URL imports)
+      if (inputType === 'url' && url) {
+        const cacheKey = `imported-url:${userId}:${url}`
+        await redis.del(cacheKey)
+      }
     } catch (err: any) {
       console.log('Writing failed recipe to Redis:', `import-recipe:result:${job.id}`)
       console.log('Value:', JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }))
@@ -145,9 +188,11 @@ const worker = new Worker(
         { ex: 3600 }
       )
       
-      // Clean up the deduplication cache key on failure too
-      const cacheKey = `imported-url:${userId}:${url}`
-      await redis.del(cacheKey)
+      // Clean up the deduplication cache key on failure too (only for URL imports)
+      if (inputType === 'url' && url) {
+        const cacheKey = `imported-url:${userId}:${url}`
+        await redis.del(cacheKey)
+      }
     }
     
     console.log('Exiting worker after processing job')

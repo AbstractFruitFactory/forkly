@@ -1,7 +1,4 @@
 <script lang="ts">
-	import Button from '$lib/components/button/Button.svelte'
-	import Plus from 'lucide-svelte/icons/plus'
-	import Trash from 'lucide-svelte/icons/trash-2'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
 	import type { Snippet } from 'svelte'
@@ -29,7 +26,7 @@
 			ingredients: {
 				id: string
 				name?: string
-				quantity?: { text: string; numeric: number }
+				quantity?: { text: string; numeric?: number }
 				unit?: string
 			}[]
 			text?: string
