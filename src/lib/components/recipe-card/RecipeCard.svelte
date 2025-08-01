@@ -130,7 +130,7 @@
 					<Skeleton width="80%" height="32px" />
 				</div>
 			{:else if recipe}
-				<h3 class="recipe-title" style:margin="0">{recipe.title}</h3>
+				<h2 class="recipe-title" style:margin="0">{recipe.title}</h2>
 			{/if}
 		</div>
 
@@ -293,7 +293,7 @@
 		-webkit-box-orient: vertical;
 
 		@include mobile {
-			font-size: var(--font-size-md);
+			font-size: var(--font-size-lg);
 		}
 	}
 

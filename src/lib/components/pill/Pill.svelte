@@ -51,11 +51,11 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--spacing-sm);
-		background: var(--color-secondary);
+		background: var(--color-secondary-light);
 		padding: var(--spacing-sm);
 		border-radius: var(--border-radius-full);
 		transition: all 0.2s ease;
-		border: 1px solid var(--color-primary-dark);
+		border: 1px solid var(--color-primary);
 		box-shadow: var(--shadow-sm);
 	}
 
