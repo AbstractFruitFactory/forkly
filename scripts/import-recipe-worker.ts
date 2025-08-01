@@ -197,7 +197,21 @@ const worker = new Worker(
     }
   },
   {
-    connection: { url: process.env.REDIS_URL }
+    connection: { url: process.env.REDIS_URL },
+    lockDuration: 30000,
+    lockRenewTime: 15000,
+    stalledInterval: 30000,
+    maxStalledCount: 1,
+    drainDelay: 5,
+    concurrency: 1,
+    removeOnComplete: {
+      age: 24 * 3600,
+      count: 100
+    },
+    removeOnFail: {
+      age: 24 * 3600,
+      count: 100
+    }
   }
 )
 
@@ -217,19 +231,44 @@ worker.on('error', err => {
   console.error('Worker error:', err)
 })
 
-// Handle graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('Received SIGTERM, shutting down gracefully')
-  worker.close().then(() => {
-    process.exit(0)
-  })
+worker.on('stalled', jobId => {
+  console.warn(`Job ${jobId} stalled`)
 })
 
-process.on('SIGINT', () => {
-  console.log('Received SIGINT, shutting down gracefully')
-  worker.close().then(() => {
+let isShuttingDown = false
+
+const gracefulShutdown = async (signal: string) => {
+  if (isShuttingDown) {
+    console.log('Shutdown already in progress, forcing exit')
+    process.exit(1)
+  }
+  
+  isShuttingDown = true
+  console.log(`Received ${signal}, shutting down gracefully...`)
+  
+  try {
+    await worker.close()
+    console.log('Worker closed successfully')
     process.exit(0)
-  })
+  } catch (error) {
+    console.error('Error during graceful shutdown:', error)
+    process.exit(1)
+  }
+}
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+process.on('SIGINT', () => gracefulShutdown('SIGINT'))
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error)
+  gracefulShutdown('uncaughtException')
+})
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+  gracefulShutdown('unhandledRejection')
 })
 
 console.log('Import recipe worker started and waiting for jobs...') 

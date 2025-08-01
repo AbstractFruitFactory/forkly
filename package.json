@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "concurrently \"vite dev\" \"tsx scripts/import-recipe-worker.ts\"",
+    "dev:clean": "node scripts/dev-with-cleanup.js",
     "build": "vite build",
     "preview": "vite preview",
     "prepare": "svelte-kit sync || echo ''",
