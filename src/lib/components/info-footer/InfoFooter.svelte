@@ -115,7 +115,7 @@
 	}
 
 	.info-button {
-		background: var(--color-primary);
+		background: var(--color-primary-light);
 		border: none;
 		border-radius: 50%;
 		aspect-ratio: 1/1;
@@ -130,7 +130,7 @@
 			transform var(--transition-fast) var(--ease-in-out);
 
 		&:hover {
-			background-color: var(--color-primary-dark);
+			background-color: var(--color-primary);
 			transform: scale(1.05);
 		}
 
