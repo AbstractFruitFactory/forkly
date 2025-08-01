@@ -115,12 +115,6 @@ Recipe text:
   return JSON.parse(content)
 }
 
-const idleTimeoutMs = 5 * 60 * 1000
-const idleTimer = setTimeout(() => {
-  console.log('No jobs received — exiting worker')
-  worker.close().then(() => process.exit(0))
-}, idleTimeoutMs)
-
 const worker = new Worker(
   'import-recipe',
   async job => {
@@ -178,6 +172,8 @@ const worker = new Worker(
         const cacheKey = `imported-url:${userId}:${url}`
         await redis.del(cacheKey)
       }
+      
+      console.log(`Job ${job.id} completed successfully`)
     } catch (err: any) {
       console.log('Writing failed recipe to Redis:', `import-recipe:result:${job.id}`)
       console.log('Value:', JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }))
@@ -192,12 +188,10 @@ const worker = new Worker(
         const cacheKey = `imported-url:${userId}:${url}`
         await redis.del(cacheKey)
       }
+      
+      console.error(`Job ${job.id} failed:`, err.message)
+      throw err // Re-throw to mark job as failed in queue
     }
-    
-    console.log('Exiting worker after processing job')
-    clearTimeout(idleTimer)
-    await worker.close()
-    process.exit(0)
   },
   {
     connection: { url: process.env.REDIS_URL }
@@ -212,9 +206,12 @@ worker.on('failed', (job, err) => {
   console.error(`Job ${job?.id} failed:`, err)
 })
 
-// Cancel idle timer when job starts processing
-worker.on('active', () => {
-  clearTimeout(idleTimer)
+worker.on('active', job => {
+  console.log(`Job ${job.id} started processing`)
+})
+
+worker.on('error', err => {
+  console.error('Worker error:', err)
 })
 
 // Handle graceful shutdown
@@ -230,4 +227,6 @@ process.on('SIGINT', () => {
   worker.close().then(() => {
     process.exit(0)
   })
-}) 
+})
+
+console.log('Import recipe worker started and waiting for jobs...') 
