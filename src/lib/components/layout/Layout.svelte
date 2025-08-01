@@ -122,7 +122,8 @@
 			padding: 0;
 
 			@media (max-width: $content-max-width) {
-				padding: 0 var(--spacing-md);
+				width: 100vw;
+				padding: 0 var(--spacing-4xl);
 			}
 		}
 
