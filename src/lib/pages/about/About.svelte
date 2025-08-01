@@ -1,142 +1,198 @@
 <div class="about-container">
-	<section class="hero">
-		<h1>About Forkly</h1>
-		<p class="tagline">Your personal recipe management and nutrition tracking companion</p>
-	</section>
+	<div class="about-content">
+		<header class="about-header">
+			<h1 class="about-title">About Forkly</h1>
+			<p class="about-tagline">
+				Forkly is a simple, modern way to share and discover recipes — no clutter, no accounts
+				required.
+			</p>
+		</header>
 
-	<section class="features">
-		<h2>What We Offer</h2>
-		<div class="feature-grid">
-			<div class="feature">
-				<span class="icon">📝</span>
-				<h3>Recipe Creation</h3>
-				<p>Create and store your favorite recipes with our easy-to-use recipe builder</p>
+		<section class="about-section">
+			<h2 class="section-title">It started with a simple idea:</h2>
+			<div class="highlight-question">
+				<p>Why is it not easier to share a recipe online?</p>
 			</div>
+			<p class="section-text">
+				Most recipe websites are bloated, ad-ridden, and hard to use. They also tend to be focused
+				on curated content rather than community based. On social platforms, people end up copy-pasting
+				recipes into comments or screenshots just to share them. Forkly exists to fix that.
+			</p>
+		</section>
 
-			<div class="feature">
-				<span class="icon">📊</span>
-				<h3>Nutrition Tracking</h3>
-				<p>Get detailed nutrition information for your recipes using our ingredient database</p>
-			</div>
+		<section class="about-section">
+			<h2 class="section-title">👋 Built by a developer who loves food</h2>
+			<p class="section-text">
+				Hi, I'm Alex — a software engineer who got tired of jumping through hoops to share a simple
+				pasta recipe.
+			</p>
+			<p class="section-text">I wanted a space where:</p>
+			<ul class="feature-list">
+				<li>You can post a recipe without friction.</li>
+				<li>Finding recipes you want to cook is easy.</li>
+				<li>People can browse, search, and cook without distractions.</li>
+			</ul>
+			<p class="section-text">
+				That's what Forkly is. It's minimal on purpose — focused on the essentials, and always
+				improving.
+			</p>
+		</section>
 
-			<div class="feature">
-				<span class="icon">🔍</span>
-				<h3>Smart Search</h3>
-				<p>Find ingredients quickly with our intelligent search suggestions</p>
-			</div>
+		<section class="about-section">
+			<h2 class="section-title">💡 What's next?</h2>
+			<p class="section-text">Forkly is still evolving. Features on the way:</p>
+			<ul class="feature-list">
+				<li>Cooking timers for recipe steps</li>
+				<li>Meal planning and grocery lists</li>
+				<li>Personalized recipe feeds</li>
+				<li>Support for food bloggers and chefs</li>
+				<li>... and more!</li>
+			</ul>
+			<p class="section-text">
+				If you have ideas or run into issues, I'd love to hear from you:{' '}
+				<a href="mailto:hello@forkly.me" class="contact-link">hello@forkly.me</a>
+			</p>
+		</section>
 
-			<div class="feature">
-				<span class="icon">📱</span>
-				<h3>Mobile Friendly</h3>
-				<p>Access your recipes anywhere, anytime with our responsive design</p>
-			</div>
-		</div>
-	</section>
-
-	<section class="mission">
-		<h2>Our Mission</h2>
-		<p>
-			At Forkly, we believe that cooking should be accessible, enjoyable, and healthy. Our platform is
-			designed to help home cooks create, organize, and understand the nutritional value of their
-			recipes.
-		</p>
-	</section>
+		<section class="about-section">
+			<h2 class="section-title">
+				🍽️ Forkly is for the home cook, the food nerd, and everyone in between.
+			</h2>
+			<p class="section-text">Thanks for being here. Let's make cooking — and sharing — easier.</p>
+		</section>
+	</div>
 </div>
 
 <style lang="scss">
+	@import '$lib/global.scss';
+
 	.about-container {
-		max-width: 1000px;
-		margin: 0 auto;
-		padding: var(--spacing-lg) var(--spacing-md);
+		background: var(--color-background);
+		padding: var(--spacing-xl) var(--spacing-lg);
 	}
 
-	.hero {
+	.about-content {
+		max-width: 800px;
+		margin: 0 auto;
+		background: var(--color-surface);
+		border-radius: var(--border-radius-xl);
+		padding: var(--spacing-2xl);
+		box-shadow: var(--shadow-lg);
+
+		@include mobile {
+			padding: var(--spacing-lg);
+			margin: 0 var(--spacing-sm);
+		}
+	}
+
+	.about-header {
 		text-align: center;
 		margin-bottom: var(--spacing-2xl);
+		padding-bottom: var(--spacing-xl);
+		border-bottom: 2px solid var(--color-border);
+	}
 
-		h1 {
-			font-size: calc(var(--spacing-xl) * 1.5);
-			margin-bottom: var(--spacing-md);
-		}
+	.about-title {
+		font-size: var(--font-size-3xl);
+		font-weight: 700;
+		color: var(--color-text-on-surface);
+		margin: 0 0 var(--spacing-md) 0;
 
-		.tagline {
-			font-size: var(--spacing-lg);
-			color: var(--color-neutral);
+		@include mobile {
+			font-size: var(--font-size-2xl);
 		}
 	}
 
-	section {
+	.about-tagline {
+		font-size: var(--font-size-lg);
+		color: var(--color-text-on-surface);
+		opacity: 0.8;
+		margin: 0;
+		line-height: 1.5;
+	}
+
+	.about-section {
 		margin-bottom: var(--spacing-2xl);
 
-		h2 {
-			font-size: var(--spacing-xl);
-			margin-bottom: var(--spacing-lg);
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+
+	.section-title {
+		font-size: var(--font-size-xl);
+		font-weight: 600;
+		color: var(--color-text-on-surface);
+		margin: 0 0 var(--spacing-lg) 0;
+
+		@include mobile {
+			font-size: var(--font-size-lg);
+		}
+	}
+
+	.highlight-question {
+		background: var(--color-primary-light);
+		border-left: 4px solid var(--color-primary);
+		padding: var(--spacing-lg);
+		margin: var(--spacing-lg) 0;
+		border-radius: var(--border-radius-lg);
+
+		p {
+			font-size: var(--font-size-lg);
+			font-weight: 600;
+			color: var(--color-primary);
+			margin: 0;
 			text-align: center;
 		}
 	}
 
-	.feature-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-		gap: var(--spacing-lg);
+	.section-text {
+		font-size: var(--font-size-md);
+		color: var(--color-text-on-surface);
+		line-height: 1.6;
+		margin: 0 0 var(--spacing-md) 0;
+
+		&:last-child {
+			margin-bottom: 0;
+		}
 	}
 
-	.feature {
-		background: var(--color-neutral-dark);
-		padding: var(--spacing-lg);
-		border-radius: var(--border-radius-lg);
-		text-align: center;
-		transition: transform var(--transition-fast) var(--ease-in-out);
+	.feature-list {
+		list-style: none;
+		padding: 0;
+		margin: var(--spacing-md) 0 var(--spacing-lg) 0;
+	}
+
+	.feature-list li {
+		position: relative;
+		padding-left: var(--spacing-xl);
+		margin-bottom: var(--spacing-md);
+		color: var(--color-text-on-surface);
+		font-size: var(--font-size-md);
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
+		&::before {
+			content: '•';
+			position: absolute;
+			left: 0;
+			color: var(--color-primary);
+			font-weight: bold;
+			font-size: var(--font-size-lg);
+		}
+	}
+
+	.contact-link {
+		color: var(--color-primary);
+		text-decoration: none;
+		font-weight: 500;
+		transition: color var(--transition-fast) var(--ease-in-out);
 
 		&:hover {
-			transform: translateY(calc(var(--spacing-xs) * -1));
-		}
-
-		.icon {
-			font-size: calc(var(--spacing-xl) * 1.25);
-			margin-bottom: var(--spacing-md);
-			display: block;
-		}
-
-		h3 {
-			font-size: var(--spacing-lg);
-			margin-bottom: var(--spacing-md);
-		}
-
-		p {
-			color: var(--color-neutral);
-			line-height: 1.5;
+			color: var(--color-primary-dark);
+			text-decoration: underline;
 		}
 	}
-
-	.mission {
-		background: var(--color-neutral-dark);
-		padding: var(--spacing-xl);
-		border-radius: var(--border-radius-lg);
-		text-align: center;
-
-		p {
-			max-width: 800px;
-			margin: 0 auto;
-			line-height: 1.6;
-			font-size: var(--spacing-md);
-			color: var(--color-neutral);
-		}
-	}
-
-	@media (max-width: 768px) {
-		.hero {
-			h1 {
-				font-size: calc(var(--spacing-xl) * 1.25);
-			}
-		}
-
-		.feature-grid {
-			grid-template-columns: 1fr;
-		}
-
-		.mission {
-			padding: var(--spacing-lg);
-		}
-	}
-</style> 
+</style>

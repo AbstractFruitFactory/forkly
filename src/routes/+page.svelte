@@ -6,6 +6,7 @@
 	import type { TagSearchResponse } from './(api)/tags/+server'
 	import { scrolledDownHomepageStore } from './+layout.svelte'
 	import { useCookies } from '$lib/utils/cookies'
+	import InfoFooter from '$lib/components/info-footer/InfoFooter.svelte'
 
 	let { data } = $props()
 
@@ -145,3 +146,5 @@
 	isLoadingMore={pagination.isLoading}
 	{isLoading}
 />
+
+<InfoFooter fixed />
