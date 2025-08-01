@@ -20,7 +20,7 @@
 	let isLoading = $state(false)
 	let error: string | null = $state(null)
 
-	const tabOptions = ['Import from URL', 'Import from text']
+	const tabOptions = ['URL', 'Text']
 
 	const isValidUrl = (urlString: string) => {
 		try {

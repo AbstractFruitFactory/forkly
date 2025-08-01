@@ -209,7 +209,7 @@
 		box-shadow: var(--shadow-lg);
 		width: 100%;
 		margin: 0 var(--spacing-2xl);
-		max-width: 1200px;
+		max-width: min(1200px, calc(100vw - var(--spacing-xl)));
 		max-height: 90dvh;
 		overflow: hidden;
 		display: flex;
