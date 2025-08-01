@@ -324,16 +324,14 @@
 							placeholder="Search recipes..."
 							roundedCorners
 							onInput={(query: string) => {
-								if (!isMobile) {
-									if (searchTimeout) {
-										clearTimeout(searchTimeout)
-									}
-									searchTimeout = setTimeout(() => {
-										appliedSearchValue = query
-										onSearch?.(query)
-										scrollToFiltersSentinel()
-									}, 300)
+								if (searchTimeout) {
+									clearTimeout(searchTimeout)
 								}
+								searchTimeout = setTimeout(() => {
+									appliedSearchValue = query
+									onSearch?.(query)
+									scrollToFiltersSentinel()
+								}, 300)
 							}}
 							onConfirm={() => {
 								if (searchTimeout) {
