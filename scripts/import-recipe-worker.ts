@@ -120,10 +120,10 @@ const worker = new Worker(
   async job => {
     const { url, text, userId, username, inputType } = job.data
     console.log(`Processing import job for user ${username} (${userId}): ${inputType === 'url' ? url : 'text input'}`)
-    
+
     try {
       let rawText: string
-      
+
       if (inputType === 'url') {
         if (!url) throw new Error('URL is required for URL-based imports')
         rawText = await fetchAndCleanHtml(url)
@@ -133,7 +133,7 @@ const worker = new Worker(
       } else {
         throw new Error('Invalid input type. Must be either "url" or "text"')
       }
-      
+
       const recipe = await extractRecipe(rawText)
 
       const recipeData = {
@@ -166,14 +166,15 @@ const worker = new Worker(
         JSON.stringify({ status: 'completed', result: recipeData }),
         { ex: 3600 }
       )
-      
+
       // Clean up the deduplication cache key (only for URL imports)
       if (inputType === 'url' && url) {
         const cacheKey = `imported-url:${userId}:${url}`
         await redis.del(cacheKey)
       }
-      
+
       console.log(`Job ${job.id} completed successfully`)
+      return recipeData // or just nothing — return void is fine
     } catch (err: any) {
       console.log('Writing failed recipe to Redis:', `import-recipe:result:${job.id}`)
       console.log('Value:', JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }))
@@ -182,13 +183,13 @@ const worker = new Worker(
         JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }),
         { ex: 3600 }
       )
-      
+
       // Clean up the deduplication cache key on failure too (only for URL imports)
       if (inputType === 'url' && url) {
         const cacheKey = `imported-url:${userId}:${url}`
         await redis.del(cacheKey)
       }
-      
+
       console.error(`Job ${job.id} failed:`, err.message)
       throw err // Re-throw to mark job as failed in queue
     }
