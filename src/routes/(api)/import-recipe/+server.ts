@@ -1,7 +1,6 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { importRecipeQueue } from '$lib/server/queue'
-import { spawnImportWorker } from '../../../../scripts/spawn-worker'
 import { importRecipeLimiter, globalImportLimiter } from '$lib/server/rate-limit'
 import { validateImportUrl } from '$lib/server/url-validation'
 import { redis } from '$lib/server/redis'
@@ -106,11 +105,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	const job = await importRecipeQueue.add('import', jobData)
-
-	// Spawn worker on demand
-	spawnImportWorker().catch(err => {
-		console.error('Failed to spawn worker:', err)
-	})
 
 	return json({
 		jobId: job.id,
