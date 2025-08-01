@@ -470,7 +470,7 @@
 		display: none;
 
 		@include mobile {
-			display: block;
+			display: flex;
 		}
 	}
 

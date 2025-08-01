@@ -1,9 +1,11 @@
 <script lang="ts">
+	import ForklyLogo from '$lib/images/logo.svg'
+
 	let { href = '/', responsive = true }: { href?: string; responsive?: boolean } = $props()
 </script>
 
 <div class="logo">
-	<a {href} class:logo-desktop={responsive}>Forkly</a>
+	<a {href} class:logo-desktop={responsive}><img src={ForklyLogo} alt="Forkly Logo" /></a>
 	{#if responsive}
 		<a {href} class:logo-mobile={responsive}>F</a>
 	{/if}
@@ -12,7 +14,10 @@
 <style lang="scss">
 	@import '$lib/global.scss';
 
+	$logo-height: 45px;
+
 	.logo {
+		height: $logo-height;
 		display: inline-block;
 
 		&-desktop {
@@ -28,18 +33,8 @@
 				width: 24px;
 			}
 		}
-		a {
-			font-family: 'Pacifico', cursive;
-			font-size: var(--font-size-3xl);
-			text-decoration: none;
-			font-weight: 500;
-			transition: opacity var(--transition-fast) var(--ease-in-out);
-			white-space: nowrap;
-			color: var(--color-text-on-secondary);
-
-			&.logo-mobile {
-				font-size: var(--font-size-2xl);
-			}
+		img {
+			height: $logo-height;
 		}
 	}
 </style>
