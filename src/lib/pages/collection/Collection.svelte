@@ -10,8 +10,9 @@
 	let {
 		name,
 		recipes,
-		collections = []
-	}: { name: string; recipes: DetailedRecipe[]; collections?: string[] } = $props()
+		collections = [],
+		username
+	}: { name: string; recipes: DetailedRecipe[]; collections?: string[]; username: string } = $props()
 
 	let moveOpen = $state(false)
 	let selectedRecipeId: string | null = null
@@ -59,7 +60,7 @@
 </script>
 
 <div>
-	<a class="back-button" href="/user/{data.user?.username}?tab=Saved recipes">
+	<a class="back-button" href="/user/{username}?tab=Saved recipes">
 		<ArrowLeftIcon size={18} />
 		<span>Back to saved recipes</span>
 	</a>

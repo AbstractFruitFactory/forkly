@@ -11,6 +11,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
   return {
     recipes,
     name: params.name,
-    collections
+    collections,
+    username: locals.user.username
   }
 }

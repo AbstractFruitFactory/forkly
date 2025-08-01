@@ -26,6 +26,6 @@
 	{#if isLoading}
 		<Skeleton height="10rem" />
 	{:else}
-		<Collection name={data.name} {recipes} {collections} />
+		<Collection name={data.name} {recipes} {collections} username={data.username} />
 	{/if}
 </div>
