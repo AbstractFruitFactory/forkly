@@ -399,53 +399,57 @@
 	amountValue?: string,
 	unitValue?: string
 )}
-	<div class="ingredient-input-container">
-		<div class="ingredient-row">
-			<div class="search">
-				<SuggestionSearch
-					placeholder="Enter ingredient"
-					onSearch={searchIngredients}
-					formName="instructions-{instructionId}-ingredient-{id}-name"
-					clearInput={false}
-					searchValue={nameValue}
-				/>
-			</div>
-		</div>
-
-		<div class="quantity-unit-row">
-			<div class="quantity-input">
-				<Input>
-					<input
-						type="text"
-						name="instructions-{instructionId}-ingredient-{id}-amount"
-						placeholder="Enter amount"
-						value={amountValue}
+	<div class="ingredient-row">
+		<div class="ingredient-input">
+			<div class="ingredient-row">
+				<div class="search">
+					<SuggestionSearch
+						placeholder="Enter ingredient"
+						onSearch={searchIngredients}
+						formName="instructions-{instructionId}-ingredient-{id}-name"
+						clearInput={false}
+						searchValue={nameValue}
 					/>
-				</Input>
+				</div>
 			</div>
 
-			<div class="unit-input">
-				<SuggestionSearch
-					placeholder="Unit"
-					formName="instructions-{instructionId}-ingredient-{id}-unit"
-					onSearch={searchUnits}
-					clearInput={false}
-					showSearchIcon={false}
-					minSearchLength={2}
-					useId={true}
-					searchValue={unitValue}
-				/>
+			<div class="quantity-unit-row">
+				<div class="quantity-input">
+					<Input>
+						<input
+							type="text"
+							name="instructions-{instructionId}-ingredient-{id}-amount"
+							placeholder="Enter amount"
+							value={amountValue}
+						/>
+					</Input>
+				</div>
+
+				<div class="unit-input">
+					<SuggestionSearch
+						placeholder="Unit"
+						formName="instructions-{instructionId}-ingredient-{id}-unit"
+						onSearch={searchUnits}
+						clearInput={false}
+						showSearchIcon={false}
+						minSearchLength={2}
+						useId={true}
+						searchValue={unitValue}
+					/>
+				</div>
 			</div>
 		</div>
 
-		<button
-			type="button"
-			class="remove-btn"
-			onclick={() => removeIngredient(instructionId, id)}
-			aria-label="Remove ingredient"
-		>
-			<Trash size={16} />
-		</button>
+		<div>
+			<button
+				type="button"
+				class="remove-btn"
+				onclick={() => removeIngredient(instructionId, id)}
+				aria-label="Remove ingredient"
+			>
+				<Trash size={16} />
+			</button>
+		</div>
 	</div>
 {/snippet}
 
@@ -538,7 +542,7 @@
 			}
 
 			submitting = true
-			
+
 			formData.append('servings', servings.toString())
 
 			selectedTags.forEach((tag) => {
@@ -701,7 +705,15 @@
 		margin-top: var(--spacing-md);
 	}
 
-	.ingredient-input-container {
+	.ingredient-row {
+		@include mobile {
+			display: flex;
+			align-items: stretch;
+			gap: var(--spacing-md);
+		}
+	}
+
+	.ingredient-input {
 		width: 100%;
 		display: flex;
 		flex-direction: column;
@@ -712,10 +724,6 @@
 			gap: 1px;
 			align-items: center;
 		}
-	}
-
-	.ingredient-row {
-		width: 100%;
 	}
 
 	.quantity-unit-row {
@@ -786,6 +794,16 @@
 		&:last-child {
 			margin-bottom: var(--spacing-lg);
 		}
+
+		@include mobile {
+			.ingredient-row & {
+				margin-bottom: 0;
+
+				&:last-child {
+					margin-bottom: 0;
+				}
+			}
+		}
 	}
 
 	.remove-btn {
@@ -801,6 +819,11 @@
 
 		&:hover {
 			background-color: var(--color-background-dark);
+		}
+
+		@include mobile {
+			height: 100%;
+			background: var(--color-secondary);
 		}
 
 		@include tablet-desktop {

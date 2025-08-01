@@ -31,6 +31,7 @@
 >
 	<div class="input-container">
 		{@render children()}
+
 		<div class="right-elements">
 			<button class="clear-button" type="button" onclick={onClear} aria-label="Clear input">
 				{#if clearButton}
@@ -52,6 +53,8 @@
 </div>
 
 <style lang="scss">
+	@import '$lib/global.scss';
+
 	@mixin input-base {
 		width: 100%;
 		height: 32px;
@@ -59,6 +62,10 @@
 		font-family: var(--font-sans);
 		font-size: var(--font-size-sm);
 		transition: all var(--transition-fast) var(--ease-in-out);
+
+		@include mobile {
+			padding: 0 var(--spacing-md);
+		}
 
 		&:focus {
 			outline: none;
@@ -118,6 +125,10 @@
 		.input-container:has(textarea) & {
 			align-items: flex-start;
 			padding-top: var(--spacing-xs);
+		}
+
+		@include mobile {
+			padding-right: var(--spacing-xs);
 		}
 	}
 

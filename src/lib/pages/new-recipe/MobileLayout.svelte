@@ -105,23 +105,25 @@
 						</div>
 					</div>
 
-					<div class="instruction-ingredients">
-						<h4>Ingredients for this step:</h4>
-						{#each [...item.ingredients, { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem (ingredientItem.id)}
-							<div class="ingredient-input" in:scale animate:flip={{ duration: 200 }}>
-								{#if 'isAddButton' in ingredientItem}
-									{@render addIngredientButton(item.id, true)}
-								{:else}
-									{@render ingredientRow(
-										ingredientItem.id,
-										item.id,
-										ingredientItem.name,
-										ingredientItem.quantity?.toString(),
-										ingredientItem.unit
-									)}
-								{/if}
-							</div>
-						{/each}
+					<div>
+						<h5>Ingredients for this step:</h5>
+						<div class="instruction-ingredients">
+							{#each [...item.ingredients, { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem (ingredientItem.id)}
+								<div class="ingredient-input" in:scale animate:flip={{ duration: 200 }}>
+									{#if 'isAddButton' in ingredientItem}
+										{@render addIngredientButton(item.id, true)}
+									{:else}
+										{@render ingredientRow(
+											ingredientItem.id,
+											item.id,
+											ingredientItem.name,
+											ingredientItem.quantity?.toString(),
+											ingredientItem.unit
+										)}
+									{/if}
+								</div>
+							{/each}
+						</div>
 					</div>
 				</div>
 			</div>
@@ -222,17 +224,11 @@
 	}
 
 	.instruction-ingredients {
-		margin-top: var(--spacing-lg);
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
 		border-radius: var(--border-radius-lg);
 		border: 1px solid var(--color-neutral-darker);
-		padding: var(--spacing-md);
-
-		h4 {
-			margin: 0 0 var(--spacing-md) 0;
-			font-size: var(--font-size-md);
-			font-weight: var(--font-weight-semibold);
-			color: var(--color-text-on-surface);
-		}
 	}
 
 	.ingredient-input {
