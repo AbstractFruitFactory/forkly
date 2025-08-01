@@ -60,7 +60,6 @@
 		height: 32px;
 		padding: 0 var(--spacing-lg);
 		font-family: var(--font-sans);
-		font-size: var(--font-size-sm);
 		transition: all var(--transition-fast) var(--ease-in-out);
 
 		@include mobile {
