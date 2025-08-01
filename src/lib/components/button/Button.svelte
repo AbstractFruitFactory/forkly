@@ -249,10 +249,6 @@
 
 		&.border {
 			border: var(--border-width-thin) solid var(--color-neutral);
-
-			&:hover:not(:disabled) {
-				background: rgba(0, 0, 0, 0.05);
-			}
 		}
 
 		&.bold {
