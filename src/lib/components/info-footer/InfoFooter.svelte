@@ -33,7 +33,7 @@
 
 <div class="info-footer" class:fixed>
 	<button class="info-button" onclick={handleInfoClick} aria-label="Show information">
-		<Info size={20} />
+		<Info size={25} />
 	</button>
 </div>
 
@@ -44,7 +44,7 @@
 		transition:slide={{ duration: 300, axis: 'y' }}
 	>
 		<div class="info-header">
-      <div></div>
+			<div></div>
 			<button class="info-close" onclick={handleClose} aria-label="Close">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -118,14 +118,13 @@
 		background: var(--color-primary);
 		border: none;
 		border-radius: 50%;
-		width: 56px;
-		height: 56px;
-		color: var(--color-text-on-primary);
+		aspect-ratio: 1/1;
+		width: 60px;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		box-shadow: var(--shadow-lg);
+		box-shadow: var(--shadow-sm);
 		transition:
 			background-color var(--transition-fast) var(--ease-in-out),
 			transform var(--transition-fast) var(--ease-in-out);
@@ -292,7 +291,6 @@
 		align-items: center;
 		gap: var(--spacing-sm);
 		background: var(--color-primary);
-		color: var(--color-text-on-primary);
 		border: none;
 		border-radius: var(--border-radius-lg);
 		padding: var(--spacing-md) var(--spacing-lg);
@@ -301,6 +299,10 @@
 		font-weight: 500;
 		transition: all var(--transition-fast) var(--ease-in-out);
 		box-shadow: var(--shadow-sm);
+
+		.button-text {
+			color: var(--color-text-on-primary);
+		}
 
 		&:hover {
 			background-color: var(--color-primary-dark);

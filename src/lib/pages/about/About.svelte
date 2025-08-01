@@ -1,22 +1,26 @@
+<script>
+	import { browser } from '$app/environment'
+	import BuyMeACoffee from '$lib/components/buy-me-a-coffee/BuyMeACoffee.svelte'
+</script>
+
 <div class="about-container">
 	<div class="about-content">
 		<header class="about-header">
 			<h1 class="about-title">About Forkly</h1>
 			<p class="about-tagline">
-				Forkly is a simple, modern way to share and discover recipes — no clutter, no accounts
-				required.
+				Forkly is a simple, modern way to share and discover recipes — no clutter, no annoying ads or banners, just food.
 			</p>
 		</header>
 
 		<section class="about-section">
-			<h2 class="section-title">It started with a simple idea:</h2>
 			<div class="highlight-question">
-				<p>Why is it not easier to share a recipe online?</p>
+				<p>Why is it not easier to upload and share a recipe online?</p>
 			</div>
 			<p class="section-text">
 				Most recipe websites are bloated, ad-ridden, and hard to use. They also tend to be focused
-				on curated content rather than community based. On social platforms, people end up copy-pasting
-				recipes into comments or screenshots just to share them. Forkly exists to fix that.
+				on curated content rather than community based. On social platforms, people end up
+				copy-pasting recipes into comments or screenshots just to share them. Forkly exists to fix
+				that.
 			</p>
 		</section>
 
@@ -59,6 +63,15 @@
 				🍽️ Forkly is for the home cook, the food nerd, and everyone in between.
 			</h2>
 			<p class="section-text">Thanks for being here. Let's make cooking — and sharing — easier.</p>
+		</section>
+
+		<section class="about-section">
+			<h2 class="section-title">☕ Support Forkly</h2>
+			<p class="section-text">
+				If you enjoy using Forkly, consider buying me a coffee to support the development!
+			</p>
+
+			<BuyMeACoffee />
 		</section>
 	</div>
 </div>
@@ -140,7 +153,7 @@
 		p {
 			font-size: var(--font-size-lg);
 			font-weight: 600;
-			color: var(--color-primary);
+			color: var(--color-text-on-primary);
 			margin: 0;
 			text-align: center;
 		}
