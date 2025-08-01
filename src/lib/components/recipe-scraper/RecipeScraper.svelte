@@ -102,7 +102,7 @@
 					return
 				}
 				const recipe = await pollJobStatus(jobId)
-				if (!recipe.title || !recipe.instructions) {
+				if (!recipe.instructions) {
 					error = 'The recipe data appears to be incomplete. Please try a different recipe.'
 					return
 				}

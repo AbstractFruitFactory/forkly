@@ -101,6 +101,8 @@ If the recipe has no clear input for anything, set it empty instead of guessing.
 
 For ingredients, quantity is required if measurement is provided. For non-quantifiable inputs like "to taste", enter it into the quantity field.
 
+If there is no clear recipe title, make one up based on the content.
+
 Recipe text:
 """${text.slice(0, 8000)}"""
 `
