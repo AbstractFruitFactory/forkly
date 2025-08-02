@@ -307,7 +307,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
           ingredientsByInstruction.get(instructionId)!.push({
             id: ingr.id,
             name: ingr.name,
-            quantity: { text: quantity, numeric: numericQuantity ?? undefined },
+            quantity: { text: quantity ?? '', numeric: numericQuantity ?? undefined },
             measurement: measurement || '',
             displayName: displayName
           })

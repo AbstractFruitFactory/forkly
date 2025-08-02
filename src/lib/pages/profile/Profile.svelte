@@ -249,16 +249,6 @@
 				</div>
 			</div>
 		{/if}
-		<div class="profile-info-row">
-			<div class="profile-info-label">Bio</div>
-			<div class="profile-info-value">
-				{#await user}
-					<Skeleton width="100px" height="24px" />
-				{:then user}
-					{user.bio}
-				{/await}
-			</div>
-		</div>
 	</div>
 {/snippet}
 
