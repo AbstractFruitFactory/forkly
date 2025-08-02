@@ -731,6 +731,9 @@
 	}
 
 	.ingredient-row {
+		display: flex;
+		align-items: center;
+
 		@include mobile {
 			display: flex;
 			align-items: stretch;
@@ -743,6 +746,16 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
+
+		@include mobile {
+			.ingredient-row & {
+				margin-bottom: 0;
+
+				&:last-child {
+					margin-bottom: 0;
+				}
+			}
+		}
 
 		@include tablet-desktop {
 			flex-direction: row;
@@ -813,37 +826,22 @@
 		}
 	}
 
-	.ingredient-input {
-		margin-bottom: var(--spacing-md);
-
-		&:last-child {
-			margin-bottom: var(--spacing-lg);
-		}
-
-		@include mobile {
-			.ingredient-row & {
-				margin-bottom: 0;
-
-				&:last-child {
-					margin-bottom: 0;
-				}
-			}
-		}
-	}
-
 	.remove-btn {
 		height: 36px;
 		width: 36px;
 		border-radius: var(--border-radius-lg);
-		transition: all var(--transition-fast) var(--ease-in-out);
 		background: none;
 		border: none;
 		cursor: pointer;
 		padding: var(--spacing-xs);
 		color: var(--color-text-on-surface);
+		transition: all var(--transition-fast) var(--ease-in-out);
+		display: flex;
+		align-items: center;
+		justify-content: center;
 
 		&:hover {
-			background-color: var(--color-background-dark);
+			background-color: var(--color-secondary);
 		}
 
 		@include mobile {
