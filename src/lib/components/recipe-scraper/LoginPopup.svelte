@@ -43,7 +43,7 @@
 			<Button
 				color="neutral"
 				type="submit"
-				formaction="/new?/create"
+				formaction="?/createRecipe"
 				onclick={handleUploadAnonymously}
 				fullWidth
 			>

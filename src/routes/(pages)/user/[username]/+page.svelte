@@ -29,5 +29,6 @@
 		initialTab={data.initialTab}
 		isOwner={data.isOwner}
 		drafts={Promise.resolve(data.drafts)}
+		errors={form?.errors}
 	/>
-</div> 
+</div>

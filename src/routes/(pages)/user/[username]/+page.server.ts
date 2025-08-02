@@ -1,4 +1,4 @@
-import { error, fail } from '@sveltejs/kit'
+import { error, fail, redirect } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 import { getUserById, getUserByUsername, getPublicUserByUsername, updateUserProfile, type User } from '$lib/server/db/user'
 import * as v from 'valibot'
@@ -8,6 +8,8 @@ import type { UserRecipes } from '../../../(api)/recipes/user/+server'
 import { getCollections } from '$lib/server/db/save'
 import { getRecipes, type RecipeFilter, type DetailedRecipe, getRecipeDraftsByUser } from '$lib/server/db/recipe'
 import type { RecipeDraft } from '$lib/server/db/schema'
+import { buildRecipePayloadFromForm, type RecipeApiResponse } from '$lib/server/utils/recipe-form'
+import { actions as newRecipeActions } from '../../new/+page.server'
 
 const updateProfileSchema = v.object({
   username: v.pipe(
@@ -70,7 +72,7 @@ export const load: PageServerLoad = async ({ locals, fetch, url, params }) => {
 }
 
 export const actions = {
-  default: async ({ request, locals, params }) => {
+  updateUser: async ({ request, locals, params }) => {
     if (!locals.user) error(401, 'Unauthorized')
 
     const { username } = params
@@ -120,5 +122,50 @@ export const actions = {
     return {
       user: updatedUser
     }
+  },
+  updateRecipe: async ({ request, fetch }) => {
+    const formData = await request.formData()
+    const recipeId = formData.get('id')?.toString()
+    if (!recipeId) {
+      return fail(400, {
+        success: false,
+        errors: [{
+          path: 'id',
+          message: 'Recipe ID is required for updates'
+        }]
+      })
+    }
+
+    const { payload, error } = await buildRecipePayloadFromForm(formData)
+    if (error) return error
+
+    const fetchResponse = await safeFetch<RecipeApiResponse>(fetch)(
+      '/recipes/update',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, id: recipeId })
+      }
+    )
+    if (fetchResponse.isErr()) {
+      console.error('Error updating recipe', fetchResponse.error)
+      return fail(500, {
+        success: false,
+        errors: [{
+          path: 'api',
+          message: 'An unexpected error occurred while updating the recipe'
+        }]
+      })
+    }
+    return {
+      success: true,
+      recipeId: fetchResponse.value.id
+    }
+  },
+  saveDraft: async (event) => {
+    return await newRecipeActions.saveDraft(event as any)
+  },
+  createRecipe: async (event) => {
+    return await newRecipeActions.createRecipe(event as any)
   }
 } satisfies Actions 
