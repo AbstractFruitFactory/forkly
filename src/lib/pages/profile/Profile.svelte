@@ -23,7 +23,8 @@
 		initialTab,
 		onLogout,
 		isOwner,
-		drafts = Promise.resolve([])
+		drafts = Promise.resolve([]),
+		errors
 	}: {
 		user: Promise<User>
 		createdRecipes?: Promise<DetailedRecipe[]>
@@ -32,6 +33,7 @@
 		onLogout?: () => void
 		isOwner?: boolean
 		drafts?: Promise<any[]>
+		errors?: { path: string; message: string }[]
 	} = $props()
 
 	const tabOptions = isOwner
@@ -348,6 +350,7 @@
 			}}
 			onSearchTags={searchTags}
 			onSearchIngredients={searchIngredients}
+			{errors}
 		/>
 	{/if}
 {/snippet}
@@ -380,6 +383,7 @@
 			}}
 			onSearchTags={searchTags}
 			onSearchIngredients={searchIngredients}
+			{errors}
 		/>
 	{/if}
 {/snippet}

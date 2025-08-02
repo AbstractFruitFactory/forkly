@@ -2,6 +2,7 @@
 	export const generateId = () => Math.random().toString(36).slice(2)
 
 	export type RecipeData = {
+		id?: string
 		title: string
 		description: string
 		image: string
@@ -25,10 +26,11 @@
 			}[]
 		}[]
 	}
+
+	type Ingredient = { id?: string; name: string }
 </script>
 
 <script lang="ts">
-	type Ingredient = { id?: string; name: string }
 	import { enhance } from '$app/forms'
 	import { onMount } from 'svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
@@ -49,7 +51,8 @@
 	import { parseQuantityToNumber, UNIT_DISPLAY_TEXT, UNITS } from '$lib/utils/unitConversion'
 	import DownloadIcon from 'lucide-svelte/icons/download'
 	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
-	import LoginPopup from '$lib/components/recipe-scraper/LoginPopup.svelte'
+	import AnonUploadPopup from '$lib/components/recipe-scraper/AnonUploadPopup.svelte'
+	import LoginPopup from '$lib/components/login-popup/LoginPopup.svelte'
 	import type { ImportedRecipeData } from '../../../../scripts/import-recipe-worker'
 
 	let {
@@ -79,6 +82,7 @@
 		isLoggedIn?: boolean
 	} = $props()
 
+	let _id = $state(prefilledData?.id ?? '')
 	let _title = $state(prefilledData?.title ?? '')
 	let _description = $state(prefilledData?.description ?? '')
 	let servings = $state(prefilledData?.servings ?? 1)
@@ -136,6 +140,7 @@
 	let desktopLayoutElement: HTMLElement
 	let searchValue = $state('')
 	let isImportPopupOpen = $state(false)
+	let isAnonUploadPopupOpen = $state(false)
 	let isLoginPopupOpen = $state(false)
 	let willUploadAnonymously = $state(false)
 
@@ -483,12 +488,8 @@
 
 {#snippet saveDraftButton(fullWidth?: boolean)}
 	{#if !editMode}
-		<Button
-			{fullWidth}
-			formaction="/new?/saveDraft"
-			loading={submitting}
-			type="submit"
-			color="neutral">Save Draft</Button
+		<Button {fullWidth} formaction="?/saveDraft" loading={submitting} type="submit" color="neutral"
+			>Save Draft</Button
 		>
 	{/if}
 {/snippet}
@@ -496,7 +497,7 @@
 {#snippet submitButton(fullWidth?: boolean)}
 	<Button
 		{fullWidth}
-		formaction={editMode ? '/new?/update' : '/new?/create'}
+		formaction={editMode ? '?/updateRecipe' : '?/createRecipe'}
 		loading={submitting}
 		type="submit"
 		color="primary">{editMode ? 'Save' : 'Upload'} Recipe</Button
@@ -534,9 +535,14 @@
 	<form
 		method="POST"
 		enctype="multipart/form-data"
-		use:enhance={({ formData, cancel }) => {
-			if (!isLoggedIn && !willUploadAnonymously) {
-				isLoginPopupOpen = true
+		use:enhance={({ formData, cancel, action }) => {
+			if (!isLoggedIn && !willUploadAnonymously && !editMode && !draftMode) {
+				if (action?.search === '?/saveDraft' && !isLoggedIn) {
+					isLoginPopupOpen = true
+					cancel()
+					return
+				}
+				isAnonUploadPopupOpen = true
 				cancel()
 				return
 			}
@@ -544,6 +550,7 @@
 			submitting = true
 
 			formData.append('servings', servings.toString())
+			formData.append('id', _id)
 
 			selectedTags.forEach((tag) => {
 				formData.append('tags', tag)
@@ -553,10 +560,22 @@
 
 			formData.append('draft', draftMode ? 'true' : 'false')
 
-			return async ({ update }) => {
+			return async ({ result, update }) => {
 				submitting = false
-				editMode?.onSave()
-				draftMode?.onPublish()
+
+				console.log('result', result)
+
+				if (result.type === 'success' || result.type === 'redirect') {
+					editMode?.onSave()
+
+					if (draftMode) {
+						if (action?.search === '?/saveDraft') {
+							draftMode.onSaveDraft()
+						} else {
+							draftMode.onPublish()
+						}
+					}
+				}
 				update()
 			}
 		}}
@@ -573,7 +592,11 @@
 			<div></div>
 			<Button
 				onclick={() => {
-					isImportPopupOpen = true
+					if (!isLoggedIn) {
+						isLoginPopupOpen = true
+					} else {
+						isImportPopupOpen = true
+					}
 				}}
 				variant="border"
 				color="neutral"
@@ -627,13 +650,15 @@
 			</div>
 		{/if}
 
-		<LoginPopup
-			bind:isOpen={isLoginPopupOpen}
-			onClose={() => (isLoginPopupOpen = false)}
+		<AnonUploadPopup
+			bind:isOpen={isAnonUploadPopupOpen}
+			onClose={() => (isAnonUploadPopupOpen = false)}
 			onUploadAnonymously={() => {
 				willUploadAnonymously = true
 			}}
 		/>
+
+		<LoginPopup bind:isOpen={isLoginPopupOpen} onClose={() => (isLoginPopupOpen = false)} />
 	</form>
 </div>
 
