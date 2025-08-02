@@ -330,10 +330,8 @@
 		z-index: var(--z-dropdown);
 	}
 
-	.recipe-card .image-container img {
-		@include hover {
-			transform: scale(1.05);
-		}
+	.recipe-card:hover .image-container img {
+		transform: scale(1.05);
 	}
 
 	.content {
