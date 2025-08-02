@@ -117,7 +117,7 @@
 											ingredientItem.id,
 											item.id,
 											ingredientItem.name,
-											ingredientItem.quantity?.toString(),
+											ingredientItem.quantity?.text,
 											ingredientItem.unit
 										)}
 									{/if}
