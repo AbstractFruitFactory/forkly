@@ -2,7 +2,7 @@
 	import Button from '$lib/components/button/Button.svelte'
 	import Input from '$lib/components/input/Input.svelte'
 	import { enhance } from '$app/forms'
-	import GoogleIcon from '$lib/components/icons/GoogleIcon.svelte'
+	import GoogleButton from './GoogleButton.svelte'
 
 	let {
 		mode = 'login',
@@ -65,12 +65,7 @@
 		</Button>
 
 		{#if mode === 'login'}
-			<a href="/login/google" class="google-button">
-				<button type="button" class="google-button-inner">
-					<GoogleIcon />
-					Sign in with Google
-				</button>
-			</a>
+			<GoogleButton />
 		{/if}
 	</form>
 
@@ -102,27 +97,7 @@
 		margin-bottom: var(--spacing-xs);
 	}
 
-	.google-button {
-		display: block;
-		margin-top: var(--spacing-md);
-		text-align: center;
 
-		.google-button-inner {
-			width: 100%;
-			padding: 0.75em;
-			border-radius: 4px;
-			border: 1px solid #ccc;
-			background: #fff;
-			color: #333;
-			font-weight: 500;
-			cursor: pointer;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			gap: 0.5em;
-			border-radius: var(--border-radius-2xl);
-		}
-	}
 
 	.error {
 		color: var(--color-error);
