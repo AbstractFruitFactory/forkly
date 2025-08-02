@@ -27,7 +27,7 @@ export type DetailedRecipe = {
     text: string
     mediaUrl?: string
     mediaType?: 'image' | 'video'
-    ingredients?: Array<{
+    ingredients: Array<{
       id: string
       name: string
       quantity: { text: string, numeric?: number }

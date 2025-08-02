@@ -50,7 +50,8 @@ export const load: PageServerLoad = async ({ locals, fetch, url, params }) => {
     const rawDrafts = await getRecipeDraftsByUser(locals.user!.id)
     drafts = rawDrafts.map(draft => ({
       ...draft,
-      instructions: typeof draft.instructions === 'string' ? JSON.parse(draft.instructions) : draft.instructions
+      instructions: typeof draft.instructions === 'string' ? JSON.parse(draft.instructions) : draft.instructions,
+      tags: typeof draft.tags === 'string' ? JSON.parse(draft.tags) : draft.tags
     }))
   } else {
     recipes = await getRecipes({

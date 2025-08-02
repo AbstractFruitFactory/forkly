@@ -26,6 +26,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       imageUrl: data.imageUrl,
       servings: data.servings,
       instructions: data.instructions,
+      tags: data.tags,
       createdAt: new Date()
     })
     return json({ success: true, id: draftId })

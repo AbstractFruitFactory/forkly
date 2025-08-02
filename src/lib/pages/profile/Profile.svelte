@@ -1,22 +1,3 @@
-<script lang="ts" module>
-	type Draft = {
-		id: string
-		title: string
-		description?: string
-		imageUrl?: string
-		instructions: DetailedRecipe['instructions']
-		tags: string[]
-		servings: number
-		nutrition?: {
-			calories: number
-			protein: number
-			carbs: number
-			fat: number
-		},
-		createdAt: string
-	}
-</script>
-
 <script lang="ts">
 	import Button from '$lib/components/button/Button.svelte'
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
@@ -34,6 +15,7 @@
 	import NewRecipe from '$lib/pages/new-recipe/NewRecipe.svelte'
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
 	import { mobileStore } from '$lib/state/mobile.svelte'
+	import type { RecipeDraft } from '$lib/server/db/schema'
 
 	let {
 		user,
@@ -51,7 +33,7 @@
 		initialTab?: string
 		onLogout?: () => void
 		isOwner?: boolean
-		drafts?: Promise<Draft[]>
+		drafts?: Promise<RecipeDraft[]>
 		errors?: { path: string; message: string }[]
 	} = $props()
 
@@ -69,9 +51,9 @@
 	let recipeToDelete: DetailedRecipe | undefined = $state()
 	let editPopupOpen = $state(false)
 	let recipeToEdit: DetailedRecipe | undefined = $state()
-	let draftToEdit: any = $state()
+	let draftToEdit: RecipeDraft | undefined = $state()
 	let editDraftPopupOpen = $state(false)
-	let draftToDelete: any = $state()
+	let draftToDelete: RecipeDraft | undefined = $state()
 	let deleteDraftPopupOpen = $state(false)
 
 	async function handleAvatarChange(event: Event) {
@@ -120,12 +102,12 @@
 		editPopupOpen = true
 	}
 
-	function openEditDraftPopup(draft: Draft) {
+	function openEditDraftPopup(draft: RecipeDraft) {
 		draftToEdit = draft
 		editDraftPopupOpen = true
 	}
 
-	function openDeleteDraftPopup(draft: Draft) {
+	function openDeleteDraftPopup(draft: RecipeDraft) {
 		draftToDelete = draft
 		deleteDraftPopupOpen = true
 	}
@@ -347,7 +329,7 @@
 	</div>
 </Popup>
 
-{#snippet editRecipe(draft = false)}
+{#snippet editRecipe()}
 	{#if recipeToEdit}
 		<NewRecipe
 			prefilledData={{
@@ -358,11 +340,18 @@
 				tags: recipeToEdit.tags,
 				servings: recipeToEdit.servings,
 				nutritionMode: 'auto',
-				instructions: recipeToEdit.instructions
+				instructions: recipeToEdit.instructions.map((instruction) => ({
+					...instruction,
+					ingredients: instruction.ingredients.map((ingredient) => ({
+						id: ingredient.id,
+						name: ingredient.name,
+						quantity: ingredient.quantity?.text ?? '',
+						unit: ingredient.measurement
+					}))
+				}))
 			}}
 			editMode={{
 				onSave: () => {
-					recipeToEdit = undefined
 					editPopupOpen = false
 					invalidateAll()
 				}
@@ -383,9 +372,9 @@
 				description: draftToEdit.description ?? '',
 				image: draftToEdit.imageUrl ?? '',
 				tags: draftToEdit.tags ?? [],
-				servings: draftToEdit.servings,
+				servings: draftToEdit.servings ?? 1,
 				nutritionMode: 'auto',
-				instructions: draftToEdit.instructions
+				instructions: draftToEdit.instructions ?? []
 			}}
 			draftMode={{
 				onSaveDraft: () => {

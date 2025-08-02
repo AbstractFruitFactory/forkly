@@ -1,7 +1,7 @@
 <script lang="ts" module>
 	export const generateId = () => Math.random().toString(36).slice(2)
 
-	export type RecipeData = {
+	export type PrefilledData = {
 		id?: string
 		title: string
 		description: string
@@ -19,10 +19,10 @@
 			text: string
 			mediaUrl?: string
 			mediaType?: 'image' | 'video'
-			ingredients?: {
+			ingredients: {
 				name: string
-				quantity: { text: string; numeric?: number }
-				measurement: string
+				quantity?: string
+				measurement?: string
 			}[]
 		}[]
 	}
@@ -48,7 +48,7 @@
 	import { flip } from 'svelte/animate'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
-	import { parseQuantityToNumber, UNIT_DISPLAY_TEXT, UNITS } from '$lib/utils/unitConversion'
+	import { UNIT_DISPLAY_TEXT, UNITS } from '$lib/utils/unitConversion'
 	import DownloadIcon from 'lucide-svelte/icons/download'
 	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
 	import AnonUploadPopup from '$lib/components/recipe-scraper/AnonUploadPopup.svelte'
@@ -66,7 +66,7 @@
 		onUnitChange,
 		isLoggedIn = false
 	}: {
-		prefilledData?: RecipeData
+		prefilledData?: PrefilledData
 		editMode?: {
 			onSave: () => void
 		}
@@ -100,7 +100,7 @@
 		ingredients: {
 			id: string
 			name?: string
-			quantity?: { text: string; numeric?: number }
+			quantity?: string
 			unit?: string
 		}[]
 		text?: string
@@ -287,10 +287,7 @@
 			ingredients: (instruction.ingredients ?? []).map((ingredient) => ({
 				id: generateId(),
 				name: ingredient.name,
-				quantity: {
-					text: ingredient.quantity,
-					numeric: parseQuantityToNumber(ingredient.quantity)
-				},
+				quantity: ingredient.quantity,
 				unit: ingredient.measurement
 			}))
 		}))
@@ -562,8 +559,6 @@
 
 			return async ({ result, update }) => {
 				submitting = false
-
-				console.log('result', result)
 
 				if (result.type === 'success' || result.type === 'redirect') {
 					editMode?.onSave()

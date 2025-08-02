@@ -47,11 +47,12 @@ export const recipeDraft = pgTable('recipe_draft', {
 	userId: text('user_id')
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
-	title: text('title'),
+	title: text('title').notNull(),
 	description: text('description'),
 	imageUrl: text('image_url'),
 	servings: integer('servings'),
 	instructions: jsonb('instructions'),
+	tags: jsonb('tags'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
@@ -198,21 +199,22 @@ export type User = typeof user.$inferSelect
 export type Recipe = typeof recipe.$inferSelect
 
 export type RecipeDraftIngredient = {
-  name: string
-  quantity?: number
-  unit?: string
-  text?: string
-  image?: string
+	name: string
+	quantity?: string
+	unit?: string
+	text?: string
+	image?: string
 }
 
 export type RecipeDraftInstruction = {
-  text: string
-  image?: string
-  ingredients: RecipeDraftIngredient[]
+	text: string
+	image?: string
+	ingredients: RecipeDraftIngredient[]
 }
 
 export type RecipeDraft = typeof recipeDraft.$inferSelect & {
-  instructions: RecipeDraftInstruction[] | null
+	instructions: RecipeDraftInstruction[] | null
+	tags: string[] | null
 }
 
 export type RecipeInstruction = typeof recipeInstruction.$inferSelect

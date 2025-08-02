@@ -34,7 +34,8 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
         description: data.description,
         imageUrl: data.imageUrl,
         servings: data.servings,
-        instructions: data.instructions
+        instructions: data.instructions,
+        tags: data.tags
       })
       .where(and(eq(recipeDraft.id, draftId), eq(recipeDraft.userId, userId)))
     return json({ success: true })

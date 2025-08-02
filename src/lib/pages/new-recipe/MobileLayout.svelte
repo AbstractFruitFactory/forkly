@@ -26,7 +26,7 @@
 			ingredients: {
 				id: string
 				name?: string
-				quantity?: { text: string; numeric?: number }
+				quantity?: string
 				unit?: string
 			}[]
 			text?: string
@@ -117,7 +117,7 @@
 											ingredientItem.id,
 											item.id,
 											ingredientItem.name,
-											ingredientItem.quantity?.text,
+											ingredientItem.quantity,
 											ingredientItem.unit
 										)}
 									{/if}
