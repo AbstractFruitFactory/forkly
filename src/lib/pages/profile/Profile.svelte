@@ -1,3 +1,22 @@
+<script lang="ts" module>
+	type Draft = {
+		id: string
+		title: string
+		description?: string
+		imageUrl?: string
+		instructions: DetailedRecipe['instructions']
+		tags: string[]
+		servings: number
+		nutrition?: {
+			calories: number
+			protein: number
+			carbs: number
+			fat: number
+		},
+		createdAt: string
+	}
+</script>
+
 <script lang="ts">
 	import Button from '$lib/components/button/Button.svelte'
 	import RecipeGrid from '$lib/components/recipe-grid/RecipeGrid.svelte'
@@ -32,7 +51,7 @@
 		initialTab?: string
 		onLogout?: () => void
 		isOwner?: boolean
-		drafts?: Promise<any[]>
+		drafts?: Promise<Draft[]>
 		errors?: { path: string; message: string }[]
 	} = $props()
 
@@ -101,12 +120,12 @@
 		editPopupOpen = true
 	}
 
-	function openEditDraftPopup(draft: any) {
+	function openEditDraftPopup(draft: Draft) {
 		draftToEdit = draft
 		editDraftPopupOpen = true
 	}
 
-	function openDeleteDraftPopup(draft: any) {
+	function openDeleteDraftPopup(draft: Draft) {
 		draftToDelete = draft
 		deleteDraftPopupOpen = true
 	}
