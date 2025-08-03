@@ -18,22 +18,26 @@
 	import type { RecipeDraft } from '$lib/server/db/schema'
 
 	let {
-		user,
-		createdRecipes = Promise.resolve([]),
-		collections = Promise.resolve([]),
+		userData,
 		initialTab,
 		onLogout,
 		isOwner,
-		drafts = Promise.resolve([]),
 		errors
 	}: {
-		user: Promise<User>
-		createdRecipes?: Promise<DetailedRecipe[]>
-		collections?: Promise<{ name: string; count: number }[]>
+		userData:
+			| {
+					type: 'loading'
+			  }
+			| {
+					type: 'loaded'
+					profileUser: User
+					recipes: DetailedRecipe[]
+					collections: { name: string; count: number }[]
+					drafts: RecipeDraft[]
+			  }
 		initialTab?: string
 		onLogout?: () => void
 		isOwner?: boolean
-		drafts?: Promise<RecipeDraft[]>
 		errors?: { path: string; message: string }[]
 	} = $props()
 
@@ -149,44 +153,46 @@
 
 {#snippet avatar()}
 	<div class="avatar-container">
-		{#await user}
+		{#if userData.type === 'loading'}
 			<Skeleton width="120px" height="120px" round />
-		{:then user}
-			<div
-				class="avatar {user.avatarUrl ? 'avatar-image' : 'avatar-placeholder'}"
-				style={user.avatarUrl ? `background: url(${user.avatarUrl}) center/cover` : ''}
-			>
-				{#if !user.avatarUrl}
-					<span class="avatar-initial">{user.username[0].toUpperCase()}</span>
-				{/if}
-			</div>
-			{#if isOwner}
-				<input
-					type="file"
-					accept="image/*"
-					class="hidden-input"
-					bind:this={avatarInput}
-					onchange={handleAvatarChange}
-				/>
-				<button
-					class="avatar-edit-icon"
-					onclick={() => avatarInput.click()}
-					aria-label="Edit avatar"
+		{:else}
+			{#await userData.profileUser then user}
+				<div
+					class="avatar {user.avatarUrl ? 'avatar-image' : 'avatar-placeholder'}"
+					style={user.avatarUrl ? `background: url(${user.avatarUrl}) center/cover` : ''}
 				>
-					<svg
-						width="24"
-						height="24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						viewBox="0 0 24 24"
-						><path
-							d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 1 1 2.828 2.828L11.828 15.828a4 4 0 0 1-1.414.94l-4.243 1.415 1.415-4.243a4 4 0 0 1 .94-1.414z"
-						/></svg
+					{#if !user.avatarUrl}
+						<span class="avatar-initial">{user.username[0].toUpperCase()}</span>
+					{/if}
+				</div>
+				{#if isOwner}
+					<input
+						type="file"
+						accept="image/*"
+						class="hidden-input"
+						bind:this={avatarInput}
+						onchange={handleAvatarChange}
+					/>
+					<button
+						class="avatar-edit-icon"
+						onclick={() => avatarInput.click()}
+						aria-label="Edit avatar"
 					>
-				</button>
-			{/if}
-		{/await}
+						<svg
+							width="24"
+							height="24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							viewBox="0 0 24 24"
+							><path
+								d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 1 1 2.828 2.828L11.828 15.828a4 4 0 0 1-1.414.94l-4.243 1.415 1.415-4.243a4 4 0 0 1 .94-1.414z"
+							/></svg
+						>
+					</button>
+				{/if}
+			{/await}
+		{/if}
 	</div>
 {/snippet}
 
@@ -194,11 +200,13 @@
 	<div class="profile-title-block">
 		<div class="profile-title-row">
 			<h1>
-				{#await user}
+				{#if userData.type === 'loading'}
 					<Skeleton width="100px" height="24px" />
-				{:then user}
-					{user.username}
-				{/await}
+				{:else}
+					{#await userData.profileUser then user}
+						{user.username}
+					{/await}
+				{/if}
 			</h1>
 		</div>
 	</div>
@@ -207,11 +215,13 @@
 {#snippet email()}
 	{#if isOwner}
 		<div class="profile-email">
-			{#await user}
+			{#if userData.type === 'loading'}
 				<Skeleton width="100px" height="24px" />
-			{:then user}
-				{(user as PrivateUser).email}
-			{/await}
+			{:else}
+				{#await userData.profileUser then user}
+					{(user as PrivateUser).email}
+				{/await}
+			{/if}
 		</div>
 	{/if}
 {/snippet}
@@ -230,22 +240,26 @@
 		<div class="profile-info-row">
 			<div class="profile-info-label">Username</div>
 			<div class="profile-info-value">
-				{#await user}
+				{#if userData.type === 'loading'}
 					<Skeleton width="100px" height="24px" />
-				{:then user}
-					{user.username}
-				{/await}
+				{:else}
+					{#await userData.profileUser then user}
+						{user.username}
+					{/await}
+				{/if}
 			</div>
 		</div>
 		{#if isOwner}
 			<div class="profile-info-row">
 				<div class="profile-info-label">Email</div>
 				<div class="profile-info-value">
-					{#await user}
+					{#if userData.type === 'loading'}
 						<Skeleton width="100px" height="24px" />
-					{:then user}
-						{(user as PrivateUser).email}
-					{/await}
+					{:else}
+						{#await userData.profileUser then user}
+							{(user as PrivateUser).email}
+						{/await}
+					{/if}
 				</div>
 			</div>
 		{/if}
@@ -253,55 +267,67 @@
 {/snippet}
 
 {#snippet _createdRecipes()}
-	<RecipeGrid
-		recipes={createdRecipes}
-		emptyMessage="No recipes created yet!"
-		useAnimation={false}
-		menuOptions={isOwner ? getMenuOptions : undefined}
-	/>
+	{#if userData.type === 'loading'}
+		<div class="empty-message">Loading...</div>
+	{:else}
+		<RecipeGrid
+			recipes={Promise.resolve(userData.recipes)}
+			emptyMessage="No recipes created yet!"
+			useAnimation={false}
+			menuOptions={isOwner ? getMenuOptions : undefined}
+		/>
+	{/if}
 {/snippet}
 
 {#snippet _savedRecipes()}
 	{#if isOwner}
-		{#await collections then collections}
-			<CardGrid
-				items={collections.map((collection) => ({
-					...collection,
-					id: collection.name
-				}))}
-				useAnimation={false}
-				emptyMessage="You haven't saved any collections yet."
-			>
-				{#snippet item(item)}
-					<CollectionCard name={item.name} count={item.count} />
-				{/snippet}
-			</CardGrid>
-		{/await}
+		{#if userData.type === 'loading'}
+			<div class="empty-message">Loading...</div>
+		{:else}
+			{#await userData.collections then collections}
+				<CardGrid
+					items={collections.map((collection) => ({
+						...collection,
+						id: collection.name
+					}))}
+					useAnimation={false}
+					emptyMessage="You haven't saved any collections yet."
+				>
+					{#snippet item(item)}
+						<CollectionCard name={item.name} count={item.count} />
+					{/snippet}
+				</CardGrid>
+			{/await}
+		{/if}
 	{/if}
 {/snippet}
 
 {#snippet _drafts()}
-	{#await drafts then draftsList}
-		{#if draftsList.length === 0}
-			<div class="empty-message">No drafts yet!</div>
-		{:else}
-			<div class="drafts-list">
-				{#each draftsList as draft}
-					<div class="draft-card card">
-						<div class="draft-title">{draft.title || 'Untitled draft'}</div>
-						<div class="draft-meta">Created: {new Date(draft.createdAt).toLocaleString()}</div>
-						<div class="draft-description">{draft.description}</div>
-						<Button variant="border" size="sm" onclick={() => openEditDraftPopup(draft)}
-							>Edit</Button
-						>
-						<Button variant="border" size="sm" onclick={() => openDeleteDraftPopup(draft)}
-							>Delete</Button
-						>
-					</div>
-				{/each}
-			</div>
-		{/if}
-	{/await}
+	{#if userData.type === 'loading'}
+		<div class="empty-message">Loading...</div>
+	{:else}
+		{#await userData.drafts then draftsList}
+			{#if draftsList.length === 0}
+				<div class="empty-message">No drafts yet!</div>
+			{:else}
+				<div class="drafts-list">
+					{#each draftsList as draft}
+						<div class="draft-card card">
+							<div class="draft-title">{draft.title || 'Untitled draft'}</div>
+							<div class="draft-meta">Created: {new Date(draft.createdAt).toLocaleString()}</div>
+							<div class="draft-description">{draft.description}</div>
+							<Button variant="border" size="sm" onclick={() => openEditDraftPopup(draft)}
+								>Edit</Button
+							>
+							<Button variant="border" size="sm" onclick={() => openDeleteDraftPopup(draft)}
+								>Delete</Button
+							>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		{/await}
+	{/if}
 {/snippet}
 
 <Popup

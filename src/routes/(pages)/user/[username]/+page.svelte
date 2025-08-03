@@ -3,8 +3,11 @@
 	import Profile from '$lib/pages/profile/Profile.svelte'
 	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
 	import { fly } from 'svelte/transition'
+	import { getUserProfile } from './data.remote'
 
-	let { data, form } = $props()
+	let { params, data } = $props()
+
+	const profileData = getUserProfile({ username: params.username, tab: data.initialTab })
 
 	async function handleLogout() {
 		const response = await fetch('/logout', {
@@ -21,14 +24,15 @@
 </script>
 
 <div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
-	<Profile
-		user={Promise.resolve(form?.user ?? data.profileUser!)}
-		createdRecipes={Promise.resolve(data.recipes)}
-		collections={Promise.resolve(data.collections)}
-		onLogout={data.isOwner ? handleLogout : undefined}
-		initialTab={data.initialTab}
-		isOwner={data.isOwner}
-		drafts={Promise.resolve(data.drafts)}
-		errors={form?.errors}
-	/>
+	{#await profileData}
+		<Profile userData={{ type: 'loading' }} isOwner={data.isOwner} />
+	{:then profileData}
+		<Profile
+			userData={{ type: 'loaded', ...profileData }}
+			onLogout={data.isOwner ? handleLogout : undefined}
+			initialTab={profileData.initialTab}
+			isOwner={data.isOwner}
+			errors={undefined}
+		/>
+	{/await}
 </div>
