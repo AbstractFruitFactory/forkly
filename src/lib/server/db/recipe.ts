@@ -1,9 +1,10 @@
 import { db } from '.'
-import { recipe, recipeLike, recipeInstruction, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag, tag, recipeDraft } from './schema'
+import { recipe, recipeLike, recipeInstruction, recipeIngredient, ingredient, recipeNutrition, user, recipeBookmark, recipeTag, tag, recipeDraft, recipeComment } from './schema'
 import { eq, ilike, desc, sql, and, SQL, or, asc } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 import { generateId } from '$lib/server/id'
 import { parseQuantityToNumber } from '$lib/utils/unitConversion'
+import { getCommentCount } from './recipe-comments'
 
 function escapeSqlString(str: string): string {
   return str.replace(/'/g, "''")
@@ -40,6 +41,7 @@ export type DetailedRecipe = {
   createdAt: Date
   likes: number
   bookmarks: number
+  comments: number
   servings: number
   ingredients: Array<{
     id: string
@@ -214,6 +216,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
         createdAt: recipe.createdAt,
         servings: recipe.servings,
         likes: sql<number>`count(DISTINCT ${recipeLike.userId})::int`,
+        comments: sql<number>`count(DISTINCT ${recipeComment.id})::int`,
         nutrition: sql<{ calories: number, protein: number, carbs: number, fat: number }>`json_build_object(
           'calories', ${recipeNutrition.calories},
           'protein', ${recipeNutrition.protein},
@@ -228,6 +231,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
       .from(recipe)
       .leftJoin(user, eq(recipe.userId, user.id))
       .leftJoin(recipeLike, eq(recipe.id, recipeLike.recipeId))
+      .leftJoin(recipeComment, eq(recipe.id, recipeComment.recipeId))
       .leftJoin(recipeNutrition, eq(recipe.id, recipeNutrition.recipeId))
       .leftJoin(recipeTag, eq(recipe.id, recipeTag.recipeId))
 
@@ -810,6 +814,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     .from(recipeLike)
     .where(eq(recipeLike.recipeId, recipeId))
 
+  const comments = await getCommentCount(recipeId)
+
   // Add ingredients to instructions
   const instructionsWithIngredients = instructions.map(instruction => ({
     ...instruction,
@@ -830,7 +836,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     isSaved,
     likes: likes.length,
     user: foundRecipe.user,
-    tags: tags
+    tags: tags,
+    comments: comments
   }
   const transformed = nullToUndefined(result)
   if (

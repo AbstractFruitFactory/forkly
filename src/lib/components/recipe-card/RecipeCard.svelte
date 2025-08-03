@@ -4,6 +4,7 @@
 	import Carrot from 'lucide-svelte/icons/carrot'
 	import List from 'lucide-svelte/icons/list'
 	import Heart from 'lucide-svelte/icons/heart'
+	import MessageSquare from 'lucide-svelte/icons/message-square'
 	import Pill from '$lib/components/pill/Pill.svelte'
 	import ProfilePic from '$lib/components/profile-pic/ProfilePic.svelte'
 	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
@@ -158,18 +159,26 @@
 				</span>
 			{:else if recipe}
 				<span class="meta-content">
-					<span class="meta-item">
-						<Carrot size={16} />
-						{recipe.ingredients.length}
-					</span>
-					<span class="meta-item">
-						<List size={16} />
-						{recipe.instructions.length}
-					</span>
-					<span class="meta-item likes">
-						<Heart size={16} />
-						{formatNumberShort(recipe.likes)}
-					</span>
+					<div class="meta-item-group">
+						<span class="meta-item">
+							<Carrot size={16} />
+							{recipe.ingredients.length}
+						</span>
+						<span class="meta-item">
+							<List size={16} />
+							{recipe.instructions.length}
+						</span>
+					</div>
+					<div class="meta-item-group">
+						<span class="meta-item">
+							<MessageSquare size={16} />
+							{formatNumberShort(recipe.comments)}
+						</span>
+						<span class="meta-item">
+							<Heart size={16} />
+							{formatNumberShort(recipe.likes)}
+						</span>
+					</div>
 				</span>
 			{/if}
 		</div>
@@ -417,8 +426,10 @@
 		gap: var(--spacing-xs);
 	}
 
-	.meta-item.likes {
-		margin-left: auto;
+	.meta-item-group {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
 	}
 
 	.separator {
