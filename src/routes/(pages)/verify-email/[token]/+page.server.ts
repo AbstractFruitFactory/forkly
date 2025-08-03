@@ -1,13 +1,12 @@
-import { redirect } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { db } from '$lib/server/db'
 import * as table from '$lib/server/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import * as auth from '$lib/server/auth'
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
     const { token } = params
-    if (!token) return { verification: Promise.resolve({ success: false, message: 'Invalid verification link.' }) }
+    if (!token) return { verification: { success: false, message: 'Invalid verification link.' } }
 
     const verification = await db
         .select()
