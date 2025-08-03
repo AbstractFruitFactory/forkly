@@ -4,10 +4,12 @@
 	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
 	import { fly } from 'svelte/transition'
 	import { getUserProfile } from './data.remote'
+	import { page } from '$app/state'
 
-	let { params, data } = $props()
+	let { params } = $props()
 
-	const profileData = getUserProfile({ username: params.username, tab: data.initialTab })
+	const tab = $derived(page.url.searchParams.get('tab') ?? undefined)
+	const profileData = $derived(getUserProfile({ username: params.username, tab }))
 
 	async function handleLogout() {
 		const response = await fetch('/logout', {
@@ -23,15 +25,16 @@
 	}
 </script>
 
-<div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
+<div in:fly={FLY_LEFT_IN} out:fly={FLY_LEFT_OUT}>
 	{#await profileData}
-		<Profile userData={{ type: 'loading' }} isOwner={data.isOwner} />
-	{:then profileData}
+		<Profile userData={{ type: 'loading' }} isOwner={false} username={params.username} />
+	{:then data}
 		<Profile
-			userData={{ type: 'loaded', ...profileData }}
-			onLogout={data.isOwner ? handleLogout : undefined}
-			initialTab={profileData.initialTab}
-			isOwner={data.isOwner}
+			username={params.username}
+			userData={{ type: 'loaded', ...data }}
+			onLogout={data.currentUser ? handleLogout : undefined}
+			initialTab={data.initialTab}
+			isOwner={!!(data.currentUser && data.currentUser.username === params.username)}
 			errors={undefined}
 		/>
 	{/await}

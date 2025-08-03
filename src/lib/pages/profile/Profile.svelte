@@ -18,12 +18,14 @@
 	import type { RecipeDraft } from '$lib/server/db/schema'
 
 	let {
+		username,
 		userData,
 		initialTab,
 		onLogout,
 		isOwner,
 		errors
 	}: {
+		username: string
 		userData:
 			| {
 					type: 'loading'
@@ -156,42 +158,42 @@
 		{#if userData.type === 'loading'}
 			<Skeleton width="120px" height="120px" round />
 		{:else}
-			{#await userData.profileUser then user}
-				<div
-					class="avatar {user.avatarUrl ? 'avatar-image' : 'avatar-placeholder'}"
-					style={user.avatarUrl ? `background: url(${user.avatarUrl}) center/cover` : ''}
-				>
-					{#if !user.avatarUrl}
-						<span class="avatar-initial">{user.username[0].toUpperCase()}</span>
-					{/if}
-				</div>
-				{#if isOwner}
-					<input
-						type="file"
-						accept="image/*"
-						class="hidden-input"
-						bind:this={avatarInput}
-						onchange={handleAvatarChange}
-					/>
-					<button
-						class="avatar-edit-icon"
-						onclick={() => avatarInput.click()}
-						aria-label="Edit avatar"
-					>
-						<svg
-							width="24"
-							height="24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							viewBox="0 0 24 24"
-							><path
-								d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 1 1 2.828 2.828L11.828 15.828a4 4 0 0 1-1.414.94l-4.243 1.415 1.415-4.243a4 4 0 0 1 .94-1.414z"
-							/></svg
-						>
-					</button>
+			<div
+				class="avatar {userData.profileUser.avatarUrl ? 'avatar-image' : 'avatar-placeholder'}"
+				style={userData.profileUser.avatarUrl
+					? `background: url(${userData.profileUser.avatarUrl}) center/cover`
+					: ''}
+			>
+				{#if !userData.profileUser.avatarUrl}
+					<span class="avatar-initial">{username[0].toUpperCase()}</span>
 				{/if}
-			{/await}
+			</div>
+			{#if isOwner}
+				<input
+					type="file"
+					accept="image/*"
+					class="hidden-input"
+					bind:this={avatarInput}
+					onchange={handleAvatarChange}
+				/>
+				<button
+					class="avatar-edit-icon"
+					onclick={() => avatarInput.click()}
+					aria-label="Edit avatar"
+				>
+					<svg
+						width="24"
+						height="24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24"
+						><path
+							d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 1 1 2.828 2.828L11.828 15.828a4 4 0 0 1-1.414.94l-4.243 1.415 1.415-4.243a4 4 0 0 1 .94-1.414z"
+						/></svg
+					>
+				</button>
+			{/if}
 		{/if}
 	</div>
 {/snippet}
@@ -200,13 +202,7 @@
 	<div class="profile-title-block">
 		<div class="profile-title-row">
 			<h1>
-				{#if userData.type === 'loading'}
-					<Skeleton width="100px" height="24px" />
-				{:else}
-					{#await userData.profileUser then user}
-						{user.username}
-					{/await}
-				{/if}
+				{username}
 			</h1>
 		</div>
 	</div>
@@ -218,9 +214,7 @@
 			{#if userData.type === 'loading'}
 				<Skeleton width="100px" height="24px" />
 			{:else}
-				{#await userData.profileUser then user}
-					{(user as PrivateUser).email}
-				{/await}
+				{(userData.profileUser as PrivateUser).email}
 			{/if}
 		</div>
 	{/if}
@@ -243,9 +237,7 @@
 				{#if userData.type === 'loading'}
 					<Skeleton width="100px" height="24px" />
 				{:else}
-					{#await userData.profileUser then user}
-						{user.username}
-					{/await}
+					{username}
 				{/if}
 			</div>
 		</div>
@@ -256,9 +248,7 @@
 					{#if userData.type === 'loading'}
 						<Skeleton width="100px" height="24px" />
 					{:else}
-						{#await userData.profileUser then user}
-							{(user as PrivateUser).email}
-						{/await}
+						{(userData.profileUser as PrivateUser).email}
 					{/if}
 				</div>
 			</div>
@@ -284,20 +274,18 @@
 		{#if userData.type === 'loading'}
 			<div class="empty-message">Loading...</div>
 		{:else}
-			{#await userData.collections then collections}
-				<CardGrid
-					items={collections.map((collection) => ({
-						...collection,
-						id: collection.name
-					}))}
-					useAnimation={false}
-					emptyMessage="You haven't saved any collections yet."
-				>
-					{#snippet item(item)}
-						<CollectionCard name={item.name} count={item.count} />
-					{/snippet}
-				</CardGrid>
-			{/await}
+			<CardGrid
+				items={userData.collections.map((collection) => ({
+					...collection,
+					id: collection.name
+				}))}
+				useAnimation={false}
+				emptyMessage="You haven't saved any collections yet."
+			>
+				{#snippet item(item)}
+					<CollectionCard name={item.name} count={item.count} />
+				{/snippet}
+			</CardGrid>
 		{/if}
 	{/if}
 {/snippet}
@@ -305,28 +293,22 @@
 {#snippet _drafts()}
 	{#if userData.type === 'loading'}
 		<div class="empty-message">Loading...</div>
+	{:else if userData.drafts.length === 0}
+		<div class="empty-message">No drafts yet!</div>
 	{:else}
-		{#await userData.drafts then draftsList}
-			{#if draftsList.length === 0}
-				<div class="empty-message">No drafts yet!</div>
-			{:else}
-				<div class="drafts-list">
-					{#each draftsList as draft}
-						<div class="draft-card card">
-							<div class="draft-title">{draft.title || 'Untitled draft'}</div>
-							<div class="draft-meta">Created: {new Date(draft.createdAt).toLocaleString()}</div>
-							<div class="draft-description">{draft.description}</div>
-							<Button variant="border" size="sm" onclick={() => openEditDraftPopup(draft)}
-								>Edit</Button
-							>
-							<Button variant="border" size="sm" onclick={() => openDeleteDraftPopup(draft)}
-								>Delete</Button
-							>
-						</div>
-					{/each}
+		<div class="drafts-list">
+			{#each userData.drafts as draft}
+				<div class="draft-card card">
+					<div class="draft-title">{draft.title || 'Untitled draft'}</div>
+					<div class="draft-meta">Created: {new Date(draft.createdAt).toLocaleString()}</div>
+					<div class="draft-description">{draft.description}</div>
+					<Button variant="border" size="sm" onclick={() => openEditDraftPopup(draft)}>Edit</Button>
+					<Button variant="border" size="sm" onclick={() => openDeleteDraftPopup(draft)}
+						>Delete</Button
+					>
 				</div>
-			{/if}
-		{/await}
+			{/each}
+		</div>
 	{/if}
 {/snippet}
 
