@@ -357,6 +357,7 @@
 			}}
 			onSearchTags={searchTags}
 			onSearchIngredients={searchIngredients}
+			isLoggedIn={Promise.resolve(true)}
 			{errors}
 		/>
 	{/if}
@@ -390,6 +391,7 @@
 			}}
 			onSearchTags={searchTags}
 			onSearchIngredients={searchIngredients}
+			isLoggedIn={Promise.resolve(true)}
 			{errors}
 		/>
 	{/if}
