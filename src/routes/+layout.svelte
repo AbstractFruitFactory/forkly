@@ -66,8 +66,14 @@
 	import { afterNavigate } from '$app/navigation'
 	import { scrollStore } from '$lib/state/scroll.svelte'
 	import gsap from 'gsap'
+	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit'
+	import { injectAnalytics } from '@vercel/analytics/sveltekit'
+	import { dev } from '$app/environment'
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props()
+
+	injectSpeedInsights()
+	injectAnalytics({ mode: dev ? 'development' : 'production' })
 
 	const slots = initSlots()
 
