@@ -8,7 +8,7 @@
 		<header class="about-header">
 			<h1 class="about-title">About Forkly</h1>
 			<p class="about-tagline">
-				Forkly is a simple, modern way to share and discover recipes — no clutter, no annoying ads or banners, just food.
+				Forkly is a simple, modern way to share and discover recipes. No clutter, no annoying ads or banners, just food.
 			</p>
 		</header>
 
@@ -27,24 +27,23 @@
 		<section class="about-section">
 			<h2 class="section-title">👋 Built by a developer who loves food</h2>
 			<p class="section-text">
-				Hi, I'm Alex — a software engineer who got tired of jumping through hoops to share a simple
-				pasta recipe.
+				Hi, I'm Alex! I'm a software engineer who's passionate about food, community and building delightful web experiences.
 			</p>
 			<p class="section-text">I wanted a space where:</p>
 			<ul class="feature-list">
-				<li>You can post a recipe without friction.</li>
+				<li>You can post and share your own recipe without friction.</li>
 				<li>Finding recipes you want to cook is easy.</li>
 				<li>People can browse, search, and cook without distractions.</li>
 			</ul>
 			<p class="section-text">
-				That's what Forkly is. It's minimal on purpose — focused on the essentials, and always
+				That's what Forkly is. It's minimal on purpose. It's focused on the essentials, and always
 				improving.
 			</p>
 		</section>
 
 		<section class="about-section">
 			<h2 class="section-title">💡 What's next?</h2>
-			<p class="section-text">Forkly is still evolving. Features on the way:</p>
+			<p class="section-text">It's early in the journey, but here's some of what's coming:</p>
 			<ul class="feature-list">
 				<li>Cooking timers for recipe steps</li>
 				<li>Meal planning and grocery lists</li>
@@ -62,7 +61,7 @@
 			<h2 class="section-title">
 				🍽️ Forkly is for the home cook, the food nerd, and everyone in between.
 			</h2>
-			<p class="section-text">Thanks for being here. Let's make cooking — and sharing — easier.</p>
+			<p class="section-text">Thanks for being here. Let's make cooking easier for everyone.</p>
 		</section>
 
 		<section class="about-section">
