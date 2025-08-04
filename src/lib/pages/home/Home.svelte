@@ -667,7 +667,7 @@
 	}
 
 	.recipe-grid {
-		padding-top: var(--spacing-sm);
+		padding-top: var(--spacing-md);
 		position: relative;
 	}
 
