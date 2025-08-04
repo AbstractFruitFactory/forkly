@@ -7,23 +7,28 @@
 	import { safeFetch } from '$lib/utils/fetch'
 	import { fly } from 'svelte/transition'
 	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
+	import { isLoggedIn } from './data.remote'
 
-	let { form, data } = $props()
+	let { form } = $props()
 
 	let searchTimeout: ReturnType<typeof setTimeout>
 	let tagSearchTimeout: ReturnType<typeof setTimeout>
 
-	const handleSearchIngredients = async (query: string): Promise<{ id: string; name: string }[]> => {
+	const handleSearchIngredients = async (
+		query: string
+	): Promise<{ id: string; name: string }[]> => {
 		clearTimeout(searchTimeout)
 
 		return new Promise((resolve) => {
 			searchTimeout = setTimeout(async () => {
 				const response = await safeFetch<IngredientSearchResult>()(`/ingredients/search/${query}`)
 				if (response.isOk()) {
-					resolve(response.value.map(ingredient => ({
-						id: ingredient.id.toString(),
-						name: ingredient.name
-					})))
+					resolve(
+						response.value.map((ingredient) => ({
+							id: ingredient.id.toString(),
+							name: ingredient.name
+						}))
+					)
 				} else {
 					console.error('Failed to fetch ingredients:', response.error)
 					resolve([])
@@ -73,7 +78,7 @@
 			onSearchTags={handleSearchTags}
 			{unitSystem}
 			onUnitChange={handleUnitChange}
-			isLoggedIn={data.isLoggedIn}
+			isLoggedIn={isLoggedIn()}
 		/>
 	</div>
 {/if}

@@ -227,7 +227,7 @@
 
 	let resolveRecipePopup: (value: void) => void
 
-	let recipeModalData = $state<ComponentProps<typeof RecipePopup>['data']>()
+	let recipeModalId = $state<string>()
 	let animateFromElement = $state<HTMLElement | null>(null)
 	let recipePopup: RecipePopup
 
@@ -240,14 +240,9 @@
 		animateFromElement = clickedElement
 
 		const href = `/recipe/${recipe.id}`
-		const result = await preloadData(href)
 
-		if (result.type === 'loaded' && result.status === 200) {
-			recipeModalData = result.data as any
-			pushState(href, { recipeModal: true })
-		} else {
-			goto(href)
-		}
+		recipeModalId = recipe.id
+		pushState(href, { recipeModal: true })
 
 		const { promise, resolve } = Promise.withResolvers<void>()
 
@@ -421,7 +416,7 @@
 
 <RecipePopup
 	bind:this={recipePopup}
-	data={recipeModalData}
+	id={recipeModalId!}
 	onClose={closePopup}
 	animateFrom={animateFromElement}
 />

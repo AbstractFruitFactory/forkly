@@ -331,7 +331,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
           if (ingredientMap.has(key)) {
             const addQty = typeof numericQuantity === 'number' ? numericQuantity : 0
             const prevQty = ingredientMap.get(key)!.quantity?.numeric ?? 0
-            ingredientMap.get(key)!.quantity = { numeric: prevQty + addQty }
+            ingredientMap.get(key)!.quantity = { text: '', numeric: prevQty + addQty }
           } else {
             ingredientMap.set(key, {
               id: ingr.id,
@@ -678,7 +678,7 @@ export async function getHomePageRecipes(
  * @param userId Optional user ID to check if the recipe is liked/bookmarked by the user
  * @returns The recipe with all its details
  */
-export async function getRecipeWithDetails(recipeId: string, userId?: string) {
+export async function getRecipeWithDetails(recipeId: string, userId?: string): Promise<DetailedRecipe | null> {
   const recipes = await db.select({
     id: recipe.id,
     title: recipe.title,
@@ -736,7 +736,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
   const ingredientsByInstruction = new Map<string, Array<{
     id: string
     name: string
-    quantity: { text?: string, numeric?: number }
+    quantity: { text: string, numeric?: number }
     measurement: string
     displayName: string
   }>>()
@@ -748,7 +748,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     ingredientsByInstruction.get(instructionId)!.push({
       id: ingr.id,
       name: ingr.name,
-      quantity: { text: quantity ?? undefined, numeric: numericQuantity ?? undefined },
+      quantity: { text: quantity ?? '', numeric: numericQuantity ?? undefined },
       measurement: measurement || '',
       displayName: displayName
     })
@@ -758,7 +758,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
   const ingredientMap = new Map<string, {
     id: string
     name: string
-    quantity: { text?: string, numeric?: number }
+    quantity: { text: string, numeric?: number }
     measurement: string
     displayName: string
   }>()
@@ -768,12 +768,12 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     if (ingredientMap.has(key)) {
       const addQty = typeof numericQuantity === 'number' ? numericQuantity : 0
       const prevQty = ingredientMap.get(key)!.quantity?.numeric ?? 0
-      ingredientMap.get(key)!.quantity = { numeric: prevQty + addQty }
+      ingredientMap.get(key)!.quantity = { text: '', numeric: prevQty + addQty }
     } else {
       ingredientMap.set(key, {
         id: ingr.id,
         name: ingr.name,
-        quantity: { text: quantity ?? undefined, numeric: numericQuantity ?? undefined },
+        quantity: { text: quantity ?? '', numeric: numericQuantity ?? undefined },
         measurement: measurement || '',
         displayName: displayName
       })
@@ -814,6 +814,11 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     .from(recipeLike)
     .where(eq(recipeLike.recipeId, recipeId))
 
+  const bookmarks = await db
+    .select()
+    .from(recipeBookmark)
+    .where(eq(recipeBookmark.recipeId, recipeId))
+
   const comments = await getCommentCount(recipeId)
 
   // Add ingredients to instructions
@@ -835,6 +840,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string) {
     isLiked,
     isSaved,
     likes: likes.length,
+    bookmarks: bookmarks.length,
     user: foundRecipe.user,
     tags: tags,
     comments: comments

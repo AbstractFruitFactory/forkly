@@ -22,33 +22,34 @@
 		userData,
 		initialTab,
 		onLogout,
-		isOwner,
 		errors
 	}: {
 		username: string
-		userData:
-			| {
-					type: 'loading'
-			  }
-			| {
-					type: 'loaded'
-					profileUser: User
-					recipes: DetailedRecipe[]
-					collections: { name: string; count: number }[]
-					drafts: RecipeDraft[]
-			  }
+		userData: Promise<{
+			isOwner: boolean
+			profileUser: User
+			recipes: DetailedRecipe[]
+			collections: { name: string; count: number }[]
+			drafts: RecipeDraft[]
+		}>
 		initialTab?: string
 		onLogout?: () => void
-		isOwner?: boolean
 		errors?: { path: string; message: string }[]
 	} = $props()
 
-	const tabOptions = isOwner
-		? ['Profile info', 'Created recipes', 'Saved recipes', 'Drafts']
-		: ['Profile info', 'Created recipes']
+	let tabOptions = $state(['Profile info', 'Created recipes'])
+
+	$effect(() => {
+		userData.then((data) => {
+			if (data.isOwner) {
+				tabOptions = ['Profile info', 'Created recipes', 'Saved recipes', 'Drafts']
+			}
+		})
+	})
+
 	let selectedTab = $state(initialTab)
 
-	function handleTabSelect(option: (typeof tabOptions)[number]) {
+	function handleTabSelect(option: Awaited<typeof tabOptions>[number]) {
 		selectedTab = option
 	}
 
@@ -143,9 +144,7 @@
 		return result.isOk() ? result.value : []
 	}
 
-	function getMenuOptions(recipe: DetailedRecipe) {
-		if (!isOwner) return {}
-
+	const getMenuOptions = (recipe: DetailedRecipe) => {
 		return {
 			Edit: () => openEditPopup(recipe),
 			Delete: () => openDeletePopup(recipe)
@@ -155,20 +154,20 @@
 
 {#snippet avatar()}
 	<div class="avatar-container">
-		{#if userData.type === 'loading'}
+		{#await userData}
 			<Skeleton width="120px" height="120px" round />
-		{:else}
+		{:then data}
 			<div
-				class="avatar {userData.profileUser.avatarUrl ? 'avatar-image' : 'avatar-placeholder'}"
-				style={userData.profileUser.avatarUrl
-					? `background: url(${userData.profileUser.avatarUrl}) center/cover`
+				class="avatar {data.profileUser.avatarUrl ? 'avatar-image' : 'avatar-placeholder'}"
+				style={data.profileUser.avatarUrl
+					? `background: url(${data.profileUser.avatarUrl}) center/cover`
 					: ''}
 			>
-				{#if !userData.profileUser.avatarUrl}
+				{#if !data.profileUser.avatarUrl}
 					<span class="avatar-initial">{username[0].toUpperCase()}</span>
 				{/if}
 			</div>
-			{#if isOwner}
+			{#if data.isOwner}
 				<input
 					type="file"
 					accept="image/*"
@@ -194,7 +193,7 @@
 					>
 				</button>
 			{/if}
-		{/if}
+		{/await}
 	</div>
 {/snippet}
 
@@ -209,24 +208,22 @@
 {/snippet}
 
 {#snippet email()}
-	{#if isOwner}
-		<div class="profile-email">
-			{#if userData.type === 'loading'}
-				<Skeleton width="100px" height="24px" />
-			{:else}
-				{(userData.profileUser as PrivateUser).email}
-			{/if}
-		</div>
-	{/if}
+	{#await userData}
+		<Skeleton width="100px" height="24px" />
+	{:then data}
+		{(data.profileUser as PrivateUser).email}
+	{/await}
 {/snippet}
 
 {#snippet signOut(fullWidth = false)}
-	{#if isOwner && onLogout}
-		<Button variant="border" color="neutral" size="sm" onclick={onLogout} {fullWidth}>
-			<LogOut size={16} />
-			Sign out
-		</Button>
-	{/if}
+	{#await userData then data}
+		{#if data.isOwner && onLogout}
+			<Button variant="border" color="neutral" size="sm" onclick={onLogout} {fullWidth}>
+				<LogOut size={16} />
+				Sign out
+			</Button>
+		{/if}
+	{/await}
 {/snippet}
 
 {#snippet profileInfo()}
@@ -234,48 +231,48 @@
 		<div class="profile-info-row">
 			<div class="profile-info-label">Username</div>
 			<div class="profile-info-value">
-				{#if userData.type === 'loading'}
+				{#await userData}
 					<Skeleton width="100px" height="24px" />
-				{:else}
+				{:then data}
 					{username}
-				{/if}
+				{/await}
 			</div>
 		</div>
-		{#if isOwner}
-			<div class="profile-info-row">
-				<div class="profile-info-label">Email</div>
-				<div class="profile-info-value">
-					{#if userData.type === 'loading'}
-						<Skeleton width="100px" height="24px" />
-					{:else}
-						{(userData.profileUser as PrivateUser).email}
-					{/if}
+		{#await userData then data}
+			{#if data.isOwner}
+				<div class="profile-info-row">
+					<div class="profile-info-label">Email</div>
+					<div class="profile-info-value">
+						{#await userData}
+							<Skeleton width="100px" height="24px" />
+						{:then data}
+							{(data.profileUser as PrivateUser).email}
+						{/await}
+					</div>
 				</div>
-			</div>
-		{/if}
+			{/if}
+		{/await}
 	</div>
 {/snippet}
 
 {#snippet _createdRecipes()}
-	{#if userData.type === 'loading'}
+	{#await userData}
 		<div class="empty-message">Loading...</div>
-	{:else}
+	{:then data}
 		<RecipeGrid
-			recipes={Promise.resolve(userData.recipes)}
+			recipes={Promise.resolve(data.recipes)}
 			emptyMessage="No recipes created yet!"
 			useAnimation={false}
-			menuOptions={isOwner ? getMenuOptions : undefined}
+			menuOptions={data.isOwner ? getMenuOptions : undefined}
 		/>
-	{/if}
+	{/await}
 {/snippet}
 
 {#snippet _savedRecipes()}
-	{#if isOwner}
-		{#if userData.type === 'loading'}
-			<div class="empty-message">Loading...</div>
-		{:else}
+	{#await userData then data}
+		{#if data.isOwner}
 			<CardGrid
-				items={userData.collections.map((collection) => ({
+				items={data.collections.map((collection) => ({
 					...collection,
 					id: collection.name
 				}))}
@@ -287,29 +284,33 @@
 				{/snippet}
 			</CardGrid>
 		{/if}
-	{/if}
+	{/await}
 {/snippet}
 
 {#snippet _drafts()}
-	{#if userData.type === 'loading'}
+	{#await userData}
 		<div class="empty-message">Loading...</div>
-	{:else if userData.drafts.length === 0}
-		<div class="empty-message">No drafts yet!</div>
-	{:else}
-		<div class="drafts-list">
-			{#each userData.drafts as draft}
-				<div class="draft-card card">
-					<div class="draft-title">{draft.title || 'Untitled draft'}</div>
-					<div class="draft-meta">Created: {new Date(draft.createdAt).toLocaleString()}</div>
-					<div class="draft-description">{draft.description}</div>
-					<Button variant="border" size="sm" onclick={() => openEditDraftPopup(draft)}>Edit</Button>
-					<Button variant="border" size="sm" onclick={() => openDeleteDraftPopup(draft)}
-						>Delete</Button
-					>
-				</div>
-			{/each}
-		</div>
-	{/if}
+	{:then data}
+		{#if data.drafts.length === 0}
+			<div class="empty-message">No drafts yet!</div>
+		{:else}
+			<div class="drafts-list">
+				{#each data.drafts as draft}
+					<div class="draft-card card">
+						<div class="draft-title">{draft.title || 'Untitled draft'}</div>
+						<div class="draft-meta">Created: {new Date(draft.createdAt).toLocaleString()}</div>
+						<div class="draft-description">{draft.description}</div>
+						<Button variant="border" size="sm" onclick={() => openEditDraftPopup(draft)}
+							>Edit</Button
+						>
+						<Button variant="border" size="sm" onclick={() => openDeleteDraftPopup(draft)}
+							>Delete</Button
+						>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	{/await}
 {/snippet}
 
 <Popup

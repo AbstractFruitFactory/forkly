@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit'
-import type { Actions, PageServerLoad } from './$types'
+import type { Actions } from './$types'
 import { safeFetch } from '$lib/utils/fetch'
 import { buildRecipePayloadFromForm, type RecipeApiResponse } from '$lib/server/utils/recipe-form'
 
@@ -82,9 +82,3 @@ export const actions = {
     redirect(302, `/user/${user.username}?tab=Drafts`)
   }
 } satisfies Actions
-
-export const load: PageServerLoad = async ({ locals }) => {
-  return {
-    isLoggedIn: !!locals.user
-  }
-} 

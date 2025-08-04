@@ -27,39 +27,40 @@
 	import { flip } from 'svelte/animate'
 
 	let {
-		recipe,
+		recipeData,
 		onLike,
 		onSave,
 		unitSystem,
 		onUnitChange,
-		collections,
-		isLoggedIn,
 		onCreateCollection,
 		onBackClick,
-		recipeComments = Promise.resolve({ comments: [], total: 0 }),
 		formError,
 		loadComments
 	}: {
-		recipe: Promise<DetailedRecipe>
+		recipeData: Promise<{
+			recipe: DetailedRecipe
+			comments: {
+				comments: CommentT[]
+				total: number
+			}
+			collections: string[]
+			isLoggedIn: boolean
+		}>
 		onLike?: () => void
 		onSave?: (collectionName?: string) => void
 		unitSystem: UnitSystem
 		onUnitChange: (system: UnitSystem) => void
-		collections: Promise<string[]>
-		isLoggedIn: boolean
 		onCreateCollection: (name: string) => Promise<void>
 		onBackClick?: () => void
-		recipeComments?: Promise<{
-			comments: CommentT[]
-			total: number
-		}>
 		formError?: string
 		loadComments: (pageNum: number) => Promise<{ comments: CommentT[]; total: number }>
 	} = $props()
 
-	let isLiked = $derived.by(() => recipe.then((r) => r.isLiked))
-	let isSaved = $derived.by(() => recipe.then((r) => r.isSaved))
-	let likes = $derived.by(() => recipe.then((r) => r.likes))
+	const isLoggedIn = $derived.by(() => recipeData.then((d) => d.isLoggedIn))
+
+	let isLiked = $derived.by(() => recipeData.then((d) => d.recipe.isLiked))
+	let isSaved = $derived.by(() => recipeData.then((d) => d.recipe.isSaved))
+	let likes = $derived.by(() => recipeData.then((d) => d.recipe.likes))
 	let isSharePopupOpen = $state(false)
 	let shareUrl = $state('')
 	let toastType = $state<'like' | 'save'>()
@@ -73,14 +74,14 @@
 	let totalComments = $state<number>(0)
 
 	$effect(() => {
-		recipeComments.then((r) => {
-			totalComments = r.total
+		recipeData.then((r) => {
+			totalComments = r.comments.total
 		})
 	})
 
 	$effect(() => {
-		collections.then((c) => {
-			localCollections = [...c]
+		recipeData.then((r) => {
+			localCollections = [...r.collections]
 		})
 	})
 
@@ -98,7 +99,8 @@
 	})
 
 	const handleLike = async () => {
-		if (!isLoggedIn) {
+		const loggedIn = await isLoggedIn
+		if (!loggedIn) {
 			toastType = 'like'
 			if (toastRef) toastRef.trigger()
 			return
@@ -112,7 +114,8 @@
 	}
 
 	const handleSave = async (collectionName?: string) => {
-		if (!isLoggedIn) {
+		const loggedIn = await isLoggedIn
+		if (!loggedIn) {
 			toastType = 'save'
 			if (toastRef) toastRef.trigger()
 			return
@@ -124,7 +127,8 @@
 	}
 
 	const handleSaveToCollections = async () => {
-		if (!isLoggedIn) {
+		const loggedIn = await isLoggedIn
+		if (!loggedIn) {
 			toastType = 'save'
 			if (toastRef) toastRef.trigger()
 			return
@@ -177,35 +181,35 @@
 	}
 
 	const singleServingNutrition = $derived(
-		recipe.then((r) => {
-			if (!r.nutrition) {
+		recipeData.then((r) => {
+			if (!r.recipe.nutrition) {
 				return undefined
 			}
 
-			const { calories, protein, carbs, fat } = r.nutrition
+			const { calories, protein, carbs, fat } = r.recipe.nutrition
 
 			if (calories === 0 && protein === 0 && carbs === 0 && fat === 0) {
 				return undefined
 			}
 
 			return {
-				calories: calories / r.servings,
-				protein: protein / r.servings,
-				carbs: carbs / r.servings,
-				fat: fat / r.servings
+				calories: calories / r.recipe.servings,
+				protein: protein / r.recipe.servings,
+				carbs: carbs / r.recipe.servings,
+				fat: fat / r.recipe.servings
 			}
 		})
 	)
 
-	const recipeTitle = $derived(recipe.then((r) => r.title))
+	const recipeTitle = $derived(recipeData.then((r) => r.recipe.title))
 </script>
 
 {#snippet commonImage()}
-	{#await recipe}
+	{#await recipeData}
 		<RecipeImagePlaceholder loading size="large" />
-	{:then recipe}
-		{#if recipe.imageUrl}
-			<img src={recipe.imageUrl} alt={recipe.title} />
+	{:then recipeData}
+		{#if recipeData.recipe.imageUrl}
+			<img src={recipeData.recipe.imageUrl} alt={recipeData.recipe.title} />
 		{:else}
 			<RecipeImagePlaceholder size="large" />
 		{/if}
@@ -213,11 +217,11 @@
 {/snippet}
 
 {#snippet tags()}
-	{#await recipe}
+	{#await recipeData}
 		<Skeleton />
-	{:then recipe}
-		{#if recipe.tags}
-			{#each recipe.tags as tag}
+	{:then recipeData}
+		{#if recipeData.recipe.tags}
+			{#each recipeData.recipe.tags as tag}
 				<Pill text={tag} color="var(--color-text-on-background)" />
 			{/each}
 		{/if}
@@ -225,29 +229,33 @@
 {/snippet}
 
 {#snippet title()}
-	{#await recipe}
+	{#await recipeData}
 		<Skeleton width="20rem" height="2rem" />
-	{:then recipe}
-		<h1>{recipe.title}</h1>
+	{:then recipeData}
+		<h1>{recipeData.recipe.title}</h1>
 	{/await}
 {/snippet}
 
 {#snippet actionButtons()}
-	{#await Promise.all([isLiked, isSaved, likes])}
+	{#await recipeData}
 		<FloatingLikeButton loading />
 		<FloatingSaveButton loading />
 		<FloatingShareButton loading />
-	{:then [isLiked, isSaved, likes]}
-		<FloatingLikeButton isActive={isLiked} count={likes} onClick={handleLike} />
+	{:then recipeData}
+		<FloatingLikeButton
+			isActive={recipeData.recipe.isLiked}
+			count={recipeData.recipe.likes}
+			onClick={handleLike}
+		/>
 		<FloatingSaveButton
-			isActive={isSaved}
+			isActive={recipeData.recipe.isSaved}
 			onClick={() => {
-				if (!isLoggedIn) {
+				if (!recipeData.isLoggedIn) {
 					handleSave()
 					return
 				}
 
-				if (isSaved) {
+				if (recipeData.recipe.isSaved) {
 					handleSave()
 				} else {
 					savePopupOpen = true
@@ -259,7 +267,7 @@
 {/snippet}
 
 {#snippet commonDescription(card: boolean)}
-	{#await recipe}
+	{#await recipeData}
 		<Description
 			description=""
 			username={undefined}
@@ -268,12 +276,12 @@
 			{card}
 			loading={true}
 		/>
-	{:then recipe}
+	{:then recipeData}
 		<Description
-			description={recipe.description || ''}
-			username={recipe.user?.username}
-			userId={recipe.userId}
-			profilePicUrl={recipe.user?.avatarUrl}
+			description={recipeData.recipe.description || ''}
+			username={recipeData.recipe.user?.username}
+			userId={recipeData.recipe.userId}
+			profilePicUrl={recipeData.recipe.user?.avatarUrl}
 			{card}
 		/>
 	{/await}
@@ -298,17 +306,17 @@
 	<div class="ingredients-section" bind:this={ingredientsSection}>
 		<div class="header">
 			<h3>Ingredients</h3>
-			{#await recipe then _}
+			{#await recipeData then _}
 				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 			{/await}
 		</div>
-		{#await recipe}
+		{#await recipeData}
 			<IngredientsList loading ingredients={[]} servings={0} originalServings={0} {unitSystem} />
-		{:then recipe}
+		{:then recipeData}
 			<IngredientsList
-				ingredients={recipe.ingredients}
-				servings={recipe.servings}
-				originalServings={recipe.servings}
+				ingredients={recipeData.recipe.ingredients}
+				servings={recipeData.recipe.servings}
+				originalServings={recipeData.recipe.servings}
 				{unitSystem}
 			/>
 		{/await}
@@ -320,10 +328,10 @@
 		<div class="header">
 			<h3 style="margin-bottom: 0;">Instructions</h3>
 		</div>
-		{#await recipe}
+		{#await recipeData}
 			<RecipeInstructions instructions={[]} loading />
-		{:then recipe}
-			<RecipeInstructions instructions={recipe.instructions} />
+		{:then recipeData}
+			<RecipeInstructions instructions={recipeData.recipe.instructions} />
 		{/await}
 	</div>
 {/snippet}
@@ -341,21 +349,21 @@
 				{/if}
 			</h3>
 		</div>
-		{#await Promise.all([recipe, recipeComments])}
+		{#await recipeData}
 			<CommentList
 				comments={[]}
-				{isLoggedIn}
+				isLoggedIn={false}
 				recipeId=""
 				{formError}
 				loading={true}
 				total={0}
 				loadComments={() => Promise.resolve({ comments: [], total: 0 })}
 			/>
-		{:then [recipe, res]}
+		{:then recipeData}
 			<CommentList
-				comments={res.comments}
-				{isLoggedIn}
-				recipeId={recipe.id}
+				comments={recipeData.comments.comments}
+				isLoggedIn={recipeData.isLoggedIn}
+				recipeId={recipeData.recipe.id}
 				{formError}
 				bind:total={totalComments}
 				{loadComments}
@@ -414,60 +422,64 @@
 	<SharePopup isOpen={isSharePopupOpen} onClose={toggleSharePopup} url={shareUrl} {title} />
 {/await}
 
-{#if isLoggedIn}
-	<Popup
-		isOpen={savePopupOpen}
-		title="Save recipe"
-		onClose={() => {
-			savePopupOpen = false
-			isCreatingCollection = false
-			newCollectionName = ''
-			selectedCollection = undefined
-		}}
-	>
-		<div class="collections-list">
-			{#each localCollections as collection (collection)}
-				<button
-					class="collection-item"
-					animate:flip
-					in:scale
-					onclick={() => selectCollection(collection)}
+{#await isLoggedIn}
+	<!-- Loading state for popup -->
+{:then loggedIn}
+	{#if loggedIn}
+		<Popup
+			isOpen={savePopupOpen}
+			title="Save recipe"
+			onClose={() => {
+				savePopupOpen = false
+				isCreatingCollection = false
+				newCollectionName = ''
+				selectedCollection = undefined
+			}}
+		>
+			<div class="collections-list">
+				{#each localCollections as collection (collection)}
+					<button
+						class="collection-item"
+						animate:flip
+						in:scale
+						onclick={() => selectCollection(collection)}
+					>
+						<div class="collection-item-name">{collection}</div>
+						<div class="collection-item-checkbox">
+							<input
+								type="radio"
+								name="collection-selection"
+								value={collection}
+								checked={selectedCollection === collection}
+								bind:group={selectedCollection}
+							/>
+						</div>
+					</button>
+				{/each}
+			</div>
+
+			<div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+				<Input
+					bind:value={newCollectionName}
+					actionButton={{
+						text: 'Create',
+						onClick: async () => {
+							await handleCreateCollection()
+						}
+					}}
 				>
-					<div class="collection-item-name">{collection}</div>
-					<div class="collection-item-checkbox">
-						<input
-							type="radio"
-							name="collection-selection"
-							value={collection}
-							checked={selectedCollection === collection}
-							bind:group={selectedCollection}
-						/>
-					</div>
-				</button>
-			{/each}
-		</div>
+					<input bind:value={newCollectionName} type="text" placeholder="Collection name" />
+				</Input>
 
-		<div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
-			<Input
-				bind:value={newCollectionName}
-				actionButton={{
-					text: 'Create',
-					onClick: async () => {
-						await handleCreateCollection()
-					}
-				}}
-			>
-				<input bind:value={newCollectionName} type="text" placeholder="Collection name" />
-			</Input>
+				{#if showDuplicateWarning}
+					<WarningBox message="A collection with this name already exists." />
+				{/if}
 
-			{#if showDuplicateWarning}
-				<WarningBox message="A collection with this name already exists." />
-			{/if}
-
-			<Button fullWidth color="primary" onclick={handleSaveToCollections}>Save</Button>
-		</div>
-	</Popup>
-{/if}
+				<Button fullWidth color="primary" onclick={handleSaveToCollections}>Save</Button>
+			</div>
+		</Popup>
+	{/if}
+{/await}
 
 <Toast bind:this={toastRef} type="info">
 	{#snippet message()}

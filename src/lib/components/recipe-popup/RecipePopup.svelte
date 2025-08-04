@@ -2,15 +2,14 @@
 	import Popup from '../popup/Popup.svelte'
 	import Drawer from '../drawer/Drawer.svelte'
 	import RecipePage from '../../../routes/(pages)/recipe/[id]/+page.svelte'
-	import type { ComponentProps } from 'svelte'
 	import { mobileStore } from '$lib/state/mobile.svelte'
 
 	let {
-		data,
+		id,
 		onClose,
 		animateFrom = null
 	}: {
-		data: ComponentProps<typeof RecipePage>['data']
+		id: string
 		onClose: () => void
 		animateFrom?: HTMLElement | null
 	} = $props()
@@ -39,11 +38,11 @@
 
 {#if mobileStore.isMobile}
 	<Drawer bind:isOpen={isDrawerOpen} onBack={onClose} position="side" showBackButton={true}>
-		<RecipePage {data} />
+		<RecipePage params={{ id }} />
 	</Drawer>
 {:else}
 	<Popup {onClose} width="90vw" {animateFrom} bind:this={popup}>
-		<RecipePage {data} />
+		<RecipePage params={{ id }} />
 	</Popup>
 {/if}
 

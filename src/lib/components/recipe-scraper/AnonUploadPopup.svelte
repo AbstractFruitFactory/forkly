@@ -6,11 +6,13 @@
 	let {
 		isOpen = $bindable(false),
 		onClose,
-		onUploadAnonymously
+		onUploadAnonymously,
+		createRecipe
 	}: {
 		isOpen?: boolean
 		onClose?: () => void
 		onUploadAnonymously?: () => void
+		createRecipe?: any
 	} = $props()
 
 	function handleClose() {

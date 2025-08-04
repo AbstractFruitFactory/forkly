@@ -1,35 +1,8 @@
-import { error, fail } from '@sveltejs/kit'
-import { getRecipeWithDetails } from '$lib/server/db/recipe'
-import type { PageServerLoad, Actions } from './$types'
+import { fail } from '@sveltejs/kit'
 import { uploadImage } from '$lib/server/cloudinary'
 import * as v from 'valibot'
-import { getCollections } from '$lib/server/db/save'
 import { safeFetch } from '$lib/utils/fetch'
-import type { CommentsResponse } from '../../../(api)/recipes/[id]/comments/+server'
-
-export const load: PageServerLoad = async ({ params, locals, fetch, isDataRequest }) => {
-  const recipe = getRecipeWithDetails(params.id, locals.user?.id).then(r => {
-    return r as NonNullable<typeof r>
-  })
-
-  const comments = safeFetch<CommentsResponse>(fetch)(`/recipes/${params.id}/comments?page=0`).then((result) => {
-    if (result.isErr()) {
-      console.error('Failed to fetch comments:', result.error)
-      return { comments: [], total: 0 }
-    }
-    return result.value
-  })
-
-  const collections = locals.user
-    ? getCollections(locals.user.id)
-    : Promise.resolve([])
-
-  return {
-    recipe: isDataRequest ? recipe : await recipe,
-    comments,
-    collections: isDataRequest ? collections : await collections
-  }
-}
+import type { Actions } from './$types'
 
 const commentSchema = v.object({
   content: v.pipe(

@@ -72,7 +72,6 @@
 	const slots = initSlots()
 
 	let homepage = $derived(page.url.pathname === '/')
-	const currentUrl = $derived(page.url.href)
 
 	let homepageHeaderTransition = $state(true)
 

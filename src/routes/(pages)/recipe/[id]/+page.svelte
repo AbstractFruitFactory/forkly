@@ -9,17 +9,35 @@
 	import type { CollectionsResponse } from '../../../(api)/collections/+server.js'
 	import type { CommentsResponse } from '../../../(api)/recipes/[id]/comments/+server.js'
 	import { errorStore } from '../../../+layout.svelte'
+	import { getRecipeData } from './data.remote'
 
-	let { data } = $props()
+	let { params, form } = $props()
 
 	const currentUrl = $derived(page.url.href)
+	const recipeData = $derived(getRecipeData({ id: params.id }))
 
 	const getRecipe = async () => {
-		return data.recipe instanceof Promise ? await data.recipe : data.recipe
+		const resolvedData = await recipeData
+		return resolvedData.recipe instanceof Promise ? await resolvedData.recipe : resolvedData.recipe
 	}
 
 	const getCollections = async () => {
-		return data.collections instanceof Promise ? await data.collections : data.collections
+		const resolvedData = await recipeData
+		return resolvedData.collections instanceof Promise
+			? await resolvedData.collections
+			: resolvedData.collections
+	}
+
+	const getComments = async () => {
+		const resolvedData = await recipeData
+		return resolvedData.comments instanceof Promise
+			? await resolvedData.comments
+			: resolvedData.comments
+	}
+
+	const getIsLoggedIn = async () => {
+		const resolvedData = await recipeData
+		return resolvedData.isLoggedIn
 	}
 
 	$effect(() => {
@@ -85,28 +103,26 @@
 </script>
 
 <svelte:head>
-	<meta property="og:type" content="article" />
-	<meta property="og:title" content={(data.recipe as any).title} />
-
-	<meta property="og:description" content={(data.recipe as any).description} />
-
-	<meta property="og:image" content={(data.recipe as any).imageUrl} />
-
-	<meta property="og:url" content={currentUrl} />
+	{#await getRecipe()}
+		<!-- Loading state for meta tags -->
+	{:then recipe}
+		<meta property="og:type" content="article" />
+		<meta property="og:title" content={recipe.title} />
+		<meta property="og:description" content={recipe.description} />
+		<meta property="og:image" content={recipe.imageUrl} />
+		<meta property="og:url" content={currentUrl} />
+	{/await}
 </svelte:head>
 
 <div class="recipe-page" data-page="recipe">
 	<Recipe
-		recipe={Promise.resolve(getRecipe())}
+		{recipeData}
 		{unitSystem}
 		onUnitChange={handleUnitChange}
 		onLike={handleLike}
 		onSave={handleSave}
 		onBackClick={() => goto('/')}
 		onCreateCollection={createCollection}
-		isLoggedIn={!!data.user}
-		collections={getCollections().then((c) => c.map((c) => c.name))}
-		recipeComments={data.comments}
 		formError={page.form?.error}
 		{loadComments}
 	/>

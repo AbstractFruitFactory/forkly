@@ -32,7 +32,7 @@
 
 <script lang="ts">
 	import { enhance } from '$app/forms'
-	import { onMount } from 'svelte'
+	import { onMount, type Snippet } from 'svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import DesktopLayout from './DesktopLayout.svelte'
 	import MobileLayout from './MobileLayout.svelte'
@@ -54,7 +54,7 @@
 	import AnonUploadPopup from '$lib/components/recipe-scraper/AnonUploadPopup.svelte'
 	import LoginPopup from '$lib/components/login-popup/LoginPopup.svelte'
 	import type { ImportedRecipeData } from '../../../../scripts/import-recipe-worker'
-
+	
 	let {
 		prefilledData,
 		editMode,
@@ -64,7 +64,7 @@
 		onSearchTags,
 		onSearchIngredients,
 		onUnitChange,
-		isLoggedIn = false
+		isLoggedIn
 	}: {
 		prefilledData?: PrefilledData
 		editMode?: {
@@ -79,7 +79,7 @@
 		unitSystem?: UnitSystem
 		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 		onUnitChange?: (system: UnitSystem) => void
-		isLoggedIn?: boolean
+		isLoggedIn?: Promise<boolean>
 	} = $props()
 
 	let _id = $state(prefilledData?.id ?? '')
@@ -485,20 +485,30 @@
 
 {#snippet saveDraftButton(fullWidth?: boolean)}
 	{#if !editMode}
-		<Button {fullWidth} formaction="?/saveDraft" loading={submitting} type="submit" color="neutral"
-			>Save Draft</Button
+		<Button
+			disabled={!isLoggedIn}
+			{fullWidth}
+			formaction="?/saveDraft"
+			loading={submitting}
+			type="submit"
+			color="neutral"
 		>
+			Save Draft
+		</Button>
 	{/if}
 {/snippet}
 
 {#snippet submitButton(fullWidth?: boolean)}
 	<Button
+		disabled={!isLoggedIn}
 		{fullWidth}
 		formaction={editMode ? '?/updateRecipe' : '?/createRecipe'}
 		loading={submitting}
 		type="submit"
-		color="primary">{editMode ? 'Save' : 'Upload'} Recipe</Button
+		color="primary"
 	>
+		{editMode ? 'Save' : 'Upload'} Recipe
+	</Button>
 {/snippet}
 
 {#snippet addInstructionButton(fullWidth?: boolean)}
@@ -532,13 +542,16 @@
 	<form
 		method="POST"
 		enctype="multipart/form-data"
-		use:enhance={({ formData, cancel, action }) => {
-			if (!isLoggedIn && !willUploadAnonymously && !editMode && !draftMode) {
-				if (action?.search === '?/saveDraft' && !isLoggedIn) {
+		use:enhance={async ({ formData, cancel, action }) => {
+			const loggedIn = await isLoggedIn
+
+			if (!loggedIn && !willUploadAnonymously && !editMode && !draftMode) {
+				if (action?.search?.includes('saveDraft') && !loggedIn) {
 					isLoginPopupOpen = true
 					cancel()
 					return
 				}
+
 				isAnonUploadPopupOpen = true
 				cancel()
 				return
@@ -564,7 +577,7 @@
 					editMode?.onSave()
 
 					if (draftMode) {
-						if (action?.search === '?/saveDraft') {
+						if (action?.search?.includes('saveDraft')) {
 							draftMode.onSaveDraft()
 						} else {
 							draftMode.onPublish()
@@ -585,7 +598,9 @@
 
 		<div class="page-header">
 			<div></div>
+
 			<Button
+				disabled={!isLoggedIn}
 				onclick={() => {
 					if (!isLoggedIn) {
 						isLoginPopupOpen = true
