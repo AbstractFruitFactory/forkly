@@ -38,6 +38,7 @@
 	} = $props()
 
 	let tabOptions = $state(['Profile info', 'Created recipes'])
+	let signingOut = $state(false)
 
 	$effect(() => {
 		userData.then((data) => {
@@ -218,7 +219,17 @@
 {#snippet signOut(fullWidth = false)}
 	{#await userData then data}
 		{#if data.isOwner && onLogout}
-			<Button variant="border" color="neutral" size="sm" onclick={onLogout} {fullWidth}>
+			<Button
+				loading={signingOut}
+				variant="border"
+				color="neutral"
+				size="sm"
+				onclick={() => {
+					signingOut = true
+					onLogout()
+				}}
+				{fullWidth}
+			>
 				<LogOut size={16} />
 				Sign out
 			</Button>
