@@ -56,11 +56,13 @@
 		loadComments: (pageNum: number) => Promise<{ comments: CommentT[]; total: number }>
 	} = $props()
 
-	const isLoggedIn = $derived.by(() => recipeData.then((d) => d.isLoggedIn))
+	let data = $derived.by(async () => await recipeData)
 
-	let isLiked = $derived.by(() => recipeData.then((d) => d.recipe.isLiked))
-	let isSaved = $derived.by(() => recipeData.then((d) => d.recipe.isSaved))
-	let likes = $derived.by(() => recipeData.then((d) => d.recipe.likes))
+	let isLoggedIn = $derived.by(() => data.then((d) => d.isLoggedIn))
+
+	let isLiked = $derived.by(() => data.then((d) => d.recipe.isLiked))
+	let isSaved = $derived.by(() => data.then((d) => d.recipe.isSaved))
+	let likes = $derived.by(() => data.then((d) => d.recipe.likes))
 	let isSharePopupOpen = $state(false)
 	let shareUrl = $state('')
 	let toastType = $state<'like' | 'save'>()
@@ -74,13 +76,13 @@
 	let totalComments = $state<number>(0)
 
 	$effect(() => {
-		recipeData.then((r) => {
+		data.then((r) => {
 			totalComments = r.comments.total
 		})
 	})
 
 	$effect(() => {
-		recipeData.then((r) => {
+		data.then((r) => {
 			localCollections = [...r.collections]
 		})
 	})
@@ -100,6 +102,7 @@
 
 	const handleLike = async () => {
 		const loggedIn = await isLoggedIn
+
 		if (!loggedIn) {
 			toastType = 'like'
 			if (toastRef) toastRef.trigger()
@@ -110,11 +113,13 @@
 		const currentLikes = await likes
 		isLiked = Promise.resolve(!currentLiked)
 		likes = Promise.resolve(currentLikes + (currentLiked ? -1 : 1))
+		console.log('isLiked', isLiked)
 		onLike()
 	}
 
 	const handleSave = async (collectionName?: string) => {
-		const loggedIn = await isLoggedIn
+		const data = await recipeData
+		const loggedIn = data.isLoggedIn
 		if (!loggedIn) {
 			toastType = 'save'
 			if (toastRef) toastRef.trigger()
@@ -127,7 +132,8 @@
 	}
 
 	const handleSaveToCollections = async () => {
-		const loggedIn = await isLoggedIn
+		const data = await recipeData
+		const loggedIn = data.isLoggedIn
 		if (!loggedIn) {
 			toastType = 'save'
 			if (toastRef) toastRef.trigger()
@@ -181,7 +187,7 @@
 	}
 
 	const singleServingNutrition = $derived(
-		recipeData.then((r) => {
+		data.then((r) => {
 			if (!r.recipe.nutrition) {
 				return undefined
 			}
@@ -201,11 +207,11 @@
 		})
 	)
 
-	const recipeTitle = $derived(recipeData.then((r) => r.recipe.title))
+	const recipeTitle = $derived(data.then((r) => r.recipe.title))
 </script>
 
 {#snippet commonImage()}
-	{#await recipeData}
+	{#await data}
 		<RecipeImagePlaceholder loading size="large" />
 	{:then recipeData}
 		{#if recipeData.recipe.imageUrl}
@@ -217,7 +223,7 @@
 {/snippet}
 
 {#snippet tags()}
-	{#await recipeData}
+	{#await data}
 		<Skeleton />
 	{:then recipeData}
 		{#if recipeData.recipe.tags}
@@ -229,7 +235,7 @@
 {/snippet}
 
 {#snippet title()}
-	{#await recipeData}
+	{#await data}
 		<Skeleton width="20rem" height="2rem" />
 	{:then recipeData}
 		<h1>{recipeData.recipe.title}</h1>
@@ -237,25 +243,21 @@
 {/snippet}
 
 {#snippet actionButtons()}
-	{#await recipeData}
+	{#await Promise.all([isLiked, likes, isSaved])}
 		<FloatingLikeButton loading />
 		<FloatingSaveButton loading />
 		<FloatingShareButton loading />
-	{:then recipeData}
-		<FloatingLikeButton
-			isActive={recipeData.recipe.isLiked}
-			count={recipeData.recipe.likes}
-			onClick={handleLike}
-		/>
+	{:then [isLiked, likes, isSaved]}
+		<FloatingLikeButton isActive={isLiked} count={likes} onClick={handleLike} />
 		<FloatingSaveButton
-			isActive={recipeData.recipe.isSaved}
+			isActive={isSaved}
 			onClick={() => {
-				if (!recipeData.isLoggedIn) {
+				if (!isLoggedIn) {
 					handleSave()
 					return
 				}
 
-				if (recipeData.recipe.isSaved) {
+				if (isSaved) {
 					handleSave()
 				} else {
 					savePopupOpen = true
@@ -267,7 +269,7 @@
 {/snippet}
 
 {#snippet commonDescription(card: boolean)}
-	{#await recipeData}
+	{#await data}
 		<Description
 			description=""
 			username={undefined}
@@ -306,11 +308,11 @@
 	<div class="ingredients-section" bind:this={ingredientsSection}>
 		<div class="header">
 			<h3>Ingredients</h3>
-			{#await recipeData then _}
+			{#await data then _}
 				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
 			{/await}
 		</div>
-		{#await recipeData}
+		{#await data}
 			<IngredientsList loading ingredients={[]} servings={0} originalServings={0} {unitSystem} />
 		{:then recipeData}
 			<IngredientsList
@@ -328,7 +330,7 @@
 		<div class="header">
 			<h3 style="margin-bottom: 0;">Instructions</h3>
 		</div>
-		{#await recipeData}
+		{#await data}
 			<RecipeInstructions instructions={[]} loading />
 		{:then recipeData}
 			<RecipeInstructions instructions={recipeData.recipe.instructions} />
@@ -349,7 +351,7 @@
 				{/if}
 			</h3>
 		</div>
-		{#await recipeData}
+		{#await data}
 			<CommentList
 				comments={[]}
 				isLoggedIn={false}
