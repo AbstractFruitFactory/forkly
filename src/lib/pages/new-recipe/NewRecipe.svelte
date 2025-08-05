@@ -32,7 +32,7 @@
 
 <script lang="ts">
 	import { enhance } from '$app/forms'
-	import { onMount, type Snippet } from 'svelte'
+	import { onMount } from 'svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import DesktopLayout from './DesktopLayout.svelte'
 	import MobileLayout from './MobileLayout.svelte'
@@ -54,7 +54,8 @@
 	import AnonUploadPopup from '$lib/components/recipe-scraper/AnonUploadPopup.svelte'
 	import LoginPopup from '$lib/components/login-popup/LoginPopup.svelte'
 	import type { ImportedRecipeData } from '../../../../scripts/import-recipe-worker'
-	
+	import FormError from '$lib/components/form-error/FormError.svelte'
+
 	let {
 		prefilledData,
 		editMode,
@@ -292,20 +293,28 @@
 			}))
 		}))
 	}
+
+	const formErrors = $derived((path: string) =>
+		errors?.filter((error) => error.path === path).map((error) => error.message)
+	)
 </script>
 
 {#snippet title()}
-	<Input>
-		<input
-			bind:value={_title}
-			name="title"
-			type="text"
-			required
-			minlength="5"
-			maxlength="80"
-			placeholder="Enter recipe title"
-		/>
-	</Input>
+	<FormError errors={formErrors('title')}>
+		{#snippet formInput(closePopover)}
+			<Input>
+				<input
+					bind:value={_title}
+					name="title"
+					type="text"
+					minlength="5"
+					maxlength="80"
+					placeholder="Enter recipe title"
+					oninput={() => closePopover()}
+				/>
+			</Input>
+		{/snippet}
+	</FormError>
 {/snippet}
 
 {#snippet description()}
@@ -399,7 +408,9 @@
 	instructionId: string,
 	nameValue?: string,
 	amountValue?: string,
-	unitValue?: string
+	unitValue?: string,
+	instructionIndex?: number,
+	ingredientIndex?: number
 )}
 	<div class="ingredient-row">
 		<div class="ingredient-input">
@@ -417,14 +428,19 @@
 
 			<div class="quantity-unit-row">
 				<div class="quantity-input">
-					<Input>
-						<input
-							type="text"
-							name="instructions-{instructionId}-ingredient-{id}-amount"
-							placeholder="Enter amount"
-							value={amountValue}
-						/>
-					</Input>
+					<FormError errors={formErrors(`instructions.${instructionIndex}.ingredients.${ingredientIndex}.quantity`)}>
+						{#snippet formInput(closePopover)}
+							<Input>
+								<input
+									type="text"
+									name="instructions-{instructionId}-ingredient-{id}-amount"
+									placeholder="Enter amount"
+									value={amountValue}
+									oninput={() => closePopover()}
+								/>
+							</Input>
+						{/snippet}
+					</FormError>
 				</div>
 
 				<div class="unit-input">
@@ -463,11 +479,20 @@
 	<UnitToggle state={unitSystem} onSelect={handleUnitChange} />
 {/snippet}
 
-{#snippet instructionInput(id: string, value?: string)}
-	<Input>
-		<textarea name={`instructions-${id}-text`} placeholder="Enter instruction step" rows="5" {value}
-		></textarea>
-	</Input>
+{#snippet instructionInput(id: string, index: number, value?: string)}
+	<FormError errors={formErrors(`instructions.${index}.text`)}>
+		{#snippet formInput(closePopover)}
+			<Input>
+				<textarea
+					name={`instructions-${id}-text`}
+					placeholder="Enter instruction step"
+					rows="5"
+					{value}
+					oninput={() => closePopover()}
+				></textarea>
+			</Input>
+		{/snippet}
+	</FormError>
 {/snippet}
 
 {#snippet instructionMedia(
@@ -588,10 +613,10 @@
 			}
 		}}
 	>
-		{#if errors}
+		{#if errors && (errors.find((error) => error.path === 'ingredients') || errors.find((error) => error.path === 'api'))}
 			<div class="error-container">
 				{#each errors as error}
-					<p class="error">{error.path}: {error.message}</p>
+					<p class="error">{error.message}</p>
 				{/each}
 			</div>
 		{/if}

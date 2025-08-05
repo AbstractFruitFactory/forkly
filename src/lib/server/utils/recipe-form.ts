@@ -277,7 +277,7 @@ export const buildRecipePayloadFromForm = async (formData: FormData, skipValidat
         errors: [{
           path: 'ingredients',
           message: 'Recipe must have at least one ingredient'
-        }]
+        }] as const
       })
     }
   }

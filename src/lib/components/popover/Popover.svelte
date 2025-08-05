@@ -19,7 +19,8 @@
 		type = 'default',
 		trigger,
 		content,
-		triggerOn = 'click'
+		triggerOn = 'click',
+		arrowPlacement
 	}: {
 		placement?: Placement
 		showArrow?: boolean
@@ -28,7 +29,8 @@
 		type?: 'default' | 'warning'
 		trigger: Snippet
 		content: Snippet
-		triggerOn?: 'click' | 'hover'
+		triggerOn?: 'click' | 'hover' | 'none'
+		arrowPlacement?: 'start' | 'center' | 'end'
 	} = $props()
 
 	let isOpen = $state(false)
@@ -38,11 +40,11 @@
 	let cleanup: (() => void) | undefined
 	let autoCloseTimeout: ReturnType<typeof setTimeout>
 
-	const openPopover = () => {
+	export const openPopover = () => {
 		isOpen = true
 	}
 
-	const closePopover = () => {
+	export const closePopover = () => {
 		isOpen = false
 	}
 
@@ -83,16 +85,45 @@
 
 				if (showArrow && middlewareData.arrow) {
 					const { x: arrowX, y: arrowY } = middlewareData.arrow
+					const side = updatedPlacement.split('-')[0]
 					const staticSide = {
 						top: 'bottom',
 						right: 'left',
 						bottom: 'top',
 						left: 'right'
-					}[updatedPlacement.split('-')[0]] as string
+					}[side] as string
+
+					let finalArrowX = arrowX
+					let finalArrowY = arrowY
+
+					if (arrowPlacement && arrowPlacement !== 'center') {
+						const isVertical = side === 'top' || side === 'bottom'
+						const isHorizontal = side === 'left' || side === 'right'
+						
+						if (isVertical) {
+							const rect = floating.getBoundingClientRect()
+							const arrowSize = 8
+							
+							if (arrowPlacement === 'start') {
+								finalArrowX = arrowSize
+							} else if (arrowPlacement === 'end') {
+								finalArrowX = rect.width - arrowSize
+							}
+						} else if (isHorizontal) {
+							const rect = floating.getBoundingClientRect()
+							const arrowSize = 8
+							
+							if (arrowPlacement === 'start') {
+								finalArrowY = arrowSize
+							} else if (arrowPlacement === 'end') {
+								finalArrowY = rect.height - arrowSize
+							}
+						}
+					}
 
 					Object.assign(arrowElement.style, {
-						left: arrowX != null ? `${arrowX}px` : '',
-						top: arrowY != null ? `${arrowY}px` : '',
+						left: finalArrowX != null ? `${finalArrowX}px` : '',
+						top: finalArrowY != null ? `${finalArrowY}px` : '',
 						right: '',
 						bottom: '',
 						[staticSide]: '-4px'
@@ -111,7 +142,7 @@
 
 		if (triggerOn === 'click') {
 			node.addEventListener('click', openPopover)
-		} else {
+		} else if (triggerOn === 'hover') {
 			node.addEventListener('mouseenter', openPopover)
 			node.addEventListener('mouseleave', closePopover)
 		}
@@ -120,7 +151,7 @@
 			destroy() {
 				if (triggerOn === 'click') {
 					node.removeEventListener('click', openPopover)
-				} else {
+				} else if (triggerOn === 'hover') {
 					node.removeEventListener('mouseenter', openPopover)
 					node.removeEventListener('mouseleave', closePopover)
 				}

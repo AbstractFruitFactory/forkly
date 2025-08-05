@@ -46,10 +46,12 @@
 				instructionId: string,
 				nameValue?: string,
 				amountValue?: string,
-				unitValue?: string
+				unitValue?: string,
+				instructionIndex?: number,
+				ingredientIndex?: number
 			]
 		>
-		instructionInput: Snippet<[id: string, value?: string]>
+		instructionInput: Snippet<[id: string, index: number, value?: string]>
 		instructionMedia: Snippet<[id: string, initialMedia?: { url: string; type: 'image' | 'video' }]>
 		addInstructionButton: Snippet
 		addIngredientButton: Snippet<[instructionId: string]>
@@ -112,7 +114,7 @@
 								</div>
 								<div class="instruction-content-body">
 									<div class="instruction-text">
-										{@render instructionInput(item.id, item.text)}
+										{@render instructionInput(item.id, i, item.text)}
 									</div>
 									<div class="instruction-media">
 										{@render instructionMedia(
@@ -124,7 +126,7 @@
 
 								<div class="instruction-ingredients">
 									<h4>Ingredients for this step:</h4>
-									{#each [...item.ingredients, { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem (ingredientItem.id)}
+									{#each [...item.ingredients, { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem, ingredientIndex (ingredientItem.id)}
 										<div class="ingredient-input" in:scale animate:flip={{ duration: 200 }}>
 											{#if 'isAddButton' in ingredientItem}
 												{@render addIngredientButton(item.id)}
@@ -134,7 +136,9 @@
 													item.id,
 													ingredientItem.name,
 													ingredientItem.quantity,
-													ingredientItem.unit
+													ingredientItem.unit,
+													i,
+													ingredientIndex
 												)}
 											{/if}
 										</div>

@@ -41,7 +41,7 @@
 		tags: Snippet
 		nutrition: Snippet
 		unitToggle: Snippet
-		instructionInput: Snippet<[id: string, value?: string]>
+		instructionInput: Snippet<[id: string, index: number, value?: string]>
 		instructionMedia: Snippet<[id: string, initialMedia?: { url: string; type: 'image' | 'video' }]>
 		ingredientRow: Snippet<
 			[
@@ -49,7 +49,9 @@
 				instructionId: string,
 				nameValue?: string,
 				amountValue?: string,
-				unitValue?: string
+				unitValue?: string,
+				instructionIndex?: number,
+				ingredientIndex?: number
 			]
 		>
 		addInstructionButton: Snippet<[fullWidth?: boolean]>
@@ -95,7 +97,7 @@
 				<div class="instruction-card-content">
 					<div class="instruction-info">
 						<div class="instruction-text">
-							{@render instructionInput(item.id, item.text)}
+							{@render instructionInput(item.id, i, item.text)}
 						</div>
 						<div class="instruction-media">
 							{@render instructionMedia(
@@ -108,7 +110,7 @@
 					<div>
 						<h5>Ingredients for this step:</h5>
 						<div class="instruction-ingredients">
-							{#each [...item.ingredients, { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem (ingredientItem.id)}
+							{#each [...item.ingredients, { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem, ingredientIndex (ingredientItem.id)}
 								<div class="ingredient-input" in:scale animate:flip={{ duration: 200 }}>
 									{#if 'isAddButton' in ingredientItem}
 										{@render addIngredientButton(item.id, true)}
@@ -118,7 +120,9 @@
 											item.id,
 											ingredientItem.name,
 											ingredientItem.quantity,
-											ingredientItem.unit
+											ingredientItem.unit,
+											i,
+											ingredientIndex
 										)}
 									{/if}
 								</div>
