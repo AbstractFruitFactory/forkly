@@ -187,6 +187,16 @@
 		)
 	}
 
+	const updateInstructionMedia = (instructionId: string, file: File) => {
+		const mediaType = file.type.startsWith('image/') ? 'image' : 'video'
+		
+		instructions = instructions.map((instruction) =>
+			instruction.id === instructionId
+				? { ...instruction, mediaType, mediaUrl: 'uploaded' }
+				: instruction
+		)
+	}
+
 	const searchTags = async (query: string): Promise<{ id: string; name: string }[]> => {
 		if (!onSearchTags) return []
 
@@ -497,14 +507,13 @@
 
 {#snippet instructionMedia(
 	id: string,
-	initialMedia?: { url: string; type: 'image' | 'video' },
-	onFile?: (file: File) => void
+	initialMedia?: { url: string; type: 'image' | 'video' }
 )}
 	<MediaUpload
 		name={`instructions-${id}-media`}
-		{onFile}
+		onFile={(file) => updateInstructionMedia(id, file)}
 		previewAlt="Instruction media"
-		{initialMedia}
+		initialMedia={initialMedia?.url === 'uploaded' ? undefined : initialMedia}
 	/>
 {/snippet}
 

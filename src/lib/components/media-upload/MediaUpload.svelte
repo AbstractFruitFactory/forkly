@@ -29,7 +29,7 @@
 		}
 	} = $props()
 
-	let preview = $derived(initialMedia?.url || '')
+	let preview = $state(initialMedia?.url || '')
 	let inputElement: HTMLInputElement
 	let dragOver = $state(false)
 	let mediaType = $derived<'image' | 'video' | undefined>(initialMedia?.type)
@@ -46,6 +46,12 @@
 	})
 
 	const fetchAndCreateFile = async (url: string, type: 'image' | 'video') => {
+		// Skip fetching blob URLs since they're already local files
+		if (url.startsWith('blob:')) {
+			console.log('Skipping blob URL fetch:', url)
+			return
+		}
+
 		try {
 			// Use our proxy endpoint to avoid CORS issues
 			const proxyUrl = `/proxy-media?url=${encodeURIComponent(url)}`
