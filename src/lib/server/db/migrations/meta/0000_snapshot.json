@@ -1,5 +1,5 @@
 {
-  "id": "794d02dc-705f-48c4-a35b-035322d0a84a",
+  "id": "e414d5dd-558c-4e80-a13a-fd684064ab48",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -412,7 +412,7 @@
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "description": {
           "name": "description",
@@ -434,6 +434,12 @@
         },
         "instructions": {
           "name": "instructions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tags": {
+          "name": "tags",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false

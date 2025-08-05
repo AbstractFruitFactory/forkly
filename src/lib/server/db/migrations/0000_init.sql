@@ -50,11 +50,12 @@ CREATE TABLE "recipe_comment" (
 CREATE TABLE "recipe_draft" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
-	"title" text,
+	"title" text NOT NULL,
 	"description" text,
 	"image_url" text,
 	"servings" integer,
 	"instructions" jsonb,
+	"tags" jsonb,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
