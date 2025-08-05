@@ -136,10 +136,6 @@
 		pointer-events: auto;
 		touch-action: manipulation;
 
-		@include mobile {
-			width: 40px;
-		}
-
 		&:hover {
 			background-color: var(--color-primary);
 			transform: scale(1.05);
