@@ -94,19 +94,20 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
 
     // Insert tags into tag and recipeTag tables
     for (const tagName of input.tags || []) {
+      const normalizedTagName = tagName.toLowerCase()
       const existingTag = await tx
         .select({ name: tag.name })
         .from(tag)
-        .where(eq(tag.name, tagName))
+        .where(eq(tag.name, normalizedTagName))
         .limit(1)
 
       if (!existingTag.length) {
         await tx
           .insert(tag)
-          .values({ name: tagName })
+          .values({ name: normalizedTagName })
       }
 
-      await tx.insert(recipeTag).values({ recipeId, tagName })
+      await tx.insert(recipeTag).values({ recipeId, tagName: normalizedTagName })
     }
 
     if (input.nutrition) {

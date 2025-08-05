@@ -634,17 +634,18 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
     await tx.delete(recipeTag).where(eq(recipeTag.recipeId, recipeId))
 
     for (const tagName of input.tags) {
+      const normalizedTagName = tagName.toLowerCase()
       const existingTag = await tx
         .select({ name: tag.name })
         .from(tag)
-        .where(eq(tag.name, tagName))
+        .where(eq(tag.name, normalizedTagName))
         .limit(1)
 
       if (!existingTag.length) {
-        await tx.insert(tag).values({ name: tagName })
+        await tx.insert(tag).values({ name: normalizedTagName })
       }
 
-      await tx.insert(recipeTag).values({ recipeId, tagName })
+      await tx.insert(recipeTag).values({ recipeId, tagName: normalizedTagName })
     }
 
     return true

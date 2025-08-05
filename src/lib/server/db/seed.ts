@@ -69,8 +69,9 @@ export const seed = async () => {
 
   // Insert unique tags
   for (const tagName of tagSet) {
+    const normalizedTagName = tagName.toLowerCase()
     await db.insert(tag)
-      .values({ name: tagName })
+      .values({ name: normalizedTagName })
       .onConflictDoNothing({ target: tag.name })
   }
 
@@ -109,7 +110,7 @@ export const seed = async () => {
     for (const tagName of (rawRecipe as any).tags || []) {
       allRecipeTags.push({
         recipeId: recipe.id,
-        tagName: tagName
+        tagName: tagName.toLowerCase()
       })
     }
   }

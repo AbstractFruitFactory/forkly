@@ -50,8 +50,9 @@ export async function createTestRecipe(userId: string, recipeData: Partial<typeo
   }).returning()
   // Ensure tags exist in tag table before inserting into recipeTag
   for (const tagName of tags) {
-    await testDb.insert(tag).values({ name: tagName }).onConflictDoNothing()
-    await testDb.insert(recipeTag).values({ recipeId: createdRecipe.id, tagName })
+    const normalizedTagName = tagName.toLowerCase()
+    await testDb.insert(tag).values({ name: normalizedTagName }).onConflictDoNothing()
+    await testDb.insert(recipeTag).values({ recipeId: createdRecipe.id, tagName: normalizedTagName })
   }
   return [createdRecipe]
 } 

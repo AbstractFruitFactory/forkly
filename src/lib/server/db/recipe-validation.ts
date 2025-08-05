@@ -82,6 +82,7 @@ export const baseRecipeSchema = v.object({
     v.array(
       v.pipe(
         v.string(),
+        v.transform(input => input.toLowerCase()),
         v.custom(
           (value) => isValidTag(value as string),
           'Tags must be less than 15 characters'
