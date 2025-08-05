@@ -8,8 +8,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout main branch
         uses: actions/checkout@v4
+        with:
+          ref: main  # 👈 Explicitly check out main
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
@@ -18,5 +20,5 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./
-          scope: ${{ secrets.VERCEL_SCOPE }} # optional
-          prod: true
+          scope: ${{ secrets.VERCEL_SCOPE }}
+          prod: true  # still needed to mark it as a production deploy
