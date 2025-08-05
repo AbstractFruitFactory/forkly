@@ -105,13 +105,18 @@
 	@import '$lib/global.scss';
 
 	.info-footer {
-		z-index: var(--z-dropdown);
+		z-index: calc(var(--z-dropdown) + 100);
+		pointer-events: none;
 	}
 
 	.fixed {
 		position: fixed;
 		bottom: var(--spacing-lg);
 		right: var(--spacing-lg);
+
+		@include mobile {
+			bottom: 80px
+		}
 	}
 
 	.info-button {
@@ -128,6 +133,12 @@
 		transition:
 			background-color var(--transition-fast) var(--ease-in-out),
 			transform var(--transition-fast) var(--ease-in-out);
+		pointer-events: auto;
+		touch-action: manipulation;
+
+		@include mobile {
+			width: 40px;
+		}
 
 		&:hover {
 			background-color: var(--color-primary);
