@@ -11,7 +11,7 @@
 	import { errorStore } from '../../../+layout.svelte'
 	import { getRecipeData } from './data.remote'
 
-	let { params, form } = $props()
+	let { params } = $props()
 
 	const currentUrl = $derived(page.url.href)
 	const recipeData = $derived(getRecipeData({ id: params.id }))
@@ -19,25 +19,6 @@
 	const getRecipe = async () => {
 		const resolvedData = await recipeData
 		return resolvedData.recipe instanceof Promise ? await resolvedData.recipe : resolvedData.recipe
-	}
-
-	const getCollections = async () => {
-		const resolvedData = await recipeData
-		return resolvedData.collections instanceof Promise
-			? await resolvedData.collections
-			: resolvedData.collections
-	}
-
-	const getComments = async () => {
-		const resolvedData = await recipeData
-		return resolvedData.comments instanceof Promise
-			? await resolvedData.comments
-			: resolvedData.comments
-	}
-
-	const getIsLoggedIn = async () => {
-		const resolvedData = await recipeData
-		return resolvedData.isLoggedIn
 	}
 
 	$effect(() => {
