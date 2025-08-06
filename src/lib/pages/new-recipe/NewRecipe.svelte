@@ -189,7 +189,7 @@
 
 	const updateInstructionMedia = (instructionId: string, file: File) => {
 		const mediaType = file.type.startsWith('image/') ? 'image' : 'video'
-		
+
 		instructions = instructions.map((instruction) =>
 			instruction.id === instructionId
 				? { ...instruction, mediaType, mediaUrl: 'uploaded' }
@@ -438,7 +438,11 @@
 
 			<div class="quantity-unit-row">
 				<div class="quantity-input">
-					<FormError errors={formErrors(`instructions.${instructionIndex}.ingredients.${ingredientIndex}.quantity`)}>
+					<FormError
+						errors={formErrors(
+							`instructions.${instructionIndex}.ingredients.${ingredientIndex}.quantity`
+						)}
+					>
 						{#snippet formInput(closePopover)}
 							<Input>
 								<input
@@ -505,10 +509,7 @@
 	</FormError>
 {/snippet}
 
-{#snippet instructionMedia(
-	id: string,
-	initialMedia?: { url: string; type: 'image' | 'video' }
-)}
+{#snippet instructionMedia(id: string, initialMedia?: { url: string; type: 'image' | 'video' })}
 	<MediaUpload
 		name={`instructions-${id}-media`}
 		onFile={(file) => updateInstructionMedia(id, file)}
@@ -635,8 +636,9 @@
 
 			<Button
 				disabled={!isLoggedIn}
-				onclick={() => {
-					if (!isLoggedIn) {
+				onclick={async () => {
+					const loggedIn = await isLoggedIn
+					if (!loggedIn) {
 						isLoginPopupOpen = true
 					} else {
 						isImportPopupOpen = true
