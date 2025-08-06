@@ -15,6 +15,13 @@
       "when": 1754429020416,
       "tag": "0001_enforce_recipe_has_ingredients",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1754515344666,
+      "tag": "0002_short_wolverine",
+      "breakpoints": true
     }
   ]
 }
