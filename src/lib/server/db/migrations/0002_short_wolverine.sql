@@ -1,0 +1,2 @@
+ALTER TABLE "recipe_ingredient" DROP CONSTRAINT "recipe_ingredient_recipe_id_instruction_id_ingredient_id_pk";--> statement-breakpoint
+ALTER TABLE "recipe_ingredient" ADD COLUMN "id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL;
