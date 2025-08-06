@@ -57,6 +57,51 @@ function cleanTextInput(text: string): string {
   return text.replace(/\s+/g, ' ').trim()
 }
 
+async function extractTextFromImages(imageBase64Array: string[]): Promise<string> {
+  const prompt = `
+Extract all text from these recipe images. Pay special attention to:
+- Recipe title
+- Ingredients list with quantities and measurements
+- Cooking instructions/steps
+- Any nutritional information
+- Serving size
+- Cooking time or other relevant details
+
+Please extract the text exactly as it appears, maintaining the structure and formatting as much as possible. If there are multiple columns or sections, preserve that layout in the text output.
+
+Combine all the text from all images into a single coherent recipe. If the images show different parts of the same recipe, merge them logically.
+
+If any of the images are not recipes or contain no readable text, please indicate that clearly.
+
+If there are multiple images, treat them as parts of the same recipe and combine the information appropriately.
+`
+
+  const messages: any[] = [
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: prompt },
+        ...imageBase64Array.map(base64 => ({
+          type: 'image_url' as const,
+          image_url: {
+            url: `data:image/jpeg;base64,${base64}`
+          }
+        }))
+      ]
+    }
+  ]
+
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    temperature: 0.1,
+    messages
+  })
+
+  const content = completion.choices[0].message.content
+  if (!content) throw new Error('No response from OpenAI vision API')
+  return content
+}
+
 async function extractRecipe(text: string): Promise<any> {
   const prompt = `
 Extract a recipe in JSON format from the following text. If you see [IMAGE: url] markers, use them to select the best image for the recipe and for steps. Prefer images that appear early in the recipe for the main image.
@@ -120,8 +165,8 @@ Recipe text:
 const worker = new Worker(
   'import-recipe',
   async job => {
-    const { url, text, userId, username, inputType } = job.data
-    console.log(`Processing import job for user ${username} (${userId}): ${inputType === 'url' ? url : 'text input'}`)
+    const { url, text, imageBase64Array, userId, username, inputType } = job.data
+    console.log(`Processing import job for user ${username} (${userId}): ${inputType === 'url' ? url : inputType === 'text' ? 'text input' : 'image input'}`)
 
     try {
       let rawText: string
@@ -132,8 +177,13 @@ const worker = new Worker(
       } else if (inputType === 'text') {
         if (!text) throw new Error('Text content is required for text-based imports')
         rawText = cleanTextInput(text)
+      } else if (inputType === 'image') {
+        if (!imageBase64Array || imageBase64Array.length === 0) {
+          throw new Error('Image data is required for image-based imports')
+        }
+        rawText = await extractTextFromImages(imageBase64Array)
       } else {
-        throw new Error('Invalid input type. Must be either "url" or "text"')
+        throw new Error('Invalid input type. Must be either "url", "text", or "image"')
       }
 
       const recipe = await extractRecipe(rawText)
@@ -176,7 +226,7 @@ const worker = new Worker(
       }
 
       console.log(`Job ${job.id} completed successfully`)
-      return recipeData // or just nothing — return void is fine
+      return recipeData
     } catch (err: any) {
       console.log('Writing failed recipe to Redis:', `import-recipe:result:${job.id}`)
       console.log('Value:', JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }))
@@ -193,7 +243,7 @@ const worker = new Worker(
       }
 
       console.error(`Job ${job.id} failed:`, err.message)
-      throw err // Re-throw to mark job as failed in queue
+      throw err
     }
   },
   {

@@ -3,6 +3,7 @@
 	import Input from '$lib/components/input/Input.svelte'
 	import WarningBox from '$lib/components/warning-box/WarningBox.svelte'
 	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
+	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
 	import { safeFetch } from '$lib/utils/fetch'
 	import type { ImportedRecipeData } from '../../../../scripts/import-recipe-worker'
 
@@ -14,13 +15,16 @@
 		onRecipeScraped?: (recipe: ImportedRecipeData) => void
 	} = $props()
 
-	let activeTab = $state<'url' | 'text'>('url')
+	let activeTab = $state<'url' | 'text' | 'images'>('url')
 	let url = $state('')
 	let text = $state('')
+	let selectedImages = $state<File[]>([])
 	let isLoading = $state(false)
 	let error: string | null = $state(null)
 
-	const tabOptions = ['URL', 'Text']
+	const tabOptions = ['URL', 'Text', 'Images']
+	const MAX_IMAGES = 3
+	const MAX_TOTAL_SIZE = 30 * 1024 * 1024 // 30MB
 
 	const isValidUrl = (urlString: string) => {
 		try {
@@ -33,6 +37,10 @@
 
 	const isValidText = (textContent: string) => {
 		return textContent.trim().length >= 50 && textContent.length <= 10000
+	}
+
+	const getTotalSize = () => {
+		return selectedImages.filter(img => img).reduce((total, file) => total + file.size, 0)
 	}
 
 	const pollJobStatus = async (jobId: string, maxAttempts = 60, interval = 2000) => {
@@ -66,7 +74,7 @@
 				error = 'Please enter a valid URL'
 				return
 			}
-		} else {
+		} else if (activeTab === 'text') {
 			if (!text.trim()) {
 				error = 'Please enter recipe text'
 				return
@@ -80,18 +88,51 @@
 				}
 				return
 			}
+		} else if (activeTab === 'images') {
+			const actualImages = selectedImages.filter(img => img)
+			if (actualImages.length === 0) {
+				error = 'Please select at least one image file'
+				return
+			}
+
+			const totalSize = getTotalSize()
+			if (totalSize > MAX_TOTAL_SIZE) {
+				error = 'Total image file size must be less than 30MB'
+				return
+			}
 		}
 
 		isLoading = true
 
 		try {
-			const requestBody =
-				activeTab === 'url' ? { url, inputType: 'url' } : { text: text.trim(), inputType: 'text' }
+			let result: any
 
-			const result = await safeFetch()('/import-recipe', {
-				method: 'POST',
-				body: JSON.stringify(requestBody)
-			})
+			if (activeTab === 'images') {
+				// Use FormData for image upload
+				const formData = new FormData()
+				formData.append('inputType', 'image')
+				
+				// Add all images with indexed names, filtering out undefined values
+				selectedImages.forEach((image, index) => {
+					if (image) {
+						formData.append(`image${index}`, image)
+					}
+				})
+
+				result = await safeFetch()('/import-recipe', {
+					method: 'POST',
+					body: formData
+				})
+			} else {
+				// Use JSON for URL and text
+				const requestBody =
+					activeTab === 'url' ? { url, inputType: 'url' } : { text: text.trim(), inputType: 'text' }
+
+				result = await safeFetch()('/import-recipe', {
+					method: 'POST',
+					body: JSON.stringify(requestBody)
+				})
+			}
 
 			if (result.isErr()) {
 				error = result.error.message
@@ -133,16 +174,46 @@
 		error = null
 	}
 
+	const handleImageSelect = (index: number, file: File | null) => {
+		if (file) {
+			// Check total size before adding
+			const newTotalSize = getTotalSize() + file.size
+			if (newTotalSize > MAX_TOTAL_SIZE) {
+				error = 'Total image file size must be less than 30MB'
+				return
+			}
+			
+			// Update the image at the specific index
+			selectedImages[index] = file
+			selectedImages = [...selectedImages] // Trigger reactivity
+		} else {
+			// Remove the image at the specific index by setting it to undefined
+			// This preserves the array length and indices
+			selectedImages[index] = undefined as any
+			selectedImages = [...selectedImages] // Trigger reactivity
+		}
+		error = null
+	}
+
 	const handleTabSelect = (option: string) => {
-		activeTab = option === tabOptions[0] ? 'url' : 'text'
+		if (option === tabOptions[0]) {
+			activeTab = 'url'
+		} else if (option === tabOptions[1]) {
+			activeTab = 'text'
+		} else {
+			activeTab = 'images'
+		}
 		error = null
 	}
 
 	const isFormValid = () => {
 		if (activeTab === 'url') {
 			return url.trim().length > 0 && isValidUrl(url)
-		} else {
+		} else if (activeTab === 'text') {
 			return text.trim().length > 0 && isValidText(text)
+		} else {
+			const actualImages = selectedImages.filter(img => img)
+			return actualImages.length > 0 && getTotalSize() <= MAX_TOTAL_SIZE
 		}
 	}
 </script>
@@ -150,7 +221,7 @@
 <div class="recipe-scraper">
 	<TabSelect
 		options={tabOptions}
-		selected={activeTab === 'url' ? tabOptions[0] : tabOptions[1]}
+		selected={activeTab === 'url' ? tabOptions[0] : activeTab === 'text' ? tabOptions[1] : tabOptions[2]}
 		onSelect={handleTabSelect}
 	/>
 
@@ -172,7 +243,7 @@
 			>
 				Import
 			</Button>
-		{:else}
+		{:else if activeTab === 'text'}
 			<div class="text-input-section">
 				<Input>
 					<textarea
@@ -186,6 +257,39 @@
 						{text.length}/10,000 characters
 					</div>
 				</Input>
+				<Button
+					loading={isLoading}
+					onclick={handleScrape}
+					disabled={isLoading || !isFormValid()}
+					color="neutral"
+				>
+					Import
+				</Button>
+			</div>
+		{:else}
+			<div class="image-input-section">
+				<div class="image-upload-grid">
+					{#each Array(MAX_IMAGES) as _, index}
+						<div class="upload-slot">
+							<MediaUpload
+								type="image"
+								name="image{index}"
+								previewAlt="Recipe image {index + 1}"
+								onFile={(file) => handleImageSelect(index, file)}
+								initialMedia={selectedImages[index] ? { 
+									url: URL.createObjectURL(selectedImages[index]), 
+									type: 'image' 
+								} : undefined}
+							/>
+						</div>
+					{/each}
+				</div>
+				
+				<div class="image-info">
+					<span>{selectedImages.filter(img => img).length}/{MAX_IMAGES} images</span>
+					<span>{(getTotalSize() / (1024 * 1024)).toFixed(1)}MB / 30MB</span>
+				</div>
+
 				<Button
 					loading={isLoading}
 					onclick={handleScrape}
@@ -229,7 +333,8 @@
 		}
 	}
 
-	.text-input-section {
+	.text-input-section,
+	.image-input-section {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
@@ -249,6 +354,24 @@
 		background: var(--color-surface);
 		padding: 2px var(--spacing-xs);
 		border-radius: var(--border-radius-sm);
+	}
+
+	.image-upload-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: var(--spacing-md);
+	}
+
+	.upload-slot {
+		aspect-ratio: 16/9;
+	}
+
+	.image-info {
+		display: flex;
+		justify-content: space-between;
+		font-size: var(--font-size-sm);
+		color: var(--color-text-on-surface-secondary);
+		padding: var(--spacing-xs) 0;
 	}
 
 	.loading-message {

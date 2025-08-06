@@ -11,12 +11,49 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ error: 'Authentication required' }, { status: 401 })
 	}
 
-	const body = await request.json()
-	const { url, text, inputType } = body
+	const contentType = request.headers.get('content-type') || ''
+	let body: any
+	let inputType: string
+	let url: string | undefined
+	let text: string | undefined
+	let imageBase64Array: string[] | undefined
+
+	// Handle multipart form data for image uploads
+	if (contentType.includes('multipart/form-data')) {
+		const formData = await request.formData()
+		inputType = formData.get('inputType') as string
+		url = formData.get('url') as string
+		text = formData.get('text') as string
+		
+		// Collect all image files
+		const imageFiles: File[] = []
+		for (const [key, value] of formData.entries()) {
+			if (key.startsWith('image') && value instanceof File && value.size > 0) {
+				imageFiles.push(value)
+			}
+		}
+
+		if (imageFiles.length > 0) {
+			// Convert all images to base64
+			imageBase64Array = await Promise.all(
+				imageFiles.map(async (file) => {
+					const arrayBuffer = await file.arrayBuffer()
+					const buffer = Buffer.from(arrayBuffer)
+					return buffer.toString('base64')
+				})
+			)
+		}
+	} else {
+		// Handle JSON for URL and text inputs
+		body = await request.json()
+		url = body.url
+		text = body.text
+		inputType = body.inputType
+	}
 
 	// Validate input type
-	if (!inputType || !['url', 'text'].includes(inputType)) {
-		return json({ error: 'Invalid input type. Must be either "url" or "text"' }, { status: 400 })
+	if (!inputType || !['url', 'text', 'image'].includes(inputType)) {
+		return json({ error: 'Invalid input type. Must be either "url", "text", or "image"' }, { status: 400 })
 	}
 
 	// Validate input based on type
@@ -42,6 +79,23 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		if (text.length > 10000) {
 			return json({ error: 'Text content must be less than 10,000 characters' }, { status: 400 })
+		}
+	} else if (inputType === 'image') {
+		if (!imageBase64Array || imageBase64Array.length === 0) {
+			return json({ error: 'Missing or invalid image files' }, { status: 400 })
+		}
+
+		if (imageBase64Array.length > 3) {
+			return json({ error: 'Maximum 3 images allowed' }, { status: 400 })
+		}
+
+		// Validate total image size (max 30MB for all images combined)
+		const totalSizeInBytes = imageBase64Array.reduce((total, base64) => {
+			return total + Math.ceil((base64.length * 3) / 4)
+		}, 0)
+		const maxSizeInBytes = 30 * 1024 * 1024 // 30MB total
+		if (totalSizeInBytes > maxSizeInBytes) {
+			return json({ error: 'Total image file size must be less than 30MB' }, { status: 400 })
 		}
 	}
 
@@ -100,8 +154,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	if (inputType === 'url') {
 		jobData.url = normalizedUrl!
-	} else {
-		jobData.text = text.trim()
+	} else if (inputType === 'text') {
+		jobData.text = text!.trim()
+	} else if (inputType === 'image') {
+		jobData.imageBase64Array = imageBase64Array!
 	}
 
 	const job = await importRecipeQueue.add('import', jobData)
