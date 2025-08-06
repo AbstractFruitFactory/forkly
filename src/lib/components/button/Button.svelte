@@ -96,6 +96,7 @@
 		min-width: fit-content;
 		font-variation-settings: 'wght' var(--font-weight-normal);
 		box-shadow: var(--shadow-sm);
+		background-color: var(--background-color);
 
 		&.full-height {
 			height: 100%;
@@ -120,6 +121,7 @@
 			align-items: center;
 			justify-content: center;
 			gap: var(--spacing-sm);
+			color: var(--color-text-on-primary);
 		}
 
 		&.border-radius-md {

@@ -7,6 +7,7 @@
 		name,
 		email,
 		signOut,
+		membership,
 		profileInfo,
 		createdRecipes,
 		savedRecipes,
@@ -19,6 +20,7 @@
 		name: Snippet
 		email: Snippet
 		signOut: Snippet
+		membership: Snippet
 		profileInfo: Snippet
 		createdRecipes: Snippet
 		savedRecipes: Snippet
@@ -30,6 +32,12 @@
 </script>
 
 <div class="profile-container">
+	<div class="membership-button-container">
+		<div>
+			{@render membership()}
+		</div>
+	</div>
+
 	<div class="profile-header-row card">
 		<div class="profile-avatar-block">
 			{@render avatar()}
@@ -69,6 +77,12 @@
 		position: relative;
 		max-width: 900px;
 		margin: 2rem auto;
+	}
+
+	.membership-button-container {
+		margin-bottom: var(--spacing-md);
+		display: flex;
+		justify-content: flex-end;
 	}
 
 	.profile-header-row {
