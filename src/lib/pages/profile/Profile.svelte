@@ -237,6 +237,21 @@
 	{/await}
 {/snippet}
 
+{#snippet membership(fullWidth = false)}
+	{#await userData then data}
+		{#if data.isOwner}
+			<Button
+				--background-color="#5E2BFF"
+				size="sm"
+				href="/membership"
+				{fullWidth}
+			>
+				🔒 Membership
+			</Button>
+		{/if}
+	{/await}
+{/snippet}
+
 {#snippet profileInfo()}
 	<div class="profile-info">
 		<div class="profile-info-row">
@@ -473,6 +488,7 @@
 		{name}
 		{email}
 		{signOut}
+		{membership}
 		{profileInfo}
 		createdRecipes={_createdRecipes}
 		savedRecipes={_savedRecipes}
@@ -489,6 +505,7 @@
 		{name}
 		{email}
 		{signOut}
+		{membership}
 		{profileInfo}
 		createdRecipes={_createdRecipes}
 		savedRecipes={_savedRecipes}

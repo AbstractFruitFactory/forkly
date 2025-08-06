@@ -10,6 +10,7 @@
 		name,
 		email,
 		signOut,
+		membership,
 		location,
 		profileInfo,
 		createdRecipes,
@@ -22,6 +23,7 @@
 		name: Snippet
 		email: Snippet
 		signOut: Snippet<[fullWidth: boolean]>
+		membership: Snippet<[fullWidth: boolean]>
 		location?: Snippet
 		profileInfo: Snippet
 		createdRecipes: Snippet
@@ -88,6 +90,9 @@
 		</button>
 	</div>
 	<div class="signout-row">{@render signOut(true)}</div>
+	<div class="membership-btn">
+		{@render membership(true)}
+	</div>
 </div>
 
 <Drawer
@@ -172,6 +177,12 @@
 		display: flex;
 		align-items: center;
 		margin-right: var(--spacing-sm);
+	}
+
+	.membership-btn {
+		margin-top: var(--spacing-sm);
+		display: flex;
+		justify-content: center;
 	}
 
 	.signout-row {
