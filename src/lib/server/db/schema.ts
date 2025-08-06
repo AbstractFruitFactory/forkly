@@ -69,6 +69,7 @@ export const recipeInstruction = pgTable('recipe_instruction', {
 })
 
 export const recipeIngredient = pgTable('recipe_ingredient', {
+	id: text('id').primaryKey().default(sql`gen_random_uuid()`),
 	recipeId: text('recipe_id')
 		.notNull()
 		.references(() => recipe.id, { onDelete: 'cascade' }),
@@ -83,11 +84,6 @@ export const recipeIngredient = pgTable('recipe_ingredient', {
 	numericQuantity: real('numeric_quantity'),
 	measurement: text('measurement'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-}, (table) => {
-	return {
-		pk: primaryKey({ columns: [table.recipeId, table.instructionId, table.ingredientId] }),
-		uniqueInstructionIngredient: sql`UNIQUE(${table.instructionId}, ${table.ingredientId}, ${table.displayName})`
-	}
 })
 
 export const recipeNutrition = pgTable('recipe_nutrition', {

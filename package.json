@@ -7,7 +7,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "concurrently \"vite dev\" \"tsx scripts/import-recipe-worker.ts\"",
+    "dev": "concurrently \"vite dev\" \"tsx scripts/import-recipe-worker.ts\" \"tsx scripts/sanitize-ingredient-worker.ts\"",
     "dev:clean": "node scripts/dev-with-cleanup.js",
     "build": "vite build",
     "preview": "vite preview",
@@ -34,9 +34,11 @@
     "pretest": "tsx scripts/create-test-db.ts && dotenv -e .env.test drizzle-kit migrate",
     "cleanup:unverified": "tsx src/lib/server/db/cleanup-unverified.ts",
     "worker": "tsx scripts/import-recipe-worker.ts",
+    "worker:sanitize": "tsx scripts/sanitize-ingredient-worker.ts",
     "test:rate-limiter": "tsx scripts/test-rate-limiter.ts",
     "test:rate-limiter:unit": "vitest run src/lib/server/rate-limit.test.ts",
-    "test:import-api": "tsx scripts/test-import-api.ts"
+    "test:import-api": "tsx scripts/test-import-api.ts",
+    "test:sanitize-api": "tsx scripts/test-sanitize-ingredient.ts"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.4",

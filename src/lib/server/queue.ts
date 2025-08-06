@@ -20,4 +20,25 @@ export const importRecipeQueue = new Queue('import-recipe', {
       delay: 2000
     }
   }
+})
+
+export const sanitizeIngredientQueue = new Queue('sanitize-ingredient', {
+  connection: {
+    url: REDIS_URL
+  },
+  defaultJobOptions: {
+    removeOnComplete: {
+      age: 24 * 3600,
+      count: 100
+    },
+    removeOnFail: {
+      age: 24 * 3600,
+      count: 100
+    },
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 2000
+    }
+  }
 }) 
