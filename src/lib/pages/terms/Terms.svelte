@@ -2,7 +2,7 @@
 	<div class="terms-content">
 		<header class="terms-header">
 			<h1 class="terms-title">📜 Terms of Use</h1>
-			<p class="effective-date">Effective Date: January 1, 2025</p>
+			<p class="effective-date">Effective Date: August 6, 2025</p>
 		</header>
 
 		<div class="terms-body">
@@ -33,7 +33,9 @@
 				<h2 class="section-title">3. Content Ownership</h2>
 				<ul class="section-list">
 					<li>You retain rights to any recipes or content you submit.</li>
-					<li>By posting, you give Forkly permission to display and share your content publicly.</li>
+					<li>
+						By posting, you give Forkly permission to display and share your content publicly.
+					</li>
 					<li>Don't post copyrighted content you don't own.</li>
 				</ul>
 			</section>
@@ -163,4 +165,4 @@
 			font-size: var(--font-size-lg);
 		}
 	}
-</style> 
+</style>
