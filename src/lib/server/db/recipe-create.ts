@@ -78,8 +78,6 @@ async function addIngredientInTransaction(tx: PostgresJsDatabase, name: string) 
 }
 
 export async function createRecipe(input: RecipeInput, userId?: string) {
-  console.log('createRecipe', input.instructions.map(i => i.ingredients?.map(i => i.quantity)))
-  
   return await db.transaction(async (tx) => {
     const recipeId = generateId()
 
