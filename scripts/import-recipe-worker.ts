@@ -36,21 +36,64 @@ const openai = new OpenAI({
 })
 
 async function fetchAndCleanHtml(url: string): Promise<string> {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`Failed to fetch URL: ${res.statusText}`)
-  const html = await res.text()
-  const $ = cheerio.load(html)
-  $('script, style, noscript, iframe, svg, header, footer, nav').remove()
-  $('img').each((_, el) => {
-    const src = $(el).attr('src')
-    if (src && typeof src === 'string') {
-      $(el).replaceWith(`[IMAGE: ${src}]`)
-    } else {
-      $(el).remove()
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'DNT': '1',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'none',
+    'Sec-Fetch-User': '?1',
+    'Cache-Control': 'max-age=0'
+  }
+
+  const maxRetries = 3
+  let lastError: Error | null = null
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers,
+        redirect: 'follow'
+      })
+      
+      if (!res.ok) {
+        if (res.status === 403 && attempt < maxRetries) {
+          console.log(`Attempt ${attempt}: Got 403, retrying in ${attempt * 2}s...`)
+          await new Promise(resolve => setTimeout(resolve, attempt * 2000))
+          lastError = new Error(`Failed to fetch URL: ${res.statusText}`)
+          continue
+        }
+        throw new Error(`Failed to fetch URL: ${res.statusText}`)
+      }
+      
+      const html = await res.text()
+      const $ = cheerio.load(html)
+      $('script, style, noscript, iframe, svg, header, footer, nav').remove()
+      $('img').each((_, el) => {
+        const src = $(el).attr('src')
+        if (src && typeof src === 'string') {
+          $(el).replaceWith(`[IMAGE: ${src}]`)
+        } else {
+          $(el).remove()
+        }
+      })
+      const text = $('body').text()
+      return text.replace(/\s+/g, ' ').trim()
+    } catch (error) {
+      lastError = error as Error
+      if (attempt < maxRetries) {
+        console.log(`Attempt ${attempt} failed: ${error}. Retrying in ${attempt * 2}s...`)
+        await new Promise(resolve => setTimeout(resolve, attempt * 2000))
+      }
     }
-  })
-  const text = $('body').text()
-  return text.replace(/\s+/g, ' ').trim()
+  }
+  
+  throw lastError || new Error('Failed to fetch URL after all retries')
 }
 
 function cleanTextInput(text: string): string {
@@ -148,6 +191,8 @@ For ingredients, quantity is required if measurement is provided. For non-quanti
 
 If there is no clear recipe title, make one up based on the content.
 
+Feel free to combine steps if it makes sense to do so. If the step mentions quantities of ingredients, change the text to omit the quantity.
+
 Recipe text:
 """${text.slice(0, 8000)}"""
 `
@@ -186,6 +231,7 @@ const worker = new Worker(
         throw new Error('Invalid input type. Must be either "url", "text", or "image"')
       }
 
+      console.log('Raw text:', rawText)
       const recipe = await extractRecipe(rawText)
 
       const recipeData = {
