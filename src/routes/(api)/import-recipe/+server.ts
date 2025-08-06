@@ -4,6 +4,7 @@ import { importRecipeQueue } from '$lib/server/queue'
 import { importRecipeLimiter, globalImportLimiter } from '$lib/server/rate-limit'
 import { validateImportUrl } from '$lib/server/url-validation'
 import { redis } from '$lib/server/redis'
+import { dev } from '$app/environment'
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	// Require authentication
@@ -99,31 +100,37 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		}
 	}
 
-	// Rate limiting per user
-	const userLimit = await importRecipeLimiter.checkLimit(locals.user.id)
-	if (!userLimit.allowed) {
-		return json({
-			error: `Limit exceeded. You can import ${importRecipeLimiter.config.maxRequests} recipes per hour. Try again in ${Math.ceil((userLimit.resetTime - Date.now() / 1000) / 60)} minutes.`
-		}, {
-			status: 429,
-			headers: {
-				'X-RateLimit-Remaining': userLimit.remaining.toString(),
-				'X-RateLimit-Reset': userLimit.resetTime.toString()
-			}
-		})
+	// Rate limiting per user (disabled in development)
+	let userLimit = { allowed: true, remaining: 999, resetTime: Date.now() / 1000 + 3600 }
+	if (!dev) {
+		userLimit = await importRecipeLimiter.checkLimit(locals.user.id)
+		if (!userLimit.allowed) {
+			return json({
+				error: `Limit exceeded. You can import ${importRecipeLimiter.config.maxRequests} recipes per hour. Try again in ${Math.ceil((userLimit.resetTime - Date.now() / 1000) / 60)} minutes.`
+			}, {
+				status: 429,
+				headers: {
+					'X-RateLimit-Remaining': userLimit.remaining.toString(),
+					'X-RateLimit-Reset': userLimit.resetTime.toString()
+				}
+			})
+		}
 	}
 
-	// Global rate limiting
-	const globalLimit = await globalImportLimiter.checkLimit('global')
-	if (!globalLimit.allowed) {
-		return json({
-			error: 'Service temporarily unavailable due to high demand. Please try again later.'
-		}, {
-			status: 503,
-			headers: {
-				'Retry-After': Math.ceil((globalLimit.resetTime - Date.now() / 1000) / 60).toString()
-			}
-		})
+	// Global rate limiting (disabled in development)
+	let globalLimit = { allowed: true, remaining: 999, resetTime: Date.now() / 1000 + 3600 }
+	if (!dev) {
+		globalLimit = await globalImportLimiter.checkLimit('global')
+		if (!globalLimit.allowed) {
+			return json({
+				error: 'Service temporarily unavailable due to high demand. Please try again later.'
+			}, {
+				status: 503,
+				headers: {
+					'Retry-After': Math.ceil((globalLimit.resetTime - Date.now() / 1000) / 60).toString()
+				}
+			})
+		}
 	}
 
 	// Check for duplicate requests (only for URL imports)
