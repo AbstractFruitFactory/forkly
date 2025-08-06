@@ -5,7 +5,7 @@ export const safeFetch = <T>(_fetch: typeof globalThis.fetch = fetch) => async (
   const data = await response.json()
 
   if (!response.ok) {
-    return Err(new Error(data.message)) as Result<T, Error>
+    return Err(new Error(data.error || data.message || 'Request failed')) as Result<T, Error>
   }
 
   return Ok(data) as Result<T, Error>
