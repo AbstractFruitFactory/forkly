@@ -18,6 +18,8 @@
 		addInstructionButton,
 		addIngredientButton,
 		removeInstructionButton,
+		moveInstructionUpButton,
+		moveInstructionDownButton,
 		submitButton,
 		saveDraftButton
 	}: {
@@ -56,6 +58,8 @@
 		addInstructionButton: Snippet
 		addIngredientButton: Snippet<[instructionId: string]>
 		removeInstructionButton: Snippet<[instructionId: string]>
+		moveInstructionUpButton: Snippet<[instructionId: string, index: number]>
+		moveInstructionDownButton: Snippet<[instructionId: string, index: number]>
 		submitButton: Snippet
 		saveDraftButton: Snippet<[fullWidth?: boolean]>
 	} = $props()
@@ -110,7 +114,11 @@
 							<div class="instruction-content">
 								<div class="instruction-header">
 									<div class="step-title">Step {i + 1}</div>
-									{@render removeInstructionButton(item.id)}
+									<div class="instruction-controls">
+										{@render moveInstructionUpButton(item.id, i)}
+										{@render moveInstructionDownButton(item.id, i)}
+										{@render removeInstructionButton(item.id)}
+									</div>
 								</div>
 								<div class="instruction-content-body">
 									<div class="instruction-text">
@@ -309,6 +317,31 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+	}
+
+	.instruction-controls {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+	}
+
+	.reorder-btn {
+		height: 36px;
+		width: 36px;
+		border-radius: var(--border-radius-lg);
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: var(--spacing-xs);
+		color: var(--color-text-on-surface);
+		transition: all var(--transition-fast) var(--ease-in-out);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		&:hover {
+			background-color: var(--color-secondary);
+		}
 	}
 
 	.step-title {

@@ -44,6 +44,8 @@
 	import X from 'lucide-svelte/icons/x'
 	import Plus from 'lucide-svelte/icons/plus'
 	import Trash from 'lucide-svelte/icons/trash-2'
+	import ChevronUp from 'lucide-svelte/icons/chevron-up'
+	import ChevronDown from 'lucide-svelte/icons/chevron-down'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
@@ -164,6 +166,28 @@
 
 	const removeInstruction = (id: string) => {
 		instructions = instructions.filter((instruction) => instruction.id !== id)
+	}
+
+	const moveInstructionUp = (id: string) => {
+		const index = instructions.findIndex((instruction) => instruction.id === id)
+		if (index > 0) {
+			const newInstructions = [...instructions]
+			const temp = newInstructions[index]
+			newInstructions[index] = newInstructions[index - 1]
+			newInstructions[index - 1] = temp
+			instructions = newInstructions
+		}
+	}
+
+	const moveInstructionDown = (id: string) => {
+		const index = instructions.findIndex((instruction) => instruction.id === id)
+		if (index < instructions.length - 1) {
+			const newInstructions = [...instructions]
+			const temp = newInstructions[index]
+			newInstructions[index] = newInstructions[index + 1]
+			newInstructions[index + 1] = temp
+			instructions = newInstructions
+		}
 	}
 
 	const addIngredient = (instructionId: string) => {
@@ -573,6 +597,32 @@
 	{/if}
 {/snippet}
 
+{#snippet moveInstructionUpButton(instructionId: string, index: number)}
+	{#if index > 0}
+		<button
+			type="button"
+			class="reorder-btn"
+			onclick={() => moveInstructionUp(instructionId)}
+			aria-label="Move instruction up"
+		>
+			<ChevronUp size={16} />
+		</button>
+	{/if}
+{/snippet}
+
+{#snippet moveInstructionDownButton(instructionId: string, index: number)}
+	{#if index < instructions.length - 1}
+		<button
+			type="button"
+			class="reorder-btn"
+			onclick={() => moveInstructionDown(instructionId)}
+			aria-label="Move instruction down"
+		>
+			<ChevronDown size={16} />
+		</button>
+	{/if}
+{/snippet}
+
 <div class="new-recipe">
 	<form
 		method="POST"
@@ -669,6 +719,8 @@
 					{addInstructionButton}
 					{addIngredientButton}
 					{removeInstructionButton}
+					{moveInstructionUpButton}
+					{moveInstructionDownButton}
 					{submitButton}
 					{saveDraftButton}
 				/>
@@ -690,6 +742,8 @@
 					{addInstructionButton}
 					{addIngredientButton}
 					{removeInstructionButton}
+					{moveInstructionUpButton}
+					{moveInstructionDownButton}
 					{submitButton}
 					{saveDraftButton}
 				/>
@@ -897,6 +951,25 @@
 
 		@include tablet-desktop {
 			margin-left: var(--spacing-xs);
+		}
+	}
+
+	.reorder-btn {
+		height: 36px;
+		width: 36px;
+		border-radius: var(--border-radius-lg);
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: var(--spacing-xs);
+		color: var(--color-text-on-surface);
+		transition: all var(--transition-fast) var(--ease-in-out);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		&:hover {
+			background-color: var(--color-secondary);
 		}
 	}
 </style>
