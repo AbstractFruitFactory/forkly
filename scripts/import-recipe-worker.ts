@@ -75,11 +75,33 @@ async function fetchAndCleanHtml(url: string): Promise<string> {
       const $ = cheerio.load(html)
       $('script, style, noscript, iframe, svg, header, footer, nav').remove()
       $('img').each((_, el) => {
-        const src = $(el).attr('src')
-        if (src && typeof src === 'string') {
-          $(el).replaceWith(`[IMAGE: ${src}]`)
+        const $el = $(el)
+        const src = $el.attr('src')
+        const dataSrc = $el.attr('data-src')
+        const dataPinMedia = $el.attr('data-pin-media')
+        const dataLazySrc = $el.attr('data-lazy-src')
+        const dataOriginal = $el.attr('data-original')
+        const width = $el.attr('width')
+        const height = $el.attr('height')
+        
+        let imageUrl = dataSrc || dataPinMedia || dataLazySrc || dataOriginal || src
+        
+        if (imageUrl && typeof imageUrl === 'string') {
+          // Filter out empty SVG placeholders and data URIs that are just placeholders
+          if (imageUrl.startsWith('data:image/svg+xml') && 
+              (imageUrl.includes('viewBox') || imageUrl.includes('width') && imageUrl.includes('height'))) {
+            // This is likely an empty SVG placeholder, skip it
+            $el.remove()
+          } else if (imageUrl.startsWith('http') || imageUrl.startsWith('//')) {
+            // This is a real image URL
+            const dimensions = width && height ? ` (${width}x${height})` : ''
+            $el.replaceWith(`[IMAGE: ${imageUrl}${dimensions}]`)
+          } else {
+            // Skip relative URLs or other non-http URLs
+            $el.remove()
+          }
         } else {
-          $(el).remove()
+          $el.remove()
         }
       })
       const text = $('body').text()
@@ -147,7 +169,9 @@ If there are multiple images, treat them as parts of the same recipe and combine
 
 async function extractRecipe(text: string): Promise<any> {
   const prompt = `
-Extract a recipe in JSON format from the following text. If you see [IMAGE: url] markers, use them to select the best image for the recipe and for steps. Prefer images that appear early in the recipe for the main image.
+Extract a recipe in JSON format from the following text. If you see [IMAGE: url (WxH)] markers, you MUST use them to select the best image for the recipe and for steps. 
+
+IMPORTANT: Every instruction MUST include mediaUrl and mediaType fields, even if they are null. When you see [IMAGE: url] markers in the text, extract those URLs and assign them to the most relevant instruction step.
 
 Respond only with JSON, in this format:
 {
@@ -164,7 +188,7 @@ Respond only with JSON, in this format:
   "instructions": [
     {
       "text": "string",
-      "mediaUrl": "string (URL)",
+      "mediaUrl": "string (URL) | null",
       "mediaType": "image" | "video" | null,
       "ingredients": [
         {
@@ -177,9 +201,11 @@ Respond only with JSON, in this format:
   ]
 }
 
-The image should be a URL to an image of the dish, likely a picture early in the recipe. Prefer URLs from [IMAGE: url] markers that appear early in the text.
+For the main recipe image, prioritize larger images (higher width x height values) as they are typically more representative of the final dish. Look for images with dimensions like 1440x1920, 1440x960, etc. over smaller ones like 180x180.
 
-The mediaUrl should be a URL to an image or video of the step, if available, preferably from [IMAGE: url] markers near the step.
+For each instruction step, you MUST include:
+- mediaUrl: Extract URLs from [IMAGE: url] markers that appear near or before that step. If no relevant image is found, set to null.
+- mediaType: Set to "image" if mediaUrl contains an image URL, "video" if it's a video URL, or null if mediaUrl is null.
 
 If any field is missing, set it to null, empty string, or empty array as appropriate.
 
@@ -204,7 +230,9 @@ Recipe text:
   })
   const content = completion.choices[0].message.content
   if (!content) throw new Error('No response from OpenAI')
-  return JSON.parse(content)
+  const parsed = JSON.parse(content)
+  console.log('AI extracted recipe - Title:', parsed.title, 'Instructions:', parsed.instructions?.length || 0, 'steps')
+  return parsed
 }
 
 const worker = new Worker(
@@ -231,8 +259,11 @@ const worker = new Worker(
         throw new Error('Invalid input type. Must be either "url", "text", or "image"')
       }
 
-      console.log('Raw text:', rawText)
       const recipe = await extractRecipe(rawText)
+
+      if (rawText.includes('[IMAGE:')) {
+        const imageMatches = rawText.match(/\[IMAGE: ([^\]]+)\]/g)
+      }
 
       const recipeData = {
         title: recipe.title || '',
