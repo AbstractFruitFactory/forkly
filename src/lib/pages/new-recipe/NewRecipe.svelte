@@ -50,7 +50,7 @@
 	import { flip } from 'svelte/animate'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
-	import { UNIT_DISPLAY_TEXT, UNITS } from '$lib/utils/ingredient-formatting'
+	import { UNIT_DISPLAY_SINGULAR as UNIT_DISPLAY_TEXT, UNITS } from '$lib/utils/ingredient-formatting'
 	import DownloadIcon from 'lucide-svelte/icons/download'
 	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
 	import AnonUploadPopup from '$lib/components/recipe-scraper/AnonUploadPopup.svelte'
