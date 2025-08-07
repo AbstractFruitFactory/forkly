@@ -2,6 +2,8 @@ import type { MeasurementUnit } from '$lib/types'
 import { measurementUnits } from '$lib/types'
 import Fraction from 'fraction.js'
 
+/** --- Unit Data --- **/
+
 export const UNITS = {
   weight: {
     metric: ['grams', 'kilograms'],
@@ -29,23 +31,22 @@ export const IMPERIAL_UNITS = [
   ...UNITS.length.imperial
 ]
 
-// Units that should not be converted between systems
-const FIXED_UNITS = new Set(['teaspoons', 'tablespoons'])
+// Units that should not be converted cross-system
+const FIXED_UNITS = new Set<MeasurementUnit>(['teaspoons', 'tablespoons'])
 
 const CONVERSION_FACTORS = {
-  ounces_to_grams: 28.35,
-  pounds_to_kilograms: 0.453592,
-  teaspoons_to_milliliters: 4.93,
-  tablespoons_to_milliliters: 14.79,
-  cups_to_milliliters: 236.59,
-  fluid_ounces_to_milliliters: 29.57,
-  gallons_to_liters: 3.785,
+  ounces_to_grams: 28.3495,
+  pounds_to_kilograms: 0.45359237,
+  teaspoons_to_milliliters: 4.92892,
+  tablespoons_to_milliliters: 14.7868,
+  cups_to_milliliters: 236.588,
+  fluid_ounces_to_milliliters: 29.5735,
+  gallons_to_liters: 3.78541,
   inches_to_centimeters: 2.54,
   feet_to_centimeters: 30.48
 }
 
-
-export const UNIT_DISPLAY_TEXT: Record<MeasurementUnit, string> = {
+export const UNIT_DISPLAY_SINGULAR: Record<MeasurementUnit, string> = {
   grams: 'g',
   kilograms: 'kg',
   ounces: 'oz',
@@ -54,7 +55,7 @@ export const UNIT_DISPLAY_TEXT: Record<MeasurementUnit, string> = {
   liters: 'L',
   teaspoons: 'tsp',
   tablespoons: 'tbsp',
-  cups: 'cup(s)',
+  cups: 'cup',
   fluid_ounces: 'fl oz',
   gallons: 'gal',
   millimeters: 'mm',
@@ -63,6 +64,14 @@ export const UNIT_DISPLAY_TEXT: Record<MeasurementUnit, string> = {
   inches: 'in',
   feet: 'ft',
   pieces: 'pc'
+}
+
+// Pluralize word-based units
+function pluralize(unit: MeasurementUnit, qty: number): string {
+  const pluralWords = new Set<MeasurementUnit>(['cups', 'gallons', 'pieces'])
+  const base = UNIT_DISPLAY_SINGULAR[unit] ?? unit
+  if (!pluralWords.has(unit)) return base
+  return Math.abs(qty) === 1 ? base : `${base}s`
 }
 
 export const UNIT_EQUIVALENTS = {
@@ -80,169 +89,51 @@ export const UNIT_EQUIVALENTS = {
   feet: { unit: 'centimeters', factor: CONVERSION_FACTORS.feet_to_centimeters }
 } as const
 
-// Add normalization function for user-entered units
-const normalizeUnit = (input: string): MeasurementUnit | undefined => {
-  const trimmed = input.trim().toLowerCase()
-  // Try to match canonical unit keys
-  for (const unit of measurementUnits) {
-    if (unit.toLowerCase() === trimmed) return unit
-  }
-  // Try to match display text
-  for (const [unit, display] of Object.entries(UNIT_DISPLAY_TEXT)) {
-    if (display.toLowerCase() === trimmed) return unit as MeasurementUnit
+/** --- Aliases for normalizing units --- **/
+const UNIT_ALIASES: Record<string, MeasurementUnit> = {
+  tsp: 'teaspoons', tspes: 'teaspoons', 'tsp.': 'teaspoons', tsps: 'teaspoons',
+  tbsp: 'tablespoons', 'tbsp.': 'tablespoons', tbsps: 'tablespoons',
+  cup: 'cups', cups: 'cups',
+  oz: 'ounces', 'oz.': 'ounces', ounce: 'ounces', ounces: 'ounces',
+  'fl oz': 'fluid_ounces', 'fl. oz': 'fluid_ounces', floz: 'fluid_ounces',
+  ml: 'milliliters', millilitre: 'milliliters', millilitres: 'milliliters',
+  l: 'liters', litre: 'liters', litres: 'liters',
+  g: 'grams', gr: 'grams',
+  kg: 'kilograms',
+  in: 'inches', inch: 'inches', inches: 'inches',
+  ft: 'feet', foot: 'feet', feet: 'feet',
+  pc: 'pieces', pcs: 'pieces'
+}
+
+/** --- Helpers --- **/
+function normalizeUnit(input: string): MeasurementUnit | undefined {
+  const cleaned = input.trim().toLowerCase().replace(/\s+/g, ' ').replace(/[.]/g, '')
+  if (UNIT_ALIASES[cleaned]) return UNIT_ALIASES[cleaned]
+  for (const unit of measurementUnits) if (unit.toLowerCase() === cleaned) return unit
+  for (const [unit, display] of Object.entries(UNIT_DISPLAY_SINGULAR)) {
+    if (display.toLowerCase() === cleaned) return unit as MeasurementUnit
   }
   return undefined
 }
 
-export const convertMeasurement = (
-  quantity: number,
-  fromUnit: MeasurementUnit,
-  toSystem: 'metric' | 'imperial'
-): { quantity: number; unit: MeasurementUnit } => {
-  const normalizedUnit = normalizeUnit(fromUnit as string)
-
-  if (!normalizedUnit || !measurementUnits.includes(normalizedUnit)) {
-    return { quantity, unit: fromUnit }
-  }
-
-  const isMetricUnit = METRIC_UNITS.includes(normalizedUnit)
-  const isImperialUnit = IMPERIAL_UNITS.includes(normalizedUnit)
-
-  if ((isMetricUnit && toSystem === 'metric') || (isImperialUnit && toSystem === 'imperial')) {
-    return { quantity, unit: normalizedUnit }
-  }
-
-  if (FIXED_UNITS.has(normalizedUnit)) {
-    return { quantity, unit: normalizedUnit }
-  }
-
-  const equivalent = UNIT_EQUIVALENTS[normalizedUnit as keyof typeof UNIT_EQUIVALENTS]
-  if (!equivalent) {
-    return { quantity, unit: normalizedUnit }
-  }
-
-  const convertedQuantity = quantity * equivalent.factor
-
-  return {
-    quantity: convertedQuantity,
-    unit: equivalent.unit as MeasurementUnit
-  }
+function snapTo(value: number, target: number, pct = 0.05): number | undefined {
+  return Math.abs(value - target) <= target * pct ? target : undefined
 }
 
-export const chooseBestUnit = (quantity: number, unit: MeasurementUnit): { quantity: number; unit: MeasurementUnit } => {
-  const normalizedUnit = normalizeUnit(unit as string)
-
-  if (!normalizedUnit) {
-    return { quantity, unit }
+const GOOD_FRACTIONS = [1/8, 1/6, 1/5, 1/4, 1/3, 1/2, 2/3, 3/4, 5/6, 7/8]
+function snapToGoodFraction(x: number, tol = 0.02): number {
+  const whole = Math.trunc(x)
+  const dec = Math.abs(x - whole)
+  for (const f of GOOD_FRACTIONS) {
+    if (Math.abs(dec - f) < tol) return Math.sign(x) * (whole + f)
   }
-
-  if (FIXED_UNITS.has(normalizedUnit)) {
-    return { quantity, unit: normalizedUnit }
-  }
-
-  if (normalizedUnit === 'grams' && quantity >= 1000) {
-    return { quantity: quantity / 1000, unit: 'kilograms' as MeasurementUnit }
-  }
-  if (normalizedUnit === 'kilograms' && quantity < 0.1) {
-    return { quantity: quantity * 1000, unit: 'grams' as MeasurementUnit }
-  }
-  if (normalizedUnit === 'milliliters' && quantity >= 1000) {
-    return { quantity: quantity / 1000, unit: 'liters' as MeasurementUnit }
-  }
-  if (normalizedUnit === 'liters' && quantity < 1) {
-    return { quantity: quantity * 1000, unit: 'milliliters' as MeasurementUnit }
-  }
-  if (normalizedUnit === 'millimeters' && quantity >= 100) {
-    return { quantity: quantity / 10, unit: 'centimeters' as MeasurementUnit }
-  }
-  if (normalizedUnit === 'centimeters' && quantity >= 100) {
-    return { quantity: quantity / 100, unit: 'meters' as MeasurementUnit }
-  }
-  if (normalizedUnit === 'meters' && quantity < 0.1) {
-    return { quantity: quantity * 100, unit: 'centimeters' as MeasurementUnit }
-  }
-  if (normalizedUnit === 'inches' && quantity >= 12) {
-    return { quantity: quantity / 12, unit: 'feet' as MeasurementUnit }
-  }
-  if (normalizedUnit === 'feet' && quantity < 0.1) {
-    return { quantity: quantity * 12, unit: 'inches' as MeasurementUnit }
-  }
-  if (normalizedUnit === 'gallons' && quantity < 0.1) {
-    return { quantity: quantity * 128, unit: 'fluid_ounces' as MeasurementUnit }
-  }
-  if (normalizedUnit === 'fluid_ounces' && quantity < 1) {
-    return { quantity: quantity * 6, unit: 'teaspoons' as MeasurementUnit }
-  }
-  return { quantity, unit: normalizedUnit }
+  return x
 }
 
-// Helper to get the best numeric value from an ingredient object
-export function getIngredientNumericQuantity(ingredient: { numericQuantity?: number; quantity?: number }): number | undefined {
-  if (typeof ingredient.numericQuantity === 'number' && !isNaN(ingredient.numericQuantity)) return ingredient.numericQuantity
-  if (typeof ingredient.quantity === 'number' && !isNaN(ingredient.quantity)) return ingredient.quantity
-  return undefined
-}
-
-export const formatMeasurementAndQuantity = (quantity: number, unit?: MeasurementUnit): string => {
-  if (!unit) {
-    return quantity.toString()
-  }
-
-  const { quantity: adjustedQuantity, unit: adjustedUnit } = chooseBestUnit(quantity, unit)
-
-  // For custom units, use the unit as is
-  const displayUnit = measurementUnits.includes(adjustedUnit as any)
-    ? UNIT_DISPLAY_TEXT[adjustedUnit as keyof typeof UNIT_DISPLAY_TEXT]
-    : adjustedUnit
-
-  let formattedQuantity: string
-
-  if (Number.isInteger(adjustedQuantity)) {
-    formattedQuantity = adjustedQuantity.toString()
-  } else {
-    // More aggressive rounding for common measurements
-    if (adjustedQuantity < 0.01) {
-      if (adjustedQuantity < 0.001) {
-        return `trace ${displayUnit}`
-      }
-      // Very small amounts
-      formattedQuantity = adjustedQuantity.toFixed(3)
-    } else if (adjustedQuantity < 0.1) {
-      // Round to nearest 0.05 for small amounts
-      formattedQuantity = (Math.round(adjustedQuantity * 20) / 20).toFixed(2).replace(/\.00$/, '')
-    } else if (adjustedQuantity < 1) {
-      // Round to nearest 0.1 for amounts less than 1
-      formattedQuantity = (Math.round(adjustedQuantity * 10) / 10).toFixed(1).replace(/\.0$/, '')
-    } else if (adjustedQuantity < 10) {
-      // Round to nearest 0.5 for amounts between 1 and 10
-      formattedQuantity = (Math.round(adjustedQuantity * 2) / 2).toFixed(1).replace(/\.0$/, '')
-    } else if (adjustedQuantity < 100) {
-      // Round to nearest whole number for amounts between 10 and 100
-      formattedQuantity = Math.round(adjustedQuantity).toString()
-    } else {
-      // Round to nearest 5 for large amounts
-      formattedQuantity = (Math.round(adjustedQuantity / 5) * 5).toString()
-    }
-  }
-
-  return `${formattedQuantity} ${displayUnit}`
-}
-
-export function parseQuantityToNumber(input: string | undefined): number | undefined {
-  if (!input) return undefined
-  try {
-    const frac = new Fraction(input)
-    return frac.valueOf()
-  } catch (e) {
-    const num = parseFloat(input)
-    return isNaN(num) ? undefined : num
-  }
-}
+/** --- Core Functions --- **/
 
 export function scaleQuantity(quantity: number, current: number, original: number): number {
-  if (original === 0) {
-    throw new Error('Cannot scale quantity: original servings cannot be zero')
-  }
+  if (original === 0) throw new Error('Cannot scale quantity: original servings cannot be zero')
   return quantity * (current / original)
 }
 
@@ -252,10 +143,7 @@ export function convertToSystem(
   targetSystem: 'metric' | 'imperial'
 ): { quantity: number; unit: MeasurementUnit } {
   const normalizedUnit = normalizeUnit(unit as string)
-
-  if (!normalizedUnit || !measurementUnits.includes(normalizedUnit)) {
-    return { quantity, unit }
-  }
+  if (!normalizedUnit) return { quantity, unit }
 
   const isMetricUnit = METRIC_UNITS.includes(normalizedUnit)
   const isImperialUnit = IMPERIAL_UNITS.includes(normalizedUnit)
@@ -263,200 +151,79 @@ export function convertToSystem(
   if ((isMetricUnit && targetSystem === 'metric') || (isImperialUnit && targetSystem === 'imperial')) {
     return { quantity, unit: normalizedUnit }
   }
+  if (FIXED_UNITS.has(normalizedUnit)) return { quantity, unit: normalizedUnit }
 
-  if (FIXED_UNITS.has(normalizedUnit)) {
-    return { quantity, unit: normalizedUnit }
-  }
-
-  // Special cases for metric to imperial conversion (applied before generic conversion)
+  // Special tolerant snaps
   if (normalizedUnit === 'milliliters' && targetSystem === 'imperial') {
-    if (quantity >= 230 && quantity <= 240) {
-      return { quantity: 1, unit: 'cups' as MeasurementUnit }
-    }
-    if (quantity >= 470 && quantity <= 480) {
-      return { quantity: 2, unit: 'cups' as MeasurementUnit }
-    }
+    const cupMl = CONVERSION_FACTORS.cups_to_milliliters
+    const snapped = snapTo(quantity, cupMl) ?? snapTo(quantity, 2 * cupMl)
+    if (snapped) return { quantity: Math.round(snapped / cupMl), unit: 'cups' }
   }
-
   if (normalizedUnit === 'grams' && targetSystem === 'imperial') {
-    if (quantity >= 450 && quantity <= 500) {
-      return { quantity: 1, unit: 'pounds' as MeasurementUnit }
-    }
-    if (quantity >= 225 && quantity <= 250) {
-      return { quantity: 0.5, unit: 'pounds' as MeasurementUnit }
-    }
-    if (quantity >= 110 && quantity <= 115) {
-      return { quantity: 4, unit: 'ounces' as MeasurementUnit }
-    }
+    const lbG = CONVERSION_FACTORS.pounds_to_kilograms * 1000
+    if (snapTo(quantity, lbG)) return { quantity: 1, unit: 'pounds' }
+    if (snapTo(quantity, lbG / 2)) return { quantity: 0.5, unit: 'pounds' }
+    if (snapTo(quantity, CONVERSION_FACTORS.ounces_to_grams * 4)) return { quantity: 4, unit: 'ounces' }
   }
 
-  const equivalent = UNIT_EQUIVALENTS[normalizedUnit as keyof typeof UNIT_EQUIVALENTS]
-  if (!equivalent) {
-    return { quantity, unit: normalizedUnit }
-  }
-
-  return {
-    quantity: quantity * equivalent.factor,
-    unit: equivalent.unit as MeasurementUnit
-  }
+  const eq = UNIT_EQUIVALENTS[normalizedUnit as keyof typeof UNIT_EQUIVALENTS]
+  return eq ? { quantity: quantity * eq.factor, unit: eq.unit } : { quantity, unit: normalizedUnit }
 }
 
-// Post-conversion display rules for small quantities
-export function applySpecialDisplayRules(quantity: number, unit: MeasurementUnit): { quantity: number; unit: MeasurementUnit } {
+export function chooseDisplayUnit(
+  quantity: number,
+  unit: MeasurementUnit
+): { quantity: number; unit: MeasurementUnit } {
   const normalizedUnit = normalizeUnit(unit as string)
+  if (!normalizedUnit) return { quantity, unit }
 
-  if (!normalizedUnit) {
-    return { quantity, unit }
-  }
+  if (FIXED_UNITS.has(normalizedUnit)) return { quantity, unit: normalizedUnit }
 
-  // Small volume conversions for display purposes
-  if (normalizedUnit === 'milliliters' && quantity <= 5) {
-    return { quantity: 1, unit: 'teaspoons' as MeasurementUnit }
-  }
-  if (normalizedUnit === 'milliliters' && quantity <= 15) {
-    return { quantity: 1, unit: 'tablespoons' as MeasurementUnit }
-  }
-
+  // Simple g→kg, ml→L, etc.
+  if (normalizedUnit === 'grams' && quantity >= 1000) return { quantity: quantity / 1000, unit: 'kilograms' }
+  if (normalizedUnit === 'kilograms' && quantity < 0.1) return { quantity: quantity * 1000, unit: 'grams' }
+  if (normalizedUnit === 'milliliters' && quantity >= 1000) return { quantity: quantity / 1000, unit: 'liters' }
+  if (normalizedUnit === 'liters' && quantity < 1) return { quantity: quantity * 1000, unit: 'milliliters' }
   return { quantity, unit: normalizedUnit }
 }
 
-export function chooseDisplayUnit(quantity: number, unit: MeasurementUnit): {
-  quantity: number
-  unit: MeasurementUnit
-} {
-  const { quantity: bestQuantity, unit: bestUnit } = chooseBestUnit(quantity, unit)
-  return applySpecialDisplayRules(bestQuantity, bestUnit)
-}
-
 export function formatQuantityForDisplay(quantity: number, useFractions = false): string {
-  // Handle zero first
-  if (quantity === 0) return '0'
+  if (quantity <= 0) return '0'
+  if (useFractions) quantity = snapToGoodFraction(quantity)
 
-  // Handle negative numbers
-  if (quantity < 0) return '0'
-
-  if (useFractions) return formatQuantity(quantity)
-
-  // Handle trace amounts (only for positive values)
-  if (quantity < 0.001) {
-    return 'trace'
-  }
-
-  // Handle very small amounts (0.001 to 0.01) - show as-is with 3 decimal places
-  if (quantity >= 0.001 && quantity < 0.01) {
-    return quantity.toFixed(3).replace(/\.0+$|(\.\d*?)0+$/, '$1')
-  }
-
-  // Handle small amounts (0.01 to 0.1) - show as-is
-  if (quantity >= 0.01 && quantity < 0.1) {
-    return quantity.toFixed(2).replace(/\.0+$|(\.\d*?)0+$/, '$1')
-  }
-
-  // Handle amounts less than 1 - round to nearest 0.1
-  if (quantity >= 0.1 && quantity < 1) {
-    const rounded = Math.round(quantity * 10) / 10
-    return rounded.toFixed(1).replace(/\.0+$/, '')
-  }
-
-  // Handle amounts between 1 and 10 - round to nearest 0.5
-  if (quantity >= 1 && quantity < 10) {
-    const rounded = Math.round(quantity * 2) / 2
-    return rounded.toFixed(1).replace(/\.0+$/, '')
-  }
-
-  // Handle amounts between 10 and 100 - round to whole number
-  if (quantity >= 10 && quantity < 100) {
-    return Math.round(quantity).toString()
-  }
-
-  // Handle large amounts (100+) - round to nearest 5
+  if (quantity < 0.001) return 'trace'
+  if (quantity < 0.01) return quantity.toFixed(3).replace(/\.0+$/, '')
+  if (quantity < 0.1) return quantity.toFixed(2).replace(/\.0+$/, '')
+  if (quantity < 1) return (Math.round(quantity * 10) / 10).toFixed(1).replace(/\.0$/, '')
+  if (quantity < 10) return (Math.round(quantity * 2) / 2).toFixed(1).replace(/\.0$/, '')
+  if (quantity < 100) return Math.round(quantity).toString()
   return (Math.round(quantity / 5) * 5).toString()
 }
 
 export function formatIngredientDisplay(quantity: number, unit?: MeasurementUnit, useFractions = false): string {
-  if (!unit) {
-    return formatQuantityForDisplay(quantity, useFractions)
-  }
-
-  const { quantity: adjustedQty, unit: bestUnit } = chooseDisplayUnit(quantity, unit)
-  const displayQty = formatQuantityForDisplay(adjustedQty, useFractions)
-  const displayUnit = measurementUnits.includes(bestUnit as any)
-    ? UNIT_DISPLAY_TEXT[bestUnit as keyof typeof UNIT_DISPLAY_TEXT]
-    : bestUnit
-
-  return `${displayQty} ${displayUnit}`
+  if (!unit) return formatQuantityForDisplay(quantity, useFractions)
+  const { quantity: adjQty, unit: bestUnit } = chooseDisplayUnit(quantity, unit)
+  return `${formatQuantityForDisplay(adjQty, useFractions)} ${pluralize(bestUnit as MeasurementUnit, adjQty)}`
 }
 
 export function getDisplayIngredient(
-  ingredient: {
-    quantity?: { numeric?: number; text?: string }
-    measurement?: string
-    displayName?: string
-  },
+  ingredient: { quantity?: { numeric?: number; text?: string }, measurement?: string },
   currentServings: number,
   originalServings: number,
   unitSystem: 'metric' | 'imperial'
 ) {
   if (!ingredient.quantity?.numeric || isNaN(ingredient.quantity.numeric)) {
-    const parts = [ingredient.quantity?.text, ingredient.measurement].filter(Boolean)
-    return {
-      ...ingredient,
-      displayMeasurementAndQuantity: parts.length > 0 ? parts.join(' ').trim() : (ingredient.measurement || '')
-    }
+    return { ...ingredient, displayMeasurementAndQuantity: ingredient.measurement || '' }
   }
-
   const scaled = scaleQuantity(ingredient.quantity.numeric, currentServings, originalServings)
-
-  const useFractions = shouldUseFraction(scaled)
-
-  if (!ingredient.measurement) {
-    return {
-      ...ingredient,
-      displayMeasurementAndQuantity: formatQuantityForDisplay(scaled, useFractions)
-    }
-  }
-
-  try {
-    const { quantity, unit } = convertToSystem(scaled, ingredient.measurement as MeasurementUnit, unitSystem)
-    return {
-      ...ingredient,
-      displayMeasurementAndQuantity: formatIngredientDisplay(quantity, unit, useFractions)
-    }
-  } catch {
-    return {
-      ...ingredient,
-      displayMeasurementAndQuantity: `${scaled} ${ingredient.measurement}`
-    }
-  }
-}
-
-export function shouldUseFraction(value: number): boolean {
-  if (value >= 10) return false
-
-  const decimal = value % 1
-  const goodFractions = [0, 0.125, 0.25, 0.333, 0.5, 0.666, 0.75, 0.875]
-
-
-  return goodFractions.some(f => Math.abs(decimal - f) < 0.02)
-}
-
-export function formatQuantity(value: number): string {
-  const frac = new Fraction(value)
-  const whole = Math.floor(frac.valueOf())
-  const remainder = frac.sub(whole)
-  const maxDenominator = 8n
-
-  if (remainder.n === 0n) {
-    return `${whole}`
-  } else if (whole === 0) {
-    if (remainder.d > maxDenominator) {
-      return value.toFixed(2).replace(/\.00$/, '')
-    }
-    return `${remainder.toFraction(false)}`
-  } else {
-    if (remainder.d > maxDenominator) {
-      return value.toFixed(2).replace(/\.00$/, '')
-    }
-    return `${whole} ${remainder.toFraction(false)}`
+  const useFractions = scaled < 10
+  const converted = ingredient.measurement
+    ? convertToSystem(scaled, ingredient.measurement as MeasurementUnit, unitSystem)
+    : { quantity: scaled, unit: undefined }
+  return {
+    ...ingredient,
+    displayMeasurementAndQuantity: converted.unit
+      ? formatIngredientDisplay(converted.quantity, converted.unit, useFractions)
+      : formatQuantityForDisplay(converted.quantity, useFractions)
   }
 }
