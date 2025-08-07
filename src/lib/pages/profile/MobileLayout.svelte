@@ -90,9 +90,11 @@
 		</button>
 	</div>
 	<div class="signout-row">{@render signOut(true)}</div>
+	<!--
 	<div class="membership-btn">
 		{@render membership(true)}
 	</div>
+	-->
 </div>
 
 <Drawer

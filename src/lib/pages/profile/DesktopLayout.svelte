@@ -32,11 +32,13 @@
 </script>
 
 <div class="profile-container">
-	<div class="membership-button-container">
-		<div>
-			{@render membership()}
+	<!--
+		<div class="membership-button-container">
+			<div>
+				{@render membership()}
+			</div>
 		</div>
-	</div>
+	-->
 
 	<div class="profile-header-row card">
 		<div class="profile-avatar-block">
