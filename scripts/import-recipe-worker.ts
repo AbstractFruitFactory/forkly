@@ -2,12 +2,17 @@ import { Worker } from 'bullmq'
 import { redis } from '../src/lib/server/redis'
 import OpenAI from 'openai'
 import * as cheerio from 'cheerio'
+import type { CheerioAPI } from 'cheerio'
 import dotenv from 'dotenv'
+import { setTimeout as delay } from 'node:timers/promises'
+import { URL as NodeURL } from 'node:url'
+
+dotenv.config()
 
 export type ImportedRecipeData = {
   title: string
   description: string
-  image: string
+  image: string | null
   tags: string[]
   servings: number
   nutritionMode: 'auto' | 'manual' | 'none'
@@ -19,8 +24,8 @@ export type ImportedRecipeData = {
   }
   instructions: {
     text: string
-    mediaUrl?: string
-    mediaType?: 'image' | 'video'
+    mediaUrl?: string | null
+    mediaType?: 'image' | 'video' | null
     ingredients: {
       name: string
       quantity: string
@@ -29,128 +34,299 @@ export type ImportedRecipeData = {
   }[]
 }
 
-dotenv.config()
+type InputType = 'url' | 'text' | 'image'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+type JobData = {
+  url?: string
+  text?: string
+  imageBase64Array?: string[]
+  userId: string
+  username: string
+  inputType: InputType
+}
 
-async function fetchAndCleanHtml(url: string): Promise<string> {
-  const headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'DNT': '1',
-    'Connection': 'keep-alive',
-    'Upgrade-Insecure-Requests': '1',
-    'Sec-Fetch-Dest': 'document',
-    'Sec-Fetch-Mode': 'navigate',
-    'Sec-Fetch-Site': 'none',
-    'Sec-Fetch-User': '?1',
-    'Cache-Control': 'max-age=0'
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+function resolveUrl(base: string, maybe: string | undefined | null): string | null {
+  if (!maybe) return null
+  try {
+    return new NodeURL(maybe, base).toString()
+  } catch {
+    return null
+  }
+}
+
+function toInt(x: any): number | undefined {
+  if (x == null) return undefined
+  const n = Number(x)
+  if (Number.isFinite(n)) return n
+  const m = String(x).match(/(-?\d{2,5})/)
+  return m ? Number(m[1]) : undefined
+}
+
+type ImageCandidate = {
+  url: string
+  width?: number
+  height?: number
+  source: 'jsonld' | 'og' | 'marker'
+  order?: number
+}
+
+function looksLikeLogo(u: string): boolean {
+  const s = u.toLowerCase()
+  return /(logo|sprite|icon|placeholder|blank|avatar|favicon)/.test(s)
+}
+
+function chooseMainImage(cands: ImageCandidate[]): string | null {
+  if (!cands.length) return null
+  const dedup = new Map<string, ImageCandidate>()
+  for (const c of cands) {
+    if (!c.url) continue
+    if (!dedup.has(c.url)) dedup.set(c.url, c)
+  }
+  const arr = [...dedup.values()]
+  arr.sort((a, b) => {
+    const areaA = (a.width ?? 0) * (a.height ?? 0)
+    const areaB = (b.width ?? 0) * (b.height ?? 0)
+    const srcW = (t: ImageCandidate['source']) => (t === 'jsonld' ? 3 : t === 'og' ? 2 : 1)
+    const penA = looksLikeLogo(a.url) ? -1000 : 0
+    const penB = looksLikeLogo(b.url) ? -1000 : 0
+    return (srcW(b.source) + areaB / 1e6 + penB) - (srcW(a.source) + areaA / 1e6 + penA)
+  })
+  const best = arr.find(c => !looksLikeLogo(c.url) && ((c.width ?? 0) >= 256 || (c.height ?? 0) >= 256)) || arr[0]
+  return best?.url ?? null
+}
+
+function extractMetaImages($: CheerioAPI, baseUrl: string): ImageCandidate[] {
+  const out: ImageCandidate[] = []
+  const ogImg = $('meta[property="og:image"], meta[name="og:image"], meta[name="twitter:image"], meta[property="twitter:image"]').attr('content')
+  const w = toInt($('meta[property="og:image:width"]').attr('content'))
+  const h = toInt($('meta[property="og:image:height"]').attr('content'))
+  if (ogImg) {
+    const abs = resolveUrl(baseUrl, ogImg)
+    if (abs) out.push({ url: abs, width: w, height: h, source: 'og' })
+  }
+  return out
+}
+
+async function fetchAndCleanHtml(url: string): Promise<{ text: string; $: CheerioAPI; html: string; markers: ImageCandidate[]; ogImages: ImageCandidate[] }> {
+  const headers: Record<string, string> = {
+    'User-Agent': 'Mozilla/5.0 ForklyImporter/1.0 (+importer)'
   }
 
-  const maxRetries = 3
-  let lastError: Error | null = null
+  const maxRetries = 4
+  let lastErr: any
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 15000)
     try {
-      const res = await fetch(url, {
-        headers,
-        redirect: 'follow'
-      })
-      
+      const res = await fetch(url, { headers, redirect: 'follow', signal: controller.signal })
+      clearTimeout(timeout)
       if (!res.ok) {
-        if (res.status === 403 && attempt < maxRetries) {
-          console.log(`Attempt ${attempt}: Got 403, retrying in ${attempt * 2}s...`)
-          await new Promise(resolve => setTimeout(resolve, attempt * 2000))
-          lastError = new Error(`Failed to fetch URL: ${res.statusText}`)
+        if ((res.status === 429 || res.status >= 500) && attempt < maxRetries) {
+          const backoff = Math.min(2000 * 2 ** (attempt - 1), 10000) + Math.random() * 500
+          await delay(backoff)
           continue
         }
-        throw new Error(`Failed to fetch URL: ${res.statusText}`)
+        throw new Error(`Fetch failed: ${res.status} ${res.statusText}`)
       }
-      
       const html = await res.text()
       const $ = cheerio.load(html)
-      $('script, style, noscript, iframe, svg, header, footer, nav').remove()
-      $('img').each((_, el) => {
+      $('script, style, noscript, iframe, svg').remove()
+
+      const markers: ImageCandidate[] = []
+      let order = 0
+      $('img').each((_: number, el: any) => {
         const $el = $(el)
-        const src = $el.attr('src')
-        const dataSrc = $el.attr('data-src')
-        const dataPinMedia = $el.attr('data-pin-media')
-        const dataLazySrc = $el.attr('data-lazy-src')
-        const dataOriginal = $el.attr('data-original')
-        const width = $el.attr('width')
-        const height = $el.attr('height')
-        
-        let imageUrl = dataSrc || dataPinMedia || dataLazySrc || dataOriginal || src
-        
-        if (imageUrl && typeof imageUrl === 'string') {
-          // Filter out empty SVG placeholders and data URIs that are just placeholders
-          if (imageUrl.startsWith('data:image/svg+xml') && 
-              (imageUrl.includes('viewBox') || imageUrl.includes('width') && imageUrl.includes('height'))) {
-            // This is likely an empty SVG placeholder, skip it
-            $el.remove()
-          } else if (imageUrl.startsWith('http') || imageUrl.startsWith('//')) {
-            // This is a real image URL
-            const dimensions = width && height ? ` (${width}x${height})` : ''
-            $el.replaceWith(`[IMAGE: ${imageUrl}${dimensions}]`)
-          } else {
-            // Skip relative URLs or other non-http URLs
-            $el.remove()
-          }
+        const candidates = ['data-src', 'data-pin-media', 'data-lazy-src', 'data-original', 'src']
+          .map((a) => $el.attr(a))
+          .filter(Boolean) as string[]
+        const imageUrl = candidates[0]
+        if (imageUrl?.startsWith('data:image')) {
+          $el.remove()
+          return
+        }
+        const absolute = imageUrl ? resolveUrl(url, imageUrl) : null
+        if (absolute) {
+          const wAttr = $el.attr('width')
+          const hAttr = $el.attr('height')
+          const w = toInt(wAttr)
+          const h = toInt(hAttr)
+          markers.push({ url: absolute, width: w, height: h, source: 'marker', order: order++ })
+          $el.replaceWith(`<p>[IMAGE: ${absolute}${w && h ? ` (${w}x${h})` : ''}]</p>`)
         } else {
           $el.remove()
         }
       })
-      const text = $('body').text()
-      return text.replace(/\s+/g, ' ').trim()
-    } catch (error) {
-      lastError = error as Error
+
+      const ogImages = extractMetaImages($, url)
+
+      const pieces: string[] = []
+      $('h1,h2,h3,h4,p,li').each((_: number, el: any) => {
+        const tag = el.tagName?.toLowerCase?.() ?? ''
+        let t = $(el).text().replace(/\s+/g, ' ').trim()
+        if (!t) return
+        if (tag === 'li') t = `- ${t}`
+        pieces.push(t)
+      })
+      const text = pieces.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+      return { text, $, html, markers, ogImages }
+    } catch (e) {
+      clearTimeout(timeout)
+      lastErr = e
       if (attempt < maxRetries) {
-        console.log(`Attempt ${attempt} failed: ${error}. Retrying in ${attempt * 2}s...`)
-        await new Promise(resolve => setTimeout(resolve, attempt * 2000))
+        const backoff = Math.min(2000 * 2 ** (attempt - 1), 10000) + Math.random() * 500
+        await delay(backoff)
       }
     }
   }
-  
-  throw lastError || new Error('Failed to fetch URL after all retries')
+  throw lastErr ?? new Error('Fetch failed')
 }
 
 function cleanTextInput(text: string): string {
   return text.replace(/\s+/g, ' ').trim()
 }
 
+function extractJsonLd($: CheerioAPI): any[] {
+  const recipes: any[] = []
+  $('script[type="application/ld+json"]').each((_: number, el: any) => {
+    try {
+      const raw = $(el).contents().text()
+      if (!raw) return
+      const json = JSON.parse(raw)
+      const items = Array.isArray(json) ? json : [json]
+      for (const it of items) {
+        const graph = it['@graph'] || items
+        const arr = Array.isArray(graph) ? graph : [graph]
+        for (const node of arr) {
+          const types = Array.isArray(node['@type']) ? node['@type'] : [node['@type']]
+          if (types?.includes?.('Recipe')) recipes.push(node)
+        }
+      }
+    } catch {}
+  })
+  return recipes
+}
+
+function coerceNumber(n: any): number | undefined {
+  if (n == null) return undefined
+  if (typeof n === 'number' && Number.isFinite(n)) return n
+  const m = String(n).match(/[-+]?\d*\.?\d+/)
+  return m ? Number(m[0]) : undefined
+}
+
+function safeServings(yieldVal: any): number | undefined {
+  const n = coerceNumber(yieldVal)
+  if (n && n > 0 && n < 1000) return Math.round(n)
+  return undefined
+}
+
+function bestImageFromJsonLd(img: any, baseUrl: string): ImageCandidate | null {
+  if (!img) return null
+  const asArray = Array.isArray(img) ? img : [img]
+  let best: { url: string; score: number; width?: number; height?: number } | null = null
+  for (const it of asArray) {
+    if (!it) continue
+    if (typeof it === 'string') {
+      const url = resolveUrl(baseUrl, it)
+      if (url) best = !best ? { url, score: 1 } : best
+    } else if (typeof it === 'object') {
+      const url = resolveUrl(baseUrl, it.url || it['@id'] || it.contentUrl || it.thumbnailUrl)
+      const w = coerceNumber(it.width) ?? 0
+      const h = coerceNumber(it.height) ?? 0
+      const score = w * h || 1
+      if (url && (!best || score > best.score)) best = { url, score, width: w, height: h }
+    }
+  }
+  return best ? { url: best.url, width: best.width, height: best.height, source: 'jsonld' } : null
+}
+
+function mapJsonLdToImported(recipeNode: any, baseUrl: string): ImportedRecipeData {
+  const title = recipeNode.name || ''
+  const description = recipeNode.description || ''
+  const imgCand = bestImageFromJsonLd(recipeNode.image, baseUrl)
+  const image = imgCand?.url ?? null
+  const servings = safeServings(recipeNode.recipeYield) ?? 1
+
+  const steps: any[] = []
+  const ri = recipeNode.recipeInstructions
+  if (Array.isArray(ri)) {
+    for (const entry of ri) {
+      if (!entry) continue
+      if (typeof entry === 'string') {
+        steps.push({ text: entry, image: null })
+      } else if (entry['@type'] === 'HowToSection' && Array.isArray(entry.itemListElement)) {
+        for (const sub of entry.itemListElement) {
+          const text = (sub.text || sub.name || '').toString()
+          const stepImg = bestImageFromJsonLd(sub.image, baseUrl)
+          if (text) steps.push({ text, image: stepImg?.url ?? null })
+        }
+      } else {
+        const text = (entry.text || entry.name || '').toString()
+        const stepImg = bestImageFromJsonLd(entry.image, baseUrl)
+        if (text) steps.push({ text, image: stepImg?.url ?? null })
+      }
+    }
+  } else if (typeof ri === 'string') {
+    steps.push({ text: ri, image: null })
+  }
+
+  const rawTags: string[] = []
+  const keywords = recipeNode.keywords
+  if (typeof keywords === 'string') rawTags.push(...keywords.split(/[;,]/))
+  if (Array.isArray(keywords)) rawTags.push(...keywords)
+  if (recipeNode.recipeCuisine) rawTags.push(recipeNode.recipeCuisine)
+  if (recipeNode.suitableForDiet) rawTags.push(
+    ...(Array.isArray(recipeNode.suitableForDiet) ? recipeNode.suitableForDiet : [recipeNode.suitableForDiet])
+  )
+  const tags = Array.from(
+    new Set(
+      rawTags.map((t) => t?.toString()?.toLowerCase()?.trim()).filter(Boolean)
+    )
+  ).slice(0, 3)
+
+  const n = recipeNode.nutrition || {}
+  const calories = coerceNumber(n.calories)
+  const protein = coerceNumber(n.proteinContent)
+  const carbs = coerceNumber(n.carbohydrateContent)
+  const fat = coerceNumber(n.fatContent)
+
+  const nutritionComplete = [calories, protein, carbs, fat].every((v) => typeof v === 'number' && v >= 0 && v < 10000)
+  const nutrition = nutritionComplete
+    ? { calories: calories!, protein: protein!, carbs: carbs!, fat: fat! }
+    : undefined
+
+  const instructions = steps.map((s) => ({
+    text: s.text || '',
+    mediaUrl: s.image ?? null,
+    mediaType: s.image ? ('image' as const) : null,
+    ingredients: [] as { name: string; quantity: string; measurement: string }[]
+  }))
+
+  return {
+    title,
+    description,
+    image,
+    tags,
+    servings,
+    nutritionMode: nutrition ? 'manual' : 'auto',
+    nutrition,
+    instructions
+  }
+}
+
 async function extractTextFromImages(imageBase64Array: string[]): Promise<string> {
-  const prompt = `
-Extract all text from these recipe images. Pay special attention to:
-- Recipe title
-- Ingredients list with quantities and measurements
-- Cooking instructions/steps
-- Any nutritional information
-- Serving size
-- Cooking time or other relevant details
-
-Please extract the text exactly as it appears, maintaining the structure and formatting as much as possible. If there are multiple columns or sections, preserve that layout in the text output.
-
-Combine all the text from all images into a single coherent recipe. If the images show different parts of the same recipe, merge them logically.
-
-If any of the images are not recipes or contain no readable text, please indicate that clearly.
-
-If there are multiple images, treat them as parts of the same recipe and combine the information appropriately.
-`
+  const prompt = `Extract all text from these recipe images. Preserve structure (title, ingredients with quantities, steps, nutrition, servings, times). Combine into a single coherent recipe. If non-recipe or unreadable, say so.`
 
   const messages: any[] = [
     {
       role: 'user',
       content: [
         { type: 'text', text: prompt },
-        ...imageBase64Array.map(base64 => ({
+        ...imageBase64Array.map((base64) => ({
           type: 'image_url' as const,
-          image_url: {
-            url: `data:image/jpeg;base64,${base64}`
-          }
+          image_url: { url: `data:image/jpeg;base64,${base64}` }
         }))
       ]
     }
@@ -167,162 +343,220 @@ If there are multiple images, treat them as parts of the same recipe and combine
   return content
 }
 
-async function extractRecipe(text: string): Promise<any> {
-  const prompt = `
-Extract a recipe in JSON format from the following text. If you see [IMAGE: url (WxH)] markers, you MUST use them to select the best image for the recipe and for steps. 
+async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promise<any> {
+  const prompt = `Extract a recipe from the following text. If you see [IMAGE: url (WxH)] markers, USE them for the main recipe image and to attach to relevant steps. Always include mediaUrl and mediaType ("image" | "video" | null) in every instruction. If missing info, set null/empty instead of guessing. Title can be inferred from content if absent. Use exactly up to 3 short, relevant tags.\n\nSource: ${sourceUrlHint ?? 'unknown'}\n\nRecipe text:\n"""${text.slice(0, 8000)}"""`
 
-IMPORTANT: Every instruction MUST include mediaUrl and mediaType fields, even if they are null. When you see [IMAGE: url] markers in the text, extract those URLs and assign them to the most relevant instruction step.
-
-Respond only with JSON, in this format:
-{
-  "title": "string",
-  "description": "string",
-  "image": "string (URL)",
-  "servings": number,
-  "nutrition": {
-    "calories": number,
-    "protein": number,
-    "carbs": number,
-    "fat": number
-  } | null,
-  "instructions": [
-    {
-      "text": "string",
-      "mediaUrl": "string (URL) | null",
-      "mediaType": "image" | "video" | null,
-      "ingredients": [
-        {
-          "name": string,
-          "quantity": string,
-          "measurement": string
-        }, ...
-      ]
-    }, ...
-  ]
-}
-
-For the main recipe image, prioritize larger images (higher width x height values) as they are typically more representative of the final dish. Look for images with dimensions like 1440x1920, 1440x960, etc. over smaller ones like 180x180.
-
-For each instruction step, you MUST include:
-- mediaUrl: Extract URLs from [IMAGE: url] markers that appear near or before that step. If no relevant image is found, set to null.
-- mediaType: Set to "image" if mediaUrl contains an image URL, "video" if it's a video URL, or null if mediaUrl is null.
-
-If any field is missing, set it to null, empty string, or empty array as appropriate.
-
-If the recipe has no image, set the image to null.
-
-If the recipe has no clear input for anything, set it empty instead of guessing.
-
-For ingredients, quantity is required if measurement is provided. For non-quantifiable inputs like "to taste", enter it into the quantity field.
-
-If there is no clear recipe title, make one up based on the content.
-
-Feel free to combine steps if it makes sense to do so. If the step mentions quantities of ingredients, change the text to omit the quantity.
-
-Recipe text:
-"""${text.slice(0, 8000)}"""
-`
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o',
     temperature: 0.2,
     messages: [{ role: 'user', content: prompt }],
-    response_format: { type: 'json_object' }
+    tools: [
+      {
+        type: 'function',
+        function: {
+          name: 'parse_recipe',
+          description: 'Parses a recipe into structured fields',
+          parameters: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              description: { type: 'string' },
+              image: { type: ['string', 'null'] },
+              tags: {
+                type: 'array',
+                items: { type: 'string' },
+                maxItems: 3
+              },
+              servings: { type: 'number' },
+              nutrition: {
+                type: ['object', 'null'],
+                properties: {
+                  calories: { type: 'number' },
+                  protein: { type: 'number' },
+                  carbs: { type: 'number' },
+                  fat: { type: 'number' }
+                }
+              },
+              instructions: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    text: { type: 'string' },
+                    mediaUrl: { type: ['string', 'null'] },
+                    mediaType: { type: ['string', 'null'], enum: ['image', 'video', null] },
+                    ingredients: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          name: { type: 'string' },
+                          quantity: { type: 'string' },
+                          measurement: { type: 'string' }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            required: ['title', 'instructions', 'servings']
+          }
+        }
+      }
+    ],
+    tool_choice: { type: 'function', function: { name: 'parse_recipe' } }
   })
-  const content = completion.choices[0].message.content
-  if (!content) throw new Error('No response from OpenAI')
-  const parsed = JSON.parse(content)
-  console.log('AI extracted recipe - Title:', parsed.title, 'Instructions:', parsed.instructions?.length || 0, 'steps')
+
+  const toolCall = completion.choices[0].message.tool_calls?.[0]
+  if (!toolCall?.function?.arguments) {
+    throw new Error('No function call arguments returned')
+  }
+
+  const parsed = JSON.parse(toolCall.function.arguments)
   return parsed
 }
 
-const worker = new Worker(
-  'import-recipe',
-  async job => {
-    const { url, text, imageBase64Array, userId, username, inputType } = job.data
-    console.log(`Processing import job for user ${username} (${userId}): ${inputType === 'url' ? url : inputType === 'text' ? 'text input' : 'image input'}`)
+function normalizeRecipe(parsed: any): ImportedRecipeData {
+  const title = parsed.title || ''
+  const description = parsed.description || ''
+  const image = parsed.image ?? null
+  const servings = parsed.servings ? Number(parsed.servings) : 1
 
-    try {
-      let rawText: string
+  const rawTags: string[] = Array.isArray(parsed.tags) ? parsed.tags : []
+  const tags = Array.from(new Set(rawTags.map((t) => t?.toString()?.toLowerCase()?.trim()).filter(Boolean))).slice(0, 3)
 
-      if (inputType === 'url') {
-        if (!url) throw new Error('URL is required for URL-based imports')
-        rawText = await fetchAndCleanHtml(url)
-      } else if (inputType === 'text') {
-        if (!text) throw new Error('Text content is required for text-based imports')
-        rawText = cleanTextInput(text)
-      } else if (inputType === 'image') {
-        if (!imageBase64Array || imageBase64Array.length === 0) {
-          throw new Error('Image data is required for image-based imports')
-        }
-        rawText = await extractTextFromImages(imageBase64Array)
-      } else {
-        throw new Error('Invalid input type. Must be either "url", "text", or "image"')
-      }
+  const n = parsed.nutrition
+  const nutOk = n && [n.calories, n.protein, n.carbs, n.fat].every((x: any) => typeof x === 'number' && x >= 0 && x < 10000)
+  const nutrition = nutOk ? { calories: n.calories, protein: n.protein, carbs: n.carbs, fat: n.fat } : undefined
 
-      const recipe = await extractRecipe(rawText)
+  const instructions = Array.isArray(parsed.instructions)
+    ? parsed.instructions.map((inst: any) => ({
+      text: inst.text || '',
+      mediaUrl: inst.mediaUrl ?? null,
+      mediaType: inst.mediaType ?? null,
+      ingredients: Array.isArray(inst.ingredients)
+        ? inst.ingredients.map((ing: any) => ({
+          name: ing.name || '',
+          quantity: typeof ing.quantity === 'string' ? ing.quantity : (ing.quantity ?? '').toString(),
+          measurement: ing.measurement || ''
+        }))
+        : []
+    }))
+    : []
 
-      if (rawText.includes('[IMAGE:')) {
-        const imageMatches = rawText.match(/\[IMAGE: ([^\]]+)\]/g)
-      }
+  return {
+    title,
+    description,
+    image,
+    tags,
+    servings,
+    nutritionMode: nutrition ? 'manual' : 'auto',
+    nutrition,
+    instructions
+  }
+}
 
-      const recipeData = {
-        title: recipe.title || '',
-        description: recipe.description || '',
-        image: recipe.image || '',
-        tags: Array.isArray(recipe.tags) ? recipe.tags : [],
-        servings: recipe.servings ? Number(recipe.servings) : 1,
-        nutritionMode: recipe.nutrition ? 'manual' : 'auto',
-        nutrition: recipe.nutrition || undefined,
-        instructions: Array.isArray(recipe.instructions)
-          ? recipe.instructions.map((inst: any) => ({
-            text: inst.text || '',
-            mediaUrl: inst.mediaUrl || undefined,
-            mediaType: inst.mediaType || undefined,
-            ingredients: Array.isArray(inst.ingredients)
-              ? inst.ingredients.map((ing: any) => ({
-                name: ing.name || '',
-                quantity: ing.quantity ?? 0,
-                measurement: ing.measurement || ''
-              }))
-              : []
-          }))
-          : []
-      }
-      console.log('Writing completed recipe to Redis:', `import-recipe:result:${job.id}`)
-      console.log('Value:', JSON.stringify({ status: 'completed', result: recipeData }))
-      await redis.set(
-        `import-recipe:result:${job.id}`,
-        JSON.stringify({ status: 'completed', result: recipeData }),
-        { ex: 3600 }
-      )
-
-      // Clean up the deduplication cache key (only for URL imports)
-      if (inputType === 'url' && url) {
-        const cacheKey = `imported-url:${userId}:${url}`
-        await redis.del(cacheKey)
-      }
-
-      console.log(`Job ${job.id} completed successfully`)
-      return recipeData
-    } catch (err: any) {
-      console.log('Writing failed recipe to Redis:', `import-recipe:result:${job.id}`)
-      console.log('Value:', JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }))
-      await redis.set(
-        `import-recipe:result:${job.id}`,
-        JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }),
-        { ex: 3600 }
-      )
-
-      // Clean up the deduplication cache key on failure too (only for URL imports)
-      if (inputType === 'url' && url) {
-        const cacheKey = `imported-url:${userId}:${url}`
-        await redis.del(cacheKey)
-      }
-
-      console.error(`Job ${job.id} failed:`, err.message)
-      throw err
+function attachStepImagesIfMissing(instructions: ImportedRecipeData['instructions'], markers: ImageCandidate[], mainImage: string | null) {
+  const filtered = markers
+    .filter(m => m.url && m.url !== mainImage && !looksLikeLogo(m.url))
+    .filter(m => ((m.width ?? 0) >= 300 || (m.height ?? 0) >= 250))
+  let i = 0
+  for (const step of instructions) {
+    if (!step.mediaUrl && filtered[i]) {
+      step.mediaUrl = filtered[i].url
+      step.mediaType = 'image'
+      i++
+      if (i >= filtered.length) break
     }
-  },
+  }
+}
+
+async function handleJob(job: any) {
+  const { url, text, imageBase64Array, userId, username, inputType } = job.data as JobData
+  console.log(`Processing import job for user ${username} (${userId}): ${inputType === 'url' ? url : inputType}`)
+
+  try {
+    let rawText = ''
+    let parsed: any | null = null
+    let markers: ImageCandidate[] = []
+    let ogImages: ImageCandidate[] = []
+
+    if (inputType === 'url') {
+      if (!url) throw new Error('URL is required for URL-based imports')
+      const fetched = await fetchAndCleanHtml(url)
+      const { text: cleaned, $, markers: pageMarkers, ogImages: og } = fetched
+      markers = pageMarkers
+      ogImages = og
+
+      const ld = extractJsonLd($)
+      if (ld.length) {
+        parsed = mapJsonLdToImported(ld[0], url)
+      } else {
+        rawText = cleaned
+        parsed = await extractRecipeWithLLM(rawText, url)
+      }
+    } else if (inputType === 'text') {
+      if (!text) throw new Error('Text content is required for text-based imports')
+      rawText = cleanTextInput(text)
+      parsed = await extractRecipeWithLLM(rawText)
+    } else if (inputType === 'image') {
+      if (!imageBase64Array || imageBase64Array.length === 0) throw new Error('Image data is required for image-based imports')
+      rawText = await extractTextFromImages(imageBase64Array)
+      parsed = await extractRecipeWithLLM(rawText)
+    } else {
+      throw new Error('Invalid input type. Must be either "url", "text", or "image"')
+    }
+
+    const recipe = normalizeRecipe(parsed)
+
+    const candidates: ImageCandidate[] = []
+    if (recipe.image) candidates.push({ url: recipe.image, source: 'jsonld' })
+    candidates.push(...ogImages)
+    candidates.push(...markers)
+    const chosen = chooseMainImage(candidates)
+    recipe.image = chosen ?? recipe.image ?? null
+
+    attachStepImagesIfMissing(recipe.instructions, markers, recipe.image)
+
+    const recipeData: ImportedRecipeData = {
+      title: recipe.title,
+      description: recipe.description,
+      image: recipe.image ?? null,
+      tags: recipe.tags,
+      servings: recipe.servings,
+      nutritionMode: recipe.nutrition ? 'manual' : 'auto',
+      nutrition: recipe.nutrition ?? undefined,
+      instructions: recipe.instructions
+    }
+
+    const resultKey = `import-recipe:result:${job.id}`
+    await redis.set(resultKey, JSON.stringify({ status: 'completed', result: recipeData }), { ex: 3600 })
+
+    if (inputType === 'url' && url) {
+      const cacheKey = `imported-url:${userId}:${url}`
+      await redis.del(cacheKey)
+    }
+
+    console.log(`Job ${job.id} completed successfully`)
+    return recipeData
+  } catch (err: any) {
+    const resultKey = `import-recipe:result:${job.id}`
+    await redis.set(resultKey, JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }), { ex: 3600 })
+
+    if (inputType === 'url' && url) {
+      const cacheKey = `imported-url:${userId}:${url}`
+      await redis.del(cacheKey)
+    }
+
+    console.error(`Job ${job?.id} failed:`, err?.message)
+    throw err
+  }
+}
+
+const worker = new Worker<JobData>(
+  'import-recipe',
+  async (job) => handleJob(job),
   {
     connection: { url: process.env.REDIS_URL },
     lockDuration: 30000,
@@ -331,51 +565,51 @@ const worker = new Worker(
     maxStalledCount: 1,
     drainDelay: 5,
     concurrency: 1,
-    removeOnComplete: {
-      age: 24 * 3600,
-      count: 100
-    },
-    removeOnFail: {
-      age: 24 * 3600,
-      count: 100
-    }
+    removeOnComplete: { age: 24 * 3600, count: 100 },
+    removeOnFail: { age: 24 * 3600, count: 100 }
   }
 )
 
-worker.on('completed', job => {
+worker.on('completed', (job) => {
   console.log(`Job ${job.id} completed`)
 })
-
 worker.on('failed', (job, err) => {
   console.error(`Job ${job?.id} failed:`, err)
 })
-
-worker.on('active', job => {
+worker.on('active', (job) => {
   console.log(`Job ${job.id} started processing`)
 })
-
-worker.on('error', err => {
+worker.on('error', (err) => {
   console.error('Worker error:', err)
 })
-
-worker.on('stalled', jobId => {
+worker.on('stalled', (jobId) => {
   console.warn(`Job ${jobId} stalled`)
 })
 
 let isShuttingDown = false
+
+async function closeRedisIfPossible() {
+  try {
+    // @ts-ignore – common clients expose quit() or disconnect()
+    if (typeof (redis as any).quit === 'function') await (redis as any).quit()
+    // @ts-ignore
+    else if (typeof (redis as any).disconnect === 'function') await (redis as any).disconnect()
+  } catch (e) {
+    console.warn('Failed to close Redis client cleanly:', (e as Error)?.message)
+  }
+}
 
 const gracefulShutdown = async (signal: string) => {
   if (isShuttingDown) {
     console.log('Shutdown already in progress, forcing exit')
     process.exit(1)
   }
-  
   isShuttingDown = true
   console.log(`Received ${signal}, shutting down gracefully...`)
-  
   try {
     await worker.close()
-    console.log('Worker closed successfully')
+    await closeRedisIfPossible()
+    console.log('Worker and Redis closed successfully')
     process.exit(0)
   } catch (error) {
     console.error('Error during graceful shutdown:', error)
@@ -383,19 +617,16 @@ const gracefulShutdown = async (signal: string) => {
   }
 }
 
-// Handle graceful shutdown
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
 process.on('SIGINT', () => gracefulShutdown('SIGINT'))
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error)
   gracefulShutdown('uncaughtException')
 })
-
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason)
   gracefulShutdown('unhandledRejection')
 })
 
-console.log('Import recipe worker started and waiting for jobs...') 
+console.log('Import recipe worker started and waiting for jobs...')
