@@ -48,19 +48,21 @@ async function addIngredientInTransaction(tx: PostgresJsDatabase, name: string) 
     throw new Error('Ingredient name cannot be empty')
   }
   
+  const lowercaseInput = normalizedInput.toLowerCase()
+  
   const existingIngredients = await tx
     .select({ id: ingredient.id, name: ingredient.name })
     .from(ingredient)
 
   // Step 1: Exact match
-  const exact = existingIngredients.find(i => i.name === normalizedInput)
+  const exact = existingIngredients.find(i => i.name === lowercaseInput)
   if (exact) {
     return exact
   }
 
   // Step 2: Fuzzy match
   if (existingIngredients.length > 0) {
-    const { bestMatch } = stringSimilarity.default.findBestMatch(normalizedInput, existingIngredients.map(i => i.name))
+    const { bestMatch } = stringSimilarity.default.findBestMatch(lowercaseInput, existingIngredients.map(i => i.name))
     if (bestMatch.rating > 0.85) {
       const matched = existingIngredients.find(i => i.name === bestMatch.target)
       if (matched) {
@@ -72,7 +74,7 @@ async function addIngredientInTransaction(tx: PostgresJsDatabase, name: string) 
   // Step 3: Create new ingredient
   const newIngredient = await tx.insert(ingredient).values({
     id: generateId(),
-    name: normalizedInput
+    name: lowercaseInput
   }).returning()
   return newIngredient[0]
 }
