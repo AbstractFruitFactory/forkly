@@ -29,17 +29,13 @@
 		}
 	} = $props()
 
-	let preview = $state(initialMedia?.url || '')
+	let preview = $derived(initialMedia?.url)
+	let mediaType = $derived<'image' | 'video' | undefined>(initialMedia?.type)
 	let inputElement: HTMLInputElement
 	let dragOver = $state(false)
-	let mediaType = $derived<'image' | 'video' | undefined>(initialMedia?.type)
 
-	// Update preview when initialImageUrl changes
 	$effect(() => {
 		if (initialMedia) {
-			preview = initialMedia.url
-			mediaType = initialMedia.type
-
 			// Fetch the media from URL and create a file for form submission
 			fetchAndCreateFile(initialMedia.url, initialMedia.type)
 		}
@@ -56,7 +52,7 @@
 			// Use our proxy endpoint to avoid CORS issues
 			const proxyUrl = `/proxy-media?url=${encodeURIComponent(url)}`
 			const response = await fetch(proxyUrl)
-			
+
 			if (!response.ok) {
 				console.error('Failed to fetch media from URL:', url, 'Status:', response.status)
 				// Don't create a file, but still show the preview
@@ -75,12 +71,7 @@
 			// Set the file on the input element so it gets sent with form data
 			const dataTransfer = new DataTransfer()
 			dataTransfer.items.add(file)
-			console.log(dataTransfer.files)
 			inputElement.files = dataTransfer.files
-
-			// Dispatch change event to notify parent components
-			dispatch('change', file)
-			onFile?.(file)
 		} catch (error) {
 			console.error('Error fetching media from URL:', url, error)
 			// Don't throw the error - just log it and continue without the file
@@ -145,22 +136,22 @@
 
 	const handleRemove = (e: Event) => {
 		e.stopPropagation()
-		
+
 		// Clean up the current preview
 		if (preview) {
 			cleanupPreview(preview)
 		}
-		
+
 		// Reset state
 		preview = ''
 		mediaType = undefined
 		error = undefined
-		
+
 		// Clear the input file
 		if (inputElement) {
 			inputElement.value = ''
 		}
-		
+
 		// Dispatch remove event
 		dispatch('remove')
 	}
@@ -194,12 +185,9 @@
 	ondrop={handleDrop}
 >
 	{#if preview}
-		<button
-			type="button"
-			class="remove-button"
-			onclick={handleRemove}
-			aria-label="Remove media"
-		>
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="remove-button" onclick={handleRemove} aria-label="Remove media">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				width="16"
@@ -212,9 +200,9 @@
 				<line x1="18" y1="6" x2="6" y2="18"></line>
 				<line x1="6" y1="6" x2="18" y2="18"></line>
 			</svg>
-		</button>
+		</div>
 	{/if}
-	
+
 	{#if preview && mediaType === 'image'}
 		<img src={preview} alt={previewAlt} loading="eager" decoding="sync" />
 		<div class="preview-overlay">
