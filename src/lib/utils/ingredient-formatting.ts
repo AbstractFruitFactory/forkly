@@ -120,7 +120,7 @@ function snapTo(value: number, target: number, pct = 0.05): number | undefined {
   return Math.abs(value - target) <= target * pct ? target : undefined
 }
 
-const GOOD_FRACTIONS = [1/8, 1/6, 1/5, 1/4, 1/3, 1/2, 2/3, 3/4, 5/6, 7/8]
+const GOOD_FRACTIONS = [1 / 8, 1 / 6, 1 / 5, 1 / 4, 1 / 3, 1 / 2, 2 / 3, 3 / 4, 5 / 6, 7 / 8]
 function snapToGoodFraction(x: number, tol = 0.02): number {
   const whole = Math.trunc(x)
   const dec = Math.abs(x - whole)
@@ -188,10 +188,18 @@ export function chooseDisplayUnit(
 }
 
 export function formatQuantityForDisplay(quantity: number, useFractions = false): string {
+  // negative/zero guard
   if (quantity <= 0) return '0'
-  if (useFractions) quantity = snapToGoodFraction(quantity)
 
+  // trace
   if (quantity < 0.001) return 'trace'
+
+  // If caller wants fractions, prefer them for “cook-sized” amounts (< 10).
+  if (useFractions && quantity < 10) {
+    return formatQuantityAsFraction(quantity, { useUnicode: true, maxDenominator: 8 })
+  }
+
+  // Otherwise keep your banded rounding behavior:
   if (quantity < 0.01) return quantity.toFixed(3).replace(/\.0+$/, '')
   if (quantity < 0.1) return quantity.toFixed(2).replace(/\.0+$/, '')
   if (quantity < 1) return (Math.round(quantity * 10) / 10).toFixed(1).replace(/\.0$/, '')
@@ -200,10 +208,147 @@ export function formatQuantityForDisplay(quantity: number, useFractions = false)
   return (Math.round(quantity / 5) * 5).toString()
 }
 
+
 export function formatIngredientDisplay(quantity: number, unit?: MeasurementUnit, useFractions = false): string {
   if (!unit) return formatQuantityForDisplay(quantity, useFractions)
   const { quantity: adjQty, unit: bestUnit } = chooseDisplayUnit(quantity, unit)
   return `${formatQuantityForDisplay(adjQty, useFractions)} ${pluralize(bestUnit as MeasurementUnit, adjQty)}`
+}
+
+
+export function parseQuantityToNumber(
+  input: string | number | undefined,
+  opts: { rangeMode?: 'avg' | 'first' | 'last'; clampNegative?: boolean } = {}
+): number | undefined {
+  const rangeMode = opts.rangeMode ?? 'avg'
+  const clampNegative = opts.clampNegative ?? false
+
+  // Numbers directly
+  if (typeof input === 'number') {
+    if (Number.isNaN(input)) return undefined
+    return clampNegative ? Math.max(input, 0) : input
+  }
+
+  if (input == null) return undefined
+  let s = String(input).trim()
+  if (!s) return undefined
+
+  // 1) Normalize unicode vulgar fractions to ASCII
+  const UNICODE_FRAC: Record<string, string> = {
+    '¼': '1/4', '½': '1/2', '¾': '3/4',
+    '⅐': '1/7', '⅑': '1/9', '⅒': '1/10',
+    '⅓': '1/3', '⅔': '2/3',
+    '⅕': '1/5', '⅖': '2/5', '⅗': '3/5', '⅘': '4/5',
+    '⅙': '1/6', '⅚': '5/6',
+    '⅛': '1/8', '⅜': '3/8', '⅝': '5/8', '⅞': '7/8'
+  }
+  s = s.replace(/[\u00BC-\u00BE\u2150-\u215E]/g, ch => UNICODE_FRAC[ch] ?? ch)
+
+  // 2) Decimal comma → dot when it’s digit,comma,digit
+  //    "1,5" -> "1.5", "2,25" -> "2.25"
+  s = s.replace(/(\d),(?=\d)/g, '$1.')
+
+  // 3) Ranges: "1-3", "1 – 3", "1 to 3"
+  const rangeMatch = s.match(/^\s*(.+?)\s*(?:-|–|to)\s*(.+?)\s*$/i)
+  if (rangeMatch) {
+    const a = parseQuantityToNumber(rangeMatch[1], { rangeMode, clampNegative })
+    const b = parseQuantityToNumber(rangeMatch[2], { rangeMode, clampNegative })
+    if (typeof a === 'number' && typeof b === 'number') {
+      const val = rangeMode === 'first' ? a : rangeMode === 'last' ? b : (a + b) / 2
+      return clampNegative ? Math.max(val, 0) : val
+    }
+    // If one side failed, fall through to single parse
+  }
+
+  // Helper: parse a single numeric token (fraction/mixed/decimal/int)
+  function parseSingle(str: string): number | undefined {
+    const t = str.trim()
+    if (!t) return undefined
+
+    // Pure fraction: "-?N/D"
+    const fracOnly = t.match(/^\s*([-+])?\s*(\d+)\/(\d+)\s*$/)
+    if (fracOnly) {
+      const sign = fracOnly[1] === '-' ? -1 : 1
+      const num = +fracOnly[2], den = +fracOnly[3]
+      if (den === 0) return undefined
+      const v = sign * (num / den)
+      return clampNegative ? Math.max(v, 0) : v
+    }
+
+    // Mixed number: "-?W N/D"
+    const mixed = t.match(/^\s*([-+])?\s*(\d+)\s+(\d+)\/(\d+)\s*$/)
+    if (mixed) {
+      const sign = mixed[1] === '-' ? -1 : 1
+      const whole = +mixed[2], num = +mixed[3], den = +mixed[4]
+      if (den === 0) return undefined
+      const v = sign * (whole + num / den)
+      return clampNegative ? Math.max(v, 0) : v
+    }
+
+    // Decimal or integer: "-?12.34" or ".5"
+    const dec = t.match(/^\s*([-+])?(?:\d+(?:\.\d+)?|\.\d+)\s*$/)
+    if (dec) {
+      const v = parseFloat(t)
+      if (Number.isNaN(v)) return undefined
+      return clampNegative ? Math.max(v, 0) : v
+    }
+
+    // If string has words, find the first numeric-looking token anywhere
+    // Order matters: mixed → fraction → decimal → integer
+    const token = t.match(/([-+])?(?:\d+\s+\d+\/\d+|\d+\/\d+|\d+\.\d+|\.\d+|\d+)/)
+    if (token) {
+      return parseSingle(token[0])
+    }
+
+    return undefined
+  }
+
+  const val = parseSingle(s)
+  return typeof val === 'number'
+    ? (clampNegative ? Math.max(val, 0) : val)
+    : undefined
+}
+
+
+
+// Converts a numeric quantity into a fraction string (mixed where needed).
+// Uses Unicode glyphs when available (½ ⅓ ¼ ¾ ...), else falls back to "1/2".
+function formatQuantityAsFraction(
+  value: number,
+  opts: { useUnicode?: boolean; maxDenominator?: number } = {}
+): string {
+  const useUnicode = opts.useUnicode ?? true
+  const maxDenominator = BigInt(opts.maxDenominator ?? 8)
+
+  if (value <= 0) return '0'
+
+  // ✅ Snap decimals to nice culinary fractions first (⅛, ⅙, ¼, ⅓, ½, etc.)
+  const snapped = snapToGoodFraction(value, 0.02)
+
+  const frac = new Fraction(snapped)
+  const whole = Math.floor(frac.valueOf())
+  const remainder = frac.sub(whole)
+
+  if (remainder.n === 0n) return `${whole}`
+
+  // If denominator too hairy, fallback to rounded decimal
+  if (remainder.d > maxDenominator) {
+    return (Math.round(snapped * 100) / 100).toString().replace(/\.00$/, '')
+  }
+
+  const ascii = `${remainder.n}/${remainder.d}`
+
+  if (!useUnicode) return whole === 0 ? ascii : `${whole} ${ascii}`
+
+  const unicodeMap: Record<string, string> = {
+    '1/2': '½', '1/3': '⅓', '2/3': '⅔', '1/4': '¼', '3/4': '¾',
+    '1/5': '⅕', '2/5': '⅖', '3/5': '⅗', '4/5': '⅘',
+    '1/6': '⅙', '5/6': '⅚',
+    '1/8': '⅛', '3/8': '⅜', '5/8': '⅝', '7/8': '⅞'
+  }
+
+  const glyph = unicodeMap[ascii] ?? ascii
+  return whole === 0 ? glyph : `${whole} ${glyph}`
 }
 
 export function getDisplayIngredient(

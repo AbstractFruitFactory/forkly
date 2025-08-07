@@ -4,7 +4,8 @@ import {
   convertToSystem,
   formatQuantityForDisplay,
   formatIngredientDisplay,
-  getDisplayIngredient
+  getDisplayIngredient,
+  parseQuantityToNumber
 } from './ingredient-formatting'
 
 // NOTE ON BEHAVIOR CHANGES:
@@ -145,9 +146,9 @@ describe('Ingredient Formatting Pipeline', () => {
 
     it('respects useFractions flag (snaps to good fractions before band rounding)', () => {
       // ~1.33 snaps to ~1⅓ but banded rounding still outputs one-decimal step (nearest 0.5) = "1.5"
-      expect(formatQuantityForDisplay(1.333, true)).toBe('1.5')
+      expect(formatQuantityForDisplay(1.333, true)).toMatch(/^1 (⅓|1\/3)$/)
       // ~0.666 snaps close to 2/3; under 1 it rounds to nearest 0.1
-      expect(formatQuantityForDisplay(0.666, true)).toBe('0.7')
+      expect(formatQuantityForDisplay(0.666, true)).toMatch(/^(⅔|2\/3)$/)
     })
   })
 
@@ -269,4 +270,55 @@ describe('Ingredient Formatting Pipeline', () => {
       expect(r.quantity).toBe(3)
     })
   })
+
+  describe('parseQuantityToNumber', () => {
+    it('parses simple decimals and integers', () => {
+      expect(parseQuantityToNumber('2')).toBe(2)
+      expect(parseQuantityToNumber('2.5')).toBe(2.5)
+    })
+
+    it('parses fractions and mixed numbers', () => {
+      expect(parseQuantityToNumber('1/2')).toBe(0.5)
+      expect(parseQuantityToNumber('2 1/2')).toBe(2.5)
+    })
+
+    it('parses unicode fractions', () => {
+      expect(parseQuantityToNumber('½')).toBe(0.5)
+      expect(parseQuantityToNumber('1 ⅓')).toBeCloseTo(1 + 1 / 3, 5)
+      expect(parseQuantityToNumber('¾ cup')).toBe(0.75)
+    })
+
+    it('parses decimal comma', () => {
+      expect(parseQuantityToNumber('1,5')).toBe(1.5)
+      expect(parseQuantityToNumber('2,25')).toBe(2.25)
+    })
+
+    it('ignores trailing units/words', () => {
+      expect(parseQuantityToNumber('2 tbsp')).toBe(2)
+      expect(parseQuantityToNumber('about 3 cups')).toBe(3)
+    })
+
+    it('handles ranges with avg/first/last', () => {
+      expect(parseQuantityToNumber('1-3')).toBe(2) // default avg
+      expect(parseQuantityToNumber('1–3')).toBe(2) // en dash
+    })
+
+    it('handles leading dot and negatives', () => {
+      expect(parseQuantityToNumber('.5')).toBe(0.5)
+      expect(parseQuantityToNumber('-1/4')).toBe(-0.25)
+      expect(parseQuantityToNumber('-1/4', { clampNegative: true })).toBe(0)
+    })
+
+    it('returns undefined on junk', () => {
+      expect(parseQuantityToNumber('a bunch')).toBeUndefined()
+      expect(parseQuantityToNumber('')).toBeUndefined()
+    })
+
+    it('accepts numbers directly', () => {
+      expect(parseQuantityToNumber(2)).toBe(2)
+      // NaN -> undefined
+      expect(parseQuantityToNumber(NaN)).toBeUndefined()
+    })
+  })
+
 })
