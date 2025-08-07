@@ -143,6 +143,28 @@
 		if (file) await handleFile(file)
 	}
 
+	const handleRemove = (e: Event) => {
+		e.stopPropagation()
+		
+		// Clean up the current preview
+		if (preview) {
+			cleanupPreview(preview)
+		}
+		
+		// Reset state
+		preview = ''
+		mediaType = undefined
+		error = undefined
+		
+		// Clear the input file
+		if (inputElement) {
+			inputElement.value = ''
+		}
+		
+		// Dispatch remove event
+		dispatch('remove')
+	}
+
 	onDestroy(() => {
 		// Clean up object URL
 		if (preview) cleanupPreview(preview)
@@ -171,6 +193,28 @@
 	ondragleave={handleDragLeave}
 	ondrop={handleDrop}
 >
+	{#if preview}
+		<button
+			type="button"
+			class="remove-button"
+			onclick={handleRemove}
+			aria-label="Remove media"
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+			>
+				<line x1="18" y1="6" x2="6" y2="18"></line>
+				<line x1="6" y1="6" x2="18" y2="18"></line>
+			</svg>
+		</button>
+	{/if}
+	
 	{#if preview && mediaType === 'image'}
 		<img src={preview} alt={previewAlt} loading="eager" decoding="sync" />
 		<div class="preview-overlay">
@@ -379,6 +423,43 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.remove-button {
+		position: absolute;
+		top: var(--spacing-xs);
+		right: var(--spacing-xs);
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: white;
+		border: none;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 3;
+		transition: all var(--transition-fast) var(--ease-in-out);
+		color: white;
+
+		&:hover {
+			background: var(--color-primary);
+			transform: scale(1.1);
+		}
+
+		&:focus {
+			outline: none;
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--color-primary);
+			outline-offset: 2px;
+		}
+
+		svg {
+			width: 16px;
+			height: 16px;
+		}
 	}
 
 	@media (max-width: 600px) {
