@@ -282,6 +282,8 @@ export const buildRecipePayloadFromForm = async (formData: FormData, skipValidat
     }
   }
 
+  console.log('ingredients', allIngredients)
+
   let nutrition: typeof recipeData.manualNutrition | null = null
   if (recipeData.nutritionMode === 'manual') {
     nutrition = recipeData.manualNutrition ?? null
