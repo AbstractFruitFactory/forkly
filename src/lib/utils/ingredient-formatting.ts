@@ -100,7 +100,7 @@ export const convertMeasurement = (
   toSystem: 'metric' | 'imperial'
 ): { quantity: number; unit: MeasurementUnit } => {
   const normalizedUnit = normalizeUnit(fromUnit as string)
-  
+
   if (!normalizedUnit || !measurementUnits.includes(normalizedUnit)) {
     return { quantity, unit: fromUnit }
   }
@@ -131,15 +131,15 @@ export const convertMeasurement = (
 
 export const chooseBestUnit = (quantity: number, unit: MeasurementUnit): { quantity: number; unit: MeasurementUnit } => {
   const normalizedUnit = normalizeUnit(unit as string)
-  
+
   if (!normalizedUnit) {
     return { quantity, unit }
   }
-  
+
   if (FIXED_UNITS.has(normalizedUnit)) {
     return { quantity, unit: normalizedUnit }
   }
-  
+
   if (normalizedUnit === 'grams' && quantity >= 1000) {
     return { quantity: quantity / 1000, unit: 'kilograms' as MeasurementUnit }
   }
@@ -252,7 +252,7 @@ export function convertToSystem(
   targetSystem: 'metric' | 'imperial'
 ): { quantity: number; unit: MeasurementUnit } {
   const normalizedUnit = normalizeUnit(unit as string)
-  
+
   if (!normalizedUnit || !measurementUnits.includes(normalizedUnit)) {
     return { quantity, unit }
   }
@@ -304,7 +304,7 @@ export function convertToSystem(
 // Post-conversion display rules for small quantities
 export function applySpecialDisplayRules(quantity: number, unit: MeasurementUnit): { quantity: number; unit: MeasurementUnit } {
   const normalizedUnit = normalizeUnit(unit as string)
-  
+
   if (!normalizedUnit) {
     return { quantity, unit }
   }
@@ -328,60 +328,58 @@ export function chooseDisplayUnit(quantity: number, unit: MeasurementUnit): {
   return applySpecialDisplayRules(bestQuantity, bestUnit)
 }
 
-export function formatQuantityForDisplay(quantity: number): string {
+export function formatQuantityForDisplay(quantity: number, useFractions = false): string {
   // Handle zero first
-  if (quantity === 0) {
-    return '0'
-  }
-  
+  if (quantity === 0) return '0'
+
   // Handle negative numbers
-  if (quantity < 0) {
-    return `-${formatQuantityForDisplay(Math.abs(quantity))}`
-  }
-  
+  if (quantity < 0) return '0'
+
+  if (useFractions) return formatQuantity(quantity)
+
   // Handle trace amounts (only for positive values)
   if (quantity < 0.001) {
     return 'trace'
   }
-  
+
   // Handle very small amounts (0.001 to 0.01) - show as-is with 3 decimal places
   if (quantity >= 0.001 && quantity < 0.01) {
     return quantity.toFixed(3).replace(/\.0+$|(\.\d*?)0+$/, '$1')
   }
-  
+
   // Handle small amounts (0.01 to 0.1) - show as-is
   if (quantity >= 0.01 && quantity < 0.1) {
     return quantity.toFixed(2).replace(/\.0+$|(\.\d*?)0+$/, '$1')
   }
-  
+
   // Handle amounts less than 1 - round to nearest 0.1
   if (quantity >= 0.1 && quantity < 1) {
     const rounded = Math.round(quantity * 10) / 10
     return rounded.toFixed(1).replace(/\.0+$/, '')
   }
-  
+
   // Handle amounts between 1 and 10 - round to nearest 0.5
   if (quantity >= 1 && quantity < 10) {
     const rounded = Math.round(quantity * 2) / 2
     return rounded.toFixed(1).replace(/\.0+$/, '')
   }
-  
+
   // Handle amounts between 10 and 100 - round to whole number
   if (quantity >= 10 && quantity < 100) {
     return Math.round(quantity).toString()
   }
-  
+
   // Handle large amounts (100+) - round to nearest 5
   return (Math.round(quantity / 5) * 5).toString()
 }
 
-export function formatIngredientDisplay(quantity: number, unit?: MeasurementUnit): string {
+export function formatIngredientDisplay(quantity: number, unit?: MeasurementUnit, useFractions = false): string {
   if (!unit) {
-    return formatQuantityForDisplay(quantity)
+    return formatQuantityForDisplay(quantity, useFractions)
   }
 
   const { quantity: adjustedQty, unit: bestUnit } = chooseDisplayUnit(quantity, unit)
-  const displayQty = formatQuantityForDisplay(adjustedQty)
+  const displayQty = formatQuantityForDisplay(adjustedQty, useFractions)
   const displayUnit = measurementUnits.includes(bestUnit as any)
     ? UNIT_DISPLAY_TEXT[bestUnit as keyof typeof UNIT_DISPLAY_TEXT]
     : bestUnit
@@ -409,10 +407,12 @@ export function getDisplayIngredient(
 
   const scaled = scaleQuantity(ingredient.quantity.numeric, currentServings, originalServings)
 
+  const useFractions = shouldUseFraction(scaled)
+
   if (!ingredient.measurement) {
     return {
       ...ingredient,
-      displayMeasurementAndQuantity: formatQuantityForDisplay(scaled)
+      displayMeasurementAndQuantity: formatQuantityForDisplay(scaled, useFractions)
     }
   }
 
@@ -420,7 +420,7 @@ export function getDisplayIngredient(
     const { quantity, unit } = convertToSystem(scaled, ingredient.measurement as MeasurementUnit, unitSystem)
     return {
       ...ingredient,
-      displayMeasurementAndQuantity: formatIngredientDisplay(quantity, unit)
+      displayMeasurementAndQuantity: formatIngredientDisplay(quantity, unit, useFractions)
     }
   } catch {
     return {
@@ -428,4 +428,35 @@ export function getDisplayIngredient(
       displayMeasurementAndQuantity: `${scaled} ${ingredient.measurement}`
     }
   }
-} 
+}
+
+export function shouldUseFraction(value: number): boolean {
+  if (value >= 10) return false
+
+  const decimal = value % 1
+  const goodFractions = [0, 0.125, 0.25, 0.333, 0.5, 0.666, 0.75, 0.875]
+
+
+  return goodFractions.some(f => Math.abs(decimal - f) < 0.02)
+}
+
+export function formatQuantity(value: number): string {
+  const frac = new Fraction(value)
+  const whole = Math.floor(frac.valueOf())
+  const remainder = frac.sub(whole)
+  const maxDenominator = 8n
+
+  if (remainder.n === 0n) {
+    return `${whole}`
+  } else if (whole === 0) {
+    if (remainder.d > maxDenominator) {
+      return value.toFixed(2).replace(/\.00$/, '')
+    }
+    return `${remainder.toFraction(false)}`
+  } else {
+    if (remainder.d > maxDenominator) {
+      return value.toFixed(2).replace(/\.00$/, '')
+    }
+    return `${whole} ${remainder.toFraction(false)}`
+  }
+}
