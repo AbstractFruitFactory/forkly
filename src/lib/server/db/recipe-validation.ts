@@ -1,6 +1,6 @@
 import * as v from 'valibot'
 import { isValidTag } from '$lib/types'
-import { parseQuantityToNumber } from '$lib/utils/unitConversion'
+import { parseQuantityToNumber } from '$lib/utils/ingredient-formatting'
 
 export const baseIngredientSchema = v.pipe(
   v.object({

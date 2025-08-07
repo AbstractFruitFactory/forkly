@@ -29,6 +29,9 @@ export const IMPERIAL_UNITS = [
   ...UNITS.length.imperial
 ]
 
+// Units that should not be converted between systems
+const FIXED_UNITS = new Set(['teaspoons', 'tablespoons'])
+
 const CONVERSION_FACTORS = {
   ounces_to_grams: 28.35,
   pounds_to_kilograms: 0.453592,
@@ -78,7 +81,7 @@ export const UNIT_EQUIVALENTS = {
 } as const
 
 // Add normalization function for user-entered units
-const normalizeUnit = (input: string): MeasurementUnit | string => {
+const normalizeUnit = (input: string): MeasurementUnit | undefined => {
   const trimmed = input.trim().toLowerCase()
   // Try to match canonical unit keys
   for (const unit of measurementUnits) {
@@ -88,7 +91,7 @@ const normalizeUnit = (input: string): MeasurementUnit | string => {
   for (const [unit, display] of Object.entries(UNIT_DISPLAY_TEXT)) {
     if (display.toLowerCase() === trimmed) return unit as MeasurementUnit
   }
-  return input
+  return undefined
 }
 
 export const convertMeasurement = (
@@ -96,62 +99,30 @@ export const convertMeasurement = (
   fromUnit: MeasurementUnit,
   toSystem: 'metric' | 'imperial'
 ): { quantity: number; unit: MeasurementUnit } => {
-  // Normalize user input unit
-  const normalizedUnit = normalizeUnit(fromUnit as string) as MeasurementUnit
-  // If the unit is not in our known units, return it as-is
-  if (!measurementUnits.includes(normalizedUnit as any)) {
+  const normalizedUnit = normalizeUnit(fromUnit as string)
+  
+  if (!normalizedUnit || !measurementUnits.includes(normalizedUnit)) {
     return { quantity, unit: fromUnit }
   }
-  const isMetricUnit = METRIC_UNITS.includes(normalizedUnit as string)
-  const isImperialUnit = IMPERIAL_UNITS.includes(normalizedUnit as string)
+
+  const isMetricUnit = METRIC_UNITS.includes(normalizedUnit)
+  const isImperialUnit = IMPERIAL_UNITS.includes(normalizedUnit)
+
   if ((isMetricUnit && toSystem === 'metric') || (isImperialUnit && toSystem === 'imperial')) {
     return { quantity, unit: normalizedUnit }
   }
-  if (normalizedUnit === 'teaspoons' || normalizedUnit === 'tablespoons') {
+
+  if (FIXED_UNITS.has(normalizedUnit)) {
     return { quantity, unit: normalizedUnit }
   }
-  // Special handling for common recipe measurements
-  if (normalizedUnit === 'milliliters' && toSystem === 'imperial') {
-    if (quantity <= 5) {
-      return { quantity: 1, unit: 'teaspoons' as MeasurementUnit }
-    } else if (quantity <= 15) {
-      return { quantity: 1, unit: 'tablespoons' as MeasurementUnit }
-    } else if (quantity >= 230 && quantity <= 240) {
-      return { quantity: 1, unit: 'cups' as MeasurementUnit }
-    } else if (quantity >= 470 && quantity <= 480) {
-      return { quantity: 2, unit: 'cups' as MeasurementUnit }
-    }
-  }
-  if (normalizedUnit === 'grams' && toSystem === 'imperial') {
-    if (quantity >= 450 && quantity <= 500) {
-      return { quantity: 1, unit: 'pounds' as MeasurementUnit }
-    } else if (quantity >= 225 && quantity <= 250) {
-      return { quantity: 0.5, unit: 'pounds' as MeasurementUnit }
-    } else if (quantity >= 110 && quantity <= 115) {
-      return { quantity: 4, unit: 'ounces' as MeasurementUnit }
-    }
-  }
+
   const equivalent = UNIT_EQUIVALENTS[normalizedUnit as keyof typeof UNIT_EQUIVALENTS]
   if (!equivalent) {
     return { quantity, unit: normalizedUnit }
   }
+
   const convertedQuantity = quantity * equivalent.factor
-  if (normalizedUnit === 'milliliters' && toSystem === 'imperial') {
-    if (convertedQuantity < 0.1) {
-      return {
-        quantity: quantity / CONVERSION_FACTORS.teaspoons_to_milliliters,
-        unit: 'teaspoons' as MeasurementUnit
-      }
-    }
-  }
-  if (normalizedUnit === 'liters' && toSystem === 'imperial') {
-    if (convertedQuantity < 0.1) {
-      return {
-        quantity: quantity * 1000 / CONVERSION_FACTORS.fluid_ounces_to_milliliters,
-        unit: 'fluid_ounces' as MeasurementUnit
-      }
-    }
-  }
+
   return {
     quantity: convertedQuantity,
     unit: equivalent.unit as MeasurementUnit
@@ -159,7 +130,16 @@ export const convertMeasurement = (
 }
 
 export const chooseBestUnit = (quantity: number, unit: MeasurementUnit): { quantity: number; unit: MeasurementUnit } => {
-  const normalizedUnit = normalizeUnit(unit as string) as MeasurementUnit
+  const normalizedUnit = normalizeUnit(unit as string)
+  
+  if (!normalizedUnit) {
+    return { quantity, unit }
+  }
+  
+  if (FIXED_UNITS.has(normalizedUnit)) {
+    return { quantity, unit: normalizedUnit }
+  }
+  
   if (normalizedUnit === 'grams' && quantity >= 1000) {
     return { quantity: quantity / 1000, unit: 'kilograms' as MeasurementUnit }
   }
@@ -169,7 +149,7 @@ export const chooseBestUnit = (quantity: number, unit: MeasurementUnit): { quant
   if (normalizedUnit === 'milliliters' && quantity >= 1000) {
     return { quantity: quantity / 1000, unit: 'liters' as MeasurementUnit }
   }
-  if (normalizedUnit === 'liters' && quantity < 0.1) {
+  if (normalizedUnit === 'liters' && quantity < 1) {
     return { quantity: quantity * 1000, unit: 'milliliters' as MeasurementUnit }
   }
   if (normalizedUnit === 'millimeters' && quantity >= 100) {
@@ -198,12 +178,12 @@ export const chooseBestUnit = (quantity: number, unit: MeasurementUnit): { quant
 
 // Helper to get the best numeric value from an ingredient object
 export function getIngredientNumericQuantity(ingredient: { numericQuantity?: number; quantity?: number }): number | undefined {
-  if (typeof ingredient.numericQuantity === 'number' && !isNaN(ingredient.numericQuantity)) return ingredient.numericQuantity;
-  if (typeof ingredient.quantity === 'number' && !isNaN(ingredient.quantity)) return ingredient.quantity;
-  return undefined;
+  if (typeof ingredient.numericQuantity === 'number' && !isNaN(ingredient.numericQuantity)) return ingredient.numericQuantity
+  if (typeof ingredient.quantity === 'number' && !isNaN(ingredient.quantity)) return ingredient.quantity
+  return undefined
 }
 
-export const formatMeasurement = (quantity: number, unit?: MeasurementUnit): string => {
+export const formatMeasurementAndQuantity = (quantity: number, unit?: MeasurementUnit): string => {
   if (!unit) {
     return quantity.toString()
   }
@@ -211,8 +191,8 @@ export const formatMeasurement = (quantity: number, unit?: MeasurementUnit): str
   const { quantity: adjustedQuantity, unit: adjustedUnit } = chooseBestUnit(quantity, unit)
 
   // For custom units, use the unit as is
-  const displayUnit = measurementUnits.includes(adjustedUnit as any) 
-    ? UNIT_DISPLAY_TEXT[adjustedUnit as keyof typeof UNIT_DISPLAY_TEXT] 
+  const displayUnit = measurementUnits.includes(adjustedUnit as any)
+    ? UNIT_DISPLAY_TEXT[adjustedUnit as keyof typeof UNIT_DISPLAY_TEXT]
     : adjustedUnit
 
   let formattedQuantity: string
@@ -246,7 +226,7 @@ export const formatMeasurement = (quantity: number, unit?: MeasurementUnit): str
   }
 
   return `${formattedQuantity} ${displayUnit}`
-} 
+}
 
 export function parseQuantityToNumber(input: string | undefined): number | undefined {
   if (!input) return undefined
@@ -257,26 +237,195 @@ export function parseQuantityToNumber(input: string | undefined): number | undef
     const num = parseFloat(input)
     return isNaN(num) ? undefined : num
   }
-} 
+}
 
-export function formatQuantity(value: number): string {
-  const frac = new Fraction(value)
-  const whole = Math.floor(frac.valueOf())
-  const remainder = frac.sub(whole)
+export function scaleQuantity(quantity: number, current: number, original: number): number {
+  if (original === 0) {
+    throw new Error('Cannot scale quantity: original servings cannot be zero')
+  }
+  return quantity * (current / original)
+}
 
-  // If the denominator is too large, just show a rounded decimal
-  const maxDenominator = 8n
-  if (remainder.n === 0n) {
-    return `${whole}`
-  } else if (whole === 0) {
-    if (remainder.d > maxDenominator) {
-      return value.toFixed(2).replace(/\.00$/, '')
+export function convertToSystem(
+  quantity: number,
+  unit: MeasurementUnit,
+  targetSystem: 'metric' | 'imperial'
+): { quantity: number; unit: MeasurementUnit } {
+  const normalizedUnit = normalizeUnit(unit as string)
+  
+  if (!normalizedUnit || !measurementUnits.includes(normalizedUnit)) {
+    return { quantity, unit }
+  }
+
+  const isMetricUnit = METRIC_UNITS.includes(normalizedUnit)
+  const isImperialUnit = IMPERIAL_UNITS.includes(normalizedUnit)
+
+  if ((isMetricUnit && targetSystem === 'metric') || (isImperialUnit && targetSystem === 'imperial')) {
+    return { quantity, unit: normalizedUnit }
+  }
+
+  if (FIXED_UNITS.has(normalizedUnit)) {
+    return { quantity, unit: normalizedUnit }
+  }
+
+  // Special cases for metric to imperial conversion (applied before generic conversion)
+  if (normalizedUnit === 'milliliters' && targetSystem === 'imperial') {
+    if (quantity >= 230 && quantity <= 240) {
+      return { quantity: 1, unit: 'cups' as MeasurementUnit }
     }
-    return `${remainder.toFraction(false)}`
-  } else {
-    if (remainder.d > maxDenominator) {
-      return value.toFixed(2).replace(/\.00$/, '')
+    if (quantity >= 470 && quantity <= 480) {
+      return { quantity: 2, unit: 'cups' as MeasurementUnit }
     }
-    return `${whole} ${remainder.toFraction(false)}`
+  }
+
+  if (normalizedUnit === 'grams' && targetSystem === 'imperial') {
+    if (quantity >= 450 && quantity <= 500) {
+      return { quantity: 1, unit: 'pounds' as MeasurementUnit }
+    }
+    if (quantity >= 225 && quantity <= 250) {
+      return { quantity: 0.5, unit: 'pounds' as MeasurementUnit }
+    }
+    if (quantity >= 110 && quantity <= 115) {
+      return { quantity: 4, unit: 'ounces' as MeasurementUnit }
+    }
+  }
+
+  const equivalent = UNIT_EQUIVALENTS[normalizedUnit as keyof typeof UNIT_EQUIVALENTS]
+  if (!equivalent) {
+    return { quantity, unit: normalizedUnit }
+  }
+
+  return {
+    quantity: quantity * equivalent.factor,
+    unit: equivalent.unit as MeasurementUnit
+  }
+}
+
+// Post-conversion display rules for small quantities
+export function applySpecialDisplayRules(quantity: number, unit: MeasurementUnit): { quantity: number; unit: MeasurementUnit } {
+  const normalizedUnit = normalizeUnit(unit as string)
+  
+  if (!normalizedUnit) {
+    return { quantity, unit }
+  }
+
+  // Small volume conversions for display purposes
+  if (normalizedUnit === 'milliliters' && quantity <= 5) {
+    return { quantity: 1, unit: 'teaspoons' as MeasurementUnit }
+  }
+  if (normalizedUnit === 'milliliters' && quantity <= 15) {
+    return { quantity: 1, unit: 'tablespoons' as MeasurementUnit }
+  }
+
+  return { quantity, unit: normalizedUnit }
+}
+
+export function chooseDisplayUnit(quantity: number, unit: MeasurementUnit): {
+  quantity: number
+  unit: MeasurementUnit
+} {
+  const { quantity: bestQuantity, unit: bestUnit } = chooseBestUnit(quantity, unit)
+  return applySpecialDisplayRules(bestQuantity, bestUnit)
+}
+
+export function formatQuantityForDisplay(quantity: number): string {
+  // Handle zero first
+  if (quantity === 0) {
+    return '0'
+  }
+  
+  // Handle negative numbers
+  if (quantity < 0) {
+    return `-${formatQuantityForDisplay(Math.abs(quantity))}`
+  }
+  
+  // Handle trace amounts (only for positive values)
+  if (quantity < 0.001) {
+    return 'trace'
+  }
+  
+  // Handle very small amounts (0.001 to 0.01) - show as-is with 3 decimal places
+  if (quantity >= 0.001 && quantity < 0.01) {
+    return quantity.toFixed(3).replace(/\.0+$|(\.\d*?)0+$/, '$1')
+  }
+  
+  // Handle small amounts (0.01 to 0.1) - show as-is
+  if (quantity >= 0.01 && quantity < 0.1) {
+    return quantity.toFixed(2).replace(/\.0+$|(\.\d*?)0+$/, '$1')
+  }
+  
+  // Handle amounts less than 1 - round to nearest 0.1
+  if (quantity >= 0.1 && quantity < 1) {
+    const rounded = Math.round(quantity * 10) / 10
+    return rounded.toFixed(1).replace(/\.0+$/, '')
+  }
+  
+  // Handle amounts between 1 and 10 - round to nearest 0.5
+  if (quantity >= 1 && quantity < 10) {
+    const rounded = Math.round(quantity * 2) / 2
+    return rounded.toFixed(1).replace(/\.0+$/, '')
+  }
+  
+  // Handle amounts between 10 and 100 - round to whole number
+  if (quantity >= 10 && quantity < 100) {
+    return Math.round(quantity).toString()
+  }
+  
+  // Handle large amounts (100+) - round to nearest 5
+  return (Math.round(quantity / 5) * 5).toString()
+}
+
+export function formatIngredientDisplay(quantity: number, unit?: MeasurementUnit): string {
+  if (!unit) {
+    return formatQuantityForDisplay(quantity)
+  }
+
+  const { quantity: adjustedQty, unit: bestUnit } = chooseDisplayUnit(quantity, unit)
+  const displayQty = formatQuantityForDisplay(adjustedQty)
+  const displayUnit = measurementUnits.includes(bestUnit as any)
+    ? UNIT_DISPLAY_TEXT[bestUnit as keyof typeof UNIT_DISPLAY_TEXT]
+    : bestUnit
+
+  return `${displayQty} ${displayUnit}`
+}
+
+export function getDisplayIngredient(
+  ingredient: {
+    quantity?: { numeric?: number; text?: string }
+    measurement?: string
+    displayName?: string
+  },
+  currentServings: number,
+  originalServings: number,
+  unitSystem: 'metric' | 'imperial'
+) {
+  if (!ingredient.quantity?.numeric || isNaN(ingredient.quantity.numeric)) {
+    const parts = [ingredient.quantity?.text, ingredient.measurement].filter(Boolean)
+    return {
+      ...ingredient,
+      displayMeasurementAndQuantity: parts.length > 0 ? parts.join(' ').trim() : (ingredient.measurement || '')
+    }
+  }
+
+  const scaled = scaleQuantity(ingredient.quantity.numeric, currentServings, originalServings)
+
+  if (!ingredient.measurement) {
+    return {
+      ...ingredient,
+      displayMeasurementAndQuantity: formatQuantityForDisplay(scaled)
+    }
+  }
+
+  try {
+    const { quantity, unit } = convertToSystem(scaled, ingredient.measurement as MeasurementUnit, unitSystem)
+    return {
+      ...ingredient,
+      displayMeasurementAndQuantity: formatIngredientDisplay(quantity, unit)
+    }
+  } catch {
+    return {
+      ...ingredient,
+      displayMeasurementAndQuantity: `${scaled} ${ingredient.measurement}`
+    }
   }
 } 

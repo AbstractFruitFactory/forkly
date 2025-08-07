@@ -1,26 +1,9 @@
-<script module lang="ts">
-	const scaleIngredientQuantity = (
-		ingredient: Ingredient,
-		currentServings: number,
-		originalServings: number
-	) => {
-		if (!ingredient.quantity || typeof ingredient.quantity.numeric !== 'number' || isNaN(ingredient.quantity.numeric)) return ingredient
-		return {
-			...ingredient,
-			quantity: {
-				text: ingredient.quantity.text, // Optionally update text if you want to scale the display
-				numeric: ingredient.quantity.numeric * (currentServings / originalServings)
-			}
-		}
-	}
-</script>
-
 <script lang="ts">
 	import type { Ingredient } from '$lib/types'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
-	import { convertMeasurement, formatMeasurement, formatQuantity } from '$lib/utils/unitConversion'
+	import { getDisplayIngredient } from '$lib/utils/ingredient-formatting'
 
 	let {
 		ingredients,
@@ -40,47 +23,10 @@
 
 	let currentServings = $state(servings)
 
-	let scaledIngredients = $derived(
-		ingredients.map((ingredient: Ingredient) =>
-			scaleIngredientQuantity(ingredient, currentServings, originalServings)
-		)
-	)
-
 	let displayIngredients = $derived(
-		scaledIngredients.map((ingredient: Ingredient) => {
-			if (ingredient.quantity) {
-				if (!ingredient.measurement) {
-					if (ingredient.quantity.numeric && !isNaN(ingredient.quantity.numeric)) {
-						return {
-							...ingredient,
-							displayMeasurement: formatQuantity(ingredient.quantity.numeric)
-						}
-					} else {
-						return {
-							...ingredient,
-							displayMeasurement: ingredient.quantity.text
-						}
-					}
-				}
-				if (ingredient.quantity.numeric && !isNaN(ingredient.quantity.numeric)) {
-					const { quantity, unit } = convertMeasurement(
-						ingredient.quantity.numeric,
-						ingredient.measurement,
-						unitSystem
-					)
-					return {
-						...ingredient,
-						displayMeasurement: formatMeasurement(quantity, unit)
-					}
-				} else {
-					return {
-						...ingredient,
-						displayMeasurement: ingredient.quantity.text
-					}
-				}
-			}
-			return { ...ingredient, displayMeasurement: undefined }
-		})
+		ingredients.map((ingredient: Ingredient) =>
+			getDisplayIngredient(ingredient, currentServings, originalServings, unitSystem)
+		)
 	)
 
 	const handleServingsChange = (newServings: number) => {
@@ -107,8 +53,8 @@
 	{:else}
 		{#each displayIngredients as ingredient}
 			<li>
-				{#if ingredient.displayMeasurement}
-					<span class="measurement">{ingredient.displayMeasurement}</span>
+				{#if ingredient.displayMeasurementAndQuantity}
+					<span class="measurement">{ingredient.displayMeasurementAndQuantity}</span>
 				{/if}
 				<span class="ingredient-name">{ingredient.displayName}</span>
 			</li>
@@ -168,3 +114,4 @@
 		font-weight: var(--font-weight-semibold);
 	}
 </style>
+

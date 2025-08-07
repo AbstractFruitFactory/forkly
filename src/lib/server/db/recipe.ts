@@ -3,7 +3,7 @@ import { recipe, recipeLike, recipeInstruction, recipeIngredient, ingredient, re
 import { eq, ilike, desc, sql, and, SQL, or, asc } from 'drizzle-orm'
 import { nullToUndefined } from '$lib/utils/nullToUndefined'
 import { generateId } from '$lib/server/id'
-import { parseQuantityToNumber } from '$lib/utils/unitConversion'
+import { parseQuantityToNumber } from '$lib/utils/ingredient-formatting'
 import { getCommentCount } from './recipe-comments'
 
 function escapeSqlString(str: string): string {

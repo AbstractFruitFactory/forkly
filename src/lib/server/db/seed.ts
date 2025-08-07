@@ -6,7 +6,7 @@ import { drizzle } from 'drizzle-orm/postgres-js'
 import * as dotenv from 'dotenv'
 import { readFile } from 'fs/promises'
 import { normalizeIngredientName } from '../utils/normalize-ingredient'
-import { parseQuantityToNumber } from '../../utils/unitConversion'
+import { parseQuantityToNumber } from '../../utils/ingredient-formatting'
 
 dotenv.config()
 
