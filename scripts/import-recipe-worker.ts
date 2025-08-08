@@ -204,7 +204,7 @@ function extractJsonLd($: CheerioAPI): any[] {
           if (types?.includes?.('Recipe')) recipes.push(node)
         }
       }
-    } catch {}
+    } catch { }
   })
   return recipes
 }
@@ -317,7 +317,8 @@ function mapJsonLdToImported(recipeNode: any, baseUrl: string): ImportedRecipeDa
 }
 
 async function extractTextFromImages(imageBase64Array: string[]): Promise<string> {
-  const prompt = `Extract all text from these recipe images. Preserve structure (title, ingredients with quantities, steps, nutrition, servings, times). Combine into a single coherent recipe. If non-recipe or unreadable, say so.`
+  const prompt = `
+  Extract all text from these recipe images. Preserve structure (title, ingredients with quantities, steps, nutrition, servings, times). Combine into a single coherent recipe. If non-recipe or unreadable, say so.`
 
   const messages: any[] = [
     {
@@ -344,7 +345,21 @@ async function extractTextFromImages(imageBase64Array: string[]): Promise<string
 }
 
 async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promise<any> {
-  const prompt = `Extract a recipe from the following text. If you see [IMAGE: url (WxH)] markers, USE them for the main recipe image and to attach to relevant steps. Always include mediaUrl and mediaType ("image" | "video" | null) in every instruction. If missing info, set null/empty instead of guessing. Title can be inferred from content if absent. Use exactly up to 3 short, relevant tags.\n\nSource: ${sourceUrlHint ?? 'unknown'}\n\nRecipe text:\n"""${text.slice(0, 8000)}"""`
+  const prompt = `
+  Extract a recipe from the following text. 
+  If you see [IMAGE: url (WxH)] markers, USE them for the main recipe image and to attach to relevant steps. 
+  Always include mediaUrl and mediaType ("image" | "video" | null) in every instruction. 
+  If missing info, set null/empty instead of guessing. 
+  Title can be inferred from content if absent. 
+  Use exactly up to 3 short, relevant tags.
+  If nutrition facts are present, include them in the nutrition object.
+  Source: ${sourceUrlHint ?? 'unknown'}
+  \n
+  Recipe text:
+  """${text}"""
+  `
+
+  console.log(text)
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o',

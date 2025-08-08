@@ -405,6 +405,7 @@
 		<TabSelect
 			options={['auto', 'manual', 'none']}
 			onSelect={(opt) => (nutritionMode = opt as 'auto' | 'manual' | 'none')}
+			selected={nutritionMode}
 		/>
 	</div>
 
