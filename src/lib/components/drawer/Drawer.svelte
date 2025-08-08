@@ -19,7 +19,7 @@
 		onBack?: () => void
 	} = $props()
 
-	let drawer: HTMLDivElement
+	let drawer = $state<HTMLDivElement>()
 	let drawerContainer: HTMLDivElement
 
 	onMount(() => {
@@ -99,7 +99,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.drawer {
 		display: none;
@@ -231,22 +231,6 @@
 		.side-drawer & {
 			padding: var(--spacing-lg);
 			overflow-y: auto;
-		}
-	}
-
-	.item {
-		padding: var(--spacing-sm) var(--spacing-md);
-		margin: 0;
-		border-radius: var(--border-radius-lg);
-		transition: background-color 0.2s ease;
-		cursor: pointer;
-		color: var(--color-text-on-surface);
-		width: 100%;
-		text-align: left;
-
-		&:hover {
-			background-color: var(--color-secondary);
-			color: var(--color-text-on-background);
 		}
 	}
 </style>

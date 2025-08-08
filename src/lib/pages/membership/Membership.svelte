@@ -80,7 +80,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.membership-content {
 		max-width: 700px;

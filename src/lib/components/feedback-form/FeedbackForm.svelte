@@ -142,7 +142,7 @@
 </Popup>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.feedback-form {
 		display: flex;
@@ -164,27 +164,6 @@
 
 	.required {
 		color: var(--color-error);
-	}
-
-	.form-select {
-		width: 100%;
-		padding: var(--spacing-sm);
-		border: 1px solid var(--color-border);
-		border-radius: var(--border-radius-md);
-		background: var(--color-background);
-		color: var(--color-text-on-surface);
-		font-size: var(--font-size-md);
-		transition: border-color var(--transition-fast) var(--ease-in-out);
-
-		&:focus {
-			outline: none;
-			border-color: var(--color-primary);
-		}
-
-		&:disabled {
-			opacity: 0.6;
-			cursor: not-allowed;
-		}
 	}
 
 	.form-help {

@@ -67,7 +67,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.privacy-container {
 		background: var(--color-background);

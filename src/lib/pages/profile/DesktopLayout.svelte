@@ -73,18 +73,12 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.profile-container {
 		position: relative;
 		max-width: 900px;
 		margin: 2rem auto;
-	}
-
-	.membership-button-container {
-		margin-bottom: var(--spacing-md);
-		display: flex;
-		justify-content: flex-end;
 	}
 
 	.profile-header-row {

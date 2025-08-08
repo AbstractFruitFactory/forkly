@@ -2,7 +2,7 @@
 	import { defineMeta } from '@storybook/addon-svelte-csf'
 	import TagFilter from './TagFilter.svelte'
 
-	type Tag = { label: string; selected?: boolean }
+	type Tag = { label: string; selected: boolean }
 
 	const mockTags = [
 		'5 ingredient or fewer',
@@ -44,25 +44,3 @@
 		</div>
 	{/snippet}
 </Story>
-
-<style lang="scss">
-	.tag-list {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-sm);
-	}
-
-	.tag {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		background-color: var(--color-success-dark);
-		border-radius: var(--border-radius-sm);
-		font-size: var(--font-size-sm);
-
-		.status {
-			opacity: 0.7;
-		}
-	}
-</style>

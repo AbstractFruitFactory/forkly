@@ -19,8 +19,8 @@
 		hasHighlight?: boolean
 	} = $props()
 
-	let dropdownEl: HTMLElement | null = null
-	let parentEl: HTMLElement | null = null
+	let dropdownEl = $state<HTMLElement | null>(null)
+	let parentEl = $state<HTMLElement | null>(null)
 	let cleanup: (() => void) | undefined
 	let selectedIndex = $state(-1)
 
@@ -110,7 +110,7 @@
 {/if}
 
 {#snippet item(itemContent: Snippet, onclick: () => void, index: number)}
-	<button type="button" class="item" class:selected={selectedIndex === index} {onclick}>
+	<button type="button" class="item filter-select-item" class:selected={selectedIndex === index} {onclick}>
 		{@render itemContent()}
 	</button>
 {/snippet}

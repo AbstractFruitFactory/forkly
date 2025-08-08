@@ -164,10 +164,7 @@
 </div>
 
 <style lang="scss">
-	h3 {
-		margin: 0;
-	}
-
+	@use '$lib/styles/tokens' as *;
 	h4 {
 		margin-bottom: var(--spacing-sm);
 	}
@@ -215,25 +212,6 @@
 		gap: var(--spacing-xs);
 	}
 
-	.reorder-btn {
-		height: 36px;
-		width: 36px;
-		border-radius: var(--border-radius-lg);
-		background: none;
-		border: none;
-		cursor: pointer;
-		padding: var(--spacing-xs);
-		color: var(--color-text-on-surface);
-		transition: all var(--transition-fast) var(--ease-in-out);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		&:hover {
-			background-color: var(--color-secondary);
-		}
-	}
-
 	.instruction-step {
 		font-weight: 600;
 		color: var(--color-text-on-surface);
@@ -276,21 +254,6 @@
 		}
 	}
 
-	.remove-btn {
-		height: 36px;
-		width: 36px;
-		border-radius: var(--border-radius-lg);
-		transition: all var(--transition-fast) var(--ease-in-out);
-		background: none;
-		border: none;
-		cursor: pointer;
-		padding: var(--spacing-xs);
-
-		&:hover {
-			background-color: var(--color-background-dark);
-		}
-	}
-
 	.submit-section {
 		display: flex;
 		gap: var(--spacing-md);
@@ -298,10 +261,6 @@
 		margin-top: var(--spacing-xl);
 		padding-top: var(--spacing-lg);
 		border-top: 1px solid var(--color-neutral-darker);
-	}
-
-	.add-instruction-button {
-		margin-top: var(--spacing-lg);
 	}
 
 	.tags {

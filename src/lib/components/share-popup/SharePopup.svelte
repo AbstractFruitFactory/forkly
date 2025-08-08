@@ -187,11 +187,6 @@
 		gap: var(--spacing-md);
 	}
 
-	.share-description {
-		margin: 0 0 var(--spacing-sm);
-		color: var(--color-text-on-surface);
-	}
-
 	.share-item-preview {
 		background: var(--color-hover);
 		border-radius: var(--border-radius-md);
@@ -308,11 +303,5 @@
 		100% {
 			stroke-dashoffset: 0;
 		}
-	}
-
-	.share-footer {
-		display: flex;
-		justify-content: flex-end;
-		margin-top: var(--spacing-md);
 	}
 </style>

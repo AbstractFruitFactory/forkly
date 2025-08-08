@@ -16,7 +16,7 @@
 		useAnimation?: boolean
 	} = $props()
 
-	let cardGrid: HTMLElement
+	let cardGrid = $state<HTMLElement>()
 	let cards: HTMLElement[] = $state([])
 
 	let previousCardsCount = $state(0)
@@ -56,7 +56,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.empty-state {
 		text-align: center;
@@ -82,11 +82,6 @@
 	}
 
 	.card-wrapper {
-		width: 100%;
-	}
-
-	.load-more-trigger {
-		height: 1px;
 		width: 100%;
 	}
 

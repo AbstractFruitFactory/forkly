@@ -315,7 +315,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.recipe-scraper {
 		max-width: 800px;
@@ -339,10 +339,6 @@
 		flex-direction: column;
 		gap: var(--spacing-md);
 		flex: 1;
-	}
-
-	.text-input-container {
-		position: relative;
 	}
 
 	.text-counter {

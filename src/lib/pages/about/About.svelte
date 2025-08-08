@@ -76,7 +76,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.about-container {
 		background: var(--color-background);

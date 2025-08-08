@@ -25,6 +25,7 @@
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
+	import { measurementUnits, type MeasurementUnit, type Ingredient as UIIngredient, type Instruction as UIInstruction } from '$lib/types'
 
 	let {
 		recipeData,
@@ -208,6 +209,36 @@
 	)
 
 	const recipeTitle = $derived(data.then((r) => r.recipe.title))
+
+	const normalizeUnit = (unit?: string): MeasurementUnit | undefined => {
+		if (!unit) return undefined
+		return (measurementUnits as readonly string[]).includes(unit) ? (unit as MeasurementUnit) : undefined
+	}
+
+	const toUIIngredient = (ing: { id: string; name: string; quantity: { text: string; numeric?: number }; measurement?: string; displayName: string }): UIIngredient & { id: string } => {
+		return {
+			id: ing.id,
+			name: ing.name,
+			displayName: ing.displayName,
+			quantity: ing.quantity,
+			measurement: normalizeUnit(ing.measurement)
+		}
+	}
+
+	const toUIInstruction = (ins: { id: string; text: string; mediaUrl?: string; mediaType?: 'image' | 'video'; ingredients?: { id: string; name: string; quantity: { text: string; numeric?: number }; measurement?: string; displayName: string }[] }): UIInstruction => {
+		return {
+			id: ins.id,
+			text: ins.text,
+			mediaUrl: ins.mediaUrl,
+			mediaType: ins.mediaType,
+			ingredients: ins.ingredients?.map((ing) => ({
+				name: ing.name,
+				displayName: ing.displayName,
+				quantity: ing.quantity,
+				measurement: normalizeUnit(ing.measurement)
+			}))
+		}
+	}
 </script>
 
 {#snippet commonImage()}
@@ -316,7 +347,7 @@
 			<IngredientsList loading ingredients={[]} servings={0} originalServings={0} {unitSystem} />
 		{:then recipeData}
 			<IngredientsList
-				ingredients={recipeData.recipe.ingredients}
+				ingredients={recipeData.recipe.ingredients.map(toUIIngredient)}
 				servings={recipeData.recipe.servings}
 				originalServings={recipeData.recipe.servings}
 				{unitSystem}
@@ -333,7 +364,7 @@
 		{#await data}
 			<RecipeInstructions instructions={[]} loading />
 		{:then recipeData}
-			<RecipeInstructions instructions={recipeData.recipe.instructions} />
+			<RecipeInstructions instructions={recipeData.recipe.instructions.map(toUIInstruction)} />
 		{/await}
 	</div>
 {/snippet}
@@ -492,7 +523,7 @@
 </Toast>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.recipe-desktop-view {
 		@include tablet {
@@ -530,12 +561,6 @@
 		}
 	}
 
-	.hide-media-switch {
-		@include mobile {
-			display: none;
-		}
-	}
-
 	.nav-button {
 		flex: 1;
 		background: none;
@@ -560,20 +585,6 @@
 			color: var(--color-primary);
 			opacity: 1;
 			background: rgba(255, 255, 255, 0.08);
-		}
-	}
-
-	.save-popup-header {
-		margin-bottom: var(--spacing-md);
-
-		h3 {
-			margin-bottom: var(--spacing-xs);
-		}
-
-		p {
-			font-size: var(--font-size-sm);
-			color: var(--color-text-secondary);
-			margin: 0;
 		}
 	}
 

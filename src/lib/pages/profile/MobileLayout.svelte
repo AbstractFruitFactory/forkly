@@ -118,7 +118,7 @@
 </Drawer>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.profile-view {
 		position: relative;
@@ -179,12 +179,6 @@
 		display: flex;
 		align-items: center;
 		margin-right: var(--spacing-sm);
-	}
-
-	.membership-btn {
-		margin-top: var(--spacing-sm);
-		display: flex;
-		justify-content: center;
 	}
 
 	.signout-row {

@@ -34,9 +34,9 @@
 	} = $props()
 
 	let isOpen = $state(false)
-	let reference: HTMLElement
-	let floating: HTMLDivElement
-	let arrowElement: HTMLDivElement
+	let reference = $state<HTMLElement>()
+	let floating = $state<HTMLDivElement>()
+	let arrowElement = $state<HTMLDivElement>()
 	let cleanup: (() => void) | undefined
 	let autoCloseTimeout: ReturnType<typeof setTimeout>
 
@@ -67,7 +67,7 @@
 
 	const setupFloating = () => {
 		const update = () => {
-			if (!reference || !floating) return
+			if (!reference || !floating || !arrowElement) return
 
 			computePosition(reference, floating, {
 				placement,
@@ -78,7 +78,7 @@
 					showArrow && arrow({ element: arrowElement })
 				].filter(Boolean)
 			}).then(({ x, y, placement: updatedPlacement, middlewareData }) => {
-				Object.assign(floating.style, {
+				Object.assign(floating!.style, {
 					left: `${x}px`,
 					top: `${y}px`
 				})
@@ -99,20 +99,20 @@
 					if (arrowPlacement && arrowPlacement !== 'center') {
 						const isVertical = side === 'top' || side === 'bottom'
 						const isHorizontal = side === 'left' || side === 'right'
-						
+
 						if (isVertical) {
-							const rect = floating.getBoundingClientRect()
+							const rect = floating!.getBoundingClientRect()
 							const arrowSize = 8
-							
+
 							if (arrowPlacement === 'start') {
 								finalArrowX = arrowSize
 							} else if (arrowPlacement === 'end') {
 								finalArrowX = rect.width - arrowSize
 							}
 						} else if (isHorizontal) {
-							const rect = floating.getBoundingClientRect()
+							const rect = floating!.getBoundingClientRect()
 							const arrowSize = 8
-							
+
 							if (arrowPlacement === 'start') {
 								finalArrowY = arrowSize
 							} else if (arrowPlacement === 'end') {
@@ -121,7 +121,7 @@
 						}
 					}
 
-					Object.assign(arrowElement.style, {
+					Object.assign(arrowElement!.style, {
 						left: finalArrowX != null ? `${finalArrowX}px` : '',
 						top: finalArrowY != null ? `${finalArrowY}px` : '',
 						right: '',
@@ -132,7 +132,7 @@
 			})
 		}
 
-		cleanup = autoUpdate(reference, floating, update)
+		cleanup = autoUpdate(reference!, floating!, update)
 
 		update()
 	}

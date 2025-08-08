@@ -102,7 +102,7 @@
 <FeedbackForm isOpen={isFeedbackOpen} onClose={handleFeedbackClose} />
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.info-footer {
 		z-index: calc(var(--z-dropdown) + 100);
@@ -168,13 +168,6 @@
 		justify-content: space-between;
 		padding: var(--spacing-sm);
 		border-bottom: 1px solid var(--color-border);
-	}
-
-	.info-title {
-		margin: 0;
-		font-size: var(--font-size-lg);
-		font-weight: 600;
-		color: var(--color-text-on-surface);
 	}
 
 	.info-close {

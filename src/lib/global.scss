@@ -1,48 +1,4 @@
-// Breakpoints
-$breakpoint-xs: 320px; // Small mobile
-$breakpoint-sm: 480px; // Mobile
-$breakpoint-md: 768px; // Tablet
-$breakpoint-lg: 1024px; // Desktop
-$breakpoint-xl: 1280px; // Large desktop
-
-// Mobile view mixins
-@mixin mobile {
-  @media (max-width: $breakpoint-sm) {
-    @content;
-  }
-}
-
-@mixin small-mobile {
-  @media (max-width: $breakpoint-xs) {
-    @content;
-  }
-}
-
-@mixin tablet {
-  @media (max-width: $breakpoint-md) {
-    @content;
-  }
-}
-
-@mixin desktop {
-  @media (min-width: $breakpoint-md) {
-    @content;
-  }
-}
-
-@mixin tablet-desktop {
-  @media (min-width: $breakpoint-sm) {
-    @content;
-  }
-}
-
-@mixin hover {
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      @content;
-    }
-  }
-}
+@use '$lib/styles/tokens' as *;
 
 :root {
   // Primary colors
@@ -391,12 +347,10 @@ button {
 
 /* Custom Scrollbar Styles */
 * {
-  /* Firefox */
   scrollbar-width: thin;
   scrollbar-color: var(--color-neutral) transparent;
 }
 
-/* Chrome, Edge, and Safari */
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -409,10 +363,10 @@ button {
 *::-webkit-scrollbar-thumb {
   background-color: var(--color-neutral);
   border-radius: 4px;
+}
 
-  &:hover {
-    background-color: var(--color-neutral-dark);
-  }
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-neutral-dark);
 }
 
 /* Hide scrollbar in Firefox when not hovering */

@@ -105,7 +105,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.instructions {
 		overflow: hidden;
@@ -208,8 +208,7 @@
 		display: flex;
 	}
 
-	.instruction-media img,
-	.instruction-media video {
+	.instruction-media img {
 		width: 100%;
 		height: 100%;
 		display: block;

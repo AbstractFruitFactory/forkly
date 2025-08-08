@@ -48,10 +48,10 @@
 		likes: 42,
 		tags: ['Italian', 'Pasta'],
 		instructions: [
-			{ id: '1', text: 'Bring a large pot of salted water to boil' },
-			{ id: '2', text: 'Cook spaghetti according to package directions' },
-			{ id: '3', text: 'In a large skillet, cook pancetta until crispy' },
-			{ id: '4', text: 'Mix eggs and cheese, then combine with hot pasta' }
+			{ id: '1', text: 'Bring a large pot of salted water to boil', ingredients: [] },
+			{ id: '2', text: 'Cook spaghetti according to package directions', ingredients: [] },
+			{ id: '3', text: 'In a large skillet, cook pancetta until crispy', ingredients: [] },
+			{ id: '4', text: 'Mix eggs and cheese, then combine with hot pasta', ingredients: [] }
 		],
 		ingredients: [
 			{
@@ -126,7 +126,8 @@
 				id: `instruction-${i}`,
 				text: `Step ${i + 1}: ${['Boil water', 'Cook pasta', 'Prepare sauce', 'Mix ingredients', 'Season to taste', 'Garnish and serve'][i % 6]}`,
 				mediaUrl: undefined,
-				mediaType: undefined
+				mediaType: undefined,
+				ingredients: []
 			})),
 			likes: args.likes || 42
 		} as DetailedRecipe

@@ -84,6 +84,15 @@
 						class="search-icon-button"
 						class:clearable={showClear}
 						onclick={showClear ? clearSearch : undefined}
+						role="button"
+						tabindex={showClear ? 0 : -1}
+						onkeydown={(e) => {
+							if (!showClear) return
+							if (e.key === 'Enter' || e.key === ' ') {
+								e.preventDefault()
+								clearSearch()
+							}
+						}}
 						aria-label={showClear ? 'Clear search' : 'Search'}
 					>
 						<SearchIcon isClear={showClear} size={16} color="var(--color-text-on-surface)" />
@@ -133,20 +142,6 @@
 				transform: scale(0.95);
 			}
 		}
-	}
-
-	.loading-spinner {
-		position: absolute;
-		right: calc(var(--spacing-xl) * 2 + var(--spacing-xs));
-		width: 16px;
-		height: 16px;
-		border: 2px solid var(--color-neutral);
-		border-top-color: var(--color-primary);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-		pointer-events: none;
-		z-index: 2;
-		opacity: 0.7;
 	}
 
 	:global(.search-input-container input) {

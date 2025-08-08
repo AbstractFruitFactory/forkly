@@ -172,7 +172,7 @@
 </Popup>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.cooking-mode {
 		display: flex;
@@ -236,25 +236,6 @@
 		font-size: var(--font-size-sm);
 		color: var(--color-neutral-light);
 		font-weight: var(--font-weight-medium);
-	}
-
-	.cooking-nav-button {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-		background: var(--color-neutral-darker);
-		border: none;
-		border-radius: var(--border-radius-md);
-		padding: var(--spacing-md) var(--spacing-lg);
-		color: var(--color-neutral-light);
-		font-weight: var(--font-weight-medium);
-		cursor: pointer;
-		transition: all var(--transition-fast) var(--ease-in-out);
-	}
-
-	.cooking-nav-button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
 	}
 
 	.video-error,

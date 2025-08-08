@@ -10,7 +10,7 @@ export const findIngredientsCache: Cache<FoodAPI['findIngredients']> = ([query])
   set: async (response) => {
     const key = CACHE_PREFIX + query
     await redis.set(key, JSON.stringify(response), {
-      EX: CACHE_TTL
+      ex: CACHE_TTL
     })
 
     return Ok(undefined)
@@ -22,7 +22,7 @@ export const findIngredientsCache: Cache<FoodAPI['findIngredients']> = ([query])
 
     if (!cached) return Err(new Error('Cache miss'))
 
-    return Ok(JSON.parse(cached))
+    return Ok(JSON.parse(cached as string))
   },
 
   has: async () => {

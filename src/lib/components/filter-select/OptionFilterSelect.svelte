@@ -1,8 +1,8 @@
 <script lang="ts">
 	import BaseFilterSelect from './BaseFilterSelect.svelte'
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type {  Snippet } from 'svelte'
 	import ChevronDown from 'lucide-svelte/icons/chevron-down'
-	import Button from '../button/Button.svelte'
+	import Check from 'lucide-svelte/icons/circle-check'
 
 	type Item = $$Generic<{ label: string; onClick: () => void }>
 
@@ -40,21 +40,28 @@
 			{#if options.length === 0}
 				<div class="helper-text">No options available</div>
 			{:else}
-				{#each options as option}
+				{#each options as option, i}
 					{#snippet _item()}
-						{option.label}
+						<div class="option-row">
+							<span class="label">{option.label}</span>
+							{#if Array.isArray(selected) ? selected.some((it) => it.label === option.label) : selected.label === option.label}
+								<span class="selected-mark" aria-hidden="true"><Check color="var(--color-success)" size={18} /></span>
+							{/if}
+						</div>
 					{/snippet}
 
 					{@render item?.(
 						_item,
 						() => {
+							if (!Array.isArray(selected) && selected.label === option.label) {
+								isOpen = false
+								return
+							}
 							handleSelect(option.label, option)
 							option.onClick()
 							isOpen = false
 						},
-						Array.isArray(selected)
-							? selected.some((item) => item.label === option.label)
-							: selected.label === option.label
+						i
 					)}
 				{/each}
 			{/if}
@@ -63,7 +70,7 @@
 </BaseFilterSelect>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 	.arrow {
 		display: flex;
 		align-items: center;
@@ -79,6 +86,26 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
+	}
+
+	.option-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		gap: var(--spacing-sm);
+	}
+
+	.label {
+		flex: 1;
+	}
+
+	.selected-mark {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin-left: var(--spacing-sm);
+		color: var(--color-success);
 	}
 
 	.helper-text {

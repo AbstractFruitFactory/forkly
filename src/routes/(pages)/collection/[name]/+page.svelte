@@ -3,11 +3,12 @@
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions.js'
 	import { fly } from 'svelte/transition'
+	import type { PageData } from './$types'
 
-	let { data } = $props()
+	let { data }: { data: PageData } = $props()
 
-	let recipes: Awaited<ReturnType<typeof data.recipes>> = []
-	let collections: Awaited<ReturnType<typeof data.collections>> = []
+	let recipes = $state<Awaited<PageData['recipes']>>([])
+	let collections = $state<Awaited<PageData['collections']>>([])
 	let isLoading = $state(true)
 
 	$effect(() => {

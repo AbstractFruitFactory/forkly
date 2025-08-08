@@ -56,7 +56,7 @@
 </Popup>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.login-popup-content {
 		display: flex;

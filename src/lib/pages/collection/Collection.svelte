@@ -88,10 +88,6 @@
 </Popup>
 
 <style lang="scss">
-	.collection {
-		position: relative;
-	}
-
 	.back-button {
 		display: flex;
 		align-items: center;

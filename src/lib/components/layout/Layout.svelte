@@ -60,7 +60,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	$content-max-width: 1200px;
 	$header-height: 5rem;
@@ -166,11 +166,6 @@
 		justify-content: space-between;
 	}
 
-	.sidebar-container {
-		position: relative;
-		z-index: var(--z-sticky);
-	}
-
 	.main {
 		position: relative;
 		flex-grow: 1;
@@ -179,12 +174,6 @@
 		transition: margin-left 0.25s ease-out;
 		scrollbar-color: var(--color-primary) var(--color-background);
 		overflow-x: hidden;
-
-		&.home-page {
-			overflow-y: unset;
-			scrollbar-width: unset;
-			scrollbar-gutter: unset;
-		}
 
 		@include mobile {
 			padding: 0;
@@ -247,12 +236,6 @@
 			&.homepage {
 				padding-top: 0;
 			}
-		}
-	}
-
-	@include mobile {
-		.toggle-container {
-			margin-left: 0 !important;
 		}
 	}
 </style>

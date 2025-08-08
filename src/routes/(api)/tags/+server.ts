@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 import { searchTags, getPopularTags } from '$lib/server/db/tags'
 
 export type TagSearchResponse = {
@@ -9,11 +10,10 @@ export type TagSearchResponse = {
   query: string
 }
 
-export const GET = async ({ url }) => {
+export const GET: RequestHandler = async ({ url }) => {
   const query = url.searchParams.get('q') || ''
   const limit = 5
 
-  // If query is empty, get most popular tags
   if (!query.trim()) {
     const popularTags = await getPopularTags(limit)
     return json({
@@ -22,7 +22,6 @@ export const GET = async ({ url }) => {
     } satisfies TagSearchResponse)
   }
 
-  // Search for tags that match the query
   const tagResults = await searchTags(query, limit)
 
   return json({

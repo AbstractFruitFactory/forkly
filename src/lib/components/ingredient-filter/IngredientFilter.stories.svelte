@@ -52,7 +52,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="height-div" />
+		<div class="height-div"></div>
 	{/snippet}
 </Story>
 

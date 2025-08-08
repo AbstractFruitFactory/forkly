@@ -341,6 +341,7 @@
       font-size: var(--font-size-3xl);
       margin-bottom: var(--spacing-md);
       background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }

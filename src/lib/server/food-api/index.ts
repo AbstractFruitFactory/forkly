@@ -1,6 +1,5 @@
 import { type Result, Ok, Err } from 'ts-results-es'
 import * as spoonacular from './adapters/spoonacular'
-import type { Recipe } from '$lib/server/db/schema'
 import type { Ingredient } from '$lib/types'
 
 export type IngredientSearchResult = {
@@ -38,7 +37,7 @@ export type RecipeNutritionInfo = {
 }
 
 export type FoodAPI = {
-  mapIngredientToDatabaseEntry(ingredient: Ingredient): Recipe['ingredients'][number]
+  mapIngredientToDatabaseEntry(ingredient: Ingredient): any
   findIngredients(query: string): Promise<IngredientSearchResult>
   getIngredientInfo(id: number): Promise<any>
   getNutritionInfo(id: number, amount: number, unit: string): Promise<NutritionInfo>

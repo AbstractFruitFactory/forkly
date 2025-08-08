@@ -36,7 +36,7 @@
 
 	let ANIMATION_DURATION = 0.35
 
-	let popupContainer: HTMLDivElement
+	let popupContainer = $state<HTMLDivElement>()
 
 	const handleOpen = async () => {
 		if (animateFrom) {
@@ -48,6 +48,7 @@
 			isOpen = true
 			await tick()
 
+			if (!popupContainer) return
 			flip.fit(popupContainer, animateFrom)
 
 			const state = flip.getState(popupContainer)
@@ -85,6 +86,7 @@
 			const flip = (await import('gsap/Flip')).Flip
 			if (!flip) return
 
+			if (!popupContainer) return
 			const state = flip.getState(popupContainer)
 
 			const content = popupContainer.querySelector('.popup-content') as HTMLElement
@@ -189,7 +191,7 @@
 {/if}
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.popup-overlay {
 		position: fixed;

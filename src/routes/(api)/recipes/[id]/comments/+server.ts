@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { getComments, addComment, getCommentCount } from '$lib/server/db/recipe-comments'
 import * as v from 'valibot'
+import { nullToUndefined } from '$lib/utils/nullToUndefined'
 
 export type Comment = {
   id: string
@@ -29,8 +30,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
 
   const limit = parseInt(url.searchParams.get('limit') || '10', 10)
   const page = parseInt(url.searchParams.get('page') || '0', 10)
-  const comments = await getComments(recipeId, limit, page)
-  const total = await getCommentCount(recipeId)
+  const comments = nullToUndefined(await getComments(recipeId, limit, page))
+  const total = nullToUndefined(await getCommentCount(recipeId))
   return json({ comments, total } satisfies CommentsResponse)
 }
 

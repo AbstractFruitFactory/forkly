@@ -54,7 +54,7 @@
 		selectedTab = option
 	}
 
-	let avatarInput: HTMLInputElement
+	let avatarInput = $state<HTMLInputElement>()
 	let deletePopupOpen = $state(false)
 	let recipeToDelete: DetailedRecipe | undefined = $state()
 	let editPopupOpen = $state(false)
@@ -178,7 +178,7 @@
 				/>
 				<button
 					class="avatar-edit-icon"
-					onclick={() => avatarInput.click()}
+					onclick={() => avatarInput!.click()}
 					aria-label="Edit avatar"
 				>
 					<svg
@@ -516,7 +516,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.profile-desktop-view {
 		display: none;
@@ -607,11 +607,6 @@
 		font-family: unset;
 	}
 
-	.profile-email {
-		color: var(--color-text-on-surface);
-		font-size: var(--font-size-md);
-	}
-
 	.profile-info {
 		display: flex;
 		flex-direction: column;
@@ -643,10 +638,6 @@
 		display: flex;
 		align-items: center;
 		gap: 1rem;
-	}
-
-	.profile-info-value-edit Button {
-		margin-left: 1rem;
 	}
 
 	@include tablet {
@@ -719,33 +710,5 @@
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
-	}
-	.edit-draft-btn {
-		margin-top: var(--spacing-sm);
-		padding: 0.5em 1em;
-		background: var(--color-primary);
-		color: #fff;
-		border: none;
-		border-radius: var(--border-radius-sm);
-		cursor: pointer;
-		font-size: var(--font-size-md);
-		transition: background 0.2s;
-	}
-	.edit-draft-btn:hover {
-		background: var(--color-primary-dark);
-	}
-	.delete-draft-btn {
-		margin-top: var(--spacing-sm);
-		padding: 0.5em 1em;
-		background: var(--color-danger);
-		color: #fff;
-		border: none;
-		border-radius: var(--border-radius-sm);
-		cursor: pointer;
-		font-size: var(--font-size-md);
-		transition: background 0.2s;
-	}
-	.delete-draft-btn:hover {
-		background: var(--color-danger-dark);
 	}
 </style>
