@@ -64,12 +64,6 @@
 		height: 100%;
 	}
 
-	.count {
-		margin-left: var(--spacing-xs);
-		font-size: var(--font-size-sm);
-		color: var(--color-text-on-surface);
-	}
-
 	.ingredient-item {
 		display: flex;
 		align-items: center;

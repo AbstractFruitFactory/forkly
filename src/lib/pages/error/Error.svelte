@@ -35,14 +35,4 @@
 		margin-bottom: var(--spacing-lg);
 		color: var(--color-neutral);
 	}
-
-	a {
-		text-decoration: none;
-		padding: var(--spacing-xs) var(--spacing-md);
-		border: var(--border-width-thin) solid var(--color-primary);
-		border-radius: var(--border-radius-md);
-		transition: all var(--transition-fast) var(--ease-in-out);
-		background-color: var(--color-primary);
-		color: var(--color-text-on-primary);
-	}
 </style>

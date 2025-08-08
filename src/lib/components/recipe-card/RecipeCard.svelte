@@ -238,10 +238,6 @@
 			height: 300px;
 			grid-template-rows: 45% auto;
 
-			.avatar-wrapper {
-				bottom: -12px;
-			}
-
 			.content {
 				padding: var(--spacing-sm);
 			}
@@ -298,6 +294,7 @@
 		overflow: hidden;
 		display: -webkit-box;
 		color: var(--color-text-on-surface);
+		line-clamp: 2;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 
@@ -353,14 +350,6 @@
 		min-width: 0;
 	}
 
-	.description {
-		margin: 0;
-		overflow: hidden;
-		color: var(--color-neutral-light);
-		opacity: 0.8;
-		font-size: var(--font-size-sm);
-	}
-
 	.tags {
 		display: flex;
 		flex-wrap: wrap;
@@ -387,15 +376,6 @@
 		display: flex;
 		gap: var(--spacing-xs);
 		z-index: 2;
-	}
-
-	.bookmark-btn {
-		background: rgba(0, 0, 0, 0.32);
-		border-radius: 50%;
-		padding: 4px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
 	}
 
 	.meta-single {
@@ -430,11 +410,6 @@
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-md);
-	}
-
-	.separator {
-		color: var(--color-neutral);
-		opacity: 0.5;
 	}
 
 	.spinner-overlay {
@@ -480,25 +455,6 @@
 		&:active {
 			transform: scale(0.95);
 		}
-	}
-
-	.dropdown-item {
-		display: block;
-		width: 100%;
-		text-align: left;
-		padding: var(--spacing-sm) var(--spacing-md);
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: var(--color-white);
-
-		&:hover {
-			background-color: var(--color-hover);
-		}
-	}
-
-	.dropdown-item.delete {
-		color: var(--color-error);
 	}
 
 	@keyframes spin {

@@ -100,6 +100,9 @@
 		-webkit-box-sizing: border-box;
 		-webkit-transform: translateZ(0);
 		-webkit-backface-visibility: hidden;
+		box-sizing: border-box;
+		transform: translateZ(0);
+		backface-visibility: hidden;
 
 		&:focus-within {
 			border-color: var(--color-primary);
@@ -120,11 +123,6 @@
 		gap: var(--spacing-xs);
 		padding-right: var(--spacing-md);
 		flex-shrink: 0;
-
-		.input-container:has(textarea) & {
-			align-items: flex-start;
-			padding-top: var(--spacing-xs);
-		}
 
 		@include mobile {
 			padding-right: var(--spacing-xs);
@@ -192,6 +190,9 @@
 			-webkit-appearance: none;
 			-webkit-box-sizing: border-box;
 			-webkit-transform: translateZ(0);
+			appearance: none;
+			box-sizing: border-box;
+			transform: translateZ(0);
 
 			&:hover,
 			&:focus {

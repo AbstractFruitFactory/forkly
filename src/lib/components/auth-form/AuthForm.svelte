@@ -97,8 +97,6 @@
 		margin-bottom: var(--spacing-xs);
 	}
 
-
-
 	.error {
 		color: var(--color-error);
 		margin: var(--spacing-xs) 0;
@@ -109,14 +107,5 @@
 		margin-top: var(--spacing-md);
 		text-align: center;
 		color: var(--color-neutral);
-	}
-
-	.alternate-link a {
-		color: var(--color-primary);
-		text-decoration: none;
-	}
-
-	.alternate-link a:hover {
-		text-decoration: underline;
 	}
 </style>

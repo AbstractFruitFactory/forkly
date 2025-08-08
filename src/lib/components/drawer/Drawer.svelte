@@ -233,20 +233,4 @@
 			overflow-y: auto;
 		}
 	}
-
-	.item {
-		padding: var(--spacing-sm) var(--spacing-md);
-		margin: 0;
-		border-radius: var(--border-radius-lg);
-		transition: background-color 0.2s ease;
-		cursor: pointer;
-		color: var(--color-text-on-surface);
-		width: 100%;
-		text-align: left;
-
-		&:hover {
-			background-color: var(--color-secondary);
-			color: var(--color-text-on-background);
-		}
-	}
 </style>

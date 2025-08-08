@@ -45,18 +45,3 @@
 		<RecipePage params={{ id }} />
 	</Popup>
 {/if}
-
-<style lang="scss">
-	.fullscreen-link {
-		display: flex;
-		align-items: center;
-		padding: var(--spacing-xs);
-		border-radius: var(--border-radius-sm);
-		color: var(--color-neutral);
-
-		&:hover {
-			background: var(--color-hover);
-			color: var(--color-primary);
-		}
-	}
-</style>

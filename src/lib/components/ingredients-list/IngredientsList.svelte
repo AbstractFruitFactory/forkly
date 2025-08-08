@@ -102,16 +102,5 @@
 	.ingredient-name {
 		color: var(--color-neutral-lightest);
 	}
-
-	.custom-badge {
-		font-size: var(--font-size-xs);
-		background: var(--color-primary-light);
-		color: var(--color-neutral-darkest);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		border-radius: var(--border-radius-md);
-		margin-left: var(--spacing-sm);
-		vertical-align: middle;
-		font-weight: var(--font-weight-semibold);
-	}
 </style>
 

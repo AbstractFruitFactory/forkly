@@ -809,13 +809,7 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: var(--spacing-xl);
-
-		h1 {
-			margin: 0;
-			font-size: var(--font-size-2xl);
-			font-weight: 600;
-		}
-
+		
 		@include mobile {
 			flex-direction: column;
 			gap: var(--spacing-md);

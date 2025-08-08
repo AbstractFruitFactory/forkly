@@ -112,11 +112,6 @@
 <style lang="scss">
 	@use '$lib/styles/tokens' as *;
 
-	.empty-state {
-		text-align: center;
-		padding: var(--spacing-2xl) 0;
-	}
-
 	.load-more-trigger {
 		height: 1px;
 		width: 100%;

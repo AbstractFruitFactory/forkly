@@ -341,10 +341,6 @@
 		flex: 1;
 	}
 
-	.text-input-container {
-		position: relative;
-	}
-
 	.text-counter {
 		position: absolute;
 		bottom: var(--spacing-xs);

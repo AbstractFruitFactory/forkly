@@ -73,39 +73,6 @@
 		margin: var(--spacing-xl) 0;
 	}
 
-	.back-button {
-		position: absolute;
-		top: var(--spacing-md);
-		left: var(--spacing-md);
-		z-index: var(--z-drawer);
-		background: rgba(0, 0, 0, 0.5);
-		border: none;
-		border-radius: var(--border-radius-full);
-		width: 32px;
-		height: 32px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		backdrop-filter: blur(4px);
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-
-		svg {
-			fill: white;
-			width: 20px;
-			height: 20px;
-		}
-
-		&:hover {
-			background: rgba(0, 0, 0, 0.7);
-			transform: scale(1.05);
-		}
-
-		&:active {
-			transform: scale(0.95);
-		}
-	}
-
 	.recipe-image {
 		min-height: 200px;
 		max-height: 80dvh;

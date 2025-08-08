@@ -85,11 +85,6 @@
 		width: 100%;
 	}
 
-	.load-more-trigger {
-		height: 1px;
-		width: 100%;
-	}
-
 	@media (max-width: 640px) {
 		.card-grid {
 			grid-template-columns: 1fr;

@@ -137,15 +137,6 @@
 		padding: 1.5rem;
 	}
 
-	.collection-icon {
-		background: var(--color-neutral-dark);
-		border-radius: 50%;
-		padding: 1rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
 	.collection-name {
 		margin: 0;
 		font-size: var(--font-size-lg);
@@ -176,25 +167,6 @@
 			background-color: var(--color-hover);
 			color: var(--color-primary);
 		}
-	}
-
-	.dropdown-item {
-		display: block;
-		width: 100%;
-		text-align: left;
-		padding: var(--spacing-sm) var(--spacing-md);
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: var(--color-white);
-
-		&:hover {
-			background-color: var(--color-hover);
-		}
-	}
-
-	.dropdown-item.delete {
-		color: var(--color-error);
 	}
 
 	.delete-content p {

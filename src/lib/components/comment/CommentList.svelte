@@ -380,35 +380,6 @@
 		}
 	}
 
-	.submit-button {
-		background-color: var(--color-primary);
-		color: var(--color-neutral-darkest);
-		border: none;
-		border-radius: var(--border-radius-md);
-		padding: var(--spacing-sm) var(--spacing-lg);
-		font-weight: var(--font-weight-semibold);
-		cursor: pointer;
-		transition: all 0.2s ease;
-		font-size: var(--font-size-sm);
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-
-		&:hover:not(:disabled) {
-			background-color: var(--color-primary-light);
-			transform: translateY(-1px);
-			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-		}
-
-		&:active:not(:disabled) {
-			transform: translateY(0);
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-		}
-
-		&:disabled {
-			opacity: 0.7;
-			cursor: not-allowed;
-		}
-	}
-
 	.error-message {
 		color: var(--color-error);
 		font-size: var(--font-size-xs);

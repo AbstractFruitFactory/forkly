@@ -530,12 +530,6 @@
 		}
 	}
 
-	.hide-media-switch {
-		@include mobile {
-			display: none;
-		}
-	}
-
 	.nav-button {
 		flex: 1;
 		background: none;
@@ -560,20 +554,6 @@
 			color: var(--color-primary);
 			opacity: 1;
 			background: rgba(255, 255, 255, 0.08);
-		}
-	}
-
-	.save-popup-header {
-		margin-bottom: var(--spacing-md);
-
-		h3 {
-			margin-bottom: var(--spacing-xs);
-		}
-
-		p {
-			font-size: var(--font-size-sm);
-			color: var(--color-text-secondary);
-			margin: 0;
 		}
 	}
 

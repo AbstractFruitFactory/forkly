@@ -181,12 +181,6 @@
 		margin-right: var(--spacing-sm);
 	}
 
-	.membership-btn {
-		margin-top: var(--spacing-sm);
-		display: flex;
-		justify-content: center;
-	}
-
 	.signout-row {
 		margin-top: var(--spacing-lg);
 		display: flex;

@@ -75,38 +75,4 @@
 		align-items: center;
 		flex: 0 1 auto;
 	}
-
-	.new-recipe-button {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-	}
-
-	.main-nav {
-		display: flex;
-		align-items: center;
-	}
-	
-	.profile {
-		&-link {
-			display: flex;
-			align-items: center;
-			gap: var(--spacing-sm);
-			padding: var(--spacing-sm);
-			border-radius: var(--border-radius-sm);
-			transition: all var(--transition-fast) var(--ease-in-out);
-			&:hover,
-			&:focus-visible {
-				color: var(--color-primary);
-				background: var(--color-neutral-dark-hover, rgba(255, 255, 255, 0.1));
-				outline: none;
-			}
-		}
-
-		&-text {
-			@include mobile {
-				display: none;
-			}
-		}
-	}
 </style>

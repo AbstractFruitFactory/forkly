@@ -81,12 +81,6 @@
 		margin: 2rem auto;
 	}
 
-	.membership-button-container {
-		margin-bottom: var(--spacing-md);
-		display: flex;
-		justify-content: flex-end;
-	}
-
 	.profile-header-row {
 		display: flex;
 		align-items: center;

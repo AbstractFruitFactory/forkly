@@ -170,13 +170,6 @@
 		border-bottom: 1px solid var(--color-border);
 	}
 
-	.info-title {
-		margin: 0;
-		font-size: var(--font-size-lg);
-		font-weight: 600;
-		color: var(--color-text-on-surface);
-	}
-
 	.info-close {
 		background: transparent;
 		border: none;
