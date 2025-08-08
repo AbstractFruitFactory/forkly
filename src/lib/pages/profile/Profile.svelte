@@ -371,7 +371,7 @@
 						id: ingredient.id,
 						name: ingredient.name,
 						quantity: ingredient.quantity?.text ?? '',
-						unit: ingredient.measurement
+						measurement: ingredient.measurement
 					}))
 				}))
 			}}
