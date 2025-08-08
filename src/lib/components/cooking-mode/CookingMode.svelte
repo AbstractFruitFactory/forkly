@@ -19,7 +19,6 @@
 
 	function handleCookingVideoError() {
 		videoError = true
-		// Try to reload the video
 		setTimeout(() => {
 			const video = document.querySelector('.cooking-media video') as HTMLVideoElement
 			if (video) {
@@ -53,7 +52,6 @@
 		}
 	}
 
-	// Swipe handling for cooking mode
 	let touchStartX = 0
 	let touchEndX = 0
 
@@ -68,13 +66,10 @@
 	function handleCookingTouchEnd(e: TouchEvent) {
 		e.preventDefault()
 		if (touchStartX - touchEndX > 50) {
-			// Swipe left - next step
 			nextStep(e)
 		} else if (touchEndX - touchStartX > 50) {
-			// Swipe right - previous step
 			prevStep(e)
 		}
-		// Reset values
 		touchStartX = 0
 		touchEndX = 0
 	}
@@ -177,11 +172,10 @@
 	.cooking-mode {
 		display: flex;
 		flex-direction: column;
-		height: 600px;
 		background: var(--color-background);
+		min-height: 0;
 
 		@include mobile {
-			height: 100%;
 			justify-content: space-between;
 		}
 	}
@@ -193,12 +187,11 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-lg);
-		height: 0;
 	}
 
 	.cooking-media {
 		width: 100%;
-		height: 300px;
+		height: auto;
 		background: var(--color-neutral-dark);
 		border-radius: var(--border-radius-lg);
 		overflow: hidden;
@@ -210,8 +203,19 @@
 
 	.cooking-media-content {
 		width: 100%;
-		height: 100%;
-		object-fit: cover;
+		height: auto;
+		object-fit: contain;
+	}
+
+	.cooking-media img.cooking-media-content {
+		height: auto;
+		object-fit: contain;
+		display: block;
+	}
+
+	.cooking-media video.cooking-media-content {
+		height: auto;
+		object-fit: contain;
 	}
 
 	.cooking-navigation {
@@ -220,6 +224,10 @@
 		align-items: center;
 		padding: var(--spacing-md);
 		gap: var(--spacing-md);
+		position: sticky;
+		bottom: 0;
+		background: var(--color-background);
+		z-index: 1;
 
 		:global(.nav-button) {
 			display: flex;

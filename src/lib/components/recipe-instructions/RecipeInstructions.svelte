@@ -57,8 +57,24 @@
 			<div class="instruction-item">
 				<div class="instruction-header">
 					<div class="instruction-content">
+						<h5 class="step-number">Step {i + 1}</h5>
+						{#if instruction.mediaUrl}
+							<div class="instruction-media desktop-only">
+								{#if !hideImages}
+									{#if instruction.mediaType === 'image'}
+										<img
+											src={instruction.mediaUrl}
+											alt={`Step ${i + 1} visual`}
+											loading="lazy"
+											decoding="async"
+										/>
+									{:else if instruction.mediaType === 'video'}
+										<InstructionVideo src={instruction.mediaUrl} stepNumber={i + 1} />
+									{/if}
+								{/if}
+							</div>
+						{/if}
 						<div class="instruction-text">
-							<h5 class="step-number">Step {i + 1}</h5>
 							{#each parseTemperature(instruction.text) as part}
 								{#if part.isTemperature && part.value !== undefined && part.unit}
 									<span class="temperature-wrapper">
@@ -78,22 +94,6 @@
 								{/if}
 							{/each}
 						</div>
-						{#if instruction.mediaUrl}
-							<div class="instruction-media desktop-only">
-								{#if !hideImages}
-									{#if instruction.mediaType === 'image'}
-										<img
-											src={instruction.mediaUrl}
-											alt={`Step ${i + 1} visual`}
-											loading="lazy"
-											decoding="async"
-										/>
-									{:else if instruction.mediaType === 'video'}
-										<InstructionVideo src={instruction.mediaUrl} stepNumber={i + 1} />
-									{/if}
-								{/if}
-							</div>
-						{/if}
 					</div>
 				</div>
 			</div>
@@ -153,7 +153,7 @@
 	}
 
 	.instruction-content:has(.instruction-media) {
-		grid-template-columns: 1fr 200px;
+		grid-template-columns: 1fr;
 	}
 
 	@media (max-width: 1200px) {
@@ -212,14 +212,10 @@
 		width: 100%;
 		height: 100%;
 		display: block;
-		border-radius: 0;
+		border-radius: var(--border-radius-xl);
 		aspect-ratio: 16 / 9;
 		object-fit: cover;
 		will-change: transform;
-	}
-
-	.instruction-media :global(.video-container) {
-		border-radius: 0;
 	}
 
 	@media (max-width: 1200px) {
@@ -253,5 +249,6 @@
 
 	.divider {
 		margin: 0 calc(var(--spacing-lg) * -1);
+		margin-bottom: var(--spacing-lg);
 	}
 </style>
