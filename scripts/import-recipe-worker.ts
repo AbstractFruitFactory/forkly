@@ -353,6 +353,7 @@ async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promi
   Title can be inferred from content if absent. 
   Use exactly up to 3 short, relevant tags.
   If nutrition facts are present, include them in the nutrition object.
+  If a unit is specified, a quantity has to be specified as well. Measurements such as "to taste" go into the "quantity" field.
   Source: ${sourceUrlHint ?? 'unknown'}
   \n
   Recipe text:

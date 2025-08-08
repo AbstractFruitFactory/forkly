@@ -1,5 +1,6 @@
 import { type Result, Ok, Err } from 'ts-results-es'
 import * as spoonacular from './adapters/spoonacular'
+import * as openai from './adapters/openai'
 import type { Ingredient } from '$lib/types'
 
 export type IngredientSearchResult = {
@@ -45,7 +46,8 @@ export type FoodAPI = {
 }
 
 const _api: FoodAPI = {
-  ...spoonacular
+  ...spoonacular,
+  getRecipeInfo: openai.getRecipeInfo
 }
 
 export const api = <T extends keyof FoodAPI>(
