@@ -84,6 +84,9 @@ jobs:
           
       - name: Install dependencies
         run: pnpm install
+ 
+      - name: Type and Svelte checks
+        run: pnpm exec svelte-check --tsconfig ./tsconfig.json --fail-on-warnings
 
       - name: Build
         run: pnpm build
