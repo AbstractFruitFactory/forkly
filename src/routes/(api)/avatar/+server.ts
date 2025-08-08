@@ -29,9 +29,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   }
 
   const avatarUrl = await uploadImage(buffer, { folder: 'avatars' })
-  const updatedUser = await updateUserProfile(locals.user.id, { avatarUrl })
-
-  locals.user = updatedUser
+  await updateUserProfile(locals.user.id, { avatarUrl })
 
   return json({ avatarUrl })
 }

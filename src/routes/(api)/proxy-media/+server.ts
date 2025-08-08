@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
-export const GET = async ({ url }) => {
+export const GET: RequestHandler = async ({ url }) => {
   const targetUrl = url.searchParams.get('url')
   
   if (!targetUrl) {
@@ -29,7 +30,6 @@ export const GET = async ({ url }) => {
     const contentType = response.headers.get('content-type')
     if (!contentType?.startsWith('image/')) {
       console.warn(`Non-image content type for ${targetUrl}: ${contentType}`)
-      // Don't throw error, just log warning - some servers don't set content-type correctly
     }
 
     const arrayBuffer = await response.arrayBuffer()

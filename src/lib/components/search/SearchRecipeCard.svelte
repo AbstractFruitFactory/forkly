@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Pill from '$lib/components/pill/Pill.svelte'
-	import LikeButton from '$lib/components/like-button/LikeButton.svelte'
+	import FloatingLikeButton from '$lib/components/floating-action-button/FloatingLikeButton.svelte'
 	import RecipeImagePlaceholder from '$lib/components/recipe-image-placeholder/RecipeImagePlaceholder.svelte'
 
 	type Recipe = {
@@ -43,7 +43,7 @@
 
 		<div class="details">
 			<div class="action-container">
-				<LikeButton count={recipe.likes ?? 0} interactive={false} />
+				<FloatingLikeButton count={recipe.likes ?? 0} />
 			</div>
 
 			{#if recipe.tags && recipe.tags.length > 0}

@@ -78,7 +78,7 @@ export const getNutritionInfo: FoodAPI['getNutritionInfo'] = async (ingredientId
 export const mapIngredientToDatabaseEntry: FoodAPI['mapIngredientToDatabaseEntry'] = (ingredient) => ({
 	...ingredient,
 	custom: false,
-	spoonacularId: ingredient.id as number
+	spoonacularId: (ingredient as any).id as number
 })
 
 export const getRecipeInfo: FoodAPI['getRecipeInfo'] = async (ingredients, instructions, servings = 1) => {

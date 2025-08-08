@@ -22,7 +22,7 @@ export async function getComments(
   limit?: number,
   page = 0
 ) {
-  let query = db
+  const baseQuery = db
     .select({
       id: recipeComment.id,
       content: recipeComment.content,
@@ -40,12 +40,10 @@ export async function getComments(
     .orderBy(desc(recipeComment.createdAt))
 
   if (typeof limit === 'number') {
-    query = query.limit(limit).offset(page * limit)
+    return await baseQuery.limit(limit).offset(page * limit)
   }
 
-  const comments = await query
-
-  return comments
+  return await baseQuery
 }
 
 export async function deleteComment(commentId: string, userId: string) {

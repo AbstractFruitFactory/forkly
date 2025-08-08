@@ -1,5 +1,6 @@
 import type { MeasurementUnit } from '$lib/types'
 import { measurementUnits } from '$lib/types'
+import type { Ingredient } from '$lib/types'
 import Fraction from 'fraction.js'
 
 /** --- Unit Data --- **/
@@ -352,11 +353,11 @@ function formatQuantityAsFraction(
 }
 
 export function getDisplayIngredient(
-  ingredient: { quantity?: { numeric?: number; text?: string }, measurement?: string },
+  ingredient: Ingredient,
   currentServings: number,
   originalServings: number,
   unitSystem: 'metric' | 'imperial'
-) {
+): Ingredient & { displayMeasurementAndQuantity: string } {
   if (!ingredient.quantity?.numeric || isNaN(ingredient.quantity.numeric)) {
     return { ...ingredient, displayMeasurementAndQuantity: ingredient.measurement || '' }
   }

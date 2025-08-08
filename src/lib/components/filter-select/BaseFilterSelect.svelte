@@ -27,7 +27,7 @@
 				item?: (
 					itemContent: Snippet,
 					onclick: () => void,
-					selected: boolean
+					selectedOrIndex: boolean | number
 				) => ReturnType<Snippet>
 			]
 		>
