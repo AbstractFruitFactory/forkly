@@ -40,7 +40,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	// Make confetti canvas non-interactive
 	:global(#confetti canvas) {

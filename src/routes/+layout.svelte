@@ -164,8 +164,6 @@
 </Layout>
 
 <style lang="scss">
-	@import '$lib/global.scss';
-
 	:global(body) {
 		background: var(--color-secondary);
 	}

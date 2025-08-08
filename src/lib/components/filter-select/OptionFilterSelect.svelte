@@ -63,7 +63,7 @@
 </BaseFilterSelect>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 	.arrow {
 		display: flex;
 		align-items: center;

@@ -60,7 +60,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	$content-max-width: 1200px;
 	$header-height: 5rem;

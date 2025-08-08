@@ -10,7 +10,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 	div {
 		display: flex;
 		justify-content: center;

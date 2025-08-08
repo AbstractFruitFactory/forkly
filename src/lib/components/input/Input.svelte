@@ -53,7 +53,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	@mixin input-base {
 		width: 100%;

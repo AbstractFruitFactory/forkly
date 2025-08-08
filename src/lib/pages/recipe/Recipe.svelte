@@ -492,7 +492,7 @@
 </Toast>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.recipe-desktop-view {
 		@include tablet {

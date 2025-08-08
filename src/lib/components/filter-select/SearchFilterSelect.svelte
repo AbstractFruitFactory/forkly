@@ -145,7 +145,7 @@
 </BaseFilterSelect>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.search-container {
 		padding: var(--spacing-sm);

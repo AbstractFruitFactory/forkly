@@ -114,7 +114,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.nutrition-data {
 		display: flex;

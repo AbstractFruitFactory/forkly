@@ -5,7 +5,7 @@
 <div class="skeleton" class:round style:width style:height></div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 	.skeleton {
 		position: relative;
 		overflow: hidden;

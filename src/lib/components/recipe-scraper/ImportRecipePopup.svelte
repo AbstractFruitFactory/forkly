@@ -26,7 +26,7 @@
 </Popup>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.import-recipe-content {
 		max-height: 70vh;

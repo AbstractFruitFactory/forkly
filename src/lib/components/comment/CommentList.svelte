@@ -285,7 +285,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.comments-section {
 		background-color: var(--color-neutral-darkest);

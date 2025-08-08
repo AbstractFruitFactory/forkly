@@ -769,7 +769,7 @@
 />
 
 <style lang="scss">
-	@import '../../global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.new-recipe {
 		max-width: 1200px;

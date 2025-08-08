@@ -218,7 +218,7 @@
 {/if}
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 	.recipe-card {
 		display: grid;
 		grid-template-rows: 60% auto;

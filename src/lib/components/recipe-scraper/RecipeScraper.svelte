@@ -315,7 +315,7 @@
 </div>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.recipe-scraper {
 		max-width: 800px;

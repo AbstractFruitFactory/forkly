@@ -110,7 +110,7 @@
 {/if}
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.empty-state {
 		text-align: center;

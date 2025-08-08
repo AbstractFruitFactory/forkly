@@ -142,7 +142,7 @@
 </Popup>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.feedback-form {
 		display: flex;

@@ -160,7 +160,7 @@
 {/if}
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 	.filter-select {
 		position: relative;
 		display: inline-block;

@@ -102,7 +102,7 @@
 <FeedbackForm isOpen={isFeedbackOpen} onClose={handleFeedbackClose} />
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.info-footer {
 		z-index: calc(var(--z-dropdown) + 100);

@@ -47,7 +47,7 @@
 </header>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.header {
 		display: flex;

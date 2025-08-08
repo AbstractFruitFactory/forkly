@@ -422,7 +422,7 @@
 />
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	$max-width: 1200px;
 

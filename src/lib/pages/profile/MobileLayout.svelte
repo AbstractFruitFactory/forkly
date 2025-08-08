@@ -118,7 +118,7 @@
 </Drawer>
 
 <style lang="scss">
-	@import '$lib/global.scss';
+	@use '$lib/styles/tokens' as *;
 
 	.profile-view {
 		position: relative;
