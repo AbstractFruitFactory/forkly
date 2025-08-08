@@ -27,7 +27,7 @@
 				item?: (
 					itemContent: Snippet,
 					onclick: () => void,
-					selectedOrIndex: boolean | number
+					index: number
 				) => ReturnType<Snippet>
 			]
 		>
@@ -45,19 +45,17 @@
 	}
 
 	const handleSelect = (itemLabel: string, itemData: Omit<Item, 'label'>) => {
-		const existing = Array.isArray(selected)
-			? selected.find((item) => item.label === itemLabel)
-			: selected.label === itemLabel
 		const newData = { ...itemData, label: itemLabel } as Item
-
-		if (existing) {
-			selected = Array.isArray(selected)
+		if (Array.isArray(selected)) {
+			const exists = selected.some((item) => item.label === itemLabel)
+			selected = exists
 				? selected.filter((item) => item.label !== itemLabel)
-				: selected.label !== itemLabel
-					? selected
-					: (undefined as unknown as Item | Item[])
+				: [...selected, newData]
 		} else {
-			selected = Array.isArray(selected) ? [...selected, newData] : newData
+			if (selected && selected.label === itemLabel) {
+				return
+			}
+			selected = newData
 		}
 		selectedIndex = -1
 	}
@@ -130,6 +128,7 @@
 	{#if !isMobile}
 		<Dropdown bind:isOpen nbrOfItems={Array.isArray(selected) ? selected.length : 1}>
 			{#snippet dropdownContent(item)}
+				<!-- svelte-ignore a11y_interactive_supports_focus -->
 				<div class="items-container" role="listbox" onkeydown={handleKeyDown}>
 					{@render content(handleSelect, selected, item)}
 				</div>
@@ -142,14 +141,9 @@
 	<Drawer bind:isOpen {title}>
 		<div class="drawer-flex-col">
 			<div class="drawer-scroll-content">
-				{#snippet item(itemContent: Snippet, onclick: () => void, selected: boolean)}
-					<button type="button" class="item" {onclick} class:selected>
+				{#snippet item(itemContent: Snippet, onclick: () => void, index: number)}
+					<button type="button" class="item filter-select-item" {onclick}>
 						{@render itemContent()}
-						{#if selected}
-							<div class="selected-indicator">
-								<Check size={16} color="white" />
-							</div>
-						{/if}
 					</button>
 				{/snippet}
 				{@render content(handleSelect, selected, item)}
@@ -189,28 +183,41 @@
 		border: 1px solid var(--color-neutral-2);
 		color: var(--color-text-on-surface);
 		width: 100%;
-		text-align: left;
-
-		&.selected {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			transition: all 0.2s ease;
-			color: var(--color-text-on-primary);
-			border-color: var(--color-primary);
-		}
-	}
-
-	.selected-indicator {
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
+	}
+
+	:global(.filter-select-item) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-sm);
+		width: 100%;
+	}
+
+	:global(.filter-select-item .selected-mark) {
+		display: inline-flex;
+		align-items: center;
 		justify-content: center;
-		width: 20px;
-		height: 20px;
-		background-color: var(--color-success);
-		border-radius: 50%;
-		color: white;
-		flex-shrink: 0;
+		margin-left: auto;
+		color: var(--color-success);
+	}
+
+	:global(.filter-select-item .tag-item) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-sm);
+		width: 100%;
+	}
+
+	:global(.filter-select-item .ingredient-item) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-sm);
+		width: 100%;
 	}
 
 	.badge {

@@ -18,6 +18,7 @@
 		if (mobileStore.isMobile) {
 			isDrawerOpen = true
 		} else {
+			if (!popup) return
 			await popup.open()
 		}
 		window.scrollTo(0, 0)
@@ -28,11 +29,12 @@
 			console.log('closing drawer')
 			isDrawerOpen = false
 		} else {
+			if (!popup) return
 			await popup.close()
 		}
 	}
 
-	let popup: Popup
+	let popup = $state<Popup>()
 	let isDrawerOpen = $state(false)
 </script>
 

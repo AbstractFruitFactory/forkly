@@ -13,8 +13,8 @@
 	} & ComponentProps<typeof Search> = $props()
 
 	let showingPlaceholder = $state(false)
-	let search: Search
-	let searchInput: HTMLInputElement
+	let search = $state<Search>()
+	let searchInput = $state<HTMLInputElement>()
 
 	const ANIMATION_DURATION = 0.3
 
@@ -52,7 +52,7 @@
 
 	$effect(() => {
 		if (expanded) {
-			search.focus()
+			search?.focus()
 		}
 	})
 </script>

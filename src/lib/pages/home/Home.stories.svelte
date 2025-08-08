@@ -17,16 +17,17 @@
 			title: 'Classic Spaghetti Carbonara',
 			description: 'A traditional Italian pasta dish made with eggs, cheese, pancetta and black pepper.',
 			instructions: [
-				{ id: '1', text: 'Bring a large pot of salted water to boil' },
-				{ id: '2', text: 'Cook spaghetti according to package directions' },
-				{ id: '3', text: 'In a large skillet, cook pancetta until crispy' },
-				{ id: '4', text: 'Mix eggs and cheese, then combine with hot pasta' }
+				{ id: '1', text: 'Bring a large pot of salted water to boil', ingredients: [] },
+				{ id: '2', text: 'Cook spaghetti according to package directions', ingredients: [] },
+				{ id: '3', text: 'In a large skillet, cook pancetta until crispy', ingredients: [] },
+				{ id: '4', text: 'Mix eggs and cheese, then combine with hot pasta', ingredients: [] }
 			],
 			tags: ['Italian', 'Pasta', 'Quick'],
 			imageUrl: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?q=80&w=800&auto=format&fit=crop',
 			createdAt: new Date(),
 			likes: 42,
 			bookmarks: 24,
+			comments: 0,
 			servings: 4,
 			ingredients: [
 				{
@@ -83,16 +84,17 @@
 			title: 'Chicken Tikka Masala',
 			description: 'Grilled chicken chunks in a creamy spiced curry sauce.',
 			instructions: [
-				{ id: '1', text: 'Marinate chicken in yogurt and spices for 30 minutes' },
-				{ id: '2', text: 'Grill chicken until charred and cooked through' },
-				{ id: '3', text: 'Prepare creamy tomato sauce with spices' },
-				{ id: '4', text: 'Combine chicken with sauce and simmer' }
+				{ id: '1', text: 'Marinate chicken in yogurt and spices for 30 minutes', ingredients: [] },
+				{ id: '2', text: 'Grill chicken until charred and cooked through', ingredients: [] },
+				{ id: '3', text: 'Prepare creamy tomato sauce with spices', ingredients: [] },
+				{ id: '4', text: 'Combine chicken with sauce and simmer', ingredients: [] }
 			],
 			tags: ['Indian', 'Curry', 'Chicken'],
 			imageUrl: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?q=80&w=800&auto=format&fit=crop',
 			createdAt: new Date(),
 			likes: 37,
 			bookmarks: 18,
+			comments: 0,
 			servings: 6,
 			ingredients: [
 				{

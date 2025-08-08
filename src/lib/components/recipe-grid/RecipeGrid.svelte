@@ -28,7 +28,7 @@
 		menuOptions?: (recipe: DetailedRecipe) => { [key: string]: () => void }
 	} = $props()
 
-	let loadMoreTrigger: HTMLElement
+	let loadMoreTrigger = $state<HTMLElement>()
 	let observer: IntersectionObserver
 
 	let isInitialLoading = $state(true)

@@ -29,7 +29,7 @@
 
 	let isNavigating = $state(false)
 	let menuOpen = $state(false)
-	let menuButton: HTMLButtonElement
+	let menuButton = $state<HTMLButtonElement>()
 	let dropdownPosition = $state({ top: 0, left: 0 })
 
 	const handleClick = (event: MouseEvent) => {

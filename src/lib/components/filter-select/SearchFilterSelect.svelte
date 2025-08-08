@@ -100,6 +100,7 @@
 				class="item mobile-only"
 				data-item-index={i}
 				role="option"
+				aria-selected={false}
 				in:receive={{ key: result.label }}
 				out:send={{ key: result.label }}
 				animate:flip={{ duration: 200 }}
@@ -110,16 +111,16 @@
 					})}
 				{/snippet}
 
-				{@render item?.(_item, () => {}, false)}
+				{@render item?.(_item, () => {}, i)}
 			</div>
 		{/each}
 
 		{#each searchResults as result, i}
-			<div class="item desktop-only" data-item-index={i} role="option">
+			<div class="item desktop-only" data-item-index={i} role="option" aria-selected={false}>
 				{#snippet _item()}
 					{@render filterItem(result, (itemData) => handleSelect(result.label, itemData))}
 				{/snippet}
-				{@render item?.(_item, () => {}, false)}
+				{@render item?.(_item, () => {}, i)}
 			</div>
 		{/each}
 

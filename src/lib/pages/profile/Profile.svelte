@@ -54,7 +54,7 @@
 		selectedTab = option
 	}
 
-	let avatarInput: HTMLInputElement
+	let avatarInput = $state<HTMLInputElement>()
 	let deletePopupOpen = $state(false)
 	let recipeToDelete: DetailedRecipe | undefined = $state()
 	let editPopupOpen = $state(false)
@@ -178,7 +178,7 @@
 				/>
 				<button
 					class="avatar-edit-icon"
-					onclick={() => avatarInput.click()}
+					onclick={() => avatarInput!.click()}
 					aria-label="Edit avatar"
 				>
 					<svg

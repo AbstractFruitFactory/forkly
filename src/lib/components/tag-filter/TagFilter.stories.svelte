@@ -2,7 +2,7 @@
 	import { defineMeta } from '@storybook/addon-svelte-csf'
 	import TagFilter from './TagFilter.svelte'
 
-	type Tag = { label: string; selected?: boolean }
+	type Tag = { label: string; selected: boolean }
 
 	const mockTags = [
 		'5 ingredient or fewer',

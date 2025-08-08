@@ -182,17 +182,19 @@
 		:global(input),
 		:global(textarea) {
 			@include input-base;
-			border: none;
-			background: none;
-			border-radius: 0;
-			padding-right: var(--spacing-md);
-			color: var(--color-text-on-surface);
-			-webkit-appearance: none;
-			-webkit-box-sizing: border-box;
-			-webkit-transform: translateZ(0);
-			appearance: none;
-			box-sizing: border-box;
-			transform: translateZ(0);
+			& {
+				border: none;
+				background: none;
+				border-radius: 0;
+				padding-right: var(--spacing-md);
+				color: var(--color-text-on-surface);
+				-webkit-appearance: none;
+				-webkit-box-sizing: border-box;
+				-webkit-transform: translateZ(0);
+				appearance: none;
+				box-sizing: border-box;
+				transform: translateZ(0);
+			}
 
 			&:hover,
 			&:focus {

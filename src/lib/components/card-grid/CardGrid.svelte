@@ -16,7 +16,7 @@
 		useAnimation?: boolean
 	} = $props()
 
-	let cardGrid: HTMLElement
+	let cardGrid = $state<HTMLElement>()
 	let cards: HTMLElement[] = $state([])
 
 	let previousCardsCount = $state(0)

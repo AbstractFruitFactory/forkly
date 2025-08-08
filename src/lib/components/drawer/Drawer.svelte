@@ -19,7 +19,7 @@
 		onBack?: () => void
 	} = $props()
 
-	let drawer: HTMLDivElement
+	let drawer = $state<HTMLDivElement>()
 	let drawerContainer: HTMLDivElement
 
 	onMount(() => {
