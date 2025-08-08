@@ -210,35 +210,6 @@
 
 	const recipeTitle = $derived(data.then((r) => r.recipe.title))
 
-	const normalizeUnit = (unit?: string): MeasurementUnit | undefined => {
-		if (!unit) return undefined
-		return (measurementUnits as readonly string[]).includes(unit) ? (unit as MeasurementUnit) : undefined
-	}
-
-	const toUIIngredient = (ing: { id: string; name: string; quantity: { text: string; numeric?: number }; measurement?: string; displayName: string }): UIIngredient & { id: string } => {
-		return {
-			id: ing.id,
-			name: ing.name,
-			displayName: ing.displayName,
-			quantity: ing.quantity,
-			measurement: normalizeUnit(ing.measurement)
-		}
-	}
-
-	const toUIInstruction = (ins: { id: string; text: string; mediaUrl?: string; mediaType?: 'image' | 'video'; ingredients?: { id: string; name: string; quantity: { text: string; numeric?: number }; measurement?: string; displayName: string }[] }): UIInstruction => {
-		return {
-			id: ins.id,
-			text: ins.text,
-			mediaUrl: ins.mediaUrl,
-			mediaType: ins.mediaType,
-			ingredients: ins.ingredients?.map((ing) => ({
-				name: ing.name,
-				displayName: ing.displayName,
-				quantity: ing.quantity,
-				measurement: normalizeUnit(ing.measurement)
-			}))
-		}
-	}
 </script>
 
 {#snippet commonImage()}
@@ -347,7 +318,7 @@
 			<IngredientsList loading ingredients={[]} servings={0} originalServings={0} {unitSystem} />
 		{:then recipeData}
 			<IngredientsList
-				ingredients={recipeData.recipe.ingredients.map(toUIIngredient)}
+				ingredients={recipeData.recipe.ingredients}
 				servings={recipeData.recipe.servings}
 				originalServings={recipeData.recipe.servings}
 				{unitSystem}
@@ -364,7 +335,7 @@
 		{#await data}
 			<RecipeInstructions instructions={[]} loading />
 		{:then recipeData}
-			<RecipeInstructions instructions={recipeData.recipe.instructions.map(toUIInstruction)} />
+			<RecipeInstructions instructions={recipeData.recipe.instructions} />
 		{/await}
 	</div>
 {/snippet}

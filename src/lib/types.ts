@@ -42,14 +42,7 @@ export const isValidTag = (tag: string): boolean => {
 
 export type Ingredient = {
   quantity?: { text: string, numeric?: number }
-  measurement?: MeasurementUnit
-  name: string
-  displayName: string
-}
-
-export type InstructionIngredient = {
-  quantity?: { text: string, numeric?: number }
-  measurement?: MeasurementUnit
+  measurement?: string
   name: string
   displayName: string
 }
@@ -59,7 +52,7 @@ export type Instruction = {
   text: string
   mediaUrl?: string
   mediaType?: 'image' | 'video'
-  ingredients?: InstructionIngredient[]
+  ingredients?: Ingredient[]
 }
 
 export type RecipeData = {
