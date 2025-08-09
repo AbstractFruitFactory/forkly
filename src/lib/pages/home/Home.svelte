@@ -332,7 +332,7 @@
 				Import a recipe
 			</Button>
 		</div>
-		<div bind:this={$sentinelNode} style:height="1px"></div>
+		<div bind:this={$sentinelNode} style:height="20px"></div>
 	</div>
 {/snippet}
 
