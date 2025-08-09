@@ -479,6 +479,10 @@
 		display: flex;
 		justify-content: center;
 		margin-top: var(--spacing-2xl);
+
+		@include mobile {
+			margin-top: var(--spacing-md);
+		}
 	}
 
 	.home-container {

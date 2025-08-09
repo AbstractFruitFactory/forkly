@@ -63,10 +63,16 @@
 		moveInstructionUpButton: Snippet<[instructionId: string, index: number]>
 		moveInstructionDownButton: Snippet<[instructionId: string, index: number]>
 		saveDraftButton: Snippet<[fullWidth?: boolean]>
-		importButton?: Snippet
+		importButton: Snippet
 	} = $props()
 </script>
 
+<div class="header-text">
+	<h1>Paste your recipe, get a beautiful shareable page instantly.</h1>
+</div>
+<div style:margin-bottom="var(--spacing-md)">
+	{@render importButton()}
+</div>
 <div class="form-section">
 	{@render recipeImage()}
 

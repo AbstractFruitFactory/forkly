@@ -5,7 +5,7 @@
 	let { children } = $props()
 </script>
 
-<div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
+<div class="wrapper" in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 	<h1 style:text-align="center">Join to like, save, and organize recipes</h1>
 	<div class="auth-form">
 		{@render children()}
@@ -14,16 +14,22 @@
 
 <style lang="scss">
 	@use '$lib/styles/tokens' as *;
+
+	.wrapper {
+		@include mobile {
+			height: calc(100dvh - 6.5rem);
+			align-items: center;
+			padding: var(--spacing-md);
+			margin-top: 0;
+		}
+	}
 	.auth-form {
 		display: flex;
 		justify-content: center;
 		margin-top: 200px;
 
 		@include mobile {
-			height: calc(100dvh - 6.5rem);
-			align-items: center;
-			padding: var(--spacing-md);
-			margin-top: 0;
+			margin-top: var(--spacing-4xl);
 		}
 	}
 </style>
