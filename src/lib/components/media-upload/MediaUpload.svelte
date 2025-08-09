@@ -174,17 +174,14 @@
 	aria-describedby={error ? `${id}-error` : undefined}
 />
 
-<button
-	type="button"
-	class="preview-area"
-	class:has-preview={preview}
-	class:drag-over={dragOver}
-	onclick={() => inputElement.click()}
-	ondragover={handleDragOver}
-	ondragleave={handleDragLeave}
-	ondrop={handleDrop}
->
-	{#if preview}
+{#if preview && mediaType === 'video'}
+	<div
+		class="preview-area has-preview"
+		class:drag-over={dragOver}
+		ondragover={handleDragOver}
+		ondragleave={handleDragLeave}
+		ondrop={handleDrop}
+	>
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="remove-button" onclick={handleRemove} aria-label="Remove media">
@@ -201,50 +198,75 @@
 				<line x1="6" y1="6" x2="18" y2="18"></line>
 			</svg>
 		</div>
-	{/if}
 
-	{#if preview && mediaType === 'image'}
-		<img src={preview} alt={previewAlt} loading="eager" decoding="sync" />
-		<div class="preview-overlay">
-			<span style:color="white">Change Image</span>
-		</div>
-	{:else if preview && mediaType === 'video'}
 		<video src={preview} controls muted class="video-preview"></video>
-		<div class="preview-overlay">
-			<span>Change Video</span>
-		</div>
-	{:else}
-		<div class="placeholder" aria-hidden="true">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="24"
-				height="24"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="var(--color-text-on-surface)"
-				stroke-width="2"
-			>
-				{#if type === 'video'}
-					<polygon points="23 7 16 12 23 17 23 7"></polygon>
-					<rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-				{:else}
-					<path
-						d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-					/>
-					<circle cx="12" cy="13" r="4" />
-				{/if}
-			</svg>
-			<span>
-				Drag and drop {type === 'image'
-					? 'an image'
-					: type === 'video'
-						? 'a video'
-						: 'an image or video'} here<br />
-				or click to browse
-			</span>
-		</div>
-	{/if}
-</button>
+	</div>
+{:else}
+	<button
+		type="button"
+		class="preview-area"
+		class:has-preview={preview}
+		class:drag-over={dragOver}
+		onclick={() => inputElement.click()}
+		ondragover={handleDragOver}
+		ondragleave={handleDragLeave}
+		ondrop={handleDrop}
+	>
+		{#if preview && mediaType === 'image'}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="remove-button" onclick={handleRemove} aria-label="Remove media">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</div>
+
+			<img src={preview} alt={previewAlt} loading="eager" decoding="sync" />
+			<div class="preview-overlay">
+				<span style:color="white">Change Image</span>
+			</div>
+		{:else}
+			<div class="placeholder" aria-hidden="true">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="var(--color-text-on-surface)"
+					stroke-width="2"
+				>
+					{#if type === 'video'}
+						<polygon points="23 7 16 12 23 17 23 7"></polygon>
+						<rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+					{:else}
+						<path
+							d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+						/>
+						<circle cx="12" cy="13" r="4" />
+					{/if}
+				</svg>
+				<span>
+					Drag and drop {type === 'image'
+						? 'an image'
+						: type === 'video'
+							? 'a video'
+							: 'an image or video'} here<br />
+					or click to browse
+				</span>
+			</div>
+		{/if}
+	</button>
+{/if}
 
 {#if error}
 	<p class="error" id="{id}-error" role="alert">

@@ -87,12 +87,10 @@ export function getVideoDuration(videoUrl: string): Promise<number> {
     video.preload = 'metadata'
     
     video.onloadedmetadata = () => {
-      window.URL.revokeObjectURL(video.src)
       resolve(video.duration)
     }
     
     video.onerror = () => {
-      window.URL.revokeObjectURL(video.src)
       reject(new Error('Could not load video metadata'))
     }
     
