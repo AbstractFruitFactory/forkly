@@ -314,7 +314,10 @@
 		</div>
 
 		<div class="tagline">
-			<TaglineTypewriter tags={taglineTags} onSelect={handleTaglineTagSelect} />
+			<h1>
+				Tired of messy recipe posts? Turn yours into a clean, shareable page in seconds - no login
+				needed.
+			</h1>
 		</div>
 		<div class="cta-row">
 			<Button onclick={openImportCTA} size="lg" color="primary">
@@ -470,6 +473,9 @@
 	}
 
 	.tagline {
+		max-width: 70rem;
+		text-align: center;
+
 		@include mobile {
 			display: none;
 		}
