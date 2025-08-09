@@ -827,6 +827,12 @@
 	</Button>
 {/snippet}
 
+{#snippet headerText()}
+	<div class="header-text">
+		<h1>Paste your recipe, get a beautiful shareable page instantly.</h1>
+	</div>
+{/snippet}
+
 <div class="new-recipe">
 	<form
 		method="POST"
@@ -908,6 +914,7 @@
 					{submitButton}
 					{saveDraftButton}
 					{importButton}
+					headerText={(!editMode && !draftMode) ? headerText : undefined}
 				/>
 			</div>
 		{:else}
@@ -933,6 +940,7 @@
 					{submitButton}
 					{saveDraftButton}
 					{importButton}
+					headerText={(!editMode && !draftMode) ? headerText : undefined}
 				/>
 			</div>
 		{/if}

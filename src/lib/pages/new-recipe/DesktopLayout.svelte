@@ -23,7 +23,8 @@
 		moveInstructionDownButton,
 		submitButton,
 		saveDraftButton,
-		importButton
+		importButton,
+		headerText
 	}: {
 		instructions: {
 			id: string
@@ -67,16 +68,13 @@
 		submitButton: Snippet
 		saveDraftButton: Snippet<[fullWidth?: boolean]>
 		importButton: Snippet
+		headerText?: Snippet
 	} = $props()
 </script>
 
 <div class="form-grid">
 	<div></div>
-	<div>
-		<div class="header-text">
-			<h1>Paste your recipe, get a beautiful shareable page instantly.</h1>
-		</div>
-	</div>
+	<div>{@render headerText?.()}</div>
 
 	<div class="info-grid">
 		<div class="import-controls desktop">

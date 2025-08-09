@@ -23,7 +23,8 @@
 		moveInstructionUpButton,
 		moveInstructionDownButton,
 		saveDraftButton,
-		importButton
+		importButton,
+		headerText
 	}: {
 		instructions: {
 			id: string
@@ -67,12 +68,12 @@
 		moveInstructionDownButton: Snippet<[instructionId: string, index: number]>
 		saveDraftButton: Snippet<[fullWidth?: boolean]>
 		importButton: Snippet
+		headerText?: Snippet
 	} = $props()
 </script>
 
-<div class="header-text">
-	<h1>Paste your recipe, get a beautiful shareable page instantly.</h1>
-</div>
+{@render headerText?.()}
+
 <div style:margin-bottom="var(--spacing-md)">
 	{@render importButton()}
 </div>
@@ -129,7 +130,7 @@
 					<div>
 						<h5>Ingredients for this step:</h5>
 						<div class="instruction-ingredients">
-							{#each [...(item.ingredients.filter((ing) => !ing.isPrepared)), ...(item.ingredients.filter((ing) => ing.isPrepared)), { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem, ingredientIndex (ingredientItem.id)}
+							{#each [...item.ingredients.filter((ing) => !ing.isPrepared), ...item.ingredients.filter((ing) => ing.isPrepared), { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem, ingredientIndex (ingredientItem.id)}
 								<div class="ingredient-input" in:scale animate:flip={{ duration: 200 }}>
 									{#if 'isAddButton' in ingredientItem}
 										<div class="ingredient-actions-mobile">
