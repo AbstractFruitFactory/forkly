@@ -2,6 +2,23 @@ import { fail, redirect } from '@sveltejs/kit'
 import type { Actions } from './$types'
 import { safeFetch } from '$lib/utils/fetch'
 import { buildRecipePayloadFromForm, type RecipeApiResponse } from '$lib/server/utils/recipe-form'
+import { deleteImage, deleteVideo } from '$lib/server/cloudinary'
+
+async function cleanupUploadedMedia(formData: FormData) {
+  const entries = Array.from(formData.entries())
+  for (const [key, value] of entries) {
+    if (key.endsWith('-url') && typeof value === 'string') {
+      const base = key.slice(0, -4)
+      const type = formData.get(`${base}-type`)?.toString()
+      try {
+        if (type === 'video') await deleteVideo(value)
+        else await deleteImage(value)
+      } catch (e) {
+        console.error('Failed to cleanup media', value, e)
+      }
+    }
+  }
+}
 
 export const actions = {
   createRecipe: async ({ request, fetch }) => {
@@ -19,6 +36,7 @@ export const actions = {
     )
     if (fetchResponse.isErr()) {
       console.error('Error creating recipe', fetchResponse.error)
+      await cleanupUploadedMedia(formData)
       return fail(500, {
         success: false,
         errors: [{
@@ -38,10 +56,7 @@ export const actions = {
       }
     }
 
-    return {
-      success: true,
-      recipeId: fetchResponse.value.id
-    }
+    return { success: true, recipeId: fetchResponse.value.id }
   },
   saveDraft: async ({ request, fetch, locals }) => {
     const { user } = locals
@@ -70,6 +85,7 @@ export const actions = {
 
     if (fetchResponse.isErr()) {
       console.error('Error saving draft', fetchResponse.error)
+      await cleanupUploadedMedia(formData)
       return fail(500, {
         success: false,
         errors: [{

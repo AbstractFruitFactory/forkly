@@ -71,22 +71,22 @@
 		onSearchTags,
 		onSearchIngredients,
 		onUnitChange,
-		isLoggedIn
+		isLoggedIn,
+		uploadMedia
 	}: {
 		prefilledData?: PrefilledData
-		editMode?: {
-			onSave: () => void
-		}
-		draftMode?: {
-			onSaveDraft: () => void
-			onPublish: () => void
-		}
+		editMode?: { onSave: () => void }
+		draftMode?: { onSaveDraft: () => void; onPublish: () => void }
 		errors?: { path: string; message: string }[]
 		onSearchIngredients?: (query: string) => Promise<Ingredient[]>
 		unitSystem?: UnitSystem
 		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 		onUnitChange?: (system: UnitSystem) => void
 		isLoggedIn?: Promise<boolean>
+		uploadMedia?: (
+			file: File,
+			fieldName: string
+		) => Promise<{ url: string; type: 'image' | 'video' }>
 	} = $props()
 
 	let _id = $state(prefilledData?.id ?? '')
@@ -150,7 +150,12 @@
 	let isAnonUploadPopupOpen = $state(false)
 	let isLoginPopupOpen = $state(false)
 	let willUploadAnonymously = $state(false)
-	let autoNutrition = $state<{ calories: number; protein: number; carbs: number; fat: number } | null>(null)
+	let autoNutrition = $state<{
+		calories: number
+		protein: number
+		carbs: number
+		fat: number
+	} | null>(null)
 	let estimatingNutrition = $state(false)
 
 	async function estimateNutrition() {
@@ -607,8 +612,7 @@
 											instructionId,
 											id,
 											(e.target as HTMLInputElement).value
-										)
-									}
+										)}
 								/>
 							</Input>
 							<input
@@ -629,8 +633,7 @@
 										instructionId,
 										id,
 										(e.target as HTMLInputElement).value
-									)
-								}
+									)}
 							/>
 						</Input>
 					{/if}
@@ -852,6 +855,17 @@
 				return
 			}
 
+			const entries = Array.from(formData.entries())
+			for (const [key, value] of entries) {
+				if (value instanceof File && value.size > 0) {
+					if (!uploadMedia) throw new Error('uploadMedia not provided')
+					const { url, type } = await uploadMedia(value, key)
+					formData.set(`${key}-url`, url)
+					formData.set(`${key}-type`, type)
+					formData.delete(key)
+				}
+			}
+
 			submitting = true
 
 			formData.append('servings', servings.toString())
@@ -914,7 +928,7 @@
 					{submitButton}
 					{saveDraftButton}
 					{importButton}
-					headerText={(!editMode && !draftMode) ? headerText : undefined}
+					headerText={!editMode && !draftMode ? headerText : undefined}
 				/>
 			</div>
 		{:else}
@@ -940,7 +954,7 @@
 					{submitButton}
 					{saveDraftButton}
 					{importButton}
-					headerText={(!editMode && !draftMode) ? headerText : undefined}
+					headerText={!editMode && !draftMode ? headerText : undefined}
 				/>
 			</div>
 		{/if}

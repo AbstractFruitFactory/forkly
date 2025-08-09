@@ -23,55 +23,35 @@
 		aspectRatio?: string
 		previewAlt?: string
 		onFile?: (file: File) => void
-		initialMedia?: {
-			url: string
-			type: 'image' | 'video'
-		}
+		initialMedia?: { url: string; type: 'image' | 'video' }
 	} = $props()
 
 	let preview = $derived(initialMedia?.url)
 	let mediaType = $derived<'image' | 'video' | undefined>(initialMedia?.type)
 	let inputElement: HTMLInputElement
 	let dragOver = $state(false)
-	let uploadedUrl = $state<string | undefined>(initialMedia?.url)
 	let hiddenInputEl: HTMLInputElement
 
 	$effect(() => {
-		if (initialMedia) {
-			fetchAndCreateFile(initialMedia.url, initialMedia.type)
-		}
+		if (initialMedia) fetchAndCreateFile(initialMedia.url, initialMedia.type)
 	})
 
 	const fetchAndCreateFile = async (url: string, type: 'image' | 'video') => {
-		if (url.startsWith('blob:')) {
-			console.log('Skipping blob URL fetch:', url)
-			return
-		}
-
+		if (url.startsWith('blob:')) return
 		try {
 			const proxyUrl = `/proxy-media?url=${encodeURIComponent(url)}`
 			const response = await fetch(proxyUrl)
-
-			if (!response.ok) {
-				console.error('Failed to fetch media from URL:', url, 'Status:', response.status)
-				return
-			}
-
+			if (!response.ok) return
 			const blob = await response.blob()
 			const file = new File(
 				[blob],
 				`imported-${type}-${Date.now()}.${type === 'image' ? 'jpg' : 'mp4'}`,
-				{
-					type: blob.type || (type === 'image' ? 'image/jpeg' : 'video/mp4')
-				}
+				{ type: blob.type || (type === 'image' ? 'image/jpeg' : 'video/mp4') }
 			)
-
 			const dataTransfer = new DataTransfer()
 			dataTransfer.items.add(file)
 			inputElement.files = dataTransfer.files
-		} catch (error) {
-			console.error('Error fetching media from URL:', url, error)
-		}
+		} catch {}
 	}
 
 	const MAX_VIDEO_DURATION_SECONDS = 10
@@ -84,65 +64,22 @@
 		handleFile(file)
 	}
 
-	async function getCloudinarySignature(folder: string, resourceType: 'image' | 'video' | 'auto') {
-		const params = new URLSearchParams({ folder, resource_type: resourceType })
-		const res = await fetch(`/cloudinary/sign?${params.toString()}`)
-		if (!res.ok) throw new Error('Failed to get upload signature')
-		return res.json() as Promise<{
-			cloudName: string
-			apiKey: string
-			timestamp: number
-			signature: string
-			folder: string
-			resourceType: string
-		}>
-	}
-
-	async function directUploadToCloudinary(file: File) {
-		const isVideo = file.type.startsWith('video/')
-		const preferredFolder = name.startsWith('instructions-') ? 'instruction-media' : isVideo ? 'recipe-videos' : 'recipe-images'
-		const resourceType: 'image' | 'video' | 'auto' = isVideo ? 'video' : 'image'
-		const sig = await getCloudinarySignature(preferredFolder, resourceType)
-
-		const form = new FormData()
-		form.append('file', file)
-		form.append('api_key', sig.apiKey)
-		form.append('timestamp', String(sig.timestamp))
-		form.append('signature', sig.signature)
-		form.append('folder', sig.folder)
-
-		const uploadUrl = `https://api.cloudinary.com/v1_1/${sig.cloudName}/${resourceType}/upload`
-		const resp = await fetch(uploadUrl, { method: 'POST', body: form })
-		if (!resp.ok) throw new Error('Cloudinary upload failed')
-		const data = await resp.json()
-		return data.secure_url as string
-	}
-
 	const handleFile = async (file: File) => {
 		if (preview) cleanupPreview(preview)
-
 		const result = await handleMediaFile(file, {
 			type,
 			maxSize: MAX_VIDEO_SIZE_MB,
 			maxDuration: MAX_VIDEO_DURATION_SECONDS
 		})
-
 		error = result.error
 		preview = result.preview
 		mediaType = result.mediaType
-
 		if (!error) {
-			try {
-				const url = await directUploadToCloudinary(file)
-				uploadedUrl = url
-				if (hiddenInputEl) hiddenInputEl.value = url
-				if (inputElement) inputElement.value = ''
-				dispatch('change', file)
-				onFile?.(file)
-			} catch (e) {
-				console.error(e)
-				error = 'Failed to upload media. Please try again.'
-			}
+			const dt = new DataTransfer()
+			dt.items.add(file)
+			inputElement.files = dt.files
+			dispatch('change', file)
+			onFile?.(file)
 		}
 	}
 
@@ -150,40 +87,28 @@
 		e.preventDefault()
 		dragOver = true
 	}
-
 	const handleDragLeave = (e: DragEvent) => {
 		e.preventDefault()
 		dragOver = false
 	}
-
 	const handleDrop = async (e: DragEvent) => {
 		e.preventDefault()
 		dragOver = false
-
 		const file = e.dataTransfer?.files[0]
 		if (file) await handleFile(file)
 	}
-
 	const handleRemove = (e: Event) => {
 		e.stopPropagation()
-
-		if (preview) {
-			cleanupPreview(preview)
-		}
-
+		if (preview) cleanupPreview(preview)
 		preview = ''
 		mediaType = undefined
 		error = undefined
-		uploadedUrl = undefined
 		if (hiddenInputEl) hiddenInputEl.value = ''
-
 		if (inputElement) {
 			inputElement.value = ''
 		}
-
 		dispatch('remove')
 	}
-
 	onDestroy(() => {
 		if (preview) cleanupPreview(preview)
 	})
@@ -200,8 +125,7 @@
 	aria-label={`Upload ${type === 'image' ? 'image' : type === 'video' ? 'video' : 'media'}`}
 	aria-describedby={error ? `${id}-error` : undefined}
 />
-
-<input type="hidden" name={`${name}-url`} value={uploadedUrl} bind:this={hiddenInputEl} />
+<input type="hidden" name={`${name}-url`} bind:this={hiddenInputEl} />
 <input type="hidden" name={`${name}-type`} value={mediaType} />
 
 {#if preview && mediaType === 'video'}
@@ -230,7 +154,6 @@
 				<line x1="6" y1="6" x2="18" y2="18"></line>
 			</svg>
 		</div>
-
 		<video src={preview} controls muted class="video-preview"></video>
 	</div>
 {:else}
@@ -244,9 +167,7 @@
 		ondragleave={handleDragLeave}
 		ondrop={handleDrop}
 	>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		{#if preview && mediaType === 'image'}
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<div class="remove-button" onclick={handleRemove} aria-label="Remove media">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -261,11 +182,8 @@
 					<line x1="6" y1="6" x2="18" y2="18"></line>
 				</svg>
 			</div>
-
 			<img src={preview} alt={previewAlt} loading="eager" decoding="sync" />
-			<div class="preview-overlay">
-				<span style:color="white">Change Image</span>
-			</div>
+			<div class="preview-overlay"><span style:color="white">Change Image</span></div>
 		{:else}
 			<div class="placeholder" aria-hidden="true">
 				<svg
@@ -287,24 +205,20 @@
 						<circle cx="12" cy="13" r="4" />
 					{/if}
 				</svg>
-				<span>
-					Drag and drop {type === 'image'
+				<span
+					>Drag and drop {type === 'image'
 						? 'an image'
 						: type === 'video'
 							? 'a video'
-							: 'an image or video'} here<br />
-					or click to browse
-				</span>
+							: 'an image or video'} here<br />or click to browse</span
+				>
 			</div>
 		{/if}
 	</button>
 {/if}
 
 {#if error}
-	<p class="error" id="{id}-error" role="alert">
-		<span aria-hidden="true">⚠</span>
-		{error}
-	</p>
+	<p class="error" id="{id}-error" role="alert"><span aria-hidden="true">⚠</span>{error}</p>
 {/if}
 
 <style lang="scss">
