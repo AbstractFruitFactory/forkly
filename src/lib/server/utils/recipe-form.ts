@@ -295,22 +295,17 @@ export const buildRecipePayloadFromForm = async (formData: FormData, skipValidat
   if (recipeData.nutritionMode === 'manual') {
     nutrition = recipeData.manualNutrition ?? null
   } else if (recipeData.nutritionMode === 'auto') {
-    const allIngredients = recipeData.instructions.flatMap(instruction => (instruction.ingredients || []).filter(i => !i.isPrepared))
-    const nutritionResult = await api('getRecipeInfo')(
-      allIngredients.map(ing => ({
-        amount: ing.quantity ? parseFloat(ing.quantity) : undefined,
-        unit: ing.measurement,
-        name: ing.name
-      })),
-      recipeData.instructions.map(i => i.text).join('\n'),
-      recipeData.servings
-    )
-    if (nutritionResult.isOk()) {
+    const autoCalories = parseFloat(formData.get('autoCalories')?.toString() || '')
+    const autoProtein = parseFloat(formData.get('autoProtein')?.toString() || '')
+    const autoCarbs = parseFloat(formData.get('autoCarbs')?.toString() || '')
+    const autoFat = parseFloat(formData.get('autoFat')?.toString() || '')
+    const hasAuto = [autoCalories, autoProtein, autoCarbs, autoFat].every((v) => Number.isFinite(v))
+    if (hasAuto) {
       nutrition = {
-        calories: nutritionResult.value.calories,
-        protein: nutritionResult.value.protein,
-        carbs: nutritionResult.value.carbs,
-        fat: nutritionResult.value.fat
+        calories: autoCalories,
+        protein: autoProtein,
+        carbs: autoCarbs,
+        fat: autoFat
       }
     }
   }

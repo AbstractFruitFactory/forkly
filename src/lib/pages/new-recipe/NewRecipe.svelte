@@ -150,6 +150,44 @@
 	let isAnonUploadPopupOpen = $state(false)
 	let isLoginPopupOpen = $state(false)
 	let willUploadAnonymously = $state(false)
+	let autoNutrition = $state<{ calories: number; protein: number; carbs: number; fat: number } | null>(null)
+	let estimatingNutrition = $state(false)
+
+	async function estimateNutrition() {
+		estimatingNutrition = true
+		try {
+			const ingredients = instructions
+				.flatMap((ins) => ins.ingredients)
+				.filter((ing) => !ing.isPrepared && ing.name)
+				.map((ing) => ({
+					amount: ing.quantity ? parseFloat(ing.quantity) : undefined,
+					unit: ing.unit,
+					name: ing.name!
+				}))
+			const body = {
+				ingredients,
+				instructions: instructions.map((i) => i.text ?? '').join('\n'),
+				servings
+			}
+			const res = await fetch('/estimate-nutrition', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body)
+			})
+			if (!res.ok) throw new Error('Failed to estimate nutrition')
+			const data = await res.json()
+			autoNutrition = {
+				calories: data.calories,
+				protein: data.protein,
+				carbs: data.carbs,
+				fat: data.fat
+			}
+		} catch (e) {
+			console.error(e)
+		} finally {
+			estimatingNutrition = false
+		}
+	}
 
 	const checkViewport = () => {
 		isMobileView = window.innerWidth <= 480
@@ -517,6 +555,24 @@
 					readonly
 				/>
 			</Input>
+		</div>
+	{:else if nutritionMode === 'auto'}
+		<div class="nutrition-inputs">
+			<Button color="neutral" onclick={estimateNutrition} loading={estimatingNutrition}>
+				Estimate nutrition info
+			</Button>
+			{#if autoNutrition}
+				<div style="display:flex; gap: var(--spacing-sm); align-items:center;">
+					<span>Calories: {autoNutrition.calories}</span>
+					<span>Protein: {autoNutrition.protein} g</span>
+					<span>Carbs: {autoNutrition.carbs} g</span>
+					<span>Fat: {autoNutrition.fat} g</span>
+				</div>
+				<input type="hidden" name="autoCalories" value={autoNutrition.calories} />
+				<input type="hidden" name="autoProtein" value={autoNutrition.protein} />
+				<input type="hidden" name="autoCarbs" value={autoNutrition.carbs} />
+				<input type="hidden" name="autoFat" value={autoNutrition.fat} />
+			{/if}
 		</div>
 	{/if}
 {/snippet}
