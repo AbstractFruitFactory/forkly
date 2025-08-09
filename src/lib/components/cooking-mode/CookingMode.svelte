@@ -193,7 +193,7 @@
 		width: 100%;
 		height: auto;
 		background: var(--color-neutral-dark);
-		border-radius: var(--border-radius-lg);
+		border-radius: var(--border-radius-2xl);
 		overflow: hidden;
 		position: relative;
 		display: flex;
