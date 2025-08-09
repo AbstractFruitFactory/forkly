@@ -3,6 +3,8 @@ import { uploadImage } from '$lib/server/cloudinary'
 import * as v from 'valibot'
 import { safeFetch } from '$lib/utils/fetch'
 import type { Actions } from './$types'
+import type { PageServerLoad } from './$types'
+import { getRecipeData } from './data.remote'
 
 const commentSchema = v.object({
   content: v.pipe(
@@ -11,6 +13,17 @@ const commentSchema = v.object({
     v.maxLength(1000, 'Comment is too long (maximum 1000 characters)')
   )
 })
+
+export const load: PageServerLoad = async ({ params, isDataRequest }) => {
+  if (!params.id) {
+    return { recipeData: null }
+  }
+  if (isDataRequest) {
+    return { recipeData: null }
+  }
+  const recipeData = await getRecipeData({ id: params.id })
+  return { recipeData }
+}
 
 export const actions: Actions = {
   addComment: async ({ request, params, locals, fetch }) => {

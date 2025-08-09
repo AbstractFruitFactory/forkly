@@ -10,11 +10,23 @@
 	import type { CommentsResponse } from '../../../(api)/recipes/[id]/comments/+server.js'
 	import { errorStore } from '../../../+layout.svelte'
 	import { getRecipeData } from './data.remote'
+	import type { PageProps } from './$types'
 
-	let { params } = $props()
+	let {
+		params,
+		data
+	}: {
+		params: {
+			id: string
+		}
+	} & Partial<PageProps> = $props()
 
 	const currentUrl = $derived(page.url.href)
-	const recipeData = $derived(getRecipeData({ id: params.id }))
+	const recipeData = $derived(
+		data?.recipeData ? Promise.resolve(data.recipeData) : getRecipeData({ id: params.id })
+	)
+
+	const ssrData = $derived(data?.recipeData ? data.recipeData.recipe : null)
 
 	const getRecipe = async () => {
 		const resolvedData = await recipeData
@@ -84,15 +96,11 @@
 </script>
 
 <svelte:head>
-	{#await getRecipe()}
-		<!-- Loading state for meta tags -->
-	{:then recipe}
-		<meta property="og:type" content="article" />
-		<meta property="og:title" content={recipe.title} />
-		<meta property="og:description" content={recipe.description} />
-		<meta property="og:image" content={recipe.imageUrl} />
-		<meta property="og:url" content={currentUrl} />
-	{/await}
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content={ssrData?.title} />
+	<meta property="og:description" content={ssrData?.description} />
+	<meta property="og:image" content={ssrData?.imageUrl} />
+	<meta property="og:url" content={currentUrl} />
 </svelte:head>
 
 <div class="recipe-page" data-page="recipe">

@@ -111,9 +111,8 @@
 </script>
 
 <svelte:head>
-	<title>Forkly - Discover and Share Recipes</title>
-
 	{#if homepage}
+		<title>Forkly - Discover and Share Recipes</title>
 		<meta property="og:image" content="/og-image.png" />
 	{/if}
 </svelte:head>
