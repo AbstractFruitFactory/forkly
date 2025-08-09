@@ -214,7 +214,7 @@ const parseFormData = (formData: FormData): FormFields => {
 
 export const buildRecipePayloadFromForm = async (formData: FormData, skipValidation: boolean = false) => {
   const recipeData = parseFormData(formData)
-  const imageFile = formData.get('image') as File | undefined
+  const imageUrlFromClient = formData.get('image-url')?.toString()
 
   const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')
   const instructionById = groupBy(entry => entry.id, instructionEntries)
@@ -222,21 +222,15 @@ export const buildRecipePayloadFromForm = async (formData: FormData, skipValidat
   const instructionsWithMedia = await Promise.all(
     recipeData.instructions.map(async (instruction, index) => {
       const clientInstructionId = Object.keys(instructionById)[index]
-      const mediaFile = formData.get(`instructions-${clientInstructionId}-media`) as File | undefined
+      const mediaUrl = formData.get(`instructions-${clientInstructionId}-media-url`)?.toString()
+      const mediaType = formData.get(`instructions-${clientInstructionId}-media-type`)?.toString()
 
-      if (mediaFile && mediaFile.size > 0) {
-        const arrayBuffer = await mediaFile.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        const isVideo = mediaFile.type.startsWith('video/')
-        const mediaUrl = await uploadMedia(buffer, {
-          folder: 'instruction-media',
-          resource_type: isVideo ? 'video' : 'image'
-        })
+      if (mediaUrl) {
         return {
           ...instruction,
           id: generateId(),
           mediaUrl,
-          mediaType: isVideo ? ('video' as const) : ('image' as const)
+          mediaType: mediaType === 'video' ? ('video' as const) : ('image' as const)
         }
       }
       return {
@@ -270,10 +264,8 @@ export const buildRecipePayloadFromForm = async (formData: FormData, skipValidat
   }
 
   let imageUrl: string | undefined = undefined
-  if (imageFile && imageFile.size > 0) {
-    const arrayBuffer = await imageFile.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    imageUrl = await uploadImage(buffer)
+  if (imageUrlFromClient) {
+    imageUrl = imageUrlFromClient
   }
 
   const allIngredients = recipeData.instructions.flatMap(instruction => (instruction.ingredients || []).filter(i => !i.isPrepared))

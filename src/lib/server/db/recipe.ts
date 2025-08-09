@@ -5,6 +5,7 @@ import { nullToUndefined } from '$lib/utils/nullToUndefined'
 import { generateId } from '$lib/server/id'
 import { parseQuantityToNumber } from '$lib/utils/ingredient-formatting'
 import { getCommentCount } from './recipe-comments'
+import { deleteImage, deleteVideo } from '$lib/server/cloudinary'
 
 function escapeSqlString(str: string): string {
   return str.replace(/'/g, "''")
@@ -488,7 +489,7 @@ export async function getRecipesByIds(recipeIds: string[]): Promise<DetailedReci
  */
 export async function deleteRecipe(recipeId: string, userId: string) {
   const recipeToDelete = await db
-    .select()
+    .select({ id: recipe.id, imageUrl: recipe.imageUrl })
     .from(recipe)
     .where(and(
       eq(recipe.id, recipeId),
@@ -498,6 +499,32 @@ export async function deleteRecipe(recipeId: string, userId: string) {
 
   if (!recipeToDelete.length) {
     return false
+  }
+
+  const instructionMedia = await db
+    .select({ mediaUrl: recipeInstruction.mediaUrl, mediaType: recipeInstruction.mediaType })
+    .from(recipeInstruction)
+    .where(eq(recipeInstruction.recipeId, recipeId))
+
+  try {
+    const urlsToDelete: { url: string; type?: 'image' | 'video' }[] = []
+    const mainImageUrl = recipeToDelete[0].imageUrl
+    if (mainImageUrl) urlsToDelete.push({ url: mainImageUrl, type: 'image' })
+
+    for (const im of instructionMedia) {
+      if (im.mediaUrl) urlsToDelete.push({ url: im.mediaUrl, type: im.mediaType as any })
+    }
+
+    for (const item of urlsToDelete) {
+      try {
+        if (item.type === 'video') await deleteVideo(item.url)
+        else await deleteImage(item.url)
+      } catch (e) {
+        console.error('Failed to delete Cloudinary asset', item.url, e)
+      }
+    }
+  } catch (e) {
+    console.error('Error cleaning up Cloudinary assets for recipe', recipeId, e)
   }
 
   await db.delete(recipe).where(eq(recipe.id, recipeId))
@@ -539,7 +566,7 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
 }) {
   return await db.transaction(async (tx) => {
     const recipeToUpdate = await tx
-      .select()
+      .select({ id: recipe.id, userId: recipe.userId, imageUrl: recipe.imageUrl })
       .from(recipe)
       .where(and(
         eq(recipe.id, recipeId),
@@ -551,7 +578,37 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
       return false
     }
 
-    // Update the main recipe
+    const oldImageUrl = recipeToUpdate[0].imageUrl || undefined
+    const oldInstructions = await tx
+      .select({ mediaUrl: recipeInstruction.mediaUrl, mediaType: recipeInstruction.mediaType })
+      .from(recipeInstruction)
+      .where(eq(recipeInstruction.recipeId, recipeId))
+
+    const oldUrls = new Set<string>()
+    if (oldImageUrl) oldUrls.add(oldImageUrl)
+    for (const ins of oldInstructions) {
+      if (ins.mediaUrl) oldUrls.add(ins.mediaUrl)
+    }
+
+    const newUrls = new Set<string>()
+    if (input.imageUrl) newUrls.add(input.imageUrl)
+    for (const ins of input.instructions) {
+      if (ins.mediaUrl) newUrls.add(ins.mediaUrl)
+    }
+
+    const toDelete = [...oldUrls].filter((u) => !newUrls.has(u))
+
+    for (const url of toDelete) {
+      try {
+        const ins = oldInstructions.find((i) => i.mediaUrl === url)
+        const type = ins?.mediaType === 'video' ? 'video' : 'image'
+        if (type === 'video') await deleteVideo(url)
+        else await deleteImage(url)
+      } catch (e) {
+        console.error('Failed to delete removed media from Cloudinary', url, e)
+      }
+    }
+
     await tx.update(recipe)
       .set({
         title: input.title,
@@ -561,7 +618,6 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
       })
       .where(eq(recipe.id, recipeId))
 
-    // Update nutrition
     if (input.nutrition) {
       await tx.insert(recipeNutrition)
         .values({
@@ -584,15 +640,12 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
       await tx.delete(recipeNutrition).where(eq(recipeNutrition.recipeId, recipeId))
     }
 
-    // Delete existing instructions and ingredients
     await tx.delete(recipeIngredient).where(eq(recipeIngredient.recipeId, recipeId))
     await tx.delete(recipeInstruction).where(eq(recipeInstruction.recipeId, recipeId))
 
-    // Insert new instructions and their ingredients
     for (let i = 0; i < input.instructions.length; i++) {
       const instruction = input.instructions[i]
 
-      // Insert the instruction
       await tx.insert(recipeInstruction).values({
         id: instruction.id,
         recipeId: recipeId,
@@ -602,7 +655,6 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
         order: i + 1
       })
 
-      // Insert ingredients for this instruction
       if (instruction.ingredients) {
         for (const ingredientData of instruction.ingredients) {
           let ingredientId: string
@@ -637,7 +689,6 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
       }
     }
 
-    // Update tags
     await tx.delete(recipeTag).where(eq(recipeTag.recipeId, recipeId))
 
     for (const tagName of input.tags) {

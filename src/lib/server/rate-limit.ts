@@ -83,4 +83,10 @@ export const globalImportLimiter = new RateLimiter({
   windowMs: 60 * 60 * 1000, // 1 hour
   maxRequests: 100, // 100 imports per hour globally
   keyPrefix: 'rate-limit:import-recipe:global'
+})
+
+export const mediaUploadSignLimiter = new RateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxRequests: 60, // 60 signature requests per 15 minutes per user
+  keyPrefix: 'rate-limit:media-upload-sign'
 }) 

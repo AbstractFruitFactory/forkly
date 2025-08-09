@@ -73,3 +73,11 @@ export const deleteImage = async (url: string): Promise<void> => {
   const publicId = matches[1]
   await cloudinary.uploader.destroy(publicId)
 }
+
+export const deleteVideo = async (url: string): Promise<void> => {
+  const matches = url.match(/\/v\d+\/(.+?)\.[^.]+$/)
+  if (!matches) return
+
+  const publicId = matches[1]
+  await cloudinary.uploader.destroy(publicId, { resource_type: 'video' })
+}

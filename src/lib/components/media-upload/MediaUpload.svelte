@@ -33,29 +33,27 @@
 	let mediaType = $derived<'image' | 'video' | undefined>(initialMedia?.type)
 	let inputElement: HTMLInputElement
 	let dragOver = $state(false)
+	let uploadedUrl = $state<string | undefined>(initialMedia?.url)
+	let hiddenInputEl: HTMLInputElement
 
 	$effect(() => {
 		if (initialMedia) {
-			// Fetch the media from URL and create a file for form submission
 			fetchAndCreateFile(initialMedia.url, initialMedia.type)
 		}
 	})
 
 	const fetchAndCreateFile = async (url: string, type: 'image' | 'video') => {
-		// Skip fetching blob URLs since they're already local files
 		if (url.startsWith('blob:')) {
 			console.log('Skipping blob URL fetch:', url)
 			return
 		}
 
 		try {
-			// Use our proxy endpoint to avoid CORS issues
 			const proxyUrl = `/proxy-media?url=${encodeURIComponent(url)}`
 			const response = await fetch(proxyUrl)
 
 			if (!response.ok) {
 				console.error('Failed to fetch media from URL:', url, 'Status:', response.status)
-				// Don't create a file, but still show the preview
 				return
 			}
 
@@ -68,14 +66,11 @@
 				}
 			)
 
-			// Set the file on the input element so it gets sent with form data
 			const dataTransfer = new DataTransfer()
 			dataTransfer.items.add(file)
 			inputElement.files = dataTransfer.files
 		} catch (error) {
 			console.error('Error fetching media from URL:', url, error)
-			// Don't throw the error - just log it and continue without the file
-			// The preview will still be shown
 		}
 	}
 
@@ -85,34 +80,69 @@
 	const handleFileSelect = async (event: Event) => {
 		const input = event.target as HTMLInputElement
 		const file = input.files?.[0]
-
 		if (!file) return
 		handleFile(file)
 	}
 
+	async function getCloudinarySignature(folder: string, resourceType: 'image' | 'video' | 'auto') {
+		const params = new URLSearchParams({ folder, resource_type: resourceType })
+		const res = await fetch(`/cloudinary/sign?${params.toString()}`)
+		if (!res.ok) throw new Error('Failed to get upload signature')
+		return res.json() as Promise<{
+			cloudName: string
+			apiKey: string
+			timestamp: number
+			signature: string
+			folder: string
+			resourceType: string
+		}>
+	}
+
+	async function directUploadToCloudinary(file: File) {
+		const isVideo = file.type.startsWith('video/')
+		const preferredFolder = name.startsWith('instructions-') ? 'instruction-media' : isVideo ? 'recipe-videos' : 'recipe-images'
+		const resourceType: 'image' | 'video' | 'auto' = isVideo ? 'video' : 'image'
+		const sig = await getCloudinarySignature(preferredFolder, resourceType)
+
+		const form = new FormData()
+		form.append('file', file)
+		form.append('api_key', sig.apiKey)
+		form.append('timestamp', String(sig.timestamp))
+		form.append('signature', sig.signature)
+		form.append('folder', sig.folder)
+
+		const uploadUrl = `https://api.cloudinary.com/v1_1/${sig.cloudName}/${resourceType}/upload`
+		const resp = await fetch(uploadUrl, { method: 'POST', body: form })
+		if (!resp.ok) throw new Error('Cloudinary upload failed')
+		const data = await resp.json()
+		return data.secure_url as string
+	}
+
 	const handleFile = async (file: File) => {
-		// Clean up previous preview
 		if (preview) cleanupPreview(preview)
 
-		// Use the utility function to handle the file
 		const result = await handleMediaFile(file, {
 			type,
 			maxSize: MAX_VIDEO_SIZE_MB,
 			maxDuration: MAX_VIDEO_DURATION_SECONDS
 		})
 
-		// Update state based on result
 		error = result.error
 		preview = result.preview
 		mediaType = result.mediaType
 
 		if (!error) {
-			// Set the file directly on the input element
-			const dataTransfer = new DataTransfer()
-			dataTransfer.items.add(file)
-			inputElement.files = dataTransfer.files
-			dispatch('change', file)
-			onFile?.(file)
+			try {
+				const url = await directUploadToCloudinary(file)
+				uploadedUrl = url
+				if (hiddenInputEl) hiddenInputEl.value = url
+				if (inputElement) inputElement.value = ''
+				dispatch('change', file)
+				onFile?.(file)
+			} catch (e) {
+				console.error(e)
+				error = 'Failed to upload media. Please try again.'
+			}
 		}
 	}
 
@@ -137,27 +167,24 @@
 	const handleRemove = (e: Event) => {
 		e.stopPropagation()
 
-		// Clean up the current preview
 		if (preview) {
 			cleanupPreview(preview)
 		}
 
-		// Reset state
 		preview = ''
 		mediaType = undefined
 		error = undefined
+		uploadedUrl = undefined
+		if (hiddenInputEl) hiddenInputEl.value = ''
 
-		// Clear the input file
 		if (inputElement) {
 			inputElement.value = ''
 		}
 
-		// Dispatch remove event
 		dispatch('remove')
 	}
 
 	onDestroy(() => {
-		// Clean up object URL
 		if (preview) cleanupPreview(preview)
 	})
 </script>
@@ -174,6 +201,9 @@
 	aria-describedby={error ? `${id}-error` : undefined}
 />
 
+<input type="hidden" name={`${name}-url`} value={uploadedUrl} bind:this={hiddenInputEl} />
+<input type="hidden" name={`${name}-type`} value={mediaType} />
+
 {#if preview && mediaType === 'video'}
 	<div
 		class="preview-area has-preview"
@@ -181,6 +211,8 @@
 		ondragover={handleDragOver}
 		ondragleave={handleDragLeave}
 		ondrop={handleDrop}
+		role="region"
+		aria-label="Media drop zone"
 	>
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -212,9 +244,9 @@
 		ondragleave={handleDragLeave}
 		ondrop={handleDrop}
 	>
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		{#if preview && mediaType === 'image'}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div class="remove-button" onclick={handleRemove} aria-label="Remove media">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
