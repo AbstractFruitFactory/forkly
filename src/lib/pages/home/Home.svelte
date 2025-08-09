@@ -313,12 +313,19 @@
 			<Logo responsive={false} />
 		</div>
 
-		<div class="tagline">
+		<div class="tagline desktop-only">
 			<h1>
 				Tired of messy recipe posts? Turn yours into a clean, shareable page in seconds - no login
 				needed.
 			</h1>
 		</div>
+
+		<div class="tagline mobile-only">
+			<h2 style:font-weight="var(--font-weight-bold)">
+				Turn your recipe into a clean, shareable page in seconds - no login needed.
+			</h2>
+		</div>
+
 		<div class="cta-row">
 			<Button onclick={openImportCTA} size="lg" color="primary">
 				<DownloadIcon color="var(--color-text-on-primary)" size={18} />
@@ -475,10 +482,6 @@
 	.tagline {
 		max-width: 70rem;
 		text-align: center;
-
-		@include mobile {
-			display: none;
-		}
 	}
 
 	.cta-row {
@@ -487,7 +490,7 @@
 		margin-top: var(--spacing-2xl);
 
 		@include mobile {
-			margin-top: var(--spacing-md);
+			margin-top: 0;
 		}
 	}
 
