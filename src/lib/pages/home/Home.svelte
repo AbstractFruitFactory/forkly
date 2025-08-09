@@ -321,7 +321,7 @@
 		</div>
 		<div class="cta-row">
 			<Button onclick={openImportCTA} size="lg" color="primary">
-				<DownloadIcon size={18} />
+				<DownloadIcon color="var(--color-text-on-primary)" size={18} />
 				Import a recipe
 			</Button>
 		</div>
