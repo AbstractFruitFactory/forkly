@@ -17,6 +17,9 @@
 	import TaglineTypewriter from '$lib/components/tagline-typewriter/TaglineTypewriter.svelte'
 	import Logo from '$lib/components/logo/Logo.svelte'
 	import SortIcon from 'lucide-svelte/icons/arrow-up-down'
+	import Button from '$lib/components/button/Button.svelte'
+	import DownloadIcon from 'lucide-svelte/icons/download'
+	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
 
 	let {
 		recipes,
@@ -76,16 +79,16 @@
 	let searchTimeout: ReturnType<typeof setTimeout> | null = null
 	let appliedSearchValue = $state('')
 
+	let isImportPopupOpen = $state(false)
+
 	onMount(() => {
 		checkMobile()
 		window.addEventListener('resize', checkMobile)
 
-		// Initialize selected values
 		selectedTags = initialTags.map((tag) => ({ label: tag, selected: true }))
 		selectedIngredients = initialIngredients
 		appliedSearchValue = initialSearchValue
 
-		// Load popular tags for tagline effect
 		searchTags('').then((results) => {
 			taglineTags = [...results.map((t) => t.name)]
 		})
@@ -290,6 +293,17 @@
 		}
 	}
 
+	function openImportCTA() {
+		isImportPopupOpen = true
+	}
+
+	function handleRecipeScraped(recipe: any) {
+		try {
+			sessionStorage.setItem('forkly_prefilled_recipe', JSON.stringify(recipe))
+		} catch {}
+		goto('/new')
+	}
+
 	setSlots({ homepageHeader, content })
 </script>
 
@@ -302,7 +316,13 @@
 		<div class="tagline">
 			<TaglineTypewriter tags={taglineTags} onSelect={handleTaglineTagSelect} />
 		</div>
-		<div bind:this={$sentinelNode} style:height="var(--spacing-2xl)"></div>
+		<div class="cta-row">
+			<Button onclick={openImportCTA} size="lg" color="primary">
+				<DownloadIcon size={18} />
+				Import a recipe
+			</Button>
+		</div>
+		<div bind:this={$sentinelNode} style:height="1px"></div>
 	</div>
 {/snippet}
 
@@ -421,6 +441,8 @@
 	animateFrom={animateFromElement}
 />
 
+<ImportRecipePopup bind:isOpen={isImportPopupOpen} onRecipeScraped={handleRecipeScraped} />
+
 <style lang="scss">
 	@use '$lib/styles/tokens' as *;
 
@@ -430,6 +452,9 @@
 		display: flex;
 		justify-content: center;
 		padding: var(--spacing-4xl) 0;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing-lg);
 
 		@include mobile {
 			padding: var(--spacing-md) 0;
@@ -448,6 +473,12 @@
 		@include mobile {
 			display: none;
 		}
+	}
+
+	.cta-row {
+		display: flex;
+		justify-content: center;
+		margin-top: var(--spacing-2xl);
 	}
 
 	.home-container {

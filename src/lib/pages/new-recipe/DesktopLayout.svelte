@@ -21,7 +21,8 @@
 		moveInstructionUpButton,
 		moveInstructionDownButton,
 		submitButton,
-		saveDraftButton
+		saveDraftButton,
+		importButton
 	}: {
 		instructions: {
 			id: string
@@ -62,23 +63,36 @@
 		moveInstructionDownButton: Snippet<[instructionId: string, index: number]>
 		submitButton: Snippet
 		saveDraftButton: Snippet<[fullWidth?: boolean]>
+		importButton: Snippet
 	} = $props()
 </script>
 
 <div class="form-grid">
-	<div class="section-title">Info</div>
-	<div class="section-content">
-		<div class="header-content">
-			<div class="text-content">
-				<div>
-					{@render title()}
+	<div></div>
+	<div>
+		<div class="header-text">
+			<h1>Paste your recipe, get a beautiful shareable page instantly.</h1>
+		</div>
+	</div>
+
+	<div class="info-grid">
+		<div class="import-controls desktop">
+			{@render importButton()}
+		</div>
+		<div class="section-title">Info</div>
+		<div class="section-content">
+			<div class="header-content">
+				<div class="text-content">
+					<div>
+						{@render title()}
+					</div>
+
+					{@render description()}
 				</div>
 
-				{@render description()}
-			</div>
-
-			<div class="image-content">
-				{@render recipeImage()}
+				<div class="image-content">
+					{@render recipeImage()}
+				</div>
 			</div>
 		</div>
 	</div>
@@ -190,6 +204,10 @@
 		justify-content: center;
 		gap: var(--spacing-3xl) 40px;
 		margin: 0 auto;
+	}
+
+	.header-text {
+		text-align: center;
 	}
 
 	.section-title {
@@ -408,6 +426,13 @@
 		grid-column: 1 / span 2;
 	}
 
+	.info-grid {
+		display: grid;
+		grid-template-columns: subgrid;
+		row-gap: 8px;
+		grid-column: 1 / span 2;
+	}
+
 	.mobile-servings {
 		display: none;
 		grid-column: 2;
@@ -436,6 +461,25 @@
 
 	.tablet {
 		display: none;
+	}
+
+	.info-grid .section-title {
+		grid-row: 2;
+		grid-column: 1;
+	}
+
+	.info-grid .section-content {
+		grid-row: 2;
+		grid-column: 2;
+	}
+
+	.import-controls {
+		grid-column: 2 / span 1;
+		grid-row: 1;
+		justify-self: end;
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
 	}
 
 	@media (max-width: 1000px) {
@@ -486,6 +530,10 @@
 			justify-content: space-between;
 			margin-bottom: var(--spacing-md);
 			margin-top: var(--spacing-md);
+		}
+
+		.info-grid {
+			display: block;
 		}
 	}
 

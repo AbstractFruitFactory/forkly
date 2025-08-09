@@ -21,7 +21,8 @@
 		removeInstructionButton,
 		moveInstructionUpButton,
 		moveInstructionDownButton,
-		saveDraftButton
+		saveDraftButton,
+		importButton
 	}: {
 		instructions: {
 			id: string
@@ -62,6 +63,7 @@
 		moveInstructionUpButton: Snippet<[instructionId: string, index: number]>
 		moveInstructionDownButton: Snippet<[instructionId: string, index: number]>
 		saveDraftButton: Snippet<[fullWidth?: boolean]>
+		importButton?: Snippet
 	} = $props()
 </script>
 

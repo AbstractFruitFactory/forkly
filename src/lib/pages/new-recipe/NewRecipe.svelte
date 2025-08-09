@@ -156,6 +156,16 @@
 		checkViewport()
 		window.addEventListener('resize', checkViewport)
 
+		try {
+			const raw = sessionStorage.getItem('forkly_prefilled_recipe')
+			if (raw) {
+				const recipe = JSON.parse(raw) as ImportedRecipeData
+				console.log('Prefilling new recipe from sessionStorage')
+				populateFromRecipe(recipe)
+				sessionStorage.removeItem('forkly_prefilled_recipe')
+			}
+		} catch {}
+
 		return () => {
 			window.removeEventListener('resize', checkViewport)
 		}
@@ -625,6 +635,19 @@
 	{/if}
 {/snippet}
 
+{#snippet importButton()}
+	<Button
+		onclick={() => {
+			isImportPopupOpen = true
+		}}
+		variant="border"
+		color="neutral"
+	>
+		<DownloadIcon color="var(--color-text-on-surface)" size={16} />
+		Import Recipe
+	</Button>
+{/snippet}
+
 <div class="new-recipe">
 	<form
 		method="POST"
@@ -683,27 +706,6 @@
 			</div>
 		{/if}
 
-		<div class="page-header">
-			<div></div>
-
-			<Button
-				disabled={!isLoggedIn}
-				onclick={async () => {
-					const loggedIn = await isLoggedIn
-					if (!loggedIn) {
-						isLoginPopupOpen = true
-					} else {
-						isImportPopupOpen = true
-					}
-				}}
-				variant="border"
-				color="neutral"
-			>
-				<DownloadIcon color="var(--color-text-on-surface)" size={16} />
-				Import Recipe
-			</Button>
-		</div>
-
 		{#if isMobileView}
 			<div class="mobile-layout">
 				<MobileLayout
@@ -725,6 +727,7 @@
 					{moveInstructionDownButton}
 					{submitButton}
 					{saveDraftButton}
+					{importButton}
 				/>
 			</div>
 		{:else}
@@ -748,6 +751,7 @@
 					{moveInstructionDownButton}
 					{submitButton}
 					{saveDraftButton}
+					{importButton}
 				/>
 			</div>
 		{/if}
