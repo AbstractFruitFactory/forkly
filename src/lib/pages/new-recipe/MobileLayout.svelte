@@ -18,6 +18,7 @@
 		ingredientRow,
 		addInstructionButton,
 		addIngredientButton,
+		addPreparedIngredientButton,
 		removeInstructionButton,
 		moveInstructionUpButton,
 		moveInstructionDownButton,
@@ -31,6 +32,7 @@
 				name?: string
 				quantity?: string
 				unit?: string
+				isPrepared?: boolean
 			}[]
 			text?: string
 			mediaUrl?: string
@@ -59,6 +61,7 @@
 		>
 		addInstructionButton: Snippet<[fullWidth?: boolean]>
 		addIngredientButton: Snippet<[instructionId: string, fullWidth?: boolean]>
+		addPreparedIngredientButton: Snippet<[instructionId: string, fullWidth?: boolean]>
 		removeInstructionButton: Snippet<[instructionId: string]>
 		moveInstructionUpButton: Snippet<[instructionId: string, index: number]>
 		moveInstructionDownButton: Snippet<[instructionId: string, index: number]>
@@ -126,10 +129,13 @@
 					<div>
 						<h5>Ingredients for this step:</h5>
 						<div class="instruction-ingredients">
-							{#each [...item.ingredients, { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem, ingredientIndex (ingredientItem.id)}
+							{#each [...(item.ingredients.filter((ing) => !ing.isPrepared)), ...(item.ingredients.filter((ing) => ing.isPrepared)), { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem, ingredientIndex (ingredientItem.id)}
 								<div class="ingredient-input" in:scale animate:flip={{ duration: 200 }}>
 									{#if 'isAddButton' in ingredientItem}
-										{@render addIngredientButton(item.id, true)}
+										<div class="ingredient-actions-mobile">
+											{@render addIngredientButton(item.id, true)}
+											{@render addPreparedIngredientButton(item.id, true)}
+										</div>
 									{:else}
 										{@render ingredientRow(
 											ingredientItem.id,
@@ -275,5 +281,10 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--spacing-sm);
+	}
+	.ingredient-actions-mobile {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
 	}
 </style>

@@ -10,6 +10,7 @@ type IngredientInput = {
   displayName: string
   quantity?: { text: string, numeric?: number }
   measurement?: string
+  isPrepared?: boolean
 }
 
 type NutritionInput = {
@@ -149,7 +150,8 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
             displayName: ingredientData.displayName,
             quantity: ingredientData.quantity?.text,
             numericQuantity: ingredientData.quantity?.numeric,
-            measurement: ingredientData.measurement
+            measurement: ingredientData.measurement,
+            isPrepared: ingredientData.isPrepared ?? false
           })
         }
       }

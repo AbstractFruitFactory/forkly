@@ -45,6 +45,7 @@ export type Ingredient = {
   measurement?: string
   name: string
   displayName: string
+  isPrepared?: boolean
 }
 
 export type Instruction = {

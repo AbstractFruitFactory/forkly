@@ -46,6 +46,7 @@
 	import Trash from 'lucide-svelte/icons/trash-2'
 	import ChevronUp from 'lucide-svelte/icons/chevron-up'
 	import ChevronDown from 'lucide-svelte/icons/chevron-down'
+	import ArrowUp from 'lucide-svelte/icons/corner-left-up'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
@@ -108,6 +109,7 @@
 			name?: string
 			quantity?: string
 			unit?: string
+			isPrepared?: boolean
 		}[]
 		text?: string
 		mediaUrl?: string
@@ -121,7 +123,8 @@
 							id: generateId(),
 							name: ingredient.name,
 							quantity: ingredient.quantity,
-							unit: ingredient.measurement
+							unit: ingredient.measurement,
+							isPrepared: false
 						})) ?? [],
 					text: instruction.text,
 					mediaUrl: instruction.mediaUrl,
@@ -207,6 +210,74 @@
 				? { ...instruction, ingredients: [...instruction.ingredients, { id: generateId() }] }
 				: instruction
 		)
+	}
+
+	const addPreparedIngredient = (instructionId: string) => {
+		instructions = instructions.map((instruction) =>
+			instruction.id === instructionId
+				? {
+						...instruction,
+						ingredients: [...instruction.ingredients, { id: generateId(), isPrepared: true }]
+					}
+				: instruction
+		)
+	}
+
+	const handleIngredientNameInput = (
+		instructionId: string,
+		ingredientId: string,
+		value: string
+	) => {
+		instructions = instructions.map((ins) =>
+			ins.id !== instructionId
+				? ins
+				: {
+						...ins,
+						ingredients: ins.ingredients.map((ing) =>
+							ing.id === ingredientId ? { ...ing, name: value } : ing
+						)
+					}
+		)
+	}
+
+	const buildPrevIngredientSuggestions = (instructionIndex: number) => {
+		return async (query: string) => {
+			const q = (query || '').toLowerCase()
+			if (q.length < 1) return []
+			const seen = new Set<string>()
+			const prev = instructions
+				.slice(0, instructionIndex)
+				.flatMap((ins) => ins.ingredients)
+				.filter((ing) => ing.name && ing.name.toLowerCase().includes(q))
+				.map((ing) => ing.name!)
+			for (const name of prev) seen.add(name)
+			return Array.from(seen).map((name) => ({ name })) as any
+		}
+	}
+
+	const buildOnSelectReference = (instructionId: string, ingredientId: string) => {
+		return (suggestion: any) => {
+			const refName: string =
+				suggestion.rawName ?? String(suggestion.name).replace(/^Reference:\s*/, '')
+			instructions = instructions.map((ins) =>
+				ins.id !== instructionId
+					? ins
+					: {
+							...ins,
+							ingredients: ins.ingredients.map((ing) =>
+								ing.id === ingredientId
+									? {
+											...ing,
+											name: refName,
+											isPrepared: true,
+											quantity: undefined,
+											unit: undefined
+										}
+									: ing
+							)
+						}
+			)
+		}
 	}
 
 	const removeIngredient = (instructionId: string, ingredientId: string) => {
@@ -333,8 +404,9 @@
 			ingredients: (instruction.ingredients ?? []).map((ingredient) => ({
 				id: generateId(),
 				name: ingredient.name,
-				quantity: ingredient.quantity,
-				unit: ingredient.measurement
+				quantity: ingredient.isPrepared ? undefined : ingredient.quantity,
+				unit: ingredient.isPrepared ? undefined : ingredient.measurement,
+				isPrepared: ingredient.isPrepared === true
 			}))
 		}))
 	}
@@ -458,54 +530,93 @@
 	instructionIndex?: number,
 	ingredientIndex?: number
 )}
+	{@const instructionIdx = instructionIndex ?? 0}
+	{@const currentInstruction = instructions.find((ins) => ins.id === instructionId)}
+	{@const currentIngredient = currentInstruction?.ingredients.find((ing) => ing.id === id)}
 	<div class="ingredient-row">
 		<div class="ingredient-input">
 			<div class="ingredient-row">
-				<div class="search">
-					<SuggestionSearch
-						placeholder="Enter ingredient"
-						onSearch={searchIngredients}
-						formName="instructions-{instructionId}-ingredient-{id}-name"
-						clearInput={false}
-						searchValue={nameValue}
-					/>
-				</div>
-			</div>
-
-			<div class="quantity-unit-row">
-				<div class="quantity-input">
-					<FormError
-						errors={formErrors(
-							`instructions.${instructionIndex}.ingredients.${ingredientIndex}.quantity`
-						)}
-					>
-						{#snippet formInput(closePopover)}
+				<div class={currentIngredient?.isPrepared ? 'prepared-search' : 'search'}>
+					{#if currentIngredient?.isPrepared}
+						<div class="prepared-display">
+							<div class="prepared-arrow"><ArrowUp size={18} color="var(--color-neutral)" /></div>
 							<Input>
 								<input
 									type="text"
-									name="instructions-{instructionId}-ingredient-{id}-amount"
-									placeholder="Enter amount"
-									value={amountValue}
-									oninput={() => closePopover()}
+									placeholder="Prepared ingredient name"
+									name="instructions-{instructionId}-ingredient-{id}-name"
+									value={nameValue}
+									oninput={(e) =>
+										handleIngredientNameInput(
+											instructionId,
+											id,
+											(e.target as HTMLInputElement).value
+										)
+									}
 								/>
 							</Input>
-						{/snippet}
-					</FormError>
-				</div>
-
-				<div class="unit-input">
-					<SuggestionSearch
-						placeholder="Unit"
-						formName="instructions-{instructionId}-ingredient-{id}-unit"
-						onSearch={searchUnits}
-						clearInput={false}
-						showSearchIcon={false}
-						minSearchLength={2}
-						useId={true}
-						searchValue={unitValue}
-					/>
+							<input
+								type="hidden"
+								name="instructions-{instructionId}-ingredient-{id}-isPrepared"
+								value="true"
+							/>
+						</div>
+					{:else}
+						<Input>
+							<input
+								type="text"
+								placeholder="Enter ingredient"
+								name="instructions-{instructionId}-ingredient-{id}-name"
+								value={nameValue}
+								oninput={(e) =>
+									handleIngredientNameInput(
+										instructionId,
+										id,
+										(e.target as HTMLInputElement).value
+									)
+								}
+							/>
+						</Input>
+					{/if}
 				</div>
 			</div>
+
+			{#if !currentIngredient?.isPrepared}
+				<div class="quantity-unit-row">
+					<div class="quantity-input">
+						<FormError
+							errors={formErrors(
+								`instructions.${instructionIndex}.ingredients.${ingredientIndex}.quantity`
+							)}
+						>
+							{#snippet formInput(closePopover)}
+								<Input>
+									<input
+										type="text"
+										name="instructions-{instructionId}-ingredient-{id}-amount"
+										placeholder="Enter amount"
+										value={amountValue}
+										oninput={() => closePopover()}
+									/>
+								</Input>
+							{/snippet}
+						</FormError>
+					</div>
+
+					<div class="unit-input">
+						<SuggestionSearch
+							placeholder="Unit"
+							formName="instructions-{instructionId}-ingredient-{id}-unit"
+							onSearch={searchUnits}
+							clearInput={false}
+							showSearchIcon={false}
+							minSearchLength={2}
+							useId={true}
+							searchValue={unitValue}
+						/>
+					</div>
+				</div>
+			{/if}
 		</div>
 
 		<div>
@@ -593,6 +704,18 @@
 	<Button color="neutral" onclick={() => addIngredient(instructionId)} size="sm" {fullWidth}>
 		<Plus size={16} color="var(--color-text-on-surface)" />
 		Add Ingredient
+	</Button>
+{/snippet}
+
+{#snippet addPreparedIngredientButton(instructionId: string, fullWidth?: boolean)}
+	<Button
+		color="neutral"
+		onclick={() => addPreparedIngredient(instructionId)}
+		size="sm"
+		{fullWidth}
+	>
+		<Plus size={16} color="var(--color-text-on-surface)" />
+		Add prepared ingredient
 	</Button>
 {/snippet}
 
@@ -722,6 +845,7 @@
 					{ingredientRow}
 					{addInstructionButton}
 					{addIngredientButton}
+					{addPreparedIngredientButton}
 					{removeInstructionButton}
 					{moveInstructionUpButton}
 					{moveInstructionDownButton}
@@ -746,6 +870,7 @@
 					{ingredientRow}
 					{addInstructionButton}
 					{addIngredientButton}
+					{addPreparedIngredientButton}
 					{removeInstructionButton}
 					{moveInstructionUpButton}
 					{moveInstructionDownButton}
@@ -893,6 +1018,20 @@
 		}
 	}
 
+	.prepared-search {
+		width: 100%;
+		@include tablet-desktop {
+			flex: 1;
+			min-width: 0;
+			:global(.input-container) {
+				border-radius: var(--border-radius-2xl);
+			}
+		}
+		:global(.search-wrapper) {
+			max-width: none;
+		}
+	}
+
 	.quantity-input {
 		flex: 1;
 
@@ -971,5 +1110,27 @@
 		&:hover {
 			background-color: var(--color-secondary);
 		}
+	}
+
+	.suggest-header {
+		padding: var(--spacing-xs) var(--spacing-sm);
+		font-size: var(--font-size-xs);
+		color: var(--color-neutral-light);
+		text-transform: uppercase;
+	}
+
+	.prepared-display {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		color: var(--color-text-on-surface);
+	}
+
+	.prepared-arrow {
+		margin-bottom: 6px;
+	}
+
+	.prepared-name {
+		font-weight: var(--font-weight-medium);
 	}
 </style>

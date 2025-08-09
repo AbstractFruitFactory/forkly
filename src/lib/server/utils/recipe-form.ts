@@ -14,10 +14,12 @@ export const ingredientSchema = v.pipe(
       v.transform(input => input ?? ''),
       v.minLength(1, 'An ingredient cannot be empty')
     ),
-    displayName: v.string()
+    displayName: v.string(),
+    isPrepared: v.optional(v.boolean())
   }),
   v.rawTransform(({ dataset, addIssue }) => {
     if (
+      !dataset.value.isPrepared &&
       dataset.value.measurement !== undefined && dataset.value.measurement !== '' &&
       (dataset.value.quantity === undefined || dataset.value.quantity.trim() === '')
     ) {
@@ -88,6 +90,7 @@ export type FormFields = {
       measurement?: string
       name: string
       displayName: string
+      isPrepared?: boolean
     }[]
   }[]
   tags: string[]
@@ -148,6 +151,7 @@ const parseFormData = (formData: FormData): FormFields => {
           let name = ''
           let quantity: string | undefined
           let measurement = ''
+          let isPrepared = false
 
           for (const entry of ingredientEntries) {
             const { field, value } = entry
@@ -157,6 +161,8 @@ const parseFormData = (formData: FormData): FormFields => {
               quantity = value
             } else if (field === 'unit') {
               measurement = value
+            } else if (field === 'isPrepared') {
+              isPrepared = value === 'true' || value === '1'
             }
           }
 
@@ -164,8 +170,9 @@ const parseFormData = (formData: FormData): FormFields => {
             ingredients.push({
               name,
               displayName: name,
-              quantity,
-              measurement: measurement || undefined
+              quantity: (isPrepared) ? undefined : quantity,
+              measurement: (isPrepared) ? undefined : (measurement || undefined),
+              isPrepared: isPrepared
             })
           }
         }
@@ -269,7 +276,7 @@ export const buildRecipePayloadFromForm = async (formData: FormData, skipValidat
     imageUrl = await uploadImage(buffer)
   }
 
-  const allIngredients = recipeData.instructions.flatMap(instruction => instruction.ingredients || [])
+  const allIngredients = recipeData.instructions.flatMap(instruction => (instruction.ingredients || []).filter(i => !i.isPrepared))
   if (allIngredients.length === 0 && !skipValidation) {
     return {
       error: fail(400, {
@@ -288,7 +295,7 @@ export const buildRecipePayloadFromForm = async (formData: FormData, skipValidat
   if (recipeData.nutritionMode === 'manual') {
     nutrition = recipeData.manualNutrition ?? null
   } else if (recipeData.nutritionMode === 'auto') {
-    const allIngredients = recipeData.instructions.flatMap(instruction => instruction.ingredients || [])
+    const allIngredients = recipeData.instructions.flatMap(instruction => (instruction.ingredients || []).filter(i => !i.isPrepared))
     const nutritionResult = await api('getRecipeInfo')(
       allIngredients.map(ing => ({
         amount: ing.quantity ? parseFloat(ing.quantity) : undefined,

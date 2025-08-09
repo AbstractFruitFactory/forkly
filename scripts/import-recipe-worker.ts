@@ -30,6 +30,7 @@ export type ImportedRecipeData = {
       name: string
       quantity: string
       measurement: string
+      isPrepared?: boolean
     }[]
   }[]
 }
@@ -354,6 +355,11 @@ async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promi
   Use exactly up to 3 short, relevant tags.
   If nutrition facts are present, include them in the nutrition object.
   If a unit is specified, a quantity has to be specified as well. Measurements such as "to taste" go into the "quantity" field.
+ 
+ IMPORTANT about step ingredients:
+ - If a step reuses the same physical ingredient portion prepared in an earlier step (not adding more), set isPrepared=true for that ingredient and do not infer additional quantity/measurement for that step.
+ - If the step calls for an additional amount of the ingredient, set isPrepared=false and include the new amount/unit.
+ - Example: Step 1 "Cook 4 cups rice" (isPrepared=false with 4 cups). Step 2 "Mix the cooked rice with ..." (isPrepared=true for rice, no extra quantity).
   Source: ${sourceUrlHint ?? 'unknown'}
   \n
   Recipe text:
@@ -408,7 +414,8 @@ async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promi
                         properties: {
                           name: { type: 'string' },
                           quantity: { type: 'string' },
-                          measurement: { type: 'string' }
+                          measurement: { type: 'string' },
+                          isPrepared: { type: 'boolean' }
                         }
                       }
                     }
@@ -455,7 +462,8 @@ function normalizeRecipe(parsed: any): ImportedRecipeData {
         ? inst.ingredients.map((ing: any) => ({
           name: ing.name || '',
           quantity: typeof ing.quantity === 'string' ? ing.quantity : (ing.quantity ?? '').toString(),
-          measurement: ing.measurement || ''
+          measurement: ing.measurement || '',
+          isPrepared: typeof ing.isPrepared === 'boolean' ? ing.isPrepared : undefined
         }))
         : []
     }))
@@ -545,6 +553,8 @@ async function handleJob(job: any) {
       nutrition: recipe.nutrition ?? undefined,
       instructions: recipe.instructions
     }
+
+    console.log(JSON.stringify(recipeData, null, 2))
 
     const resultKey = `import-recipe:result:${job.id}`
     await redis.set(resultKey, JSON.stringify({ status: 'completed', result: recipeData }), { ex: 3600 })

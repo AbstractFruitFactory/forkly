@@ -17,6 +17,7 @@
 		ingredientRow,
 		addInstructionButton,
 		addIngredientButton,
+		addPreparedIngredientButton,
 		removeInstructionButton,
 		moveInstructionUpButton,
 		moveInstructionDownButton,
@@ -31,6 +32,7 @@
 				name?: string
 				quantity?: string
 				unit?: string
+				isPrepared?: boolean
 			}[]
 			text?: string
 			mediaUrl?: string
@@ -58,6 +60,7 @@
 		instructionMedia: Snippet<[id: string, initialMedia?: { url: string; type: 'image' | 'video' }]>
 		addInstructionButton: Snippet
 		addIngredientButton: Snippet<[instructionId: string]>
+		addPreparedIngredientButton: Snippet<[instructionId: string]>
 		removeInstructionButton: Snippet<[instructionId: string]>
 		moveInstructionUpButton: Snippet<[instructionId: string, index: number]>
 		moveInstructionDownButton: Snippet<[instructionId: string, index: number]>
@@ -148,10 +151,13 @@
 
 								<div class="instruction-ingredients">
 									<h4>Ingredients for this step:</h4>
-									{#each [...item.ingredients, { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem, ingredientIndex (ingredientItem.id)}
+									{#each [...item.ingredients.filter((ing) => !ing.isPrepared), ...item.ingredients.filter((ing) => ing.isPrepared), { id: `add-ingredient-${item.id}`, isAddButton: true }] as ingredientItem, ingredientIndex (ingredientItem.id)}
 										<div class="ingredient-input" in:scale animate:flip={{ duration: 200 }}>
 											{#if 'isAddButton' in ingredientItem}
-												{@render addIngredientButton(item.id)}
+												<div class="ingredient-actions">
+													{@render addIngredientButton(item.id)}
+													{@render addPreparedIngredientButton(item.id)}
+												</div>
 											{:else}
 												{@render ingredientRow(
 													ingredientItem.id,
@@ -545,5 +551,10 @@
 	.steps-grid .section-content {
 		grid-row: 2;
 		grid-column: 2;
+	}
+
+	.ingredient-actions {
+		display: flex;
+		gap: var(--spacing-sm);
 	}
 </style>

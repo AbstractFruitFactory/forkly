@@ -34,6 +34,7 @@ export type DetailedRecipe = {
       quantity: { text: string, numeric?: number }
       measurement: string
       displayName: string
+      isPrepared: boolean
     }>
   }>
   tags: string[]
@@ -289,7 +290,8 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
             quantity: recipeIngredient.quantity,
             numericQuantity: recipeIngredient.numericQuantity,
             measurement: recipeIngredient.measurement,
-            displayName: recipeIngredient.displayName
+            displayName: recipeIngredient.displayName,
+            isPrepared: recipeIngredient.isPrepared
           })
           .from(recipeIngredient)
           .innerJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
@@ -302,9 +304,10 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
           quantity: { text: string, numeric?: number }
           measurement: string
           displayName: string
+          isPrepared: boolean
         }>>()
 
-        for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName, instructionId } of instructionIngredients) {
+        for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName, instructionId, isPrepared } of instructionIngredients) {
           if (!ingredientsByInstruction.has(instructionId)) {
             ingredientsByInstruction.set(instructionId, [])
           }
@@ -313,7 +316,8 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
             name: ingr.name,
             quantity: { text: quantity ?? '', numeric: numericQuantity ?? undefined },
             measurement: measurement || '',
-            displayName: displayName
+            displayName: displayName,
+            isPrepared
           })
         }
 
@@ -326,7 +330,8 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
           displayName: string
         }>()
 
-        for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName } of instructionIngredients) {
+        for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName, isPrepared } of instructionIngredients) {
+          if (isPrepared) continue
           const key = `${ingr.id}-${measurement}-${displayName}`
           if (ingredientMap.has(key)) {
             const addQty = typeof numericQuantity === 'number' ? numericQuantity : 0
@@ -520,6 +525,7 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
       quantity?: string
       measurement?: string
       displayName: string
+      isPrepared?: boolean
     }>
   }>
   nutrition?: {
@@ -624,7 +630,8 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
             displayName: ingredientData.displayName,
             quantity: ingredientData.quantity ?? undefined,
             numericQuantity: parseQuantityToNumber(ingredientData.quantity) ?? undefined,
-            measurement: ingredientData.measurement ?? null
+            measurement: ingredientData.measurement ?? null,
+            isPrepared: ingredientData.isPrepared ?? false
           })
         }
       }
@@ -727,7 +734,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string): P
       quantity: recipeIngredient.quantity,
       numericQuantity: recipeIngredient.numericQuantity,
       measurement: recipeIngredient.measurement,
-      displayName: recipeIngredient.displayName
+      displayName: recipeIngredient.displayName,
+      isPrepared: recipeIngredient.isPrepared
     })
     .from(recipeIngredient)
     .innerJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
@@ -740,9 +748,10 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string): P
     quantity: { text: string, numeric?: number }
     measurement: string
     displayName: string
+    isPrepared: boolean
   }>>()
 
-  for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName, instructionId } of instructionIngredients) {
+  for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName, instructionId, isPrepared } of instructionIngredients) {
     if (!ingredientsByInstruction.has(instructionId)) {
       ingredientsByInstruction.set(instructionId, [])
     }
@@ -751,7 +760,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string): P
       name: ingr.name,
       quantity: { text: quantity ?? '', numeric: numericQuantity ?? undefined },
       measurement: measurement || '',
-      displayName: displayName
+      displayName: displayName,
+      isPrepared
     })
   }
 
@@ -764,7 +774,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string): P
     displayName: string
   }>()
 
-  for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName } of instructionIngredients) {
+  for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName, isPrepared } of instructionIngredients) {
+    if (isPrepared) continue
     const key = `${ingr.id}-${measurement}-${displayName}`
     if (ingredientMap.has(key)) {
       const addQty = typeof numericQuantity === 'number' ? numericQuantity : 0

@@ -11,10 +11,12 @@ export const baseIngredientSchema = v.pipe(
       v.transform(input => input ?? ''),
       v.minLength(1, 'An ingredient cannot be empty')
     ),
-    displayName: v.string()
+    displayName: v.string(),
+    isPrepared: v.optional(v.boolean())
   }),
   v.rawTransform(({ dataset, addIssue }) => {
     if (
+      !dataset.value.isPrepared &&
       dataset.value.measurement !== undefined && dataset.value.measurement !== '' &&
       (dataset.value.quantity === undefined || dataset.value.quantity.trim() === '')
     ) {
@@ -123,9 +125,9 @@ export const validateAndTransformRecipe = (data: unknown, isUpdate = false) => {
       ...instruction,
       ingredients: instruction.ingredients?.map(ingredient => ({
         ...ingredient,
-        quantity: typeof ingredient.quantity === 'string' && ingredient.quantity.trim() !== ''
+        quantity: ingredient.isPrepared ? undefined : (typeof ingredient.quantity === 'string' && ingredient.quantity.trim() !== ''
           ? { text: ingredient.quantity, numeric: parseQuantityToNumber(ingredient.quantity) }
-          : undefined
+          : undefined)
       }))
     }))
   }

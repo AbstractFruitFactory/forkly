@@ -84,6 +84,7 @@ export const recipeIngredient = pgTable('recipe_ingredient', {
 	numericQuantity: real('numeric_quantity'),
 	measurement: text('measurement'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	isPrepared: boolean('is_prepared').notNull().default(false)
 })
 
 export const recipeNutrition = pgTable('recipe_nutrition', {
