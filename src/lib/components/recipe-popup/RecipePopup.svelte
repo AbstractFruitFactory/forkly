@@ -40,10 +40,10 @@
 
 {#if mobileStore.isMobile}
 	<Drawer bind:isOpen={isDrawerOpen} onBack={onClose} position="side" showBackButton={true}>
-		<RecipePage params={{ id }} />
+		<RecipePage params={{ id }} data={{ recipeData: null, user: undefined }} />
 	</Drawer>
 {:else}
 	<Popup {onClose} width="90vw" {animateFrom} bind:this={popup}>
-		<RecipePage params={{ id }} />
+		<RecipePage params={{ id }} data={{ recipeData: null, user: undefined }} />
 	</Popup>
 {/if}

@@ -11,7 +11,7 @@ export const getRecipeData = query(
     id: v.string()
   }),
   async ({ id }: { id: string }) => {
-    const { locals, fetch } = getRequestEvent()
+    const { locals, fetch, isRemoteRequest } = getRequestEvent()
 
     const recipe = await getRecipeWithDetails(id, locals.user?.id)
 
@@ -30,7 +30,8 @@ export const getRecipeData = query(
       recipe: recipe as NonNullable<typeof recipe>,
       comments: comments.value,
       collections,
-      isLoggedIn: locals.user !== undefined
+      isLoggedIn: locals.user !== undefined,
+      isRemoteRequest
     }
   }
 )
