@@ -240,12 +240,7 @@
 {#snippet membership(fullWidth = false)}
 	{#await userData then data}
 		{#if data.isOwner}
-			<Button
-				--background-color="#5E2BFF"
-				size="sm"
-				href="/membership"
-				{fullWidth}
-			>
+			<Button --background-color="#5E2BFF" size="sm" href="/membership" {fullWidth}>
 				🔒 Membership
 			</Button>
 		{/if}
@@ -326,11 +321,17 @@
 						<div class="draft-title">{draft.title || 'Untitled draft'}</div>
 						<div class="draft-meta">Created: {new Date(draft.createdAt).toLocaleString()}</div>
 						<div class="draft-description">{draft.description}</div>
-						<Button variant="border" size="sm" onclick={() => openEditDraftPopup(draft)}
-							>Edit</Button
+						<Button
+							variant="border"
+							color="neutral"
+							size="sm"
+							onclick={() => openEditDraftPopup(draft)}>Edit</Button
 						>
-						<Button variant="border" size="sm" onclick={() => openDeleteDraftPopup(draft)}
-							>Delete</Button
+						<Button
+							variant="border"
+							color="neutral"
+							size="sm"
+							onclick={() => openDeleteDraftPopup(draft)}>Delete</Button
 						>
 					</div>
 				{/each}
