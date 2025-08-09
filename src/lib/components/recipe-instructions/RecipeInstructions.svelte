@@ -206,13 +206,14 @@
 		content-visibility: auto;
 		height: 100%;
 		display: flex;
+		border-radius: var(--border-radius-2xl);
 	}
 
 	.instruction-media img {
 		width: 100%;
 		height: 100%;
 		display: block;
-		border-radius: var(--border-radius-xl);
+
 		aspect-ratio: 16 / 9;
 		object-fit: cover;
 		will-change: transform;
