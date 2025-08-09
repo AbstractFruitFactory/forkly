@@ -6,12 +6,15 @@
 </script>
 
 <div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
-	{@render children()}
+	<h1 style:text-align="center">Join to like, save, and organize recipes</h1>
+	<div class="auth-form">
+		{@render children()}
+	</div>
 </div>
 
 <style lang="scss">
 	@use '$lib/styles/tokens' as *;
-	div {
+	.auth-form {
 		display: flex;
 		justify-content: center;
 		margin-top: 200px;
