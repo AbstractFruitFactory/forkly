@@ -7,7 +7,7 @@ import os from 'os'
 import type { RequestHandler } from './$types'
 
 // Configuration constants
-const MAX_VIDEO_SIZE = 50 // MB
+const MAX_VIDEO_SIZE = 25 // MB
 const MAX_IMAGE_SIZE = 10 // MB
 const MAX_VIDEO_DURATION = 10 // seconds
 

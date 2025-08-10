@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte'
 	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
+	import { getMediaType } from '$lib/utils/mediaValidation'
 	import { createEventDispatcher } from 'svelte'
 
 	const dispatch = createEventDispatcher()
@@ -31,6 +32,9 @@
 	let inputElement: HTMLInputElement
 	let dragOver = $state(false)
 	let hiddenInputEl: HTMLInputElement
+	let isUploading = $state(false)
+	let uploadedUrl = $state<string | undefined>(initialMedia?.url)
+	let uploadedType = $state<'image' | 'video' | undefined>(initialMedia?.type)
 
 	$effect(() => {
 		if (initialMedia) fetchAndCreateFile(initialMedia.url, initialMedia.type)
@@ -55,7 +59,8 @@
 	}
 
 	const MAX_VIDEO_DURATION_SECONDS = 10
-	const MAX_VIDEO_SIZE_MB = 10
+	const MAX_VIDEO_SIZE_MB = 25
+	const MAX_IMAGE_SIZE_MB = 10
 
 	const handleFileSelect = async (event: Event) => {
 		const input = event.target as HTMLInputElement
@@ -66,20 +71,27 @@
 
 	const handleFile = async (file: File) => {
 		if (preview) cleanupPreview(preview)
-		const result = await handleMediaFile(file, {
-			type,
-			maxSize: MAX_VIDEO_SIZE_MB,
-			maxDuration: MAX_VIDEO_DURATION_SECONDS
-		})
+		const detectedType = getMediaType(file)
+		const maxSize = detectedType === 'video' ? MAX_VIDEO_SIZE_MB : MAX_IMAGE_SIZE_MB
+		const result = await handleMediaFile(file, { type, maxSize, maxDuration: MAX_VIDEO_DURATION_SECONDS })
 		error = result.error
 		preview = result.preview
 		mediaType = result.mediaType
 		if (!error) {
-			const dt = new DataTransfer()
-			dt.items.add(file)
-			inputElement.files = dt.files
-			dispatch('change', file)
-			onFile?.(file)
+			isUploading = true
+			try {
+				const { uploadMedia } = await import('$lib/client/media/upload')
+				const { url, type: uploaded } = await uploadMedia(file, name, { temp: true })
+				uploadedUrl = url
+				uploadedType = uploaded
+				if (hiddenInputEl) hiddenInputEl.value = url
+				dispatch('change', file)
+				onFile?.(file)
+			} catch (e) {
+				error = 'Failed to upload media'
+			} finally {
+				isUploading = false
+			}
 		}
 	}
 
@@ -125,8 +137,8 @@
 	aria-label={`Upload ${type === 'image' ? 'image' : type === 'video' ? 'video' : 'media'}`}
 	aria-describedby={error ? `${id}-error` : undefined}
 />
-<input type="hidden" name={`${name}-url`} bind:this={hiddenInputEl} />
-<input type="hidden" name={`${name}-type`} value={mediaType} />
+<input type="hidden" name={`${name}-url`} bind:this={hiddenInputEl} value={uploadedUrl} />
+<input type="hidden" name={`${name}-type`} value={uploadedType} />
 
 {#if preview && mediaType === 'video'}
 	<div
@@ -184,6 +196,9 @@
 					<line x1="6" y1="6" x2="18" y2="18"></line>
 				</svg>
 			</div>
+			{#if isUploading}
+				<div class="uploading-overlay"><span>Uploading…</span></div>
+			{/if}
 			<img src={preview} alt={previewAlt} loading="eager" decoding="sync" />
 			<div class="preview-overlay"><span style:color="white">Change Image</span></div>
 		{:else}
@@ -418,6 +433,18 @@
 			width: 16px;
 			height: 16px;
 		}
+	}
+
+	.uploading-overlay {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(0,0,0,0.4);
+		color: white;
+		z-index: 3;
+		font-weight: 600;
 	}
 
 	@media (max-width: 600px) {

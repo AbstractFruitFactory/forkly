@@ -11,7 +11,10 @@ export const GET: RequestHandler = async ({ url, locals, getClientAddress }) => 
   const { allowed, remaining, resetTime } = await mediaUploadSignLimiter.checkLimit(identifier)
   if (!allowed) return json({ error: 'Too many requests', remaining, resetTime }, { status: 429 })
 
-  const allowedFolders = new Set(['recipe-images', 'recipe-videos', 'instruction-media', 'avatars', 'recipe-comments', 'anonymous-media'])
+  const allowedFolders = new Set([
+    'recipe-images', 'recipe-videos', 'instruction-media', 'avatars', 'recipe-comments', 'anonymous-media',
+    'recipe-images-tmp', 'recipe-videos-tmp', 'instruction-media-tmp'
+  ])
   const requestedFolder = url.searchParams.get('folder') || 'recipe-images'
   const requestedType = url.searchParams.get('resource_type')
 

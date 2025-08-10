@@ -40,39 +40,26 @@ type RecipeInput = {
 
 async function addIngredientInTransaction(tx: PostgresJsDatabase, name: string) {
   const { ingredient } = await import('./schema')
-  const { ilike } = await import('drizzle-orm')
+  const { ilike, eq } = await import('drizzle-orm')
   const { normalizeIngredientName } = await import('$lib/server/utils/normalize-ingredient')
-  const stringSimilarity = await import('string-similarity')
-  
+
   const normalizedInput = normalizeIngredientName(name)
   if (!normalizedInput) {
     throw new Error('Ingredient name cannot be empty')
   }
-  
+
   const lowercaseInput = normalizedInput.toLowerCase()
-  
-  const existingIngredients = await tx
+
+  const existing = await tx
     .select({ id: ingredient.id, name: ingredient.name })
     .from(ingredient)
+    .where(eq(ingredient.name, lowercaseInput))
+    .limit(1)
 
-  // Step 1: Exact match
-  const exact = existingIngredients.find(i => i.name === lowercaseInput)
-  if (exact) {
-    return exact
+  if (existing.length > 0) {
+    return existing[0]
   }
 
-  // Step 2: Fuzzy match
-  if (existingIngredients.length > 0) {
-    const { bestMatch } = stringSimilarity.default.findBestMatch(lowercaseInput, existingIngredients.map(i => i.name))
-    if (bestMatch.rating > 0.85) {
-      const matched = existingIngredients.find(i => i.name === bestMatch.target)
-      if (matched) {
-        return matched
-      }
-    }
-  }
-  
-  // Step 3: Create new ingredient
   const newIngredient = await tx.insert(ingredient).values({
     id: generateId(),
     name: lowercaseInput

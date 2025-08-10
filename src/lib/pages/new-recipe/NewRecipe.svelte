@@ -858,15 +858,6 @@
 			submitting = true
 
 			const entries = Array.from(formData.entries())
-			for (const [key, value] of entries) {
-				if (value instanceof File && value.size > 0) {
-					if (!uploadMedia) throw new Error('uploadMedia not provided')
-					const { url, type } = await uploadMedia(value, key)
-					formData.set(`${key}-url`, url)
-					formData.set(`${key}-type`, type)
-					formData.delete(key)
-				}
-			}
 
 			formData.append('servings', servings.toString())
 			formData.append('id', _id)
