@@ -16,6 +16,7 @@
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
 	import { mobileStore } from '$lib/state/mobile.svelte'
 	import type { RecipeDraft } from '$lib/server/db/schema'
+	import { uploadMedia } from '$lib/client/media/upload'
 
 	let {
 		username,
@@ -386,6 +387,7 @@
 			onSearchIngredients={searchIngredients}
 			isLoggedIn={Promise.resolve(true)}
 			{errors}
+			{uploadMedia}
 		/>
 	{/if}
 {/snippet}
@@ -420,6 +422,7 @@
 			onSearchIngredients={searchIngredients}
 			isLoggedIn={Promise.resolve(true)}
 			{errors}
+			{uploadMedia}
 		/>
 	{/if}
 {/snippet}

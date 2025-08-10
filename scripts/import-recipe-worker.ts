@@ -432,10 +432,13 @@ async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promi
   })
 
   const toolCall = completion.choices[0].message.tool_calls?.[0]
+
+  //@ts-ignore
   if (!toolCall?.function?.arguments) {
     throw new Error('No function call arguments returned')
   }
 
+  //@ts-ignore
   const parsed = JSON.parse(toolCall.function.arguments)
   return parsed
 }

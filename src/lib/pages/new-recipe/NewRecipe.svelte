@@ -855,6 +855,8 @@
 				return
 			}
 
+			submitting = true
+
 			const entries = Array.from(formData.entries())
 			for (const [key, value] of entries) {
 				if (value instanceof File && value.size > 0) {
@@ -865,8 +867,6 @@
 					formData.delete(key)
 				}
 			}
-
-			submitting = true
 
 			formData.append('servings', servings.toString())
 			formData.append('id', _id)
@@ -1010,19 +1010,6 @@
 
 		@include mobile {
 			display: none;
-		}
-	}
-
-	.page-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: var(--spacing-xl);
-
-		@include mobile {
-			flex-direction: column;
-			gap: var(--spacing-md);
-			align-items: stretch;
 		}
 	}
 
@@ -1190,13 +1177,6 @@
 		}
 	}
 
-	.suggest-header {
-		padding: var(--spacing-xs) var(--spacing-sm);
-		font-size: var(--font-size-xs);
-		color: var(--color-neutral-light);
-		text-transform: uppercase;
-	}
-
 	.prepared-display {
 		display: flex;
 		align-items: center;
@@ -1206,9 +1186,5 @@
 
 	.prepared-arrow {
 		margin-bottom: 6px;
-	}
-
-	.prepared-name {
-		font-weight: var(--font-weight-medium);
 	}
 </style>

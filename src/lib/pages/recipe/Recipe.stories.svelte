@@ -69,7 +69,7 @@
 				mediaUrl: 'https://videos.pexels.com/video-files/3209831/3209831-uhd_2560_1440_25fps.mp4',
 				mediaType: 'video' as const,
 				ingredients: [
-					{ id: '1', quantity: { text: '400', numeric: 400 }, measurement: 'grams' as MeasurementUnit, name: 'spaghetti', displayName: 'spaghetti' }
+					{ id: '1', quantity: { text: '400', numeric: 400 }, measurement: 'grams' as MeasurementUnit, name: 'spaghetti', displayName: 'spaghetti', isPrepared: false }
 				]
 			},
 			{
@@ -78,7 +78,7 @@
 				mediaUrl: 'https://videos.pexels.com/video-files/6603320/6603320-uhd_2560_1440_25fps.mp4',
 				mediaType: 'video' as const,
 				ingredients: [
-					{ id: '4', quantity: { text: '200', numeric: 200 }, measurement: 'grams' as MeasurementUnit, name: 'pancetta', displayName: 'pancetta' }
+					{ id: '4', quantity: { text: '200', numeric: 200 }, measurement: 'grams' as MeasurementUnit, name: 'pancetta', displayName: 'pancetta', isPrepared: false }
 				]
 			},
 			{
@@ -87,9 +87,9 @@
 				mediaUrl: 'https://videos.pexels.com/video-files/7008568/7008568-hd_1920_1080_25fps.mp4',
 				mediaType: 'video' as const,
 				ingredients: [
-					{ id: '2', quantity: { text: '4', numeric: 4 }, measurement: 'pieces' as MeasurementUnit, name: 'large eggs', displayName: 'large eggs' },
-					{ id: '3', quantity: { text: '100', numeric: 100 }, measurement: 'grams' as MeasurementUnit, name: 'pecorino romano', displayName: 'pecorino romano' },
-					{ id: '5', quantity: { text: '2', numeric: 2 }, measurement: 'teaspoons' as MeasurementUnit, name: 'black pepper', displayName: 'black pepper' }
+					{ id: '2', quantity: { text: '4', numeric: 4 }, measurement: 'pieces' as MeasurementUnit, name: 'large eggs', displayName: 'large eggs', isPrepared: false },
+					{ id: '3', quantity: { text: '100', numeric: 100 }, measurement: 'grams' as MeasurementUnit, name: 'pecorino romano', displayName: 'pecorino romano', isPrepared: false },
+					{ id: '5', quantity: { text: '2', numeric: 2 }, measurement: 'teaspoons' as MeasurementUnit, name: 'black pepper', displayName: 'black pepper', isPrepared: false }
 				]
 			},
 			{

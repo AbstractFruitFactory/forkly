@@ -168,6 +168,8 @@
 		ondrop={handleDrop}
 	>
 		{#if preview && mediaType === 'image'}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div class="remove-button" onclick={handleRemove} aria-label="Remove media">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
