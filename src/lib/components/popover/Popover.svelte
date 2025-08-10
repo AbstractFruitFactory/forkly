@@ -192,7 +192,7 @@
 		box-shadow: var(--shadow-md);
 		z-index: var(--z-popover);
 		max-width: calc(100vw - 10px);
-		padding: 0 var(--spacing-sm);
+		padding: var(--spacing-md);
 	}
 
 	.arrow {

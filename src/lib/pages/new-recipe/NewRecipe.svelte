@@ -61,6 +61,8 @@
 	import LoginPopup from '$lib/components/login-popup/LoginPopup.svelte'
 	import type { ImportedRecipeData } from '../../../../scripts/import-recipe-worker'
 	import FormError from '$lib/components/form-error/FormError.svelte'
+	import Popover from '$lib/components/popover/Popover.svelte'
+	import Info from 'lucide-svelte/icons/info'
 
 	let {
 		prefilledData,
@@ -767,15 +769,30 @@
 {/snippet}
 
 {#snippet addPreparedIngredientButton(instructionId: string, fullWidth?: boolean)}
-	<Button
-		color="neutral"
-		onclick={() => addPreparedIngredient(instructionId)}
-		size="sm"
-		{fullWidth}
-	>
-		<Plus size={16} color="var(--color-text-on-surface)" />
-		Add prepared ingredient
-	</Button>
+	<div class="prepared-add-wrapper" class:full-width={fullWidth}>
+		<Button
+			color="neutral"
+			onclick={() => addPreparedIngredient(instructionId)}
+			size="sm"
+			{fullWidth}
+		>
+			<Plus size={16} color="var(--color-text-on-surface)" />
+			Add prepared ingredient
+		</Button>
+		<Popover triggerOn={isMobileView ? 'click' : 'hover'} placement="top">
+			{#snippet trigger()}
+				<button type="button" class="info-btn" aria-label="What is a prepared ingredient?">
+					<Info size={16} color="var(--color-text-on-surface)" />
+				</button>
+			{/snippet}
+			{#snippet content()}
+				<div class="prepared-info-content">
+					References something that was made in a previous step - won't be included in the
+					ingredients list.
+				</div>
+			{/snippet}
+		</Popover>
+	</div>
 {/snippet}
 
 {#snippet removeInstructionButton(instructionId: string)}
@@ -1177,5 +1194,21 @@
 
 	.prepared-arrow {
 		margin-bottom: 6px;
+	}
+
+	.info-btn {
+		height: 28px;
+		width: 28px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+
+		@include mobile {
+			display: none;
+		}
+	}
+
+	.prepared-info-content {
+		max-width: 260px;
 	}
 </style>
