@@ -7,79 +7,80 @@ export interface TemperaturePart {
 	unit?: TemperatureUnit
 }
 
-// Convert Celsius to Fahrenheit
-export function celsiusToFahrenheit(celsius: number): number {
-	return Math.round((celsius * 9 / 5) + 32)
+export function celsiusToFahrenheit(c: number): number {
+	return Math.round((c * 9) / 5 + 32)
 }
-
-// Convert Fahrenheit to Celsius
-export function fahrenheitToCelsius(fahrenheit: number): number {
-	return Math.round((fahrenheit - 32) * 5 / 9)
+export function fahrenheitToCelsius(f: number): number {
+	return Math.round(((f - 32) * 5) / 9)
 }
-
-// Get conversion text for display
 export function getConversionText(value: number, unit: TemperatureUnit): string {
-	if (unit === 'C') {
-		return `${celsiusToFahrenheit(value)}°F`
-	} else {
-		return `${fahrenheitToCelsius(value)}°C`
-	}
+	return unit === 'C' ? `${celsiusToFahrenheit(value)}°F` : `${fahrenheitToCelsius(value)}°C`
 }
 
-// Parse text and identify temperature references
+function normalizeUnit(u: string): TemperatureUnit {
+	return u.trim().toUpperCase().startsWith('C') ? 'C' : 'F'
+}
+
+const UNIT = '(?:c|f|celsius|fahrenheit)'
+const DEG = '\\s*[°º]\\s*'
+const SEP_A = '(?<r_sepA>\\s*(?:-|–|—|to)\\s*)'
+const SEP_B = '(?<r_sepB>\\s*(?:-|–|—|to)\\s*)'
+
+const RANGE_WITH_DEG = `(?<r_val1a>-?\\d+(?:\\.\\d+)?)${DEG}(?<r_unit1a>${UNIT})(?![A-Za-z])${SEP_A}(?<r_val2a>-?\\d+(?:\\.\\d+)?)(?:${DEG}(?<r_unit2a>${UNIT})(?![A-Za-z]))?`
+const RANGE_NO_DEG   = `(?<r_val1b>-?\\d{2,3}(?:\\.\\d+)?)\\s*(?<r_unit1b>${UNIT})(?![A-Za-z])${SEP_B}(?<r_val2b>-?\\d{2,3}(?:\\.\\d+)?)(?:\\s*(?<r_unit2b>${UNIT})(?![A-Za-z]))?`
+const SINGLE_WITH_DEG= `(?<s_valA>-?\\d+(?:\\.\\d+)?)${DEG}(?<s_unitA>${UNIT})(?![A-Za-z])`
+const SINGLE_NO_DEG  = `(?<s_valB>-?\\d{2,3}(?:\\.\\d+)?)\\s*(?<s_unitB>${UNIT})(?![A-Za-z])`
+
+const CORE = `(?:${RANGE_WITH_DEG}|${RANGE_NO_DEG}|${SINGLE_WITH_DEG}|${SINGLE_NO_DEG})`
+const TEMP_PATTERN = `(?<![A-Za-z0-9])\\(?\\s*${CORE}(?:\\s*\\))?`
+const TEMP_REGEX = new RegExp(TEMP_PATTERN, 'gi')
+
 export function parseTemperature(text: string): TemperaturePart[] {
 	const parts: TemperaturePart[] = []
-	let currentIndex = 0
+	let last = 0
+	TEMP_REGEX.lastIndex = 0
 
-	// Regular expressions for temperature patterns
-	const patterns = [
-		/(\d+)\s*°?F(?:ahrenheit)?/i,  // Matches: 350F, 350°F, 350 Fahrenheit
-		/(\d+)\s*°?C(?:elsius)?/i,  // Matches: 180C, 180°C, 180 Celsius
-		/\((\d+)\s*°?C(?:elsius)?\)/i,  // Matches: (180C), (180°C)
-		/\((\d+)\s*°?F(?:ahrenheit)?\)/i  // Matches: (350F), (350°F)
-	]
+	let m: RegExpExecArray | null
+	while ((m = TEMP_REGEX.exec(text)) !== null) {
+		const start = m.index
+		const matchText = m[0]
 
-	while (currentIndex < text.length) {
-		let matchFound = false
-		const remainingText = text.slice(currentIndex)
-
-		for (const pattern of patterns) {
-			const match = remainingText.match(pattern)
-			if (match) {
-				// Add text before the temperature
-				if (match.index! > 0) {
-					parts.push({
-						text: text.slice(currentIndex, currentIndex + match.index!),
-						isTemperature: false
-					})
-				}
-
-				// Add the temperature
-				const value = parseInt(match[1])
-				const unit = match[0].toUpperCase().includes('C') ? 'C' : 'F'
-
-				parts.push({
-					text: match[0],
-					isTemperature: true,
-					value,
-					unit
-				})
-
-				currentIndex += match.index! + match[0].length
-				matchFound = true
-				break
-			}
+		if (start > last) {
+			parts.push({ text: text.slice(last, start), isTemperature: false })
 		}
 
-		if (!matchFound) {
-			// If no match found, add the remaining text
-			parts.push({
-				text: text.slice(currentIndex),
-				isTemperature: false
-			})
-			break
+		const g = m.groups ?? {}
+		const isRange = g.r_val1a || g.r_val1b
+
+		if (isRange) {
+			const val1 = parseFloat((g.r_val1a ?? g.r_val1b)!)
+			const unit1 = normalizeUnit((g.r_unit1a ?? g.r_unit1b)!)
+			const val2 = parseFloat((g.r_val2a ?? g.r_val2b)!)
+			const unit2Raw = g.r_unit2a ?? g.r_unit2b
+			const unit2 = normalizeUnit(unit2Raw ?? (g.r_unit1a ?? g.r_unit1b)!)
+			const sepText = (g.r_sepA ?? g.r_sepB) || '–'
+
+			const splitIdx = matchText.indexOf(sepText)
+			const leftText = matchText.slice(0, splitIdx)
+			const rightText = matchText.slice(splitIdx + sepText.length)
+
+			parts.push({ text: leftText, isTemperature: true, value: val1, unit: unit1 })
+			parts.push({ text: sepText, isTemperature: false })
+			parts.push({ text: rightText, isTemperature: true, value: val2, unit: unit2 })
+		} else {
+			const rawValue = g.s_valA ?? g.s_valB
+			const rawUnit = g.s_unitA ?? g.s_unitB
+			const value = parseFloat(rawValue!)
+			const unit = normalizeUnit(rawUnit!)
+			parts.push({ text: matchText, isTemperature: true, value, unit })
 		}
+
+		last = start + matchText.length
+	}
+
+	if (last < text.length) {
+		parts.push({ text: text.slice(last), isTemperature: false })
 	}
 
 	return parts
-} 
+}
