@@ -114,7 +114,6 @@
 		const currentLikes = await likes
 		isLiked = Promise.resolve(!currentLiked)
 		likes = Promise.resolve(currentLikes + (currentLiked ? -1 : 1))
-		console.log('isLiked', isLiked)
 		onLike()
 	}
 

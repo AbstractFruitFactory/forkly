@@ -1,3 +1,5 @@
+import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+
 type CookieEntry<K, V> = {
   key: K
   value: V
@@ -17,7 +19,8 @@ export type PaginationCookie = {
 
 export const useCookies = <
   T extends CookieEntry<'search', SearchCookie>
-  | CookieEntry<'pagination', PaginationCookie>,
+  | CookieEntry<'pagination', PaginationCookie>
+  | CookieEntry<'unit', UnitSystem>,
   V extends T['key']
 >(
   item: V

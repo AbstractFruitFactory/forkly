@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { crossfade } from 'svelte/transition'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+	import { useCookies } from '$lib/utils/cookies'
+	import { onMount } from 'svelte'
 
 	const [send, receive] = crossfade({})
 
@@ -12,8 +14,13 @@
 		onSelect: (system: UnitSystem) => void
 	} = $props()
 
+	onMount(() => {
+		state = useCookies('unit').get() ?? 'metric'
+	})
+
 	const toggle = () => {
 		state = state === 'metric' ? 'imperial' : 'metric'
+		useCookies('unit').set(state)
 		onSelect(state)
 	}
 </script>
