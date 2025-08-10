@@ -86,13 +86,14 @@ export async function getCloudinarySignature(
   return res.json()
 }
 
-export async function uploadMedia(file: File, fieldName: string): Promise<UploadResult> {
+export async function uploadMedia(file: File, fieldName: string, options?: { temp?: boolean }): Promise<UploadResult> {
   const isVideo = file.type.startsWith('video/')
-  const folder = fieldName.startsWith('instructions-')
+  const baseFolder = fieldName.startsWith('instructions-')
     ? 'instruction-media'
     : isVideo
       ? 'recipe-videos'
       : 'recipe-images'
+  const folder = options?.temp ? `${baseFolder}-tmp` : baseFolder
   const resourceType: 'image' | 'video' = isVideo ? 'video' : 'image'
 
   let fileToUpload = file

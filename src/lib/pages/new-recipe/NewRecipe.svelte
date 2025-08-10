@@ -858,25 +858,6 @@
 			submitting = true
 
 			const entries = Array.from(formData.entries())
-			const fileEntries = entries.filter(([, value]) => value instanceof File && value.size > 0) as [string, File][]
-
-			if (fileEntries.length > 0) {
-				console.time('mediaUploads')
-				const uploadTasks = fileEntries.map(([key, file]) => (async () => {
-					if (!uploadMedia) throw new Error('uploadMedia not provided')
-					console.time(`upload:${key}`)
-					const { url, type } = await uploadMedia(file, key)
-					console.timeEnd(`upload:${key}`)
-					return { key, url, type }
-				})())
-				const uploaded = await Promise.all(uploadTasks)
-				for (const { key, url, type } of uploaded) {
-					formData.set(`${key}-url`, url)
-					formData.set(`${key}-type`, type)
-					formData.delete(key)
-				}
-				console.timeEnd('mediaUploads')
-			}
 
 			formData.append('servings', servings.toString())
 			formData.append('id', _id)

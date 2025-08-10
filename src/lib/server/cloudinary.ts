@@ -81,3 +81,27 @@ export const deleteVideo = async (url: string): Promise<void> => {
   const publicId = matches[1]
   await cloudinary.uploader.destroy(publicId, { resource_type: 'video' })
 }
+
+function extractPublicIdFromUrl(url: string): string | null {
+  const m = url.match(/\/v\d+\/(.+?)\.[^.]+$/)
+  return m ? m[1] : null
+}
+
+export async function moveToFolder(
+  url: string,
+  targetFolder: 'recipe-images' | 'recipe-videos' | 'instruction-media',
+  resourceType: 'image' | 'video'
+): Promise<string> {
+  const currentPublicId = extractPublicIdFromUrl(url)
+  if (!currentPublicId) return url
+  const baseName = currentPublicId.split('/').pop()!
+  const newPublicId = `${targetFolder}/${baseName}`
+  try {
+    const res = await cloudinary.uploader.rename(currentPublicId, newPublicId, {
+      resource_type: resourceType
+    } as any)
+    return res.secure_url
+  } catch (e) {
+    return url
+  }
+}

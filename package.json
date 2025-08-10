@@ -33,6 +33,7 @@
     "test:watch": "dotenv -e .env.test vitest",
     "pretest": "tsx scripts/create-test-db.ts && dotenv -e .env.test drizzle-kit migrate",
     "cleanup:unverified": "tsx src/lib/server/db/cleanup-unverified.ts",
+    "cleanup:tmp-media": "tsx scripts/cleanup-temp-media.ts",
     "worker": "tsx scripts/import-recipe-worker.ts",
     "worker:sanitize": "tsx scripts/sanitize-ingredient-worker.ts",
     "test:rate-limiter": "tsx scripts/test-rate-limiter.ts",
