@@ -9,7 +9,8 @@
 		isOpen = $bindable(false),
 		dropdownContent,
 		nbrOfItems,
-		hasHighlight = $bindable(false)
+		hasHighlight = $bindable(false),
+		swallowOn
 	}: {
 		isOpen?: boolean
 		dropdownContent: Snippet<
@@ -17,6 +18,11 @@
 		>
 		nbrOfItems: number
 		hasHighlight?: boolean
+		swallowOn?:
+			| HTMLElement
+			| null
+			| (() => HTMLElement | null | undefined)
+			| Array<HTMLElement | null | undefined | (() => HTMLElement | null | undefined)>
 	} = $props()
 
 	let dropdownEl = $state<HTMLElement | null>(null)
@@ -102,7 +108,7 @@
 		bind:this={dropdownEl}
 		class="dropdown"
 		style="top: 0; left: 0;"
-		use:clickOutside={{ callback: closeDropdown }}
+		use:clickOutside={{ callback: closeDropdown, swallowOn: swallowOn ?? (() => parentEl) }}
 		transition:fly={{ y: 10, duration: 200 }}
 	>
 		{@render dropdownContent(item)}

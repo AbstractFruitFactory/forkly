@@ -196,7 +196,7 @@
 		class="portal-dropdown-container"
 		style="position: fixed; top: {dropdownPosition.top}px; left: {dropdownPosition.left}px; z-index: 1000;"
 	>
-		<Dropdown bind:isOpen={menuOpen} nbrOfItems={Object.keys(menu.options).length}>
+		<Dropdown bind:isOpen={menuOpen} nbrOfItems={Object.keys(menu.options).length} swallowOn={menuButton}>
 			{#snippet dropdownContent(item)}
 				{#each Object.entries(menu.options) as [label, action], i}
 					{#snippet menuLabel()}
