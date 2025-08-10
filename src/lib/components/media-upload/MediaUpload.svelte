@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte'
 	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
+	import { getMediaType } from '$lib/utils/mediaValidation'
 	import { createEventDispatcher } from 'svelte'
 
 	const dispatch = createEventDispatcher()
@@ -55,7 +56,8 @@
 	}
 
 	const MAX_VIDEO_DURATION_SECONDS = 10
-	const MAX_VIDEO_SIZE_MB = 10
+	const MAX_VIDEO_SIZE_MB = 25
+	const MAX_IMAGE_SIZE_MB = 10
 
 	const handleFileSelect = async (event: Event) => {
 		const input = event.target as HTMLInputElement
@@ -66,11 +68,9 @@
 
 	const handleFile = async (file: File) => {
 		if (preview) cleanupPreview(preview)
-		const result = await handleMediaFile(file, {
-			type,
-			maxSize: MAX_VIDEO_SIZE_MB,
-			maxDuration: MAX_VIDEO_DURATION_SECONDS
-		})
+		const detectedType = getMediaType(file)
+		const maxSize = detectedType === 'video' ? MAX_VIDEO_SIZE_MB : MAX_IMAGE_SIZE_MB
+		const result = await handleMediaFile(file, { type, maxSize, maxDuration: MAX_VIDEO_DURATION_SECONDS })
 		error = result.error
 		preview = result.preview
 		mediaType = result.mediaType

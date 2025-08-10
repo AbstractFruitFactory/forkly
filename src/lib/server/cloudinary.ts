@@ -28,7 +28,7 @@ export const uploadMedia = async (
     allowed_formats: options.resource_type === 'video'
       ? ['mp4', 'mov', 'avi', 'webm']
       : ['jpg', 'png', 'jpeg', 'webp'],
-    max_file_size: options.resource_type === 'video' ? 50000000 : 10000000 // 50MB for videos, 10MB for images
+    max_file_size: options.resource_type === 'video' ? 25000000 : 10000000 // 25MB for videos, 10MB for images
   }
 
   if (options.folder === 'avatars') {
