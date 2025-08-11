@@ -40,7 +40,6 @@
 	import Input from '$lib/components/input/Input.svelte'
 	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
 	import SuggestionSearch from '$lib/components/search/SuggestionSearch.svelte'
-	import TabSelect from '$lib/components/tab-select/TabSelect.svelte'
 	import X from 'lucide-svelte/icons/x'
 	import Plus from 'lucide-svelte/icons/plus'
 	import Trash from 'lucide-svelte/icons/trash-2'
@@ -98,7 +97,7 @@
 	let selectedTags = $state<string[]>(prefilledData?.tags ?? [])
 	let image = $state<string | null>(prefilledData?.image ?? null)
 
-	let nutritionMode = $state<'auto' | 'manual' | 'none'>(prefilledData?.nutritionMode ?? 'auto')
+	let nutritionMode = $state<'manual'>('manual')
 	let calories = $state(prefilledData?.nutrition?.calories ?? '')
 	let protein = $state(prefilledData?.nutrition?.protein ?? '')
 	let carbs = $state(prefilledData?.nutrition?.carbs ?? '')
@@ -152,13 +151,8 @@
 	let isAnonUploadPopupOpen = $state(false)
 	let isLoginPopupOpen = $state(false)
 	let willUploadAnonymously = $state(false)
-	let autoNutrition = $state<{
-		calories: number
-		protein: number
-		carbs: number
-		fat: number
-	} | null>(null)
 	let estimatingNutrition = $state(false)
+	let displayNutrition = $state(false)
 
 	async function estimateNutrition() {
 		estimatingNutrition = true
@@ -183,12 +177,10 @@
 			})
 			if (!res.ok) throw new Error('Failed to estimate nutrition')
 			const data = await res.json()
-			autoNutrition = {
-				calories: data.calories,
-				protein: data.protein,
-				carbs: data.carbs,
-				fat: data.fat
-			}
+			protein = String(data.protein)
+			carbs = String(data.carbs)
+			fat = String(data.fat)
+			calories = String(data.calories)
 		} catch (e) {
 			console.error(e)
 		} finally {
@@ -433,13 +425,14 @@
 		servings = recipe.servings ?? 1
 		selectedTags = recipe.tags ?? []
 		image = recipe.image ?? null
-		nutritionMode = recipe.nutritionMode ?? 'auto'
+		nutritionMode = 'manual'
 		if (recipe.nutrition) {
 			calories = recipe.nutrition.calories ?? ''
 			protein = recipe.nutrition.protein ?? ''
 			carbs = recipe.nutrition.carbs ?? ''
 			fat = recipe.nutrition.fat ?? ''
 		}
+		displayNutrition = Boolean(recipe.nutrition)
 
 		instructions = (recipe.instructions ?? []).map((instruction) => ({
 			id: generateId(),
@@ -529,57 +522,34 @@
 
 {#snippet nutrition()}
 	<div>
-		<TabSelect
-			options={['auto', 'manual', 'none']}
-			onSelect={(opt) => (nutritionMode = opt as 'auto' | 'manual' | 'none')}
-			selected={nutritionMode}
-		/>
-	</div>
-
-	{#if nutritionMode === 'manual'}
-		<div class="nutrition-inputs">
-			<Input>
-				<input
-					type="number"
-					step="any"
-					name="protein"
-					placeholder="Protein (g)"
-					bind:value={protein}
-				/>
-			</Input>
-			<Input>
-				<input type="number" step="any" name="carbs" placeholder="Carbs (g)" bind:value={carbs} />
-			</Input>
-			<Input>
-				<input type="number" step="any" name="fat" placeholder="Fat (g)" bind:value={fat} />
-			</Input>
-			<Input>
-				<input
-					type="text"
-					name="calories"
-					placeholder="Calories"
-					value={`${calories} kcal`}
-					readonly
-				/>
-			</Input>
+		<div class="checkbox-label">
+			<input
+				id="display-nutrition"
+				type="checkbox"
+				name="displayNutrition"
+				bind:checked={displayNutrition}
+				aria-labelledby="display-nutrition-label"
+			/>
+			<span id="display-nutrition-label">Display nutrition</span>
 		</div>
-	{:else if nutritionMode === 'auto'}
+	</div>
+	{#if displayNutrition}
 		<div class="nutrition-inputs">
+			<Input>
+				<input type="number" name="protein" placeholder="Protein (g)" bind:value={protein} />
+			</Input>
+			<Input>
+				<input type="number" name="carbs" placeholder="Carbs (g)" bind:value={carbs} />
+			</Input>
+			<Input>
+				<input type="number" name="fat" placeholder="Fat (g)" bind:value={fat} />
+			</Input>
+			<Input>
+				<input name="calories" placeholder="Calories" value={`${calories} kcal`} readonly />
+			</Input>
 			<Button color="neutral" onclick={estimateNutrition} loading={estimatingNutrition}>
-				Estimate nutrition info
+				Auto-estimate
 			</Button>
-			{#if autoNutrition}
-				<div style="display:flex; gap: var(--spacing-sm); align-items:center;">
-					<span>Calories: {autoNutrition.calories}</span>
-					<span>Protein: {autoNutrition.protein} g</span>
-					<span>Carbs: {autoNutrition.carbs} g</span>
-					<span>Fat: {autoNutrition.fat} g</span>
-				</div>
-				<input type="hidden" name="autoCalories" value={autoNutrition.calories} />
-				<input type="hidden" name="autoProtein" value={autoNutrition.protein} />
-				<input type="hidden" name="autoCarbs" value={autoNutrition.carbs} />
-				<input type="hidden" name="autoFat" value={autoNutrition.fat} />
-			{/if}
 		</div>
 	{/if}
 {/snippet}
@@ -593,7 +563,6 @@
 	instructionIndex?: number,
 	ingredientIndex?: number
 )}
-	{@const instructionIdx = instructionIndex ?? 0}
 	{@const currentInstruction = instructions.find((ins) => ins.id === instructionId)}
 	{@const currentIngredient = currentInstruction?.ingredients.find((ing) => ing.id === id)}
 	<div class="ingredient-row">
@@ -884,6 +853,7 @@
 			})
 
 			formData.append('nutritionMode', nutritionMode)
+			formData.append('displayNutrition', displayNutrition ? 'true' : 'false')
 
 			formData.append('draft', draftMode ? 'true' : 'false')
 
@@ -1210,5 +1180,13 @@
 
 	.prepared-info-content {
 		max-width: 260px;
+	}
+
+	.checkbox-label {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		color: var(--color-text-on-surface);
+		margin-bottom: var(--spacing-sm);
 	}
 </style>

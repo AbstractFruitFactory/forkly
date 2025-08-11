@@ -185,7 +185,7 @@
 		</div>
 	</div>
 
-	<div class="section-title">Nutrition</div>
+	<div class="section-title" style:margin-top="0">Nutrition</div>
 	<div class="section-content">
 		{@render nutrition()}
 	</div>
@@ -514,14 +514,6 @@
 
 		.mobile-servings {
 			display: none;
-		}
-
-		.section-title {
-			text-align: left;
-			margin-bottom: var(--spacing-md);
-			margin-top: var(--spacing-xl);
-			opacity: 1;
-			font-size: var(--font-size-md);
 		}
 
 		.ingredients-grid {
