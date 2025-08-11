@@ -6,8 +6,6 @@ import type { CheerioAPI } from 'cheerio'
 import dotenv from 'dotenv'
 import { setTimeout as delay } from 'node:timers/promises'
 import { URL as NodeURL } from 'node:url'
-import { JSDOM } from 'jsdom'
-import { Readability } from '@mozilla/readability'
 
 dotenv.config()
 
@@ -136,7 +134,7 @@ async function fetchAndCleanHtml(url: string): Promise<{ text: string; $: Cheeri
       }
       const html = await res.text()
       const $ = cheerio.load(html)
-      $('script:not([type="application/ld+json"]), style, noscript, iframe, svg').remove()
+      $('script, style, noscript, iframe, svg').remove()
 
       const markers: ImageCandidate[] = []
       let order = 0
@@ -189,49 +187,6 @@ async function fetchAndCleanHtml(url: string): Promise<{ text: string; $: Cheeri
 
 function cleanTextInput(text: string): string {
   return text.replace(/\s+/g, ' ').trim()
-}
-
-function extractEssentialFromHtmlWithReadability(html: string, baseUrl: string): { title?: string; text: string } | null {
-  try {
-    const dom = new JSDOM(html, { url: baseUrl })
-    const reader = new Readability(dom.window.document)
-    const article = reader.parse()
-    if (!article) return null
-    const title = article.title || undefined
-    const bodyText = article.textContent || ''
-    const sliced = sliceToEssentialSections(bodyText, title)
-    return { title, text: sliced }
-  } catch {
-    return null
-  }
-}
-
-function sliceToEssentialSections(text: string, titleHint?: string): string {
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
-  const joined = lines.join('\n')
-  const sections: { [k: string]: string } = {}
-
-  const findSection = (headings: string[]) => {
-    const pattern = new RegExp(`(^|\n)\s*(?:${headings.map(h => h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\s*\n`, 'i')
-    const match = joined.match(pattern)
-    if (!match) return null
-    const start = match.index! + match[0].length
-    const rest = joined.slice(start)
-    const nextHeading = rest.search(/\n\s*(ingredients?|instructions?|directions?|method|steps?)\s*\n/i)
-    const end = nextHeading >= 0 ? start + nextHeading : joined.length
-    return joined.slice(start, end).trim()
-  }
-
-  const title = titleHint || lines[0] || ''
-  const ingredients = findSection(['ingredients', 'ingredient list']) || lines.filter(l => /^[-•\d]/.test(l)).slice(0, 50).join('\n')
-  const instructions = findSection(['instructions', 'directions', 'method', 'steps']) || lines.filter(l => /^(step\s*\d+\b|\d+\.|-\s)/i.test(l)).slice(0, 100).join('\n')
-
-  const outParts = [] as string[]
-  if (title) outParts.push(`Title:\n${title}`)
-  if (ingredients) outParts.push(`Ingredients:\n${ingredients}`)
-  if (instructions) outParts.push(`Instructions:\n${instructions}`)
-  const out = outParts.join('\n\n')
-  return out.length > 6000 ? out.slice(0, 6000) : out
 }
 
 function extractJsonLd($: CheerioAPI): any[] {
@@ -380,7 +335,7 @@ async function extractTextFromImages(imageBase64Array: string[]): Promise<string
   ]
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-4o',
     temperature: 0.1,
     messages
   })
@@ -393,11 +348,13 @@ async function extractTextFromImages(imageBase64Array: string[]): Promise<string
 async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promise<any> {
   const prompt = `
   Extract a recipe from the following text. 
-
-  - If you see [IMAGE: url (WxH)] markers, USE them for the main recipe image and to attach to relevant steps. 
-  - If missing info, set null/empty instead of guessing. 
-  - Title can be inferred from content if absent.
-  - If a unit is specified, a quantity has to be specified as well. Measurements such as "to taste" go into the "quantity" field.
+  If you see [IMAGE: url (WxH)] markers, USE them for the main recipe image and to attach to relevant steps. 
+  Always include mediaUrl and mediaType ("image" | "video" | null) in every instruction. 
+  If missing info, set null/empty instead of guessing. 
+  Title can be inferred from content if absent. 
+  Use exactly up to 3 short, relevant tags.
+  If nutrition facts are present, include them in the nutrition object.
+  If a unit is specified, a quantity has to be specified as well. Measurements such as "to taste" go into the "quantity" field.
  
  IMPORTANT about step ingredients:
  - If a step reuses the same physical ingredient portion prepared in an earlier step (not adding more), set isPrepared=true for that ingredient and do not infer additional quantity/measurement for that step.
@@ -409,9 +366,11 @@ async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promi
   """${text}"""
   `
 
+  console.log(text)
+
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    temperature: 0,
+    model: 'gpt-4o',
+    temperature: 0.2,
     messages: [{ role: 'user', content: prompt }],
     tools: [
       {
@@ -553,7 +512,7 @@ async function handleJob(job: any) {
     if (inputType === 'url') {
       if (!url) throw new Error('URL is required for URL-based imports')
       const fetched = await fetchAndCleanHtml(url)
-      const { text: cleaned, $, markers: pageMarkers, ogImages: og, html } = fetched
+      const { text: cleaned, $, markers: pageMarkers, ogImages: og } = fetched
       markers = pageMarkers
       ogImages = og
 
@@ -561,14 +520,12 @@ async function handleJob(job: any) {
       if (ld.length) {
         parsed = mapJsonLdToImported(ld[0], url)
       } else {
-        const essential = extractEssentialFromHtmlWithReadability(html, url)
-        rawText = essential?.text || cleaned
+        rawText = cleaned
         parsed = await extractRecipeWithLLM(rawText, url)
       }
     } else if (inputType === 'text') {
       if (!text) throw new Error('Text content is required for text-based imports')
-      const cleaned = cleanTextInput(text)
-      rawText = sliceToEssentialSections(cleaned)
+      rawText = cleanTextInput(text)
       parsed = await extractRecipeWithLLM(rawText)
     } else if (inputType === 'image') {
       if (!imageBase64Array || imageBase64Array.length === 0) throw new Error('Image data is required for image-based imports')
