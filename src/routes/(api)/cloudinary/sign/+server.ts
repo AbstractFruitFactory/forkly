@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types'
 import { v2 as cloudinary } from 'cloudinary'
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '$env/static/private'
 import { mediaUploadSignLimiter } from '$lib/server/rate-limit'
+import { dev } from '$app/environment'
 
 export const GET: RequestHandler = async ({ url, locals, getClientAddress }) => {
   const isAuthed = Boolean(locals.user?.id)
@@ -18,9 +19,11 @@ export const GET: RequestHandler = async ({ url, locals, getClientAddress }) => 
   const requestedFolder = url.searchParams.get('folder') || 'recipe-images'
   const requestedType = url.searchParams.get('resource_type')
 
-  const folder = isAuthed
+  const folderBase = isAuthed
     ? (allowedFolders.has(requestedFolder) ? requestedFolder : 'recipe-images')
     : 'anonymous-media'
+
+  const folder = `${folderBase}${dev ? '-dev' : ''}`
 
   const resourceType = requestedType === 'video' ? 'video' : 'image'
 

@@ -1,5 +1,6 @@
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '$env/static/private'
 import { v2 as cloudinary } from 'cloudinary'
+import { dev } from '$app/environment'
 
 cloudinary.config({
   cloud_name: CLOUDINARY_CLOUD_NAME,
@@ -46,12 +47,15 @@ export const uploadMedia = async (
     }
   }
 
+  const effectiveFolder = options.folder ? `${options.folder}${dev ? '-dev' : ''}` : undefined
+
   return new Promise((resolve, reject) => {
     cloudinary.uploader.upload_stream(
       {
         ...defaultOptions,
         ...options,
-        resource_type: options.resource_type || 'auto'
+        resource_type: options.resource_type || 'auto',
+        folder: effectiveFolder
       },
       (error, result) => {
         if (error) reject(error)
@@ -94,14 +98,22 @@ export async function moveToFolder(
 ): Promise<string> {
   const currentPublicId = extractPublicIdFromUrl(url)
   if (!currentPublicId) return url
-  const baseName = currentPublicId.split('/').pop()!
-  const newPublicId = `${targetFolder}/${baseName}`
+  const parts = currentPublicId.split('/')
+  const restPath = parts.length > 1 ? parts.slice(1).join('/') : parts[0]
+  const targetFolderWithEnv = `${targetFolder}${dev ? '-dev' : ''}`
+  const newPublicId = `${targetFolderWithEnv}/${restPath}`
   try {
     const res = await cloudinary.uploader.rename(currentPublicId, newPublicId, {
-      resource_type: resourceType
+      resource_type: resourceType,
+      type: 'upload',
+      overwrite: true,
+      invalidate: true
     } as any)
+    try {
+      await cloudinary.api.update(newPublicId, { asset_folder: targetFolderWithEnv, resource_type: resourceType } as any)
+    } catch {}
     return res.secure_url
-  } catch (e) {
+  } catch {
     return url
   }
 }

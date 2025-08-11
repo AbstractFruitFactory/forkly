@@ -2,7 +2,7 @@ import { fail } from '@sveltejs/kit'
 import groupBy from 'ramda/src/groupBy'
 import { api } from '$lib/server/food-api'
 import * as v from 'valibot'
-import { uploadImage, uploadMedia } from '$lib/server/cloudinary'
+import { uploadImage, uploadMedia, moveToFolder } from '$lib/server/cloudinary'
 import { generateId } from '$lib/server/id'
 
 export const ingredientSchema = v.pipe(
@@ -265,8 +265,31 @@ export const buildRecipePayloadFromForm = async (formData: FormData, skipValidat
 
   let imageUrl: string | undefined = undefined
   if (imageUrlFromClient) {
-    imageUrl = imageUrlFromClient
+    let finalUrl = imageUrlFromClient
+    if (finalUrl.includes('-tmp') || finalUrl.includes('/anonymous-media')) {
+      try {
+        finalUrl = await moveToFolder(finalUrl, 'recipe-images', 'image')
+      } catch {}
+    }
+    imageUrl = finalUrl
   }
+
+  const movedInstructions = await Promise.all(
+    recipeData.instructions.map(async (ins) => {
+      if (!ins.mediaUrl) return ins
+      let finalUrl = ins.mediaUrl
+      if (finalUrl.includes('-tmp') || finalUrl.includes('/anonymous-media')) {
+        try {
+          finalUrl = await moveToFolder(finalUrl, 'instruction-media', ins.mediaType === 'video' ? 'video' : 'image')
+        } catch {}
+      }
+      return {
+        ...ins,
+        mediaUrl: finalUrl
+      }
+    })
+  )
+  recipeData.instructions = movedInstructions
 
   const allIngredients = recipeData.instructions.flatMap(instruction => (instruction.ingredients || []).filter(i => !i.isPrepared))
   if (allIngredients.length === 0 && !skipValidation) {
