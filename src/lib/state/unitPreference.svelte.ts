@@ -1,21 +1,22 @@
 import { browser } from '$app/environment'
+import { useCookies } from '$lib/utils/cookies'
 
 export type UnitSystem = 'metric' | 'imperial'
 
 const getInitialValue = (): UnitSystem => {
   if (!browser) return 'imperial'
-  const storedPreference = localStorage.getItem('unitSystem') as UnitSystem
+  const storedPreference = useCookies('unit').get()
   return storedPreference || 'imperial'
 }
 
 let _unitSystem = $state<UnitSystem>(getInitialValue())
 
 if (browser) {
-  localStorage.setItem('unitSystem', _unitSystem)
+  useCookies('unit').set(_unitSystem)
 }
 
 export const unitPreferenceStore = {
-  get unitSystem() {
+  get value() {
     return _unitSystem
   },
 

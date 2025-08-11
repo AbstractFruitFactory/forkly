@@ -92,7 +92,7 @@
 		throw new Error('Failed to load comments')
 	}
 
-	const unitSystem = $derived(unitPreferenceStore.unitSystem)
+	const unitSystem = $derived(unitPreferenceStore.value)
 </script>
 
 <svelte:head>

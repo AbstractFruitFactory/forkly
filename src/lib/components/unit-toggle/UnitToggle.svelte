@@ -14,10 +14,6 @@
 		onSelect: (system: UnitSystem) => void
 	} = $props()
 
-	onMount(() => {
-		state = useCookies('unit').get() ?? 'metric'
-	})
-
 	const toggle = () => {
 		state = state === 'metric' ? 'imperial' : 'metric'
 		useCookies('unit').set(state)

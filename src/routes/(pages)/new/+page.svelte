@@ -64,7 +64,7 @@
 		}
 	}
 
-	const unitSystem = $derived(unitPreferenceStore.unitSystem)
+	const unitSystem = $derived(unitPreferenceStore.value)
 </script>
 
 {#if form?.success}
