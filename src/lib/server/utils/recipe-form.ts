@@ -4,6 +4,8 @@ import { api } from '$lib/server/food-api'
 import * as v from 'valibot'
 import { uploadImage, uploadMedia, moveToFolder } from '$lib/server/cloudinary'
 import { generateId } from '$lib/server/id'
+import { formValidationSchema } from '$lib/validation/recipe-form.schema'
+import { parseFormData, type FormFields } from '$lib/validation/parse-recipe-form'
 
 export const ingredientSchema = v.pipe(
   v.object({
@@ -51,57 +53,9 @@ export const instructionSchema = v.object({
   ingredients: v.optional(v.array(ingredientSchema))
 })
 
-export const formValidationSchema = v.object({
-  title: v.pipe(
-    v.string(),
-    v.transform(input => input ?? ''),
-    v.minLength(1, 'Title is required'),
-    v.minLength(5, 'Title must be at least 5 characters'),
-    v.maxLength(80, 'Title must be at most 80 characters')
-  ),
-  description: v.pipe(
-    v.string(),
-    v.transform(input => input ?? '')
-  ),
-  servings: v.pipe(
-    v.number(),
-    v.minValue(1, 'Servings must be at least 1')
-  ),
-  instructions: v.pipe(
-    v.array(instructionSchema),
-    v.minLength(1, 'At least one instruction is required')
-  ),
-  tags: v.pipe(
-    v.array(v.string()),
-    v.maxLength(3, 'A recipe can have at most 3 tags')
-  )
-})
+// formValidationSchema is imported from shared module
 
-export type FormFields = {
-  title: string
-  description: string
-  servings: number
-  instructions: {
-    text: string
-    mediaUrl?: string
-    mediaType?: 'image' | 'video'
-    ingredients?: {
-      quantity?: string
-      measurement?: string
-      name: string
-      displayName: string
-      isPrepared?: boolean
-    }[]
-  }[]
-  tags: string[]
-  nutritionMode: 'auto' | 'manual' | 'none'
-  manualNutrition?: {
-    calories: number
-    protein: number
-    carbs: number
-    fat: number
-  }
-}
+// FormFields type is imported from shared parser
 
 export type RecipeApiResponse = {
   id: string
@@ -116,79 +70,12 @@ const parseIngredientOrInstruction = (formData: FormData, keyPrefix: string) =>
       return { id, field, value: value.toString() }
     })
 
-const parseFormData = (formData: FormData): FormFields => {
-  const tags = formData.getAll('tags').map(value => value.toString())
+// parseFormData is imported from shared module
 
-  const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')
-  const instructionById = groupBy(entry => entry.id, instructionEntries)
-
-  const instructions: FormFields['instructions'] = Object.values(instructionById).map(entries => {
-    let text = ''
-    const ingredients: FormFields['instructions'][0]['ingredients'] = []
-
-    for (const entry of entries!) {
-      const { field, value } = entry
-      if (field === 'text') {
-        text = value
-      }
-    }
-
-    const instructionId = entries![0]?.id
-    if (instructionId) {
-      const ingredientEntries = Array.from(formData.entries())
-        .filter(([key]) => key.startsWith(`instructions-${instructionId}-ingredient-`))
-        .map(([key, value]) => {
-          const parts = key.split('-')
-          const ingredientId = parts[3]
-          const field = parts[4]
-          return { id: ingredientId, field, value: value.toString() }
-        })
-
-      const ingredientById = groupBy(entry => entry.id, ingredientEntries)
-
-      Object.values(ingredientById).forEach(ingredientEntries => {
-        if (ingredientEntries) {
-          let name = ''
-          let quantity: string | undefined
-          let measurement = ''
-          let isPrepared = false
-
-          for (const entry of ingredientEntries) {
-            const { field, value } = entry
-            if (field === 'name') {
-              name = value
-            } else if (field === 'amount') {
-              quantity = value
-            } else if (field === 'unit') {
-              measurement = value
-            } else if (field === 'isPrepared') {
-              isPrepared = value === 'true' || value === '1'
-            }
-          }
-
-          if (name) {
-            ingredients.push({
-              name,
-              displayName: name,
-              quantity: (isPrepared) ? undefined : quantity,
-              measurement: (isPrepared) ? undefined : (measurement || undefined),
-              isPrepared: isPrepared
-            })
-          }
-        }
-      })
-    }
-
-    return {
-      text,
-      mediaUrl: undefined,
-      mediaType: undefined,
-      ingredients: ingredients.length > 0 ? ingredients : undefined
-    }
-  })
-
+export const buildRecipePayloadFromForm = async (formData: FormData, skipValidation: boolean = false) => {
+  const parsed = parseFormData(formData)
   const nutritionMode = formData.get('nutritionMode')?.toString() as 'auto' | 'manual' | 'none' | undefined
-  let manualNutrition: FormFields['manualNutrition'] = undefined
+  let manualNutrition: { calories: number; protein: number; carbs: number; fat: number } | undefined
   if (nutritionMode === 'manual') {
     const protein = parseFloat(formData.get('protein')?.toString() || '0')
     const carbs = parseFloat(formData.get('carbs')?.toString() || '0')
@@ -200,20 +87,12 @@ const parseFormData = (formData: FormData): FormFields => {
       fat
     }
   }
-
-  return {
-    title: formData.get('title')?.toString() ?? '',
-    description: formData.get('description')?.toString() ?? '',
-    servings: parseInt(formData.get('servings')?.toString() ?? '1') || 1,
-    instructions,
-    tags,
+  const recipeData = {
+    ...parsed,
     nutritionMode: nutritionMode ?? 'auto',
     manualNutrition
-  }
-}
+  } as unknown as FormFields & { nutritionMode: 'auto' | 'manual' | 'none'; manualNutrition?: { calories: number; protein: number; carbs: number; fat: number } }
 
-export const buildRecipePayloadFromForm = async (formData: FormData, skipValidation: boolean = false) => {
-  const recipeData = parseFormData(formData)
   const imageUrlFromClient = formData.get('image-url')?.toString()
 
   const instructionEntries = parseIngredientOrInstruction(formData, 'instructions')

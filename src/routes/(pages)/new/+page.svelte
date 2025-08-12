@@ -80,7 +80,6 @@
 			{unitSystem}
 			onUnitChange={handleUnitChange}
 			isLoggedIn={isLoggedIn()}
-			{uploadMedia}
 		/>
 	</div>
 {/if}

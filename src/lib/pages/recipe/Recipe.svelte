@@ -25,7 +25,6 @@
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
-	import { measurementUnits, type MeasurementUnit, type Ingredient as UIIngredient, type Instruction as UIInstruction } from '$lib/types'
 
 	let {
 		recipeData,
@@ -36,7 +35,8 @@
 		onCreateCollection,
 		onBackClick,
 		formError,
-		loadComments
+		loadComments,
+		preview = false
 	}: {
 		recipeData: Promise<{
 			recipe: DetailedRecipe
@@ -55,6 +55,7 @@
 		onBackClick?: () => void
 		formError?: string
 		loadComments: (pageNum: number) => Promise<{ comments: CommentT[]; total: number }>
+		preview?: boolean
 	} = $props()
 
 	let data = $derived.by(async () => await recipeData)
@@ -244,29 +245,31 @@
 {/snippet}
 
 {#snippet actionButtons()}
-	{#await Promise.all([isLiked, likes, isSaved])}
-		<FloatingLikeButton loading />
-		<FloatingSaveButton loading />
-		<FloatingShareButton loading />
-	{:then [isLiked, likes, isSaved]}
-		<FloatingLikeButton isActive={isLiked} count={likes} onClick={handleLike} />
-		<FloatingSaveButton
-			isActive={isSaved}
-			onClick={() => {
-				if (!isLoggedIn) {
-					handleSave()
-					return
-				}
+	{#if !preview}
+		{#await Promise.all([isLiked, likes, isSaved])}
+			<FloatingLikeButton loading />
+			<FloatingSaveButton loading />
+			<FloatingShareButton loading />
+		{:then [isLiked, likes, isSaved]}
+			<FloatingLikeButton isActive={isLiked} count={likes} onClick={handleLike} />
+			<FloatingSaveButton
+				isActive={isSaved}
+				onClick={() => {
+					if (!isLoggedIn) {
+						handleSave()
+						return
+					}
 
-				if (isSaved) {
-					handleSave()
-				} else {
-					savePopupOpen = true
-				}
-			}}
-		/>
-		<FloatingShareButton onClick={toggleSharePopup} />
-	{/await}
+					if (isSaved) {
+						handleSave()
+					} else {
+						savePopupOpen = true
+					}
+				}}
+			/>
+			<FloatingShareButton onClick={toggleSharePopup} />
+		{/await}
+	{/if}
 {/snippet}
 
 {#snippet commonDescription(card: boolean)}
@@ -340,39 +343,41 @@
 {/snippet}
 
 {#snippet comments()}
-	<div class="comments-section" bind:this={commentsSection}>
-		<div class="header">
-			<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
-				<MessageSquare size={20} />
-				Comments
-				{#if totalComments}
-					<span style:font-size="var(--font-size-xl)" style:font-weight="500">
-						({totalComments})
-					</span>
-				{/if}
-			</h3>
+	{#if !preview}
+		<div class="comments-section" bind:this={commentsSection}>
+			<div class="header">
+				<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
+					<MessageSquare size={20} />
+					Comments
+					{#if totalComments}
+						<span style:font-size="var(--font-size-xl)" style:font-weight="500">
+							({totalComments})
+						</span>
+					{/if}
+				</h3>
+			</div>
+			{#await data}
+				<CommentList
+					comments={[]}
+					isLoggedIn={false}
+					recipeId=""
+					{formError}
+					loading={true}
+					total={0}
+					loadComments={() => Promise.resolve({ comments: [], total: 0 })}
+				/>
+			{:then recipeData}
+				<CommentList
+					comments={recipeData.comments.comments}
+					isLoggedIn={recipeData.isLoggedIn}
+					recipeId={recipeData.recipe.id}
+					{formError}
+					bind:total={totalComments}
+					{loadComments}
+				/>
+			{/await}
 		</div>
-		{#await data}
-			<CommentList
-				comments={[]}
-				isLoggedIn={false}
-				recipeId=""
-				{formError}
-				loading={true}
-				total={0}
-				loadComments={() => Promise.resolve({ comments: [], total: 0 })}
-			/>
-		{:then recipeData}
-			<CommentList
-				comments={recipeData.comments.comments}
-				isLoggedIn={recipeData.isLoggedIn}
-				recipeId={recipeData.recipe.id}
-				{formError}
-				bind:total={totalComments}
-				{loadComments}
-			/>
-		{/await}
-	</div>
+	{/if}
 {/snippet}
 
 {#snippet navButtons()}
@@ -382,7 +387,9 @@
 	<button class="nav-button" onclick={() => scrollToSection(instructionsSection)}>
 		Instructions
 	</button>
-	<button class="nav-button" onclick={() => scrollToSection(commentsSection)}> Comments </button>
+	{#if !preview}
+		<button class="nav-button" onclick={() => scrollToSection(commentsSection)}> Comments </button>
+	{/if}
 {/snippet}
 
 <div class="recipe-desktop-view">

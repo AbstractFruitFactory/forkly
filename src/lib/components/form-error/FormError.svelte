@@ -43,7 +43,6 @@
 
 <style lang="scss">
 	.form-error-list {
-		padding: var(--spacing-sm) var(--spacing-sm);
 		list-style: none;
 
 		&.multiple {
