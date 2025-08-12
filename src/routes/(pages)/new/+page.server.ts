@@ -23,12 +23,10 @@ async function cleanupUploadedMedia(formData: FormData) {
 export const actions = {
   createRecipe: async ({ request, fetch }) => {
     const formData = await request.formData()
-    console.time('buildRecipePayloadFromForm')
     const { payload, error } = await buildRecipePayloadFromForm(formData)
-    console.timeEnd('buildRecipePayloadFromForm')
+
     if (error) return error
 
-    console.time('api:/recipes/create')
     const fetchResponse = await safeFetch<RecipeApiResponse>(fetch)(
       '/recipes/create',
       {
@@ -37,7 +35,6 @@ export const actions = {
         body: JSON.stringify(payload)
       }
     )
-    console.timeEnd('api:/recipes/create')
     if (fetchResponse.isErr()) {
       console.error('Error creating recipe', fetchResponse.error)
       await cleanupUploadedMedia(formData)

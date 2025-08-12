@@ -2,9 +2,7 @@
 	import { onDestroy } from 'svelte'
 	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
 	import { getMediaType } from '$lib/utils/mediaValidation'
-	import { createEventDispatcher } from 'svelte'
-
-	const dispatch = createEventDispatcher()
+	import { uploadMedia } from '$lib/client/media/upload'
 
 	let {
 		error,
@@ -73,19 +71,21 @@
 		if (preview) cleanupPreview(preview)
 		const detectedType = getMediaType(file)
 		const maxSize = detectedType === 'video' ? MAX_VIDEO_SIZE_MB : MAX_IMAGE_SIZE_MB
-		const result = await handleMediaFile(file, { type, maxSize, maxDuration: MAX_VIDEO_DURATION_SECONDS })
+		const result = await handleMediaFile(file, {
+			type,
+			maxSize,
+			maxDuration: MAX_VIDEO_DURATION_SECONDS
+		})
 		error = result.error
 		preview = result.preview
 		mediaType = result.mediaType
 		if (!error) {
 			isUploading = true
 			try {
-				const { uploadMedia } = await import('$lib/client/media/upload')
 				const { url, type: uploaded } = await uploadMedia(file, name, { temp: true })
 				uploadedUrl = url
 				uploadedType = uploaded
 				if (hiddenInputEl) hiddenInputEl.value = url
-				dispatch('change', file)
 				onFile?.(file)
 			} catch (e) {
 				error = 'Failed to upload media'
@@ -119,7 +119,6 @@
 		if (inputElement) {
 			inputElement.value = ''
 		}
-		dispatch('remove')
 	}
 	onDestroy(() => {
 		if (preview) cleanupPreview(preview)
@@ -441,7 +440,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: rgba(0,0,0,0.4);
+		background: rgba(0, 0, 0, 0.4);
 		color: white;
 		z-index: 3;
 		font-weight: 600;

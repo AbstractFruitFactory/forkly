@@ -14,11 +14,13 @@
 
 	let {
 		params,
-		data
+		data,
+		preview = false
 	}: {
 		params: {
 			id: string
 		}
+		preview?: boolean
 	} & Partial<PageProps> = $props()
 
 	const currentUrl = $derived(page.url.href)
@@ -105,6 +107,7 @@
 
 <div class="recipe-page" data-page="recipe">
 	<Recipe
+		{preview}
 		{recipeData}
 		{unitSystem}
 		onUnitChange={handleUnitChange}

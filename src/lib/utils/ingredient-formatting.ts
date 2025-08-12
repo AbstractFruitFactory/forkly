@@ -359,7 +359,10 @@ export function getDisplayIngredient(
   unitSystem: 'metric' | 'imperial'
 ): Ingredient & { displayMeasurementAndQuantity: string } {
   if (!ingredient.quantity?.numeric || isNaN(ingredient.quantity.numeric)) {
-    return { ...ingredient, displayMeasurementAndQuantity: ingredient.measurement || '' }
+    const textPart = ingredient.quantity?.text?.trim()
+    const unitPart = ingredient.measurement?.toString().trim()
+    const fallback = [textPart, unitPart].filter(Boolean).join(' ')
+    return { ...ingredient, displayMeasurementAndQuantity: fallback }
   }
   const scaled = scaleQuantity(ingredient.quantity.numeric, currentServings, originalServings)
   const useFractions = scaled < 10

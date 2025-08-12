@@ -50,7 +50,6 @@ export type DetailedRecipe = {
     name: string
     quantity: { text: string, numeric?: number }
     measurement: string
-    custom?: boolean
     displayName: string
   }>
   nutrition?: {

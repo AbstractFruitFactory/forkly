@@ -52,7 +52,8 @@
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import {
 		UNIT_DISPLAY_SINGULAR as UNIT_DISPLAY_TEXT,
-		UNITS
+		UNITS,
+		parseQuantityToNumber
 	} from '$lib/utils/ingredient-formatting'
 	import DownloadIcon from 'lucide-svelte/icons/download'
 	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
@@ -62,6 +63,10 @@
 	import FormError from '$lib/components/form-error/FormError.svelte'
 	import Popover from '$lib/components/popover/Popover.svelte'
 	import Info from 'lucide-svelte/icons/info'
+	import RecipePopup from '$lib/components/recipe-popup/RecipePopup.svelte'
+	import { formValidationSchema } from '$lib/validation/recipe-form.schema'
+	import * as v from 'valibot'
+	import { parseFormData as parseRecipeForm } from '$lib/validation/parse-recipe-form'
 
 	let {
 		prefilledData,
@@ -70,10 +75,8 @@
 		errors,
 		unitSystem = 'imperial',
 		onSearchTags,
-		onSearchIngredients,
 		onUnitChange,
-		isLoggedIn,
-		uploadMedia
+		isLoggedIn
 	}: {
 		prefilledData?: PrefilledData
 		editMode?: { onSave: () => void }
@@ -84,24 +87,18 @@
 		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 		onUnitChange?: (system: UnitSystem) => void
 		isLoggedIn?: Promise<boolean>
-		uploadMedia?: (
-			file: File,
-			fieldName: string
-		) => Promise<{ url: string; type: 'image' | 'video' }>
 	} = $props()
 
-	let _id = $state(prefilledData?.id ?? '')
-	let _title = $state(prefilledData?.title ?? '')
-	let _description = $state(prefilledData?.description ?? '')
-	let servings = $state(prefilledData?.servings ?? 1)
-	let selectedTags = $state<string[]>(prefilledData?.tags ?? [])
-	let image = $state<string | null>(prefilledData?.image ?? null)
-
-	let nutritionMode = $state<'manual'>('manual')
-	let calories = $state(prefilledData?.nutrition?.calories ?? '')
-	let protein = $state(prefilledData?.nutrition?.protein ?? '')
-	let carbs = $state(prefilledData?.nutrition?.carbs ?? '')
-	let fat = $state(prefilledData?.nutrition?.fat ?? '')
+	let _id = $derived(prefilledData?.id ?? '')
+	let _title = $derived(prefilledData?.title ?? '')
+	let _description = $derived(prefilledData?.description ?? '')
+	let servings = $derived(prefilledData?.servings ?? 1)
+	let selectedTags = $derived<string[]>(prefilledData?.tags ?? [])
+	let image = $derived<string | null>(prefilledData?.image ?? null)
+	let calories = $derived(prefilledData?.nutrition?.calories ?? '')
+	let protein = $derived(prefilledData?.nutrition?.protein ?? '')
+	let carbs = $derived(prefilledData?.nutrition?.carbs ?? '')
+	let fat = $derived(prefilledData?.nutrition?.fat ?? '')
 
 	let instructions: {
 		id: string
@@ -134,17 +131,6 @@
 			: [{ id: generateId(), ingredients: [] }]
 	)
 
-	$effect(() => {
-		if (nutritionMode === 'manual') {
-			const p = parseFloat(String(protein)) || 0
-			const c = parseFloat(String(carbs)) || 0
-			const f = parseFloat(String(fat)) || 0
-			calories = String(p * 4 + c * 4 + f * 9)
-		} else {
-			calories = ''
-		}
-	})
-
 	let isMobileView = $state(false)
 	let searchValue = $state('')
 	let isImportPopupOpen = $state(false)
@@ -153,6 +139,107 @@
 	let willUploadAnonymously = $state(false)
 	let estimatingNutrition = $state(false)
 	let displayNutrition = $state(false)
+
+	let previewPopup = $state<RecipePopup>()
+	let previewRecipeData = $state<any>(null)
+	let confirmUpload = $state(false)
+	let formEl = $state<HTMLFormElement>()
+
+	const buildPreviewData = () => {
+		const formData = new FormData(formEl!)
+		const parsed = parseRecipeForm(formData)
+
+		const instructionsForRecipe = parsed.instructions.map((ins, index) => {
+			const clientId = instructions[index]?.id
+			const mediaUrl = clientId
+				? formData.get(`instructions-${clientId}-media-url`)?.toString()
+				: undefined
+			const mediaType = clientId
+				? (formData.get(`instructions-${clientId}-media-type`)?.toString() as
+						| 'image'
+						| 'video'
+						| undefined)
+				: undefined
+			return {
+				text: ins.text || '',
+				mediaUrl: mediaUrl,
+				mediaType: mediaType,
+				ingredients: (ins.ingredients || []).map((ing) => ({
+					name: ing.name || '',
+					quantity: ing.quantity
+						? { text: String(ing.quantity), numeric: parseQuantityToNumber(ing.quantity) }
+						: undefined,
+					measurement: ing.measurement || '',
+					displayName: ing.displayName || ing.name || '',
+					isPrepared: ing.isPrepared === true
+				}))
+			}
+		})
+
+		const flatIngredients = parsed.instructions
+			.flatMap((ins) => ins.ingredients || [])
+			.filter((ing) => !ing.isPrepared && ing.name)
+		const ingredients = flatIngredients.map((ing) => ({
+			id: generateId(),
+			name: ing.name,
+			quantity: ing.quantity
+				? { text: String(ing.quantity), numeric: parseQuantityToNumber(ing.quantity) }
+				: undefined,
+			measurement: ing.measurement || '',
+			displayName: ing.displayName || ing.name
+		}))
+
+		const nutrition = displayNutrition
+			? {
+					calories: parseFloat(String(calories)) || 0,
+					protein: parseFloat(String(protein)) || 0,
+					carbs: parseFloat(String(carbs)) || 0,
+					fat: parseFloat(String(fat)) || 0
+				}
+			: undefined
+
+		const previewRecipe = {
+			id: _id || generateId(),
+			title: parsed.title,
+			description: parsed.description,
+			instructions: instructionsForRecipe,
+			tags: selectedTags,
+			imageUrl: image || undefined,
+			createdAt: new Date(),
+			servings: servings,
+			ingredients,
+			nutrition
+		}
+
+		return {
+			recipe: previewRecipe,
+			comments: { comments: [], total: 0 },
+			collections: [],
+			isLoggedIn: false
+		}
+	}
+
+	function validateBeforePreview(): boolean {
+		const data = parseRecipeForm(new FormData(formEl!))
+		const result = v.safeParse(formValidationSchema, data as any)
+		if (!result.success) {
+			const errs: { path: string; message: string }[] = []
+			for (const issue of result.issues) {
+				const path =
+					Array.isArray(issue.path) && issue.path.length > 0
+						? issue.path.map((p) => (typeof p.key === 'string' ? p.key : String(p.key))).join('.')
+						: 'api'
+				errs.push({ path, message: issue.message })
+			}
+			errors = errs
+			console.log('Form validation failed; not opening preview', errs)
+			return false
+		}
+
+		errors = []
+
+		return true
+	}
 
 	async function estimateNutrition() {
 		estimatingNutrition = true
@@ -277,46 +364,6 @@
 		)
 	}
 
-	const buildPrevIngredientSuggestions = (instructionIndex: number) => {
-		return async (query: string) => {
-			const q = (query || '').toLowerCase()
-			if (q.length < 1) return []
-			const seen = new Set<string>()
-			const prev = instructions
-				.slice(0, instructionIndex)
-				.flatMap((ins) => ins.ingredients)
-				.filter((ing) => ing.name && ing.name.toLowerCase().includes(q))
-				.map((ing) => ing.name!)
-			for (const name of prev) seen.add(name)
-			return Array.from(seen).map((name) => ({ name })) as any
-		}
-	}
-
-	const buildOnSelectReference = (instructionId: string, ingredientId: string) => {
-		return (suggestion: any) => {
-			const refName: string =
-				suggestion.rawName ?? String(suggestion.name).replace(/^Reference:\s*/, '')
-			instructions = instructions.map((ins) =>
-				ins.id !== instructionId
-					? ins
-					: {
-							...ins,
-							ingredients: ins.ingredients.map((ing) =>
-								ing.id === ingredientId
-									? {
-											...ing,
-											name: refName,
-											isPrepared: true,
-											quantity: undefined,
-											unit: undefined
-										}
-									: ing
-							)
-						}
-			)
-		}
-	}
-
 	const removeIngredient = (instructionId: string, ingredientId: string) => {
 		instructions = instructions.map((instruction) =>
 			instruction.id === instructionId
@@ -345,15 +392,6 @@
 
 		const results = await onSearchTags(query)
 		return results.map((tag) => ({ id: tag.name, name: tag.name }))
-	}
-
-	const searchIngredients = async (query: string): Promise<{ id: string; name: string }[]> => {
-		if (!onSearchIngredients) return []
-		const results = await onSearchIngredients(query)
-		return results.map((ingredient) => ({
-			id: ingredient.id ?? ingredient.name,
-			name: ingredient.name
-		}))
 	}
 
 	const handleTagSelect = (tag: string, selected: boolean) => {
@@ -419,13 +457,12 @@
 	}
 
 	const populateFromRecipe = (recipe: ImportedRecipeData) => {
-		console.log('recipe', recipe)
 		_title = recipe.title ?? ''
 		_description = recipe.description ?? ''
 		servings = recipe.servings ?? 1
 		selectedTags = recipe.tags ?? []
 		image = recipe.image ?? null
-		nutritionMode = 'manual'
+
 		if (recipe.nutrition) {
 			calories = recipe.nutrition.calories ?? ''
 			protein = recipe.nutrition.protein ?? ''
@@ -717,9 +754,9 @@
 		formaction={editMode ? '?/updateRecipe' : '?/createRecipe'}
 		loading={submitting}
 		type="submit"
-		color="primary"
+		color="secondary"
 	>
-		{editMode ? 'Save' : 'Upload'} Recipe
+		Preview Recipe
 	</Button>
 {/snippet}
 
@@ -824,6 +861,7 @@
 
 <div class="new-recipe">
 	<form
+		bind:this={formEl}
 		method="POST"
 		enctype="multipart/form-data"
 		use:enhance={async ({ formData, cancel, action }) => {
@@ -841,9 +879,23 @@
 				return
 			}
 
-			submitting = true
+			// Intercept create/update submit for preview
+			if (!action?.search?.includes('saveDraft')) {
+				if (!confirmUpload) {
+					if (!validateBeforePreview()) {
+						cancel()
+						return
+					}
+					previewRecipeData = buildPreviewData()
+					await previewPopup?.open()
+					cancel()
+					return
+				} else {
+					confirmUpload = false
+				}
+			}
 
-			const entries = Array.from(formData.entries())
+			submitting = true
 
 			formData.append('servings', servings.toString())
 			formData.append('id', _id)
@@ -852,7 +904,6 @@
 				formData.append('tags', tag)
 			})
 
-			formData.append('nutritionMode', nutritionMode)
 			formData.append('displayNutrition', displayNutrition ? 'true' : 'false')
 
 			formData.append('draft', draftMode ? 'true' : 'false')
@@ -948,6 +999,30 @@
 		<LoginPopup bind:isOpen={isLoginPopupOpen} onClose={() => (isLoginPopupOpen = false)} />
 	</form>
 </div>
+
+<RecipePopup
+	bind:this={previewPopup}
+	onClose={() => previewPopup!.close()}
+	recipeData={previewRecipeData}
+	onBack={() => previewPopup!.close()}
+	preview={previewRecipeData?.recipe}
+	actionText={editMode ? 'Save' : 'Upload'}
+	onUpload={async () => {
+		confirmUpload = true
+		const selector = editMode
+			? 'button[formaction*="updateRecipe"]'
+			: 'button[formaction*="createRecipe"]'
+		const btn = formEl?.querySelector(selector) as HTMLButtonElement | null
+		previewPopup?.close()
+		await new Promise((resolve) => setTimeout(resolve, 300))
+
+		if (btn) {
+			btn.click()
+		} else {
+			formEl?.requestSubmit()
+		}
+	}}
+/>
 
 <ImportRecipePopup
 	bind:isOpen={isImportPopupOpen}
