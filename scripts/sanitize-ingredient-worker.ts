@@ -43,6 +43,9 @@ async function sanitizeIngredientsWithAI(ingredientNames: string[]): Promise<(st
       "peanut butter" (not "peanut")
       "olive oil" (not "olive")
 
+      However, lean more towards being general than specific. 
+      If you are not sure if this is a basic ingredient that would be useful for a user to search for, return NULL.
+
       Return only the base ingredient names, one per line, in the same order as the input. Use singular where applicable (e.g., "tomato" not "tomatoes"). If no single name can be deduced, output exactly "NULL" for that line.
 
       Ingredients to sanitize:
