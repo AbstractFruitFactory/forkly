@@ -34,10 +34,15 @@
 		await handleClose()
 	}
 
+	export const scrollToTop = () => {
+		popupContent?.scrollTo(0, 0)
+	}
+
 	let ANIMATION_DURATION = 0.35
 
 	let popupContainer = $state<HTMLDivElement>()
-
+	let popupContent = $state<HTMLDivElement>()
+		
 	const handleOpen = async () => {
 		if (animateFrom) {
 			const flip = (await import('gsap/Flip')).Flip
@@ -174,7 +179,7 @@
 						</div>
 					</div>
 				{/if}
-				<div class="popup-content">
+				<div class="popup-content" bind:this={popupContent}>
 					{@render children?.()}
 				</div>
 			</div>

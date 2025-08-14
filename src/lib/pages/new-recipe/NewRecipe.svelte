@@ -60,13 +60,14 @@
 	import FormError from '$lib/components/form-error/FormError.svelte'
 	import Popover from '$lib/components/popover/Popover.svelte'
 	import Info from 'lucide-svelte/icons/info'
-	import RecipePopup from '$lib/components/recipe-popup/RecipePopup.svelte'
 	import { formValidationSchema } from '$lib/validation/recipe-form.schema'
 	import * as v from 'valibot'
 	import { goto } from '$app/navigation'
 	import { createRecipe, updateRecipe } from '$lib/remote-functions/recipe.remote'
 	import { deleteDraft, saveDraft, updateDraft } from '$lib/remote-functions/draft.remote'
 	import { nullToUndefined } from '$lib/utils/nullToUndefined'
+	import RecipePage from '../../../routes/(pages)/recipe/[id]/+page.svelte'
+	import Popup from '$lib/components/popup/Popup.svelte'
 
 	type UIIngredient = {
 		id: string
@@ -94,7 +95,7 @@
 		onUnitChange,
 		isLoggedIn,
 		onCreated,
-		onErrors
+		onOpenPreview
 	}: {
 		prefilledData?: PrefilledData
 		editMode?: { onSave: () => void }
@@ -105,7 +106,7 @@
 		onUnitChange?: (system: UnitSystem) => void
 		isLoggedIn?: Promise<boolean>
 		onCreated?: (recipeId: string) => void
-		onErrors?: (errors: { path: string; message: string }[]) => void
+		onOpenPreview?: () => void
 	} = $props()
 
 	const toFlatPreviewIngredients = () => {
@@ -159,11 +160,10 @@
 	let willUploadAnonymously = $state(false)
 	let estimatingNutrition = $state(false)
 	let displayNutrition = $state(false)
-
-	let previewPopup = $state<RecipePopup>()
 	let previewRecipeData = $state<any>()
 	let confirmUpload = $state(false)
 	let imageUrlState = $state<string | undefined>(prefilledData?.image ?? undefined)
+	let showPreview = $state(false)
 
 	const buildPreviewData = () => {
 		const previewRecipe = {
@@ -876,7 +876,7 @@
 	{/if}
 {/snippet}
 
-{#snippet submitButton(fullWidth?: boolean)}
+{#snippet previewButton(fullWidth?: boolean)}
 	<Button
 		disabled={!isLoggedIn}
 		{fullWidth}
@@ -893,7 +893,8 @@
 			if (!confirmUpload) {
 				if (!validateForm()) return
 				previewRecipeData = buildPreviewData()
-				await previewPopup?.open()
+				showPreview = true
+				onOpenPreview?.()
 				return
 			}
 			confirmUpload = false
@@ -1003,6 +1004,36 @@
 	</div>
 {/snippet}
 
+{#snippet preview()}
+	<div class="preview-container">
+		<RecipePage
+			params={{ id: _id }}
+			data={previewRecipeData
+				? { recipeData: previewRecipeData, user: undefined }
+				: { recipeData: null, user: undefined }}
+			preview
+		/>
+
+		<div class="preview-actions">
+			<Button color="neutral" onclick={() => (showPreview = false)}>Go back</Button>
+			<Button
+				color="primary"
+				onclick={async () => {
+					showPreview = false
+					if (!editMode) {
+						await new Promise((resolve) => setTimeout(resolve, 300))
+						await submitCreate()
+					} else {
+						await saveEditRecipe()
+					}
+				}}
+			>
+				{editMode ? 'Save' : 'Upload'}
+			</Button>
+		</div>
+	</div>
+{/snippet}
+
 <div class="new-recipe">
 	{#if errors && (errors.find((error) => error.path === 'ingredients') || errors.find((error) => error.path === 'api'))}
 		<div class="error-container">
@@ -1012,7 +1043,9 @@
 		</div>
 	{/if}
 
-	{#if isMobileView}
+	{#if editMode && showPreview}
+		{@render preview()}
+	{:else if isMobileView}
 		<div class="mobile-layout">
 			<MobileLayout
 				{instructions}
@@ -1032,7 +1065,7 @@
 				{removeInstructionButton}
 				{moveInstructionUpButton}
 				{moveInstructionDownButton}
-				{submitButton}
+				submitButton={previewButton}
 				{saveDraftButton}
 				{importButton}
 				headerText={!editMode && !draftMode ? headerText : undefined}
@@ -1058,11 +1091,17 @@
 				{removeInstructionButton}
 				{moveInstructionUpButton}
 				{moveInstructionDownButton}
-				{submitButton}
+				previewButton={editMode ? undefined : previewButton}
 				{saveDraftButton}
 				{importButton}
 				headerText={!editMode && !draftMode ? headerText : undefined}
 			/>
+
+			{#if editMode}
+				<div class="preview-actions">
+					{@render previewButton()}
+				</div>
+			{/if}
 		</div>
 	{/if}
 
@@ -1077,22 +1116,11 @@
 	<LoginPopup bind:isOpen={isLoginPopupOpen} onClose={() => (isLoginPopupOpen = false)} />
 </div>
 
-<RecipePopup
-	bind:this={previewPopup}
-	recipeData={previewRecipeData}
-	onBack={() => previewPopup!.close()}
-	preview={previewRecipeData?.recipe}
-	actionText={editMode ? 'Save' : 'Upload'}
-	onUpload={async () => {
-		previewPopup!.close()
-		if (!editMode) {
-			await new Promise((resolve) => setTimeout(resolve, 300))
-			await submitCreate()
-		} else {
-			await saveEditRecipe()
-		}
-	}}
-/>
+{#if !editMode}
+	<Popup bind:isOpen={showPreview} width="90vw">
+		{@render preview()}
+	</Popup>
+{/if}
 
 <ImportRecipePopup
 	bind:isOpen={isImportPopupOpen}
@@ -1333,5 +1361,25 @@
 		gap: var(--spacing-sm);
 		color: var(--color-text-on-surface);
 		margin-bottom: var(--spacing-sm);
+	}
+
+	.preview-container {
+		min-height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.preview-actions {
+		position: absolute;
+		width: 100%;
+		left: 0;
+		bottom: 0;
+		z-index: 1;
+		background: var(--color-background);
+		border-top: 1px solid var(--color-border);
+		padding: var(--spacing-md) 0;
+		display: flex;
+		justify-content: center;
+		gap: var(--spacing-lg);
 	}
 </style>
