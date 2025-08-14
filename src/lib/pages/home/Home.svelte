@@ -314,15 +314,12 @@
 		</div>
 
 		<div class="tagline desktop-only">
-			<h1>
-				Tired of messy recipe posts? Turn yours into a clean, shareable page in seconds - no login
-				needed.
-			</h1>
+			<h1>Browse and share recipes - clean, ad-free, and easy.</h1>
 		</div>
 
 		<div class="tagline mobile-only">
 			<h2 style:font-weight="var(--font-weight-bold)">
-				Turn your recipe into a clean, shareable page in seconds - no login needed.
+				Browse and share recipes - clean, ad-free, and easy.
 			</h2>
 		</div>
 
