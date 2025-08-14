@@ -1,6 +1,5 @@
 import * as v from 'valibot'
 import { isValidTag } from '$lib/types'
-import { parseQuantityToNumber } from '$lib/utils/ingredient-formatting'
 
 export const baseIngredientSchema = v.pipe(
   v.object({
@@ -11,7 +10,6 @@ export const baseIngredientSchema = v.pipe(
       v.transform(input => input ?? ''),
       v.minLength(1, 'An ingredient cannot be empty')
     ),
-    displayName: v.string(),
     isPrepared: v.optional(v.boolean())
   }),
   v.rawTransform(({ dataset, addIssue }) => {
@@ -49,10 +47,9 @@ export const instructionSchema = v.object({
   ingredients: v.optional(v.array(baseIngredientSchema))
 })
 
-export const baseRecipeSchema = v.object({
+export const RecipeSchema = v.object({
   title: v.pipe(
     v.string(),
-    v.transform(input => input ?? ''),
     v.minLength(1, 'Title is required'),
     v.minLength(5, 'Title must be at least 5 characters'),
     v.maxLength(80, 'Title must be at most 80 characters')
@@ -95,40 +92,3 @@ export const baseRecipeSchema = v.object({
   ),
   imageUrl: v.optional(v.string())
 })
-
-export const createRecipeSchema = baseRecipeSchema
-export const updateRecipeSchema = v.object({
-  id: v.string(),
-  ...baseRecipeSchema.entries
-})
-
-export const validateAndTransformRecipe = (data: unknown, isUpdate = false) => {
-  const schema = isUpdate ? updateRecipeSchema : createRecipeSchema
-  const validationResult = v.safeParse(schema, data)
-
-  if (!validationResult.success) {
-    throw Error(validationResult.issues.map(issue => issue.message).join(', '))
-  }
-
-  const input = validationResult.output
-
-  const allIngredients = input.instructions.flatMap(instruction => instruction.ingredients || [])
-  if (allIngredients.length === 0) {
-    throw Error('Recipe must have at least one ingredient')
-  }
-
-  const transformedInput = {
-    ...input,
-    instructions: input.instructions.map(instruction => ({
-      ...instruction,
-      ingredients: instruction.ingredients?.map(ingredient => ({
-        ...ingredient,
-        quantity: ingredient.isPrepared ? undefined : (typeof ingredient.quantity === 'string' && ingredient.quantity.trim() !== ''
-          ? { text: ingredient.quantity, numeric: parseQuantityToNumber(ingredient.quantity) }
-          : undefined)
-      }))
-    }))
-  }
-
-  return transformedInput
-} 

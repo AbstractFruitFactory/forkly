@@ -12,7 +12,9 @@
 		aspectRatio = '16/9',
 		previewAlt = 'Media preview',
 		onFile,
-		initialMedia
+		initialMedia,
+		onUploaded,
+		onCleared
 	}: {
 		error?: string
 		id?: string
@@ -23,6 +25,8 @@
 		previewAlt?: string
 		onFile?: (file: File) => void
 		initialMedia?: { url: string; type: 'image' | 'video' }
+		onUploaded?: (url: string, type: 'image' | 'video') => void
+		onCleared?: () => void
 	} = $props()
 
 	let preview = $derived(initialMedia?.url)
@@ -87,6 +91,7 @@
 				uploadedType = uploaded
 				if (hiddenInputEl) hiddenInputEl.value = url
 				onFile?.(file)
+				onUploaded?.(url, uploaded)
 			} catch (e) {
 				error = 'Failed to upload media'
 			} finally {
@@ -119,6 +124,7 @@
 		if (inputElement) {
 			inputElement.value = ''
 		}
+		onCleared?.()
 	}
 	onDestroy(() => {
 		if (preview) cleanupPreview(preview)

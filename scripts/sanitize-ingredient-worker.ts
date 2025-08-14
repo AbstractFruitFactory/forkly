@@ -19,29 +19,29 @@ const db = drizzle(dbConnection)
 
 async function sanitizeIngredientsWithAI(ingredientNames: string[]): Promise<string[]> {
   const prompt = `
-Extract the base ingredient name from each of the following ingredient descriptions. Remove any preparation methods, quantities, measurements, or descriptive words, keeping only the core ingredient name.
+      Extract the base ingredient name from each of the following ingredient descriptions. Remove any preparation methods, quantities, measurements, or descriptive words, keeping only the core ingredient name.
 
-Examples:
-- "sliced tomatoes" → "tomato"
-- "fresh basil leaves" → "basil"
-- "extra virgin olive oil" → "olive oil"
-- "minced garlic cloves" → "garlic"
-- "boneless chicken breast" → "chicken"
-- "all-purpose flour" → "flour"
-- "large eggs" → "egg"
-- "ripe bananas" → "banana"
+      Examples:
+      - "sliced tomatoes" → "tomato"
+      - "fresh basil leaves" → "basil"
+      - "extra virgin olive oil" → "olive oil"
+      - "minced garlic cloves" → "garlic"
+      - "boneless chicken breast" → "chicken"
+      - "all-purpose flour" → "flour"
+      - "large eggs" → "egg"
+      - "ripe bananas" → "banana"
 
-sometimes it might make sense to return multiple words, if it implies a specific meaning, such as:
+      sometimes it might make sense to return multiple words, if it implies a specific meaning, such as:
 
-"almond flour" (not "almond")
-"peanut butter" (not "peanut")
-"olive oil" (not "olive")
+      "almond flour" (not "almond")
+      "peanut butter" (not "peanut")
+      "olive oil" (not "olive")
 
-Please return only the base ingredient names, one per line, in the same order as the input. Keep the names simple and singular (e.g., "tomato" not "tomatoes").
+      Please return only the base ingredient names, one per line, in the same order as the input. Keep the names simple and singular (e.g., "tomato" not "tomatoes").
 
-Ingredients to sanitize:
-${ingredientNames.map((name, index) => `${index + 1}. ${name}`).join('\n')}
-`
+      Ingredients to sanitize:
+      ${ingredientNames.map((name, index) => `${index + 1}. ${name}`).join('\n')}
+  `
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o',

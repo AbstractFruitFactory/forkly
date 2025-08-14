@@ -3,8 +3,7 @@ import { getUserByUsername, updateUserProfile } from '$lib/server/db/user'
 import * as v from 'valibot'
 import { deleteImage } from '$lib/server/cloudinary'
 import { safeFetch } from '$lib/utils/fetch'
-import { buildRecipePayloadFromForm, type RecipeApiResponse } from '$lib/server/utils/recipe-form'
-import { actions as newRecipeActions } from '../../new/+page.server'
+import { buildRecipePayloadFromForm } from '$lib/server/utils/recipe-form'
 import type { RequestEvent } from '@sveltejs/kit'
 
 const updateProfileSchema = v.object({
@@ -61,54 +60,5 @@ export const actions = {
     return {
       user: updatedUser
     }
-  },
-
-  updateRecipe: async ({ request, fetch }: RequestEvent) => {
-    const formData = await request.formData()
-
-    const recipeId = formData.get('id')?.toString()
-    if (!recipeId) {
-      return fail(400, {
-        success: false,
-        errors: [{
-          path: 'id',
-          message: 'Recipe ID is required for updates'
-        }]
-      })
-    }
-
-    const { payload, error } = await buildRecipePayloadFromForm(formData)
-    if (error) return error
-
-    const fetchResponse = await safeFetch<RecipeApiResponse>(fetch)(
-      '/recipes/update',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...payload, id: recipeId })
-      }
-    )
-    if (fetchResponse.isErr()) {
-      console.error('Error updating recipe', fetchResponse.error)
-      return fail(500, {
-        success: false,
-        errors: [{
-          path: 'api',
-          message: 'An unexpected error occurred while updating the recipe'
-        }]
-      })
-    }
-    return {
-      success: true,
-      recipeId: fetchResponse.value.id
-    }
-  },
-
-  saveDraft: async (event: RequestEvent) => {
-    return await newRecipeActions.saveDraft(event as any)
-  },
-
-  createRecipe: async (event: RequestEvent) => {
-    return await newRecipeActions.createRecipe(event as any)
   }
 } 

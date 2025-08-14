@@ -179,9 +179,9 @@
 		return false
 	}
 
-	let ingredientsSection: HTMLElement
-	let instructionsSection: HTMLElement
-	let commentsSection: HTMLElement
+	let ingredientsSection = $state<HTMLElement>()
+	let instructionsSection = $state<HTMLElement>()
+	let commentsSection = $state<HTMLElement>()
 
 	const scrollToSection = (section: HTMLElement) => {
 		section.scrollIntoView({ behavior: 'smooth' })
@@ -209,7 +209,6 @@
 	)
 
 	const recipeTitle = $derived(data.then((r) => r.recipe.title))
-
 </script>
 
 {#snippet commonImage()}
@@ -381,14 +380,14 @@
 {/snippet}
 
 {#snippet navButtons()}
-	<button class="nav-button" onclick={() => scrollToSection(ingredientsSection)}>
+	<button class="nav-button" onclick={() => scrollToSection(ingredientsSection!)}>
 		Ingredients
 	</button>
-	<button class="nav-button" onclick={() => scrollToSection(instructionsSection)}>
+	<button class="nav-button" onclick={() => scrollToSection(instructionsSection!)}>
 		Instructions
 	</button>
 	{#if !preview}
-		<button class="nav-button" onclick={() => scrollToSection(commentsSection)}> Comments </button>
+		<button class="nav-button" onclick={() => scrollToSection(commentsSection!)}> Comments </button>
 	{/if}
 {/snippet}
 

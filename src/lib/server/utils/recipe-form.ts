@@ -53,15 +53,6 @@ export const instructionSchema = v.object({
   ingredients: v.optional(v.array(ingredientSchema))
 })
 
-// formValidationSchema is imported from shared module
-
-// FormFields type is imported from shared parser
-
-export type RecipeApiResponse = {
-  id: string
-  [key: string]: any
-}
-
 const parseIngredientOrInstruction = (formData: FormData, keyPrefix: string) =>
   Array.from(formData.entries())
     .filter(([key]) => key.startsWith(keyPrefix))
@@ -69,8 +60,6 @@ const parseIngredientOrInstruction = (formData: FormData, keyPrefix: string) =>
       const [_, id, field] = key.split('-')
       return { id, field, value: value.toString() }
     })
-
-// parseFormData is imported from shared module
 
 export const buildRecipePayloadFromForm = async (formData: FormData, skipValidation: boolean = false) => {
   const parsed = parseFormData(formData)
@@ -213,4 +202,26 @@ export const buildRecipePayloadFromForm = async (formData: FormData, skipValidat
       imageUrl
     }
   }
-} 
+}
+
+export type ClientInstruction = {
+  text: string
+  mediaUrl?: string
+  mediaType?: 'image' | 'video'
+  ingredients?: {
+    quantity?: string
+    measurement?: string
+    name: string
+    isPrepared?: boolean
+  }[]
+}
+
+export type ClientRecipeInput = {
+  title: string
+  description: string
+  servings: number
+  instructions: ClientInstruction[]
+  tags: string[]
+  imageUrl?: string
+  nutrition?: { calories: number; protein: number; carbs: number; fat: number } | null
+}

@@ -1,4 +1,4 @@
-import { query, getRequestEvent } from '$app/server'
+import { getRequestEvent, query } from '$app/server'
 
 export const isLoggedIn = query(async () => {
   const { locals } = getRequestEvent()
