@@ -1015,5 +1015,5 @@ export const getSimilarRecipes = async (recipeId: string, limit: number = 5) => 
 }
 
 export async function getRecipeDraftsByUser(userId: string) {
-  return db.select().from(recipeDraft).where(eq(recipeDraft.userId, userId))
+  return nullToUndefined(await db.select().from(recipeDraft).where(eq(recipeDraft.userId, userId)))
 } 

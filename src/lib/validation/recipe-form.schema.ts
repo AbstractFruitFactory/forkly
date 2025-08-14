@@ -5,7 +5,6 @@ export const ingredientSchema = v.pipe(
     quantity: v.optional(v.string()),
     measurement: v.optional(v.string()),
     name: v.pipe(v.string(), v.transform((input) => input ?? ''), v.minLength(1, 'An ingredient cannot be empty')),
-    displayName: v.string(),
     isPrepared: v.optional(v.boolean())
   }),
   v.rawTransform(({ dataset, addIssue }) => {

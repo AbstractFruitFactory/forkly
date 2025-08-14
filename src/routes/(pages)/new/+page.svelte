@@ -1,6 +1,5 @@
 <script lang="ts">
 	import NewRecipe from '$lib/pages/new-recipe/NewRecipe.svelte'
-	import type { IngredientSearchResult } from '$lib/server/food-api'
 	import RecipeSuccess from '$lib/pages/recipe-created/RecipeCreated.svelte'
 	import { unitPreferenceStore, type UnitSystem } from '$lib/state/unitPreference.svelte'
 	import type { TagSearchResponse } from '../../(api)/tags/+server'
@@ -8,35 +7,11 @@
 	import { fly } from 'svelte/transition'
 	import { FLY_LEFT_IN, FLY_LEFT_OUT } from '$lib/utils/transitions'
 	import { isLoggedIn } from './data.remote'
-	import { uploadMedia } from '$lib/client/media/upload'
 
-	let { form } = $props()
-
-	let searchTimeout: ReturnType<typeof setTimeout>
 	let tagSearchTimeout: ReturnType<typeof setTimeout>
 
-	const handleSearchIngredients = async (
-		query: string
-	): Promise<{ id: string; name: string }[]> => {
-		clearTimeout(searchTimeout)
-
-		return new Promise((resolve) => {
-			searchTimeout = setTimeout(async () => {
-				const response = await safeFetch<IngredientSearchResult>()(`/ingredients/search/${query}`)
-				if (response.isOk()) {
-					resolve(
-						response.value.map((ingredient) => ({
-							id: ingredient.id.toString(),
-							name: ingredient.name
-						}))
-					)
-				} else {
-					console.error('Failed to fetch ingredients:', response.error)
-					resolve([])
-				}
-			}, 300)
-		})
-	}
+	let createdRecipeId = $state<string | null>(null)
+	let errors = $state<{ path: string; message: string }[] | undefined>(undefined)
 
 	const handleSearchTags = async (query: string): Promise<{ name: string; count: number }[]> => {
 		clearTimeout(tagSearchTimeout)
@@ -67,19 +42,25 @@
 	const unitSystem = $derived(unitPreferenceStore.value)
 </script>
 
-{#if form?.success}
+{#if createdRecipeId}
 	<div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
-		<RecipeSuccess recipeId={form.recipeId!} />
+		<RecipeSuccess recipeId={createdRecipeId} />
 	</div>
 {:else}
 	<div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 		<NewRecipe
-			errors={form?.errors}
-			onSearchIngredients={handleSearchIngredients}
+			{errors}
 			onSearchTags={handleSearchTags}
 			{unitSystem}
 			onUnitChange={handleUnitChange}
 			isLoggedIn={isLoggedIn()}
+			onCreated={(id) => {
+				errors = undefined
+				createdRecipeId = id
+			}}
+			onErrors={(errs) => {
+				errors = errs
+			}}
 		/>
 	</div>
 {/if}

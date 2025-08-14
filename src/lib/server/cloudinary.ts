@@ -111,9 +111,36 @@ export async function moveToFolder(
     } as any)
     try {
       await cloudinary.api.update(newPublicId, { asset_folder: targetFolderWithEnv, resource_type: resourceType } as any)
-    } catch {}
+    } catch { }
     return res.secure_url
   } catch {
     return url
+  }
+}
+
+export const cleanupUploadedMediaFromObject = async (imageUrl?: string, instructions?: { mediaUrl?: string, mediaType?: 'video' | 'image' }[]) => {
+  if (imageUrl) {
+    try { await deleteImage(imageUrl) } catch { }
+  }
+  if (instructions) {
+    for (const ins of instructions) {
+      if (ins.mediaUrl) {
+        if (ins.mediaType === 'video') { try { await deleteVideo(ins.mediaUrl) } catch { } }
+        else { try { await deleteImage(ins.mediaUrl) } catch { } }
+      }
+    }
+  }
+}
+
+export const moveMediaFromTmpFolder = async (imageUrl?: string, instructions?: { mediaUrl?: string, mediaType?: 'video' | 'image' }[]) => {
+  if (imageUrl && imageUrl.includes('-tmp')) {
+    imageUrl = await moveToFolder(imageUrl, 'recipe-images', 'image')
+  }
+  if (instructions) {
+    for (const ins of instructions) {
+      if (ins.mediaUrl && ins.mediaUrl.includes('-tmp')) {
+        ins.mediaUrl = await moveToFolder(ins.mediaUrl, 'instruction-media', ins.mediaType === 'video' ? 'video' : 'image')
+      }
+    }
   }
 }

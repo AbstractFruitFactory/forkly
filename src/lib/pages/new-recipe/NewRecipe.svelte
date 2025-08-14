@@ -16,22 +16,19 @@
 			fat: number
 		}
 		instructions: {
-			text: string
+			text?: string
 			mediaUrl?: string
 			mediaType?: 'image' | 'video'
-			ingredients: {
+			ingredients?: {
 				name: string
 				quantity?: string
 				measurement?: string
 			}[]
 		}[]
 	}
-
-	type Ingredient = { id?: string; name: string }
 </script>
 
 <script lang="ts">
-	import { enhance } from '$app/forms'
 	import { onMount } from 'svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import DesktopLayout from './DesktopLayout.svelte'
@@ -66,7 +63,26 @@
 	import RecipePopup from '$lib/components/recipe-popup/RecipePopup.svelte'
 	import { formValidationSchema } from '$lib/validation/recipe-form.schema'
 	import * as v from 'valibot'
-	import { parseFormData as parseRecipeForm } from '$lib/validation/parse-recipe-form'
+	import { goto } from '$app/navigation'
+	import { createRecipe, updateRecipe } from '$lib/remote-functions/recipe.remote'
+	import { deleteDraft, saveDraft, updateDraft } from '$lib/remote-functions/draft.remote'
+	import { nullToUndefined } from '$lib/utils/nullToUndefined'
+
+	type UIIngredient = {
+		id: string
+		name: string
+		quantity?: string
+		unit?: string
+		isPrepared?: boolean
+	}
+
+	type UIInstruction = {
+		id: string
+		ingredients: UIIngredient[]
+		text: string
+		mediaUrl?: string
+		mediaType?: 'image' | 'video'
+	}
 
 	let {
 		prefilledData,
@@ -76,45 +92,52 @@
 		unitSystem = 'imperial',
 		onSearchTags,
 		onUnitChange,
-		isLoggedIn
+		isLoggedIn,
+		onCreated,
+		onErrors
 	}: {
 		prefilledData?: PrefilledData
 		editMode?: { onSave: () => void }
 		draftMode?: { onSaveDraft: () => void; onPublish: () => void }
 		errors?: { path: string; message: string }[]
-		onSearchIngredients?: (query: string) => Promise<Ingredient[]>
 		unitSystem?: UnitSystem
 		onSearchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 		onUnitChange?: (system: UnitSystem) => void
 		isLoggedIn?: Promise<boolean>
+		onCreated?: (recipeId: string) => void
+		onErrors?: (errors: { path: string; message: string }[]) => void
 	} = $props()
+
+	const toFlatPreviewIngredients = () => {
+		const flat = instructions
+			.flatMap((ins) => ins.ingredients || [])
+			.filter((ing) => !ing.isPrepared && ing.name)
+		return flat.map((ing) => ({
+			id: generateId(),
+			name: ing.name!,
+			displayName: ing.name!,
+			quantity: ing.quantity
+				? { text: String(ing.quantity), numeric: parseQuantityToNumber(ing.quantity) }
+				: undefined,
+			measurement: ing.unit || ''
+		}))
+	}
 
 	let _id = $derived(prefilledData?.id ?? '')
 	let _title = $derived(prefilledData?.title ?? '')
 	let _description = $derived(prefilledData?.description ?? '')
 	let servings = $derived(prefilledData?.servings ?? 1)
 	let selectedTags = $derived<string[]>(prefilledData?.tags ?? [])
-	let image = $derived<string | null>(prefilledData?.image ?? null)
 	let calories = $derived(prefilledData?.nutrition?.calories ?? '')
 	let protein = $derived(prefilledData?.nutrition?.protein ?? '')
 	let carbs = $derived(prefilledData?.nutrition?.carbs ?? '')
 	let fat = $derived(prefilledData?.nutrition?.fat ?? '')
 
-	let instructions: {
-		id: string
-		ingredients: {
-			id: string
-			name?: string
-			quantity?: string
-			unit?: string
-			isPrepared?: boolean
-		}[]
-		text?: string
-		mediaUrl?: string
-		mediaType?: 'image' | 'video'
-	}[] = $derived(
+	let instructions: UIInstruction[] = $derived(
 		prefilledData?.instructions
 			? prefilledData.instructions.map((instruction) => ({
+					...instruction,
+					text: instruction.text ?? '',
 					id: generateId(),
 					ingredients:
 						instruction.ingredients?.map((ingredient) => ({
@@ -123,12 +146,9 @@
 							quantity: ingredient.quantity,
 							unit: ingredient.measurement,
 							isPrepared: false
-						})) ?? [],
-					text: instruction.text,
-					mediaUrl: instruction.mediaUrl,
-					mediaType: instruction.mediaType
+						})) ?? []
 				}))
-			: [{ id: generateId(), ingredients: [] }]
+			: [{ id: generateId(), ingredients: [], text: '' }]
 	)
 
 	let isMobileView = $state(false)
@@ -141,74 +161,29 @@
 	let displayNutrition = $state(false)
 
 	let previewPopup = $state<RecipePopup>()
-	let previewRecipeData = $state<any>(null)
+	let previewRecipeData = $state<any>()
 	let confirmUpload = $state(false)
-	let formEl = $state<HTMLFormElement>()
+	let imageUrlState = $state<string | undefined>(prefilledData?.image ?? undefined)
 
 	const buildPreviewData = () => {
-		const formData = new FormData(formEl!)
-		const parsed = parseRecipeForm(formData)
-
-		const instructionsForRecipe = parsed.instructions.map((ins, index) => {
-			const clientId = instructions[index]?.id
-			const mediaUrl = clientId
-				? formData.get(`instructions-${clientId}-media-url`)?.toString()
-				: undefined
-			const mediaType = clientId
-				? (formData.get(`instructions-${clientId}-media-type`)?.toString() as
-						| 'image'
-						| 'video'
-						| undefined)
-				: undefined
-			return {
-				text: ins.text || '',
-				mediaUrl: mediaUrl,
-				mediaType: mediaType,
-				ingredients: (ins.ingredients || []).map((ing) => ({
-					name: ing.name || '',
-					quantity: ing.quantity
-						? { text: String(ing.quantity), numeric: parseQuantityToNumber(ing.quantity) }
-						: undefined,
-					measurement: ing.measurement || '',
-					displayName: ing.displayName || ing.name || '',
-					isPrepared: ing.isPrepared === true
-				}))
-			}
-		})
-
-		const flatIngredients = parsed.instructions
-			.flatMap((ins) => ins.ingredients || [])
-			.filter((ing) => !ing.isPrepared && ing.name)
-		const ingredients = flatIngredients.map((ing) => ({
-			id: generateId(),
-			name: ing.name,
-			quantity: ing.quantity
-				? { text: String(ing.quantity), numeric: parseQuantityToNumber(ing.quantity) }
-				: undefined,
-			measurement: ing.measurement || '',
-			displayName: ing.displayName || ing.name
-		}))
-
-		const nutrition = displayNutrition
-			? {
-					calories: parseFloat(String(calories)) || 0,
-					protein: parseFloat(String(protein)) || 0,
-					carbs: parseFloat(String(carbs)) || 0,
-					fat: parseFloat(String(fat)) || 0
-				}
-			: undefined
-
 		const previewRecipe = {
 			id: _id || generateId(),
-			title: parsed.title,
-			description: parsed.description,
-			instructions: instructionsForRecipe,
+			title: _title,
+			description: _description,
+			instructions: instructions,
 			tags: selectedTags,
-			imageUrl: image || undefined,
+			imageUrl: imageUrlState,
 			createdAt: new Date(),
 			servings: servings,
-			ingredients,
-			nutrition
+			ingredients: toFlatPreviewIngredients(),
+			nutrition: displayNutrition
+				? {
+						calories: parseFloat(String(calories)) || 0,
+						protein: parseFloat(String(protein)) || 0,
+						carbs: parseFloat(String(carbs)) || 0,
+						fat: parseFloat(String(fat)) || 0
+					}
+				: undefined
 		}
 
 		return {
@@ -219,9 +194,17 @@
 		}
 	}
 
-	function validateBeforePreview(): boolean {
-		const data = parseRecipeForm(new FormData(formEl!))
-		const result = v.safeParse(formValidationSchema, data as any)
+	function validateForm(): boolean {
+		const result = v.safeParse(
+			formValidationSchema,
+			nullToUndefined({
+				title: _title,
+				description: _description,
+				servings: servings,
+				instructions: instructions,
+				tags: selectedTags
+			})
+		)
 		if (!result.success) {
 			const errs: { path: string; message: string }[] = []
 			for (const issue of result.issues) {
@@ -248,7 +231,7 @@
 				.flatMap((ins) => ins.ingredients)
 				.filter((ing) => !ing.isPrepared && ing.name)
 				.map((ing) => ({
-					amount: ing.quantity ? parseFloat(ing.quantity) : undefined,
+					amount: ing.quantity ? parseQuantityToNumber(ing.quantity) : undefined,
 					unit: ing.unit,
 					name: ing.name!
 				}))
@@ -299,39 +282,40 @@
 	})
 
 	const addInstruction = (text?: string) => {
-		instructions = [...instructions, { id: generateId(), ingredients: [], text }]
+		instructions = [...instructions, { id: generateId(), ingredients: [], text: text ?? '' }]
 	}
 
 	const removeInstruction = (id: string) => {
 		instructions = instructions.filter((instruction) => instruction.id !== id)
 	}
 
+	function moveInstruction(instructionId: string, delta: -1 | 1) {
+		const index = instructions.findIndex((i) => i.id === instructionId)
+		if (index < 0) return
+		const target = index + delta
+		if (target < 0 || target >= instructions.length) return
+		const arr = [...instructions]
+		const temp = arr[index]
+		arr[index] = arr[target]
+		arr[target] = temp
+		instructions = arr
+	}
+
 	const moveInstructionUp = (id: string) => {
-		const index = instructions.findIndex((instruction) => instruction.id === id)
-		if (index > 0) {
-			const newInstructions = [...instructions]
-			const temp = newInstructions[index]
-			newInstructions[index] = newInstructions[index - 1]
-			newInstructions[index - 1] = temp
-			instructions = newInstructions
-		}
+		moveInstruction(id, -1)
 	}
 
 	const moveInstructionDown = (id: string) => {
-		const index = instructions.findIndex((instruction) => instruction.id === id)
-		if (index < instructions.length - 1) {
-			const newInstructions = [...instructions]
-			const temp = newInstructions[index]
-			newInstructions[index] = newInstructions[index + 1]
-			newInstructions[index + 1] = temp
-			instructions = newInstructions
-		}
+		moveInstruction(id, 1)
 	}
 
 	const addIngredient = (instructionId: string) => {
 		instructions = instructions.map((instruction) =>
 			instruction.id === instructionId
-				? { ...instruction, ingredients: [...instruction.ingredients, { id: generateId() }] }
+				? {
+						...instruction,
+						ingredients: [...instruction.ingredients, { id: generateId(), name: '' }]
+					}
 				: instruction
 		)
 	}
@@ -341,10 +325,28 @@
 			instruction.id === instructionId
 				? {
 						...instruction,
-						ingredients: [...instruction.ingredients, { id: generateId(), isPrepared: true }]
+						ingredients: [
+							...instruction.ingredients,
+							{ id: generateId(), isPrepared: true, name: '' }
+						]
 					}
 				: instruction
 		)
+	}
+
+	function updateInstruction(instructionId: string, apply: (ins: UIInstruction) => UIInstruction) {
+		instructions = instructions.map((ins) => (ins.id === instructionId ? apply(ins) : ins))
+	}
+
+	function updateIngredient(
+		instructionId: string,
+		ingredientId: string,
+		apply: (ing: UIIngredient) => UIIngredient
+	) {
+		updateInstruction(instructionId, (ins) => ({
+			...ins,
+			ingredients: ins.ingredients.map((ing) => (ing.id === ingredientId ? apply(ing) : ing))
+		}))
 	}
 
 	const handleIngredientNameInput = (
@@ -352,16 +354,7 @@
 		ingredientId: string,
 		value: string
 	) => {
-		instructions = instructions.map((ins) =>
-			ins.id !== instructionId
-				? ins
-				: {
-						...ins,
-						ingredients: ins.ingredients.map((ing) =>
-							ing.id === ingredientId ? { ...ing, name: value } : ing
-						)
-					}
-		)
+		updateIngredient(instructionId, ingredientId, (ing) => ({ ...ing, name: value }))
 	}
 
 	const removeIngredient = (instructionId: string, ingredientId: string) => {
@@ -377,14 +370,22 @@
 		)
 	}
 
+	function updateInstructionText(instructionId: string, value: string) {
+		updateInstruction(instructionId, (ins) => ({ ...ins, text: value }))
+	}
+
+	function updateIngredientQuantity(instructionId: string, ingredientId: string, value: string) {
+		updateIngredient(instructionId, ingredientId, (ing) => ({ ...ing, quantity: value }))
+	}
+
+	function updateIngredientUnit(instructionId: string, ingredientId: string, unit: string) {
+		updateIngredient(instructionId, ingredientId, (ing) => ({ ...ing, unit }))
+	}
+
 	const updateInstructionMedia = (instructionId: string, file: File) => {
 		const mediaType = file.type.startsWith('image/') ? 'image' : 'video'
 
-		instructions = instructions.map((instruction) =>
-			instruction.id === instructionId
-				? { ...instruction, mediaType, mediaUrl: 'uploaded' }
-				: instruction
-		)
+		updateInstruction(instructionId, (ins) => ({ ...ins, mediaType, mediaUrl: 'uploaded' }))
 	}
 
 	const searchTags = async (query: string): Promise<{ id: string; name: string }[]> => {
@@ -429,15 +430,9 @@
 	const getUnits = (system: UnitSystem) => {
 		const units: string[] = []
 
-		// Add weight units
 		units.push(...(system === 'metric' ? UNITS.weight.metric : UNITS.weight.imperial))
-
-		// Add volume units
 		units.push(...(system === 'metric' ? UNITS.volume.metric : UNITS.volume.imperial))
-
-		// Add length units
 		units.push(...(system === 'metric' ? UNITS.length.metric : UNITS.length.imperial))
-
 		return units
 	}
 
@@ -461,7 +456,7 @@
 		_description = recipe.description ?? ''
 		servings = recipe.servings ?? 1
 		selectedTags = recipe.tags ?? []
-		image = recipe.image ?? null
+		imageUrlState = recipe.image ?? undefined
 
 		if (recipe.nutrition) {
 			calories = recipe.nutrition.calories ?? ''
@@ -489,6 +484,112 @@
 	const formErrors = $derived((path: string) =>
 		errors?.filter((error) => error.path === path).map((error) => error.message)
 	)
+
+	async function submitCreate() {
+		submitting = true
+		try {
+			const result = await createRecipe(
+				nullToUndefined({
+					title: _title,
+					description: _description,
+					servings,
+					instructions: instructions,
+					tags: selectedTags,
+					imageUrl: imageUrlState || undefined,
+					nutrition: displayNutrition
+						? {
+								calories: parseFloat(String(calories)) || 0,
+								protein: parseFloat(String(protein)) || 0,
+								carbs: parseFloat(String(carbs)) || 0,
+								fat: parseFloat(String(fat)) || 0
+							}
+						: undefined
+				})
+			)
+
+			editMode?.onSave()
+			if (draftMode) {
+				await deleteDraft({ id: _id })
+				draftMode.onPublish()
+			}
+			onCreated?.(result.recipeId)
+		} catch (e) {
+			console.error(e)
+			// TODO show general error
+		} finally {
+			submitting = false
+		}
+	}
+
+	const saveEditRecipe = async () => {
+		submitting = true
+		try {
+			await updateRecipe(
+				nullToUndefined({
+					id: _id,
+					title: _title,
+					description: _description,
+					servings,
+					instructions: instructions,
+					tags: selectedTags,
+					imageUrl: imageUrlState || undefined,
+					nutrition: displayNutrition
+						? {
+								calories: parseFloat(String(calories)) || 0,
+								protein: parseFloat(String(protein)) || 0,
+								carbs: parseFloat(String(carbs)) || 0,
+								fat: parseFloat(String(fat)) || 0
+							}
+						: undefined
+				})
+			)
+			editMode?.onSave()
+		} catch (e) {
+			console.error(e)
+			// TODO show general error
+		} finally {
+			submitting = false
+		}
+	}
+
+	async function submitSaveDraft() {
+		const loggedIn = await isLoggedIn
+		if (!loggedIn) {
+			isLoginPopupOpen = true
+			return
+		}
+		submitting = true
+		try {
+			if (draftMode) {
+				await updateDraft({
+					id: _id,
+					title: _title,
+					description: _description,
+					servings: servings,
+					instructions: instructions,
+					tags: selectedTags,
+					createdAt: new Date()
+				})
+				draftMode.onSaveDraft()
+			} else {
+				const { redirectTo } = await saveDraft({
+					title: _title,
+					description: _description,
+					servings: servings,
+					instructions: instructions,
+					tags: selectedTags
+				})
+				await goto(redirectTo)
+			}
+
+			editMode?.onSave()
+		} catch (e) {
+			console.error(e)
+			// TODO show general error
+		} finally {
+			submitting = false
+		}
+	}
 </script>
 
 {#snippet title()}
@@ -525,7 +626,13 @@
 		name="image"
 		type="image"
 		previewAlt="Recipe preview"
-		initialMedia={image ? { url: image, type: 'image' } : undefined}
+		initialMedia={imageUrlState ? { url: imageUrlState, type: 'image' } : undefined}
+		onUploaded={(url) => {
+			imageUrlState = url
+		}}
+		onCleared={() => {
+			imageUrlState = undefined
+		}}
 	/>
 {/snippet}
 
@@ -663,7 +770,14 @@
 										name="instructions-{instructionId}-ingredient-{id}-amount"
 										placeholder="Enter amount"
 										value={amountValue}
-										oninput={() => closePopover()}
+										oninput={(e) => {
+											updateIngredientQuantity(
+												instructionId,
+												id,
+												(e.target as HTMLInputElement).value
+											)
+											closePopover()
+										}}
 									/>
 								</Input>
 							{/snippet}
@@ -680,6 +794,8 @@
 							minSearchLength={2}
 							useId={true}
 							searchValue={unitValue}
+							onSelect={(opt) => updateIngredientUnit(instructionId, id, opt.id)}
+							onInput={(val) => updateIngredientUnit(instructionId, id, val)}
 						/>
 					</div>
 				</div>
@@ -716,7 +832,10 @@
 					placeholder="Enter instruction step"
 					rows="5"
 					{value}
-					oninput={() => closePopover()}
+					oninput={(e) => {
+						updateInstructionText(id, (e.target as HTMLTextAreaElement).value)
+						closePopover()
+					}}
 				></textarea>
 			</Input>
 		{/snippet}
@@ -729,6 +848,16 @@
 		onFile={(file) => updateInstructionMedia(id, file)}
 		previewAlt="Instruction media"
 		initialMedia={initialMedia?.url === 'uploaded' ? undefined : initialMedia}
+		onUploaded={(url, t) => {
+			instructions = instructions.map((ins) =>
+				ins.id === id ? { ...ins, mediaUrl: url, mediaType: t } : ins
+			)
+		}}
+		onCleared={() => {
+			instructions = instructions.map((ins) =>
+				ins.id === id ? { ...ins, mediaUrl: undefined, mediaType: undefined } : ins
+			)
+		}}
 	/>
 {/snippet}
 
@@ -737,10 +866,10 @@
 		<Button
 			disabled={!isLoggedIn}
 			{fullWidth}
-			formaction="?/saveDraft"
 			loading={submitting}
-			type="submit"
+			type="button"
 			color="neutral"
+			onclick={submitSaveDraft}
 		>
 			Save Draft
 		</Button>
@@ -751,10 +880,25 @@
 	<Button
 		disabled={!isLoggedIn}
 		{fullWidth}
-		formaction={editMode ? '?/updateRecipe' : '?/createRecipe'}
 		loading={submitting}
-		type="submit"
+		type="button"
 		color="secondary"
+		onclick={async () => {
+			const loggedIn = await isLoggedIn
+
+			if (!loggedIn && !willUploadAnonymously && !editMode && !draftMode) {
+				isAnonUploadPopupOpen = true
+				return
+			}
+			if (!confirmUpload) {
+				if (!validateForm()) return
+				previewRecipeData = buildPreviewData()
+				await previewPopup?.open()
+				return
+			}
+			confirmUpload = false
+			await submitCreate()
+		}}
 	>
 		Preview Recipe
 	</Button>
@@ -860,166 +1004,92 @@
 {/snippet}
 
 <div class="new-recipe">
-	<form
-		bind:this={formEl}
-		method="POST"
-		enctype="multipart/form-data"
-		use:enhance={async ({ formData, cancel, action }) => {
-			const loggedIn = await isLoggedIn
+	{#if errors && (errors.find((error) => error.path === 'ingredients') || errors.find((error) => error.path === 'api'))}
+		<div class="error-container">
+			{#each errors as error}
+				<p class="error">{error.message}</p>
+			{/each}
+		</div>
+	{/if}
 
-			if (!loggedIn && !willUploadAnonymously && !editMode && !draftMode) {
-				if (action?.search?.includes('saveDraft') && !loggedIn) {
-					isLoginPopupOpen = true
-					cancel()
-					return
-				}
+	{#if isMobileView}
+		<div class="mobile-layout">
+			<MobileLayout
+				{instructions}
+				{title}
+				{description}
+				{recipeImage}
+				{tags}
+				{nutrition}
+				{servingsAdjuster}
+				{unitToggle}
+				{instructionInput}
+				{instructionMedia}
+				{ingredientRow}
+				{addInstructionButton}
+				{addIngredientButton}
+				{addPreparedIngredientButton}
+				{removeInstructionButton}
+				{moveInstructionUpButton}
+				{moveInstructionDownButton}
+				{submitButton}
+				{saveDraftButton}
+				{importButton}
+				headerText={!editMode && !draftMode ? headerText : undefined}
+			/>
+		</div>
+	{:else}
+		<div class="desktop-layout">
+			<DesktopLayout
+				{instructions}
+				{title}
+				{description}
+				{recipeImage}
+				{tags}
+				{nutrition}
+				{servingsAdjuster}
+				{unitToggle}
+				{instructionInput}
+				{instructionMedia}
+				{ingredientRow}
+				{addInstructionButton}
+				{addIngredientButton}
+				{addPreparedIngredientButton}
+				{removeInstructionButton}
+				{moveInstructionUpButton}
+				{moveInstructionDownButton}
+				{submitButton}
+				{saveDraftButton}
+				{importButton}
+				headerText={!editMode && !draftMode ? headerText : undefined}
+			/>
+		</div>
+	{/if}
 
-				isAnonUploadPopupOpen = true
-				cancel()
-				return
-			}
-
-			// Intercept create/update submit for preview
-			if (!action?.search?.includes('saveDraft')) {
-				if (!confirmUpload) {
-					if (!validateBeforePreview()) {
-						cancel()
-						return
-					}
-					previewRecipeData = buildPreviewData()
-					await previewPopup?.open()
-					cancel()
-					return
-				} else {
-					confirmUpload = false
-				}
-			}
-
-			submitting = true
-
-			formData.append('servings', servings.toString())
-			formData.append('id', _id)
-
-			selectedTags.forEach((tag) => {
-				formData.append('tags', tag)
-			})
-
-			formData.append('displayNutrition', displayNutrition ? 'true' : 'false')
-
-			formData.append('draft', draftMode ? 'true' : 'false')
-
-			return async ({ result, update }) => {
-				submitting = false
-
-				if (result.type === 'success' || result.type === 'redirect') {
-					editMode?.onSave()
-
-					if (draftMode) {
-						if (action?.search?.includes('saveDraft')) {
-							draftMode.onSaveDraft()
-						} else {
-							draftMode.onPublish()
-						}
-					}
-				}
-				update()
-			}
+	<AnonUploadPopup
+		bind:isOpen={isAnonUploadPopupOpen}
+		onClose={() => (isAnonUploadPopupOpen = false)}
+		onUploadAnonymously={() => {
+			willUploadAnonymously = true
 		}}
-	>
-		{#if errors && (errors.find((error) => error.path === 'ingredients') || errors.find((error) => error.path === 'api'))}
-			<div class="error-container">
-				{#each errors as error}
-					<p class="error">{error.message}</p>
-				{/each}
-			</div>
-		{/if}
+	/>
 
-		{#if isMobileView}
-			<div class="mobile-layout">
-				<MobileLayout
-					{instructions}
-					{title}
-					{description}
-					{recipeImage}
-					{tags}
-					{nutrition}
-					{servingsAdjuster}
-					{unitToggle}
-					{instructionInput}
-					{instructionMedia}
-					{ingredientRow}
-					{addInstructionButton}
-					{addIngredientButton}
-					{addPreparedIngredientButton}
-					{removeInstructionButton}
-					{moveInstructionUpButton}
-					{moveInstructionDownButton}
-					{submitButton}
-					{saveDraftButton}
-					{importButton}
-					headerText={!editMode && !draftMode ? headerText : undefined}
-				/>
-			</div>
-		{:else}
-			<div class="desktop-layout">
-				<DesktopLayout
-					{instructions}
-					{title}
-					{description}
-					{recipeImage}
-					{tags}
-					{nutrition}
-					{servingsAdjuster}
-					{unitToggle}
-					{instructionInput}
-					{instructionMedia}
-					{ingredientRow}
-					{addInstructionButton}
-					{addIngredientButton}
-					{addPreparedIngredientButton}
-					{removeInstructionButton}
-					{moveInstructionUpButton}
-					{moveInstructionDownButton}
-					{submitButton}
-					{saveDraftButton}
-					{importButton}
-					headerText={!editMode && !draftMode ? headerText : undefined}
-				/>
-			</div>
-		{/if}
-
-		<AnonUploadPopup
-			bind:isOpen={isAnonUploadPopupOpen}
-			onClose={() => (isAnonUploadPopupOpen = false)}
-			onUploadAnonymously={() => {
-				willUploadAnonymously = true
-			}}
-		/>
-
-		<LoginPopup bind:isOpen={isLoginPopupOpen} onClose={() => (isLoginPopupOpen = false)} />
-	</form>
+	<LoginPopup bind:isOpen={isLoginPopupOpen} onClose={() => (isLoginPopupOpen = false)} />
 </div>
 
 <RecipePopup
 	bind:this={previewPopup}
-	onClose={() => previewPopup!.close()}
 	recipeData={previewRecipeData}
 	onBack={() => previewPopup!.close()}
 	preview={previewRecipeData?.recipe}
 	actionText={editMode ? 'Save' : 'Upload'}
 	onUpload={async () => {
-		confirmUpload = true
-		const selector = editMode
-			? 'button[formaction*="updateRecipe"]'
-			: 'button[formaction*="createRecipe"]'
-		const btn = formEl?.querySelector(selector) as HTMLButtonElement | null
-		previewPopup?.close()
-		await new Promise((resolve) => setTimeout(resolve, 300))
-
-		if (btn) {
-			btn.click()
+		previewPopup!.close()
+		if (!editMode) {
+			await new Promise((resolve) => setTimeout(resolve, 300))
+			await submitCreate()
 		} else {
-			formEl?.requestSubmit()
+			await saveEditRecipe()
 		}
 	}}
 />

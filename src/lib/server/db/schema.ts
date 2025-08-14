@@ -189,11 +189,18 @@ export const emailVerification = pgTable('email_verification', {
 	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull()
 })
 
-export type Session = typeof session.$inferSelect
 
-export type User = typeof user.$inferSelect
+type NullablesToOptional<T> = {
+	[K in keyof T as null extends T[K] ? K : never]?: Exclude<T[K], null>
+} & {
+	[K in keyof T as null extends T[K] ? never : K]: T[K]
+} extends infer O ? { [K in keyof O]: O[K] } : never
 
-export type Recipe = typeof recipe.$inferSelect
+export type Session = NullablesToOptional<typeof session.$inferSelect>
+
+export type User = NullablesToOptional<typeof user.$inferSelect>
+
+export type Recipe = NullablesToOptional<typeof recipe.$inferSelect>
 
 export type RecipeDraftIngredient = {
 	name: string
@@ -204,28 +211,28 @@ export type RecipeDraftIngredient = {
 }
 
 export type RecipeDraftInstruction = {
-	text: string
+	text?: string
 	image?: string
-	ingredients: RecipeDraftIngredient[]
+	ingredients?: RecipeDraftIngredient[]
 }
 
-export type RecipeDraft = typeof recipeDraft.$inferSelect & {
-	instructions: RecipeDraftInstruction[] | null
-	tags: string[] | null
+export type RecipeDraft = NullablesToOptional<typeof recipeDraft.$inferSelect> & {
+	instructions?: RecipeDraftInstruction[]
+	tags?: string[]
 }
 
-export type RecipeInstruction = typeof recipeInstruction.$inferSelect
+export type RecipeInstruction = NullablesToOptional<typeof recipeInstruction.$inferSelect>
 
-export type IngredientRecord = typeof ingredient.$inferSelect
+export type IngredientRecord = NullablesToOptional<typeof ingredient.$inferSelect>
 
-export type RecipeIngredient = typeof recipeIngredient.$inferSelect
+export type RecipeIngredient = NullablesToOptional<typeof recipeIngredient.$inferSelect>
 
-export type RecipeNutrition = typeof recipeNutrition.$inferSelect
+export type RecipeNutrition = NullablesToOptional<typeof recipeNutrition.$inferSelect>
 
-export type RecipeComment = typeof recipeComment.$inferSelect
+export type RecipeComment = NullablesToOptional<typeof recipeComment.$inferSelect>
 
-export type Collection = typeof collection.$inferSelect
+export type Collection = NullablesToOptional<typeof collection.$inferSelect>
 
-export type Tag = typeof tag.$inferSelect
+export type Tag = NullablesToOptional<typeof tag.$inferSelect>
 
-export type RecipeTag = typeof recipeTag.$inferSelect
+export type RecipeTag = NullablesToOptional<typeof recipeTag.$inferSelect>

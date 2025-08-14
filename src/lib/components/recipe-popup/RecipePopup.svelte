@@ -17,7 +17,7 @@
 		actionText = 'Upload'
 	}: {
 		id?: string
-		onClose: () => void
+		onClose?: () => void
 		animateFrom?: HTMLElement | null
 		recipeData?: PageData['recipeData']
 		onBack?: () => void

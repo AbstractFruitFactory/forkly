@@ -17,6 +17,7 @@
 	import { mobileStore } from '$lib/state/mobile.svelte'
 	import type { RecipeDraft } from '$lib/server/db/schema'
 	import { uploadMedia } from '$lib/client/media/upload'
+	import { deleteDraft } from '$lib/remote-functions/draft.remote'
 
 	let {
 		username,
@@ -123,14 +124,11 @@
 
 	async function handleDeleteDraft() {
 		if (!draftToDelete) return
-		const result = await safeFetch<{ success: true }>()(`/recipes/draft/${draftToDelete.id}`, {
-			method: 'DELETE'
-		})
-		if (result.isOk()) {
-			deleteDraftPopupOpen = false
-			draftToDelete = undefined
-			invalidateAll()
-		}
+		await deleteDraft({ id: draftToDelete.id })
+
+		deleteDraftPopupOpen = false
+		draftToDelete = undefined
+		invalidateAll()
 	}
 
 	const searchTags = async (query: string): Promise<{ name: string; count: number }[]> => {
@@ -138,12 +136,6 @@
 			`/tags?q=${encodeURIComponent(query)}`
 		)
 		return response.isOk() ? response.value.tags : []
-	}
-
-	const searchIngredients = async (query: string): Promise<{ id: string; name: string }[]> => {
-		if (!query.trim()) return []
-		const result = await safeFetch<{ id: string; name: string }[]>()(`/ingredients/lookup/${query}`)
-		return result.isOk() ? result.value : []
 	}
 
 	const getMenuOptions = (recipe: DetailedRecipe) => {
@@ -384,10 +376,8 @@
 				}
 			}}
 			onSearchTags={searchTags}
-			onSearchIngredients={searchIngredients}
 			isLoggedIn={Promise.resolve(true)}
 			{errors}
-			{uploadMedia}
 		/>
 	{/if}
 {/snippet}
@@ -419,10 +409,8 @@
 				}
 			}}
 			onSearchTags={searchTags}
-			onSearchIngredients={searchIngredients}
 			isLoggedIn={Promise.resolve(true)}
 			{errors}
-			{uploadMedia}
 		/>
 	{/if}
 {/snippet}
