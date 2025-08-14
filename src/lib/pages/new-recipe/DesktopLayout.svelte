@@ -21,7 +21,7 @@
 		removeInstructionButton,
 		moveInstructionUpButton,
 		moveInstructionDownButton,
-		submitButton,
+		previewButton,
 		saveDraftButton,
 		importButton,
 		headerText
@@ -65,7 +65,7 @@
 		removeInstructionButton: Snippet<[instructionId: string]>
 		moveInstructionUpButton: Snippet<[instructionId: string, index: number]>
 		moveInstructionDownButton: Snippet<[instructionId: string, index: number]>
-		submitButton: Snippet
+		previewButton?: Snippet
 		saveDraftButton: Snippet<[fullWidth?: boolean]>
 		importButton: Snippet
 		headerText?: Snippet
@@ -194,7 +194,7 @@
 	<div class="section-content">
 		<div class="submit-section">
 			{@render saveDraftButton?.()}
-			{@render submitButton()}
+			{@render previewButton?.()}
 		</div>
 	</div>
 </div>

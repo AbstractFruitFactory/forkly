@@ -65,7 +65,8 @@
 	let editDraftPopupOpen = $state(false)
 	let draftToDelete: RecipeDraft | undefined = $state()
 	let deleteDraftPopupOpen = $state(false)
-
+	let editDrawer = $state<Drawer>()
+	let editPopup = $state<Popup>()
 	async function handleAvatarChange(event: Event) {
 		const input = event.target as HTMLInputElement
 		const file = input.files?.[0]
@@ -378,6 +379,10 @@
 			onSearchTags={searchTags}
 			isLoggedIn={Promise.resolve(true)}
 			{errors}
+			onOpenPreview={() => {
+				editDrawer?.scrollToTop()
+				editPopup?.scrollToTop()
+			}}
 		/>
 	{/if}
 {/snippet}
@@ -436,6 +441,7 @@
 		onClose={() => (editPopupOpen = false)}
 		title="Edit Recipe"
 		width="90vw"
+		bind:this={editPopup}
 	>
 		{@render editRecipe()}
 	</Popup>
@@ -446,7 +452,7 @@
 		class="mobile-only"
 		style="z-index: var(--z-modal); position: fixed; top: 0; left: 0; right: 0; bottom: 0;"
 	>
-		<Drawer position="side" bind:isOpen={editPopupOpen} title="Edit Recipe">
+		<Drawer bind:this={editDrawer} position="side" bind:isOpen={editPopupOpen} title="Edit Recipe">
 			{@render editRecipe()}
 		</Drawer>
 	</div>

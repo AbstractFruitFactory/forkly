@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fade, slide, fly } from 'svelte/transition'
+	import { fade, fly } from 'svelte/transition'
 	import { onMount, type Snippet } from 'svelte'
 	import ArrowLeft from 'lucide-svelte/icons/arrow-left'
 
@@ -21,6 +21,7 @@
 
 	let drawer = $state<HTMLDivElement>()
 	let drawerContainer: HTMLDivElement
+	let drawerContent = $state<HTMLDivElement>()
 
 	onMount(() => {
 		document.body.appendChild(drawerContainer)
@@ -45,6 +46,10 @@
 	const handleBack = () => {
 		onBack?.()
 		isOpen = false
+	}
+
+	export const scrollToTop = () => {
+		drawerContent?.scrollTo(0, 0)
 	}
 </script>
 
@@ -91,7 +96,7 @@
 					</button>
 				{/if}
 			</div>
-			<div class="drawer-content">
+			<div class="drawer-content" bind:this={drawerContent}>
 				{@render children()}
 			</div>
 		</div>
@@ -163,7 +168,6 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: var(--spacing-md);
-		padding-bottom: 0;
 
 		.header-left {
 			display: flex;
