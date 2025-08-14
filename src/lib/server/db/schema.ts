@@ -77,7 +77,6 @@ export const recipeIngredient = pgTable('recipe_ingredient', {
 		.notNull()
 		.references(() => recipeInstruction.id, { onDelete: 'cascade' }),
 	ingredientId: text('ingredient_id')
-		.notNull()
 		.references(() => ingredient.id, { onDelete: 'cascade' }),
 	displayName: text('display_name').notNull(),
 	quantity: text('quantity'),

@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from '@sveltejs/kit'
 import { sanitizeIngredientQueue } from '$lib/server/queue'
 import { db } from '$lib/server/db'
-import { ingredient, recipeIngredient } from '$lib/server/db/schema'
+import { recipeIngredient } from '$lib/server/db/schema'
 import { eq } from 'drizzle-orm'
 
 export const POST: RequestHandler = async ({ request, locals }) => {
@@ -27,12 +27,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   try {
     // Verify the recipe exists and has ingredients
     const recipeIngredients = await db
-      .select({
-        ingredientId: recipeIngredient.ingredientId,
-        ingredientName: ingredient.name
-      })
+      .select({ id: recipeIngredient.id })
       .from(recipeIngredient)
-      .innerJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
       .where(eq(recipeIngredient.recipeId, recipeId))
 
     if (recipeIngredients.length === 0) {

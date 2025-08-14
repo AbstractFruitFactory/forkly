@@ -58,9 +58,6 @@
 				errors = undefined
 				createdRecipeId = id
 			}}
-			onErrors={(errs) => {
-				errors = errs
-			}}
 		/>
 	</div>
 {/if}

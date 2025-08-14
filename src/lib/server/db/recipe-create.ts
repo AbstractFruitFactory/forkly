@@ -1,9 +1,8 @@
 import { db } from '.'
-import { recipe, recipeInstruction, recipeIngredient, recipeNutrition, tag, recipeTag, ingredient } from './schema'
+import { recipe, recipeInstruction, recipeIngredient, recipeNutrition, tag, recipeTag } from './schema'
 import { eq, and } from 'drizzle-orm'
 import { generateId } from '$lib/server/id'
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
-import { normalizeIngredientName } from '../utils/normalize-ingredient'
 
 type IngredientInput = {
   name: string
@@ -36,31 +35,6 @@ type RecipeInput = {
   nutrition?: NutritionInput | null
   tags: string[]
   imageUrl?: string
-}
-
-async function addIngredientInTransaction(tx: PostgresJsDatabase, name: string) {
-  const normalizedInput = normalizeIngredientName(name)
-  if (!normalizedInput) {
-    throw new Error('Ingredient name cannot be empty')
-  }
-
-  const lowercaseInput = normalizedInput.toLowerCase()
-
-  const existing = await tx
-    .select({ id: ingredient.id, name: ingredient.name })
-    .from(ingredient)
-    .where(eq(ingredient.name, lowercaseInput))
-    .limit(1)
-
-  if (existing.length > 0) {
-    return existing[0]
-  }
-
-  const newIngredient = await tx.insert(ingredient).values({
-    id: generateId(),
-    name: lowercaseInput
-  }).returning()
-  return newIngredient[0]
 }
 
 async function setTagsInTransaction(tx: PostgresJsDatabase, recipeId: string, tagsInput: string[]) {
@@ -110,15 +84,9 @@ async function insertInstructionsAndIngredients(tx: PostgresJsDatabase, recipeId
 
     if (instruction.ingredients) {
       for (const ingredientData of instruction.ingredients) {
-        let ingredientId: string
-
-        const ingredientObj = await addIngredientInTransaction(tx, ingredientData.name)
-        ingredientId = ingredientObj.id
-
         await tx.insert(recipeIngredient).values({
           recipeId: recipeId,
           instructionId: instruction.id,
-          ingredientId: ingredientId,
           displayName: ingredientData.displayName,
           quantity: ingredientData.quantity?.text,
           numericQuantity: ingredientData.quantity?.numeric,

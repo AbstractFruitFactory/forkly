@@ -1,8 +1,7 @@
 import { db } from '.'
 import { ingredient } from './schema'
-import { ilike } from 'drizzle-orm'
+import { eq, ilike } from 'drizzle-orm'
 import { generateId } from '$lib/server/id'
-import { normalizeIngredientName } from '$lib/server/utils/normalize-ingredient'
 import stringSimilarity from 'string-similarity'
 
 /**
@@ -46,34 +45,42 @@ export async function searchIngredients(query: string, limit: number = 10) {
 }
 
 export async function addIngredient(name: string) {
-  const normalizedInput = normalizeIngredientName(name)
-  if (!normalizedInput) {
+  const normalized = name.trim().toLowerCase()
+  if (!normalized) {
     throw new Error('Ingredient name cannot be empty')
   }
-  const existingIngredients = await db
+
+  // Exact match in DB first
+  const exact = await db
     .select({ id: ingredient.id, name: ingredient.name })
     .from(ingredient)
-
-  // Step 1: Exact match
-  const exact = existingIngredients.find(i => i.name === normalizedInput)
-  if (exact) {
-    return exact
+    .where(eq(ingredient.name, normalized))
+    .limit(1)
+  if (exact.length) {
+    return exact[0]
   }
 
-  // Step 2: Fuzzy match
-  if (existingIngredients.length > 0) {
-    const { bestMatch } = stringSimilarity.findBestMatch(normalizedInput, existingIngredients.map(i => i.name))
+  // Narrow candidate set using ILIKE, then fuzzy match in app
+  const candidates = await db
+    .select({ id: ingredient.id, name: ingredient.name })
+    .from(ingredient)
+    .where(ilike(ingredient.name, `%${normalized}%`))
+    .limit(50)
+
+  if (candidates.length > 0) {
+    const { bestMatch } = stringSimilarity.findBestMatch(normalized, candidates.map(i => i.name))
     if (bestMatch.rating > 0.85) {
-      const matched = existingIngredients.find(i => i.name === bestMatch.target)
+      const matched = candidates.find(i => i.name === bestMatch.target)
       if (matched) {
         return matched
       }
     }
   }
-  // Step 3: Create new ingredient
+
+  // Create new ingredient
   const newIngredient = await db.insert(ingredient).values({
     id: generateId(),
-    name: normalizedInput
+    name: normalized
   }).returning()
   return newIngredient[0]
 } 
