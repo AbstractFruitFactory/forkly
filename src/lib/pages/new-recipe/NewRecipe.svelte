@@ -54,7 +54,6 @@
 	} from '$lib/utils/ingredient-formatting'
 	import DownloadIcon from 'lucide-svelte/icons/download'
 	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
-	import AnonUploadPopup from '$lib/components/recipe-scraper/AnonUploadPopup.svelte'
 	import LoginPopup from '$lib/components/login-popup/LoginPopup.svelte'
 	import type { ImportedRecipeData } from '../../../../scripts/import-recipe-worker'
 	import FormError from '$lib/components/form-error/FormError.svelte'
@@ -155,15 +154,14 @@
 	let isMobileView = $state(false)
 	let searchValue = $state('')
 	let isImportPopupOpen = $state(false)
-	let isAnonUploadPopupOpen = $state(false)
 	let isLoginPopupOpen = $state(false)
-	let willUploadAnonymously = $state(false)
 	let estimatingNutrition = $state(false)
 	let displayNutrition = $state(false)
 	let previewRecipeData = $state<any>()
 	let confirmUpload = $state(false)
 	let imageUrlState = $state<string | undefined>(prefilledData?.image ?? undefined)
 	let showPreview = $state(false)
+	let loginPopupMessage = $state<string | undefined>()
 
 	const buildPreviewData = () => {
 		const previewRecipe = {
@@ -590,6 +588,39 @@
 			submitting = false
 		}
 	}
+
+	function persistFormToSession() {
+		try {
+			const data: ImportedRecipeData = {
+				title: _title,
+				description: _description,
+				servings: servings,
+				tags: selectedTags,
+				image: imageUrlState ?? null as any,
+				nutritionMode: displayNutrition ? 'manual' : 'none',
+				nutrition: displayNutrition
+					? {
+						calories: parseFloat(String(calories)) || 0,
+						protein: parseFloat(String(protein)) || 0,
+						carbs: parseFloat(String(carbs)) || 0,
+						fat: parseFloat(String(fat)) || 0
+					}
+					: undefined,
+				instructions: instructions.map((instruction) => ({
+					text: instruction.text,
+					mediaUrl: instruction.mediaUrl ?? null as any,
+					mediaType: instruction.mediaType ?? null as any,
+					ingredients: instruction.ingredients.map((ingredient) => ({
+						name: ingredient.name,
+						quantity: ingredient.isPrepared ? '' : (ingredient.quantity ?? ''),
+						measurement: ingredient.isPrepared ? '' : (ingredient.unit ?? ''),
+						isPrepared: ingredient.isPrepared === true
+					}))
+				}))
+			}
+			sessionStorage.setItem('forkly_prefilled_recipe', JSON.stringify(data))
+		} catch {}
+	}
 </script>
 
 {#snippet title()}
@@ -878,27 +909,15 @@
 
 {#snippet previewButton(fullWidth?: boolean)}
 	<Button
-		disabled={!isLoggedIn}
 		{fullWidth}
 		loading={submitting}
 		type="button"
 		color="secondary"
 		onclick={async () => {
-			const loggedIn = await isLoggedIn
-
-			if (!loggedIn && !willUploadAnonymously && !editMode && !draftMode) {
-				isAnonUploadPopupOpen = true
-				return
-			}
-			if (!confirmUpload) {
-				if (!validateForm()) return
-				previewRecipeData = buildPreviewData()
-				showPreview = true
-				onOpenPreview?.()
-				return
-			}
-			confirmUpload = false
-			await submitCreate()
+			if (!validateForm()) return
+			previewRecipeData = buildPreviewData()
+			showPreview = true
+			onOpenPreview?.()
 		}}
 	>
 		Preview Recipe
@@ -1019,6 +1038,14 @@
 			<Button
 				color="primary"
 				onclick={async () => {
+					const loggedIn = await isLoggedIn
+					if (!loggedIn) {
+						persistFormToSession()
+						showPreview = false
+						loginPopupMessage = 'Please log in to upload the recipe.'
+						isLoginPopupOpen = true
+						return
+					}
 					showPreview = false
 					if (!editMode) {
 						await new Promise((resolve) => setTimeout(resolve, 300))
@@ -1105,15 +1132,7 @@
 		</div>
 	{/if}
 
-	<AnonUploadPopup
-		bind:isOpen={isAnonUploadPopupOpen}
-		onClose={() => (isAnonUploadPopupOpen = false)}
-		onUploadAnonymously={() => {
-			willUploadAnonymously = true
-		}}
-	/>
-
-	<LoginPopup bind:isOpen={isLoginPopupOpen} onClose={() => (isLoginPopupOpen = false)} />
+	<LoginPopup bind:isOpen={isLoginPopupOpen} onClose={() => { isLoginPopupOpen = false; loginPopupMessage = undefined }} returnTo="/new" message={loginPopupMessage} />
 </div>
 
 {#if !editMode}

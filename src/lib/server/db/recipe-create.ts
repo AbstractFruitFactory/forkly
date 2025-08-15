@@ -98,7 +98,7 @@ async function insertInstructionsAndIngredients(tx: PostgresJsDatabase, recipeId
   }
 }
 
-export async function createRecipe(input: RecipeInput, userId?: string) {
+export async function createRecipe(input: RecipeInput, userId: string) {
   return await db.transaction(async (tx) => {
     const recipeId = generateId()
 
@@ -121,11 +121,9 @@ export async function createRecipe(input: RecipeInput, userId?: string) {
   })
 }
 
-export async function updateRecipe(input: RecipeInput & { id: string }, userId?: string) {
+export async function updateRecipe(input: RecipeInput & { id: string }, userId: string) {
   return await db.transaction(async (tx) => {
-    const whereExpr = userId
-      ? and(eq(recipe.id, input.id), eq(recipe.userId, userId))
-      : eq(recipe.id, input.id)
+    const whereExpr = and(eq(recipe.id, input.id), eq(recipe.userId, userId))
 
     const updated = await tx.update(recipe).set({
       title: input.title,

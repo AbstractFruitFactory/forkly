@@ -4,21 +4,25 @@
 
 	let {
 		isOpen = $bindable(false),
-		onClose
+		onClose,
+		returnTo,
+		message
 	}: {
 		isOpen?: boolean
 		onClose?: () => void
+		returnTo?: string
+		message?: string
 	} = $props()
 </script>
 
 <Popup bind:isOpen width="400px" {onClose}>
 	<div class="login-popup-content">
 		<div class="message">
-			<p>Please log in to access this feature.</p>
+			<p>{message ?? 'Please log in to access this feature.'}</p>
 		</div>
 
 		<div class="button-group">
-			<GoogleButton />
+			<GoogleButton {returnTo} />
 		</div>
 	</div>
 </Popup>

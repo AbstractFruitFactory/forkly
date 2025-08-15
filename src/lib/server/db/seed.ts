@@ -1,4 +1,4 @@
-import { recipe, ingredient, recipeInstruction, recipeIngredient, recipeNutrition, tag, recipeTag } from './schema'
+import { recipe, ingredient, recipeInstruction, recipeIngredient, recipeNutrition, tag, recipeTag, user } from './schema'
 import type { Recipe } from './schema'
 import { generateId } from '../id'
 import postgres from 'postgres'
@@ -7,6 +7,8 @@ import * as dotenv from 'dotenv'
 import { readFile } from 'fs/promises'
 import { normalizeIngredientName } from '../utils/normalize-ingredient'
 import { parseQuantityToNumber } from '../../utils/ingredient-formatting'
+import { hash } from '@node-rs/argon2'
+import { eq } from 'drizzle-orm'
 
 dotenv.config()
 
@@ -27,6 +29,34 @@ export const seed = async () => {
   } catch (error) {
     console.log('Error cleaning up data:', error)
   }
+
+  // Ensure a demo user exists and capture the owner user id
+  const demoEmail = 'demo@forkly.local'
+  const demoUsername = 'demo'
+  const demoPasswordHash = await hash('password', {
+    memoryCost: 19456,
+    timeCost: 2,
+    outputLen: 32,
+    parallelism: 1
+  })
+  const demoUserId = generateId()
+
+  await db
+    .insert(user)
+    .values({
+      id: demoUserId,
+      username: demoUsername,
+      passwordHash: demoPasswordHash,
+      email: demoEmail,
+      emailVerified: true
+    })
+    .onConflictDoUpdate({
+      target: user.email,
+      set: { username: demoUsername, passwordHash: demoPasswordHash, emailVerified: true }
+    })
+
+  const [owner] = await db.select({ id: user.id }).from(user).where(eq(user.email, demoEmail))
+  const ownerUserId = owner?.id ?? demoUserId
 
   // Load recipes from JSON
   const recipesJson = await readFile(new URL('./seedRecipes.json', import.meta.url), 'utf-8')
@@ -52,6 +82,7 @@ export const seed = async () => {
         ...recipe,
         title: newTitle,
         id: generateId(),
+        userId: ownerUserId,
         createdAt: new Date()
       })
       if (sampleRecipes.length === TARGET_RECIPE_COUNT) break
@@ -167,7 +198,6 @@ export const seed = async () => {
     return Math.floor(Math.random() * (max - min + 1)) + min
   }
   function randomNutrition(recipe: Recipe) {
-    // Optionally, you could use recipe.tags or title to bias the ranges
     return {
       recipeId: recipe.id,
       calories: randomInt(150, 900),

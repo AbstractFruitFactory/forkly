@@ -1,0 +1,1 @@
+ALTER TABLE "recipe" ALTER COLUMN "user_id" SET NOT NULL;
