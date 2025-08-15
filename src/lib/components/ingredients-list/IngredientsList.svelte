@@ -51,6 +51,9 @@
 			</li>
 		{/each}
 	{:else}
+		<div class="ingredients-header">
+			<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
+		</div>
 		{#each displayIngredients as ingredient}
 			<li>
 				{#if ingredient.displayMeasurementAndQuantity}
@@ -60,18 +63,13 @@
 			</li>
 		{/each}
 	{/if}
-
-	{#if !loading}
-		<div style:margin-top="var(--spacing-sm)">
-			<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
-		</div>
-	{/if}
 </ul>
 
 <style lang="scss">
 	@use '$lib/styles/tokens' as *;
 
 	.ingredients-list {
+		padding: var(--spacing-lg);
 		li {
 			list-style: none;
 			padding: var(--spacing-md) 0;
@@ -81,15 +79,19 @@
 			width: 100%;
 			color: var(--color-text-on-surface);
 
-			&:first-child {
+			&:first-of-type {
 				padding-top: 0;
 			}
 
-			&:nth-last-child(2),
 			&:last-child {
 				border-bottom: none;
 			}
 		}
+	}
+
+	.ingredients-header {
+		display: flex;
+		margin-bottom: var(--spacing-lg);
 	}
 
 	.quantity,
@@ -103,4 +105,3 @@
 		color: var(--color-neutral-lightest);
 	}
 </style>
-
