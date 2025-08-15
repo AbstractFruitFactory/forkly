@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { gsap } from 'gsap'
 	import { type Snippet } from 'svelte'
+	import { tick } from 'svelte'
 
 	type Item = $$Generic<{ id: string }>
 
@@ -22,20 +23,26 @@
 	let previousCardsCount = $state(0)
 
 	$effect(() => {
-		if (items.length > previousCardsCount && useAnimation) {
-			const newCards = cards.slice(previousCardsCount)
+		;(async () => {
+			if (!useAnimation) {
+				previousCardsCount = items.length
+				return
+			}
+			if (items.length > previousCardsCount) {
+				await tick()
+				const newCards = cards.slice(previousCardsCount).filter(Boolean)
 
-			gsap.set(newCards, { y: 50, opacity: 0 })
-			gsap.to(newCards, {
-				y: 0,
-				opacity: 1,
-				duration: 0.4,
-				stagger: 0.05,
-				ease: 'back.out(1.7)'
-			})
-
+				gsap.set(newCards, { y: 50, opacity: 0 })
+				gsap.to(newCards, {
+					y: 0,
+					opacity: 1,
+					duration: 0.4,
+					stagger: 0.05,
+					ease: 'back.out(1.7)'
+				})
+			}
 			previousCardsCount = items.length
-		}
+		})()
 	})
 </script>
 
