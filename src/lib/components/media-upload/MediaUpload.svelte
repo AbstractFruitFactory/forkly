@@ -3,6 +3,9 @@
 	import { handleMediaFile, cleanupPreview } from '$lib/utils/mediaHandling'
 	import { getMediaType } from '$lib/utils/mediaValidation'
 	import { uploadMedia } from '$lib/client/media/upload'
+	import MediaActionSheet from './MediaActionSheet.svelte'
+
+	type CameraFacing = 'environment' | 'user'
 
 	let {
 		error,
@@ -14,7 +17,11 @@
 		onFile,
 		initialMedia,
 		onUploaded,
-		onCleared
+		onCleared,
+		maxDuration,
+		preferredCamera = 'environment' as CameraFacing,
+		allowMultipleFromLibrary = true,
+		androidChooseFilesFirst = true
 	}: {
 		error?: string
 		id?: string
@@ -27,6 +34,9 @@
 		initialMedia?: { url: string; type: 'image' | 'video' }
 		onUploaded?: (url: string, type: 'image' | 'video') => void
 		onCleared?: () => void
+		preferredCamera?: CameraFacing
+		allowMultipleFromLibrary?: boolean
+		androidChooseFilesFirst?: boolean
 	} = $props()
 
 	let preview = $derived(initialMedia?.url)
@@ -37,6 +47,21 @@
 	let isUploading = $state(false)
 	let uploadedUrl = $state<string | undefined>(initialMedia?.url)
 	let uploadedType = $state<'image' | 'video' | undefined>(initialMedia?.type)
+
+	const isAndroid = $derived(
+		typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
+	)
+	const isIOS = $derived(
+		typeof navigator !== 'undefined' && /(iPhone|iPad|iPod)/i.test(navigator.userAgent)
+	)
+
+	const acceptAttr = $derived(
+		type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : 'image/*,video/*'
+	)
+
+	let imageInputEl = $state<HTMLInputElement>()
+	let videoInputEl = $state<HTMLInputElement>()
+	let showActionSheet = $state(false)
 
 	$effect(() => {
 		if (initialMedia) fetchAndCreateFile(initialMedia.url, initialMedia.type)
@@ -66,9 +91,13 @@
 
 	const handleFileSelect = async (event: Event) => {
 		const input = event.target as HTMLInputElement
-		const file = input.files?.[0]
-		if (!file) return
-		handleFile(file)
+		const files = input.files
+		if (!files || files.length === 0) return
+
+		// Component is single-slot. If multiple were picked from the library,
+		// process the first file (most UIs expect one thumbnail here).
+		const [first] = Array.from(files)
+		await handleFile(first)
 	}
 
 	const handleFile = async (file: File) => {
@@ -78,7 +107,7 @@
 		const result = await handleMediaFile(file, {
 			type,
 			maxSize,
-			maxDuration: MAX_VIDEO_DURATION_SECONDS
+			maxDuration: maxDuration ?? MAX_VIDEO_DURATION_SECONDS
 		})
 		error = result.error
 		preview = result.preview
@@ -98,6 +127,16 @@
 				isUploading = false
 			}
 		}
+	}
+
+	const handleAreaClick = () => {
+		// iOS (incl. PWA): use native sheet (Camera / Photo Library / Browse)
+		// Android: show your custom chooser for Camera / Camcorder / Files
+		if (isAndroid) {
+			showActionSheet = true
+			return
+		}
+		inputElement?.click()
 	}
 
 	const handleDragOver = (e: DragEvent) => {
@@ -126,24 +165,53 @@
 		}
 		onCleared?.()
 	}
+
 	onDestroy(() => {
 		if (preview) cleanupPreview(preview)
 	})
 </script>
 
+<!-- Main "browse" input: allow multi-select from gallery if enabled.
+     Important: do NOT set capture here, to keep the file browser option on Android. -->
 <input
 	type="file"
 	{name}
 	{id}
-	accept={type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : 'image/*,video/*'}
+	accept={acceptAttr}
+	{...allowMultipleFromLibrary ? { multiple: true } : {}}
 	onchange={handleFileSelect}
 	class="hidden"
 	bind:this={inputElement}
 	aria-label={`Upload ${type === 'image' ? 'image' : type === 'video' ? 'video' : 'media'}`}
 	aria-describedby={error ? `${id}-error` : undefined}
 />
+
 <input type="hidden" name={`${name}-url`} bind:this={hiddenInputEl} value={uploadedUrl} />
 <input type="hidden" name={`${name}-type`} value={uploadedType} />
+
+<!-- Dedicated capture inputs (Android honors capture target; iOS ignores value but still offers camera) -->
+{#if type !== 'video'}
+	<input
+		type="file"
+		accept="image/*"
+		class="hidden"
+		bind:this={imageInputEl}
+		aria-label="Capture photo"
+		onchange={handleFileSelect}
+		capture={preferredCamera}
+	/>
+{/if}
+{#if type !== 'image'}
+	<input
+		type="file"
+		accept="video/*"
+		class="hidden"
+		bind:this={videoInputEl}
+		aria-label="Record video"
+		onchange={handleFileSelect}
+		capture={preferredCamera}
+	/>
+{/if}
 
 {#if preview && mediaType === 'video'}
 	<div
@@ -171,7 +239,7 @@
 				<line x1="6" y1="6" x2="18" y2="18"></line>
 			</svg>
 		</div>
-		<video src={preview} controls muted class="video-preview"></video>
+		<video src={preview} controls muted playsinline class="video-preview"></video>
 	</div>
 {:else}
 	<button
@@ -179,7 +247,7 @@
 		class="preview-area"
 		class:has-preview={preview}
 		class:drag-over={dragOver}
-		onclick={() => inputElement.click()}
+		onclick={handleAreaClick}
 		ondragover={handleDragOver}
 		ondragleave={handleDragLeave}
 		ondrop={handleDrop}
@@ -202,7 +270,9 @@
 				</svg>
 			</div>
 			{#if isUploading}
-				<div class="uploading-overlay"><span>Uploading…</span></div>
+				<div class="uploading-overlay" role="status" aria-live="polite">
+					<span>Uploading…</span>
+				</div>
 			{/if}
 			<img src={preview} alt={previewAlt} loading="eager" decoding="sync" />
 			<div class="preview-overlay"><span style:color="white">Change Image</span></div>
@@ -237,6 +307,26 @@
 			</div>
 		{/if}
 	</button>
+
+	{#if showActionSheet}
+		<MediaActionSheet
+			{type}
+			{androidChooseFilesFirst}
+			onChooseFiles={() => {
+				showActionSheet = false
+				inputElement?.click()
+			}}
+			onTakePhoto={() => {
+				showActionSheet = false
+				imageInputEl?.click()
+			}}
+			onRecordVideo={() => {
+				showActionSheet = false
+				videoInputEl?.click()
+			}}
+			onCancel={() => (showActionSheet = false)}
+		/>
+	{/if}
 {/if}
 
 {#if error}
