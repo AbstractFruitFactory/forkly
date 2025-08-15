@@ -30,6 +30,7 @@ export const ingredient = pgTable('ingredient', {
 export const recipe = pgTable('recipe', {
 	id: text('id').primaryKey(),
 	userId: text('user_id')
+		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
 	title: text('title').notNull(),
 	description: text('description'),

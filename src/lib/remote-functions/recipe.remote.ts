@@ -57,6 +57,7 @@ const transformIngredientQuantity = (
 
 export const createRecipe = command(RecipeSchema, async (input) => {
   const { locals } = getRequestEvent()
+  if (!locals.user) error(401, 'Unauthorized')
   await moveMediaFromTmpFolder(input)
 
   ensureRecipeHasIngredients(input)
@@ -72,7 +73,7 @@ export const createRecipe = command(RecipeSchema, async (input) => {
   let newRecipe: Awaited<ReturnType<typeof createRecipeDb>>
   
   try {
-    newRecipe = await createRecipeDb(transformedInput, locals.user?.id)
+    newRecipe = await createRecipeDb(transformedInput, locals.user.id)
   } catch (e) {
     console.error('Error creating recipe', e)
     await cleanupUploadedMediaFromObject(input)
@@ -95,6 +96,7 @@ const UpdateRecipeSchema = v.intersect([
 
 export const updateRecipe = command(UpdateRecipeSchema, async (input) => {
   const { locals } = getRequestEvent()
+  if (!locals.user) error(401, 'Unauthorized')
   await moveMediaFromTmpFolder(input)
 
   ensureRecipeHasIngredients(input)
@@ -110,7 +112,7 @@ export const updateRecipe = command(UpdateRecipeSchema, async (input) => {
   let updatedRecipe: Awaited<ReturnType<typeof updateRecipeDb>>
 
   try {
-    updatedRecipe = await updateRecipeDb(transformedInput, locals.user?.id)
+    updatedRecipe = await updateRecipeDb(transformedInput, locals.user.id)
   } catch (e) {
     console.error('Error updating recipe', e)
     await cleanupUploadedMediaFromObject(input)

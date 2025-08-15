@@ -61,10 +61,13 @@ export const GET: RequestHandler = async (event) => {
     const session = await createSession(sessionToken, user.id)
     setSessionTokenCookie(event, sessionToken, session.expiresAt)
 
+    const redirectTo = event.cookies.get('post_login_redirect') || '/'
+    event.cookies.delete('post_login_redirect', { path: '/' })
+
     return new Response(null, {
         status: 302,
         headers: {
-            Location: "/"
+            Location: redirectTo
         }
     })
 } 

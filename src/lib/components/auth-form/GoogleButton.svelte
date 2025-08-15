@@ -1,8 +1,10 @@
 <script lang="ts">
 	import GoogleIcon from '$lib/components/icons/GoogleIcon.svelte'
+	let { returnTo }: { returnTo?: string } = $props()
+	const href = $derived(`/login/google${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`)
 </script>
 
-<a href="/login/google" class="google-button">
+<a href={href} class="google-button">
 	<button type="button" class="google-button-inner">
 		<GoogleIcon />
 		Sign in with Google
