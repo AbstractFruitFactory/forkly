@@ -312,13 +312,17 @@
 			<Logo responsive={false} />
 		</div>
 
+		{#snippet tagline()}
+			Share your own recipe, or explore from the community - without the fuss.
+		{/snippet}
+
 		<div class="tagline desktop-only">
-			<h1>Share your own recipe, or explore from the community - without the fuss.</h1>
+			<h1 style:color="black">{@render tagline()}</h1>
 		</div>
 
 		<div class="tagline mobile-only">
-			<h2 style:font-weight="var(--font-weight-bold)">
-				Browse and share recipes - clean, ad-free, and easy.
+			<h2 style:color="black" style:font-weight="var(--font-weight-bold)">
+				{@render tagline()}
 			</h2>
 		</div>
 
