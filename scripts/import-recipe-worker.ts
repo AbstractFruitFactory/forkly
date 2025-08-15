@@ -352,9 +352,9 @@ async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promi
   Always include mediaUrl and mediaType ("image" | "video" | null) in every instruction. 
   If missing info, set null/empty instead of guessing. 
   Title can be inferred from content if absent. 
-  Use exactly up to 3 short, relevant tags.
-  If nutrition facts are present, include them in the nutrition object.
   If a unit is specified, a quantity has to be specified as well. Measurements such as "to taste" go into the "quantity" field.
+
+  Honor the original recipe and don't make changes to the instructions.
  
  IMPORTANT about step ingredients:
  - If a step reuses the same physical ingredient portion prepared in an earlier step (not adding more), set isPrepared=true for that ingredient and do not infer additional quantity/measurement for that step.
@@ -370,7 +370,7 @@ async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promi
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o',
-    temperature: 0.2,
+    temperature: 0,
     messages: [{ role: 'user', content: prompt }],
     tools: [
       {
