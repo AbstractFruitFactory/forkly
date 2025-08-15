@@ -29,6 +29,7 @@
 		bind:selected
 		onSearch={searchIngredients}
 		title="Add/remove ingredients"
+		--dropdown-width="230px"
 	>
 		{#snippet icon()}
 			<Carrot size={16} color="var(--color-text-on-surface)" />

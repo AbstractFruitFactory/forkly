@@ -150,6 +150,7 @@
 
 	.search-container {
 		padding: var(--spacing-sm);
+		min-width: var(--dropdown-width, 0);
 	}
 
 	.label {
