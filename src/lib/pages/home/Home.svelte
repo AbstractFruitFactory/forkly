@@ -314,7 +314,7 @@
 		</div>
 
 		<div class="tagline desktop-only">
-			<h1>Browse and share recipes - clean, ad-free, and easy.</h1>
+			<h1>Share your own recipe, or explore from the community - without the fuss.</h1>
 		</div>
 
 		<div class="tagline mobile-only">
@@ -329,7 +329,7 @@
 				Import a recipe
 			</Button>
 		</div>
-		<div bind:this={$sentinelNode} style:height="20px"></div>
+		<div bind:this={$sentinelNode} style:height="1px"></div>
 	</div>
 {/snippet}
 
@@ -484,8 +484,7 @@
 	.cta-row {
 		display: flex;
 		justify-content: center;
-		margin-top: var(--spacing-2xl);
-
+		margin-top: var(--spacing-md);
 		@include mobile {
 			margin-top: 0;
 		}
