@@ -144,10 +144,6 @@
 		}
 	}
 
-	:global(.search-input-container input) {
-		padding-right: calc(var(--spacing-xl) + var(--spacing-xs)) !important;
-	}
-
 	@keyframes spin {
 		to {
 			transform: rotate(360deg);

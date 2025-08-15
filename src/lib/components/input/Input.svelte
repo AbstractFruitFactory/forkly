@@ -19,6 +19,9 @@
 	} = $props()
 
 	const showClear = $derived(value !== '')
+	const hasClear = $derived(!isLoading && (!!clearButton || showClear))
+	const hasAction = $derived(!!actionButton)
+	const hasRightElements = $derived(!!isLoading || hasClear || hasAction)
 
 	const onClear = () => {
 		value = ''
@@ -28,27 +31,32 @@
 <div
 	class="input-wrapper"
 	style:--rounded-corners={roundedCorners ? 'var(--border-radius-full)' : undefined}
+	style:--input-right-padding={hasRightElements ? 'var(--spacing-sm)' : 'var(--spacing-xs)'}
 >
-	<div class="input-container">
+	<div class="input-container" style:grid-template-columns={hasRightElements ? '1fr auto' : '1fr'}>
 		{@render children()}
 
-		<div class="right-elements">
-			<button class="clear-button" type="button" onclick={onClear} aria-label="Clear input">
-				{#if clearButton}
-					{@render clearButton()}
-				{:else if showClear}
-					<Clear color="var(--color-text-on-surface)" />
-				{/if}
+		{#if hasRightElements}
+			<div class="right-elements">
 				{#if isLoading}
 					<div class="loading-spinner"></div>
 				{/if}
-			</button>
-			{#if actionButton}
-				<button class="action-button" type="button" onclick={actionButton.onClick}>
-					{actionButton.text}
-				</button>
-			{/if}
-		</div>
+				{#if hasClear}
+					<button class="clear-button" type="button" onclick={onClear} aria-label="Clear input">
+						{#if clearButton}
+							{@render clearButton()}
+						{:else}
+							<Clear color="var(--color-text-on-surface)" />
+						{/if}
+					</button>
+				{/if}
+				{#if actionButton}
+					<button class="action-button" type="button" onclick={actionButton.onClick}>
+						{actionButton.text}
+					</button>
+				{/if}
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -121,7 +129,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-xs);
-		padding-right: var(--spacing-md);
+		padding-right: var(--spacing-sm);
 		flex-shrink: 0;
 
 		@include mobile {
@@ -160,6 +168,7 @@
 		border-radius: 50%;
 		animation: spin 1s linear infinite;
 		pointer-events: none;
+		margin: var(--spacing-xs);
 	}
 
 	.action-button {
@@ -186,7 +195,7 @@
 				border: none;
 				background: none;
 				border-radius: 0;
-				padding-right: var(--spacing-md);
+				padding-right: var(--input-right-padding, var(--spacing-sm));
 				color: var(--color-text-on-surface);
 				-webkit-appearance: none;
 				-webkit-box-sizing: border-box;
