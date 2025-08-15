@@ -29,7 +29,7 @@
 			ingredients: string[]
 			excludedIngredients: string[]
 		}) => {},
-		onSortChange = (sortBy: 'popular' | 'newest' | 'easiest') => {},
+		onSortChange = (sortBy: 'popular' | 'newest') => {},
 		searchTags = (query: string) => Promise.resolve<{ name: string; count: number }[]>([]),
 		searchIngredients = (query: string) => Promise.resolve<{ id: string; name: string }[]>([]),
 		loadMore = () => Promise.resolve(),
@@ -48,13 +48,13 @@
 			ingredients: string[]
 			excludedIngredients: string[]
 		}) => void
-		onSortChange?: (sortBy: 'popular' | 'newest' | 'easiest') => void
+		onSortChange?: (sortBy: 'popular' | 'newest') => void
 		searchTags?: (query: string) => Promise<{ name: string; count: number }[]>
 		searchIngredients?: (query: string) => Promise<{ id: string; name: string }[]>
 		loadMore?: () => Promise<void>
 		initialTags?: string[]
 		initialIngredients?: { label: string; include: boolean }[]
-		initialSort?: 'popular' | 'newest' | 'easiest'
+		initialSort?: 'popular' | 'newest'
 		onSearchbarSticky?: (isSticky: boolean) => void
 		initialSearchValue?: string
 		isLoadingMore?: boolean
@@ -180,8 +180,7 @@
 
 	const sortOptions = [
 		{ label: 'Popular', value: 'popular', onClick: () => onSortChange('popular') },
-		{ label: 'Newest', value: 'newest', onClick: () => onSortChange('newest') },
-		{ label: 'Easiest', value: 'easiest', onClick: () => onSortChange('easiest') }
+		{ label: 'Newest', value: 'newest', onClick: () => onSortChange('newest') }
 	]
 
 	let sortBy = $derived(sortOptions.find((option) => option.value === initialSort)!)

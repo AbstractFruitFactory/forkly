@@ -16,7 +16,7 @@ export const GET: RequestHandler = async ({ url }) => {
   const query = url.searchParams.get('q') || ''
   const limit = parseInt(url.searchParams.get('limit') || '18', 10)
   const page = parseInt(url.searchParams.get('page') || '0', 10)
-  const sort = (url.searchParams.get('sort') || 'popular') as 'popular' | 'newest' | 'easiest'
+  const sort = (url.searchParams.get('sort') || 'popular') as 'popular' | 'newest'
 
   const tagsParam = url.searchParams.get('tags') || ''
   const tags = tagsParam ? tagsParam.split(',').filter(Boolean) : []

@@ -88,7 +88,7 @@
 		handleSearch(query, activeFilters)
 	}
 
-	const handleSortChange = (sortBy: 'popular' | 'newest' | 'easiest') => {
+	const handleSortChange = (sortBy: 'popular' | 'newest') => {
 		sortParam = sortBy
 		isLoading = true
 		const currentSearch = useCookies('search').get()

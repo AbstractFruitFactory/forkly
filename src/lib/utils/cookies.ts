@@ -10,7 +10,7 @@ export type SearchCookie = {
   tags: string[]
   ingredients: string[]
   excludedIngredients: string[]
-  sort: 'popular' | 'newest' | 'easiest'
+  sort: 'popular' | 'newest'
 }
 
 export type PaginationCookie = {

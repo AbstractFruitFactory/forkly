@@ -75,7 +75,7 @@ export type RecipeFilterBase = {
   userId?: string
   limit?: number
   page?: number
-  sort?: 'popular' | 'newest' | 'easiest'
+  sort?: 'popular' | 'newest'
 }
 
 export type BasicRecipeFilter = RecipeFilterBase & { detailed?: false }
@@ -181,25 +181,8 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
     switch (sort) {
       case 'newest':
         return [desc(recipe.createdAt), desc(recipe.id)]
-      case 'easiest':
-        // For easiest, we'll order by fewer ingredients and instructions
-        // We need to count ingredients and instructions in a subquery
-        return [
-          asc(sql`(
-            SELECT COUNT(*) 
-            FROM recipe_ingredient rii 
-            WHERE rii.recipe_id = ${recipe.id}
-          )`),
-          asc(sql`(
-            SELECT COUNT(*) 
-            FROM recipe_instruction ri 
-            WHERE ri.recipe_id = ${recipe.id}
-          )`),
-          desc(recipe.createdAt)
-        ]
       case 'popular':
       default:
-        // For popular, we'll order by likes count, then by recency
         return [desc(sql`count(DISTINCT ${recipeLike.userId})`), desc(recipe.createdAt), desc(recipe.id)]
     }
   }
