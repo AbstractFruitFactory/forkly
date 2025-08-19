@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/sanitize-ingredient/retry-failed",
+      "schedule": "*/30 * * * *"
+    }
+  ]
+} 
