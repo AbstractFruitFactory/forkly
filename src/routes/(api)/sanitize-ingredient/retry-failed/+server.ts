@@ -5,7 +5,18 @@ import { env } from '$env/dynamic/private'
 
 export const GET: RequestHandler = async ({ request }) => {
   const authHeader = request.headers.get('authorization')
-  if (!authHeader || authHeader !== `Bearer ${env.CRON_SECRET}`) {
+  const hasAuthHeader = typeof authHeader === 'string' && authHeader.length > 0
+  const hasCronSecret = typeof env.CRON_SECRET === 'string' && env.CRON_SECRET.length > 0
+  if (!hasAuthHeader || !hasCronSecret) {
+    console.warn('retry-failed cron: missing header or secret', {
+      hasAuthHeader,
+      hasCronSecret
+    })
+    return json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (authHeader !== `Bearer ${env.CRON_SECRET}`) {
+    console.warn('retry-failed cron: invalid authorization header')
     return json({ error: 'Unauthorized' }, { status: 401 })
   }
 
