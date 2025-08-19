@@ -4,7 +4,6 @@ import { getUserByUsername, getPublicUserByUsername, type User } from '$lib/serv
 import * as v from 'valibot'
 import { safeFetch } from '$lib/utils/fetch'
 import type { UserRecipes } from '../../../(api)/recipes/user/+server'
-import { getCollections } from '$lib/server/db/save'
 import { getRecipes, type DetailedRecipe, getRecipeDraftsByUser } from '$lib/server/db/recipe'
 import type { RecipeDraft } from '$lib/server/db/schema'
 
@@ -29,14 +28,12 @@ export const getUserProfile = query(
     if (!profileUser) error(404, 'User not found')
 
     let recipes: DetailedRecipe[]
-    let collections: { name: string; count: number }[]
     let drafts: RecipeDraft[] = []
 
     if (isOwner) {
       const userRecipes = await safeFetch<UserRecipes>(fetch)('/recipes/user')
       if (userRecipes.isErr()) error(500, 'Failed to load recipes')
       recipes = userRecipes.value.created
-      collections = await getCollections(locals.user!.id)
       const rawDrafts = await getRecipeDraftsByUser(locals.user!.id)
       drafts = rawDrafts.map(draft => ({
         ...draft,
@@ -48,7 +45,6 @@ export const getUserProfile = query(
         userId: profileUser.id,
         detailed: true
       })
-      collections = []
     }
 
     return {
@@ -56,7 +52,6 @@ export const getUserProfile = query(
       profileUser,
       currentUser: locals.user,
       recipes,
-      collections,
       drafts,
       initialTab: tab ?? undefined
     }

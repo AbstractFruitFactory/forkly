@@ -16,27 +16,29 @@
 	import Drawer from '$lib/components/drawer/Drawer.svelte'
 	import { mobileStore } from '$lib/state/mobile.svelte'
 	import type { RecipeDraft } from '$lib/server/db/schema'
-	import { uploadMedia } from '$lib/client/media/upload'
 	import { deleteDraft } from '$lib/remote-functions/draft.remote'
 
 	let {
 		username,
 		userData,
+		collections,
 		initialTab,
 		onLogout,
-		errors
+		errors,
+		onCreateCollection
 	}: {
 		username: string
 		userData: Promise<{
 			isOwner: boolean
 			profileUser: User
 			recipes: DetailedRecipe[]
-			collections: { name: string; count: number }[]
 			drafts: RecipeDraft[]
 		}>
+		collections: Promise<{ name: string; count: number }[]>
 		initialTab?: string
 		onLogout?: () => void
 		errors?: { path: string; message: string }[]
+		onCreateCollection?: (name: string) => void
 	} = $props()
 
 	let tabOptions = $state(['Profile info', 'Created recipes'])
@@ -67,6 +69,7 @@
 	let deleteDraftPopupOpen = $state(false)
 	let editDrawer = $state<Drawer>()
 	let editPopup = $state<Popup>()
+
 	async function handleAvatarChange(event: Event) {
 		const input = event.target as HTMLInputElement
 		const file = input.files?.[0]
@@ -284,18 +287,25 @@
 {/snippet}
 
 {#snippet _savedRecipes()}
-	{#await userData then data}
+	{#await Promise.all([userData, collections]) then [data, collections]}
 		{#if data.isOwner}
 			<CardGrid
-				items={data.collections.map((collection) => ({
-					...collection,
-					id: collection.name
-				}))}
+				items={[
+					{ id: '__new__', name: 'new', count: 0 },
+					...collections.map((collection) => ({
+						...collection,
+						id: collection.name
+					}))
+				]}
 				useAnimation={false}
 				emptyMessage="You haven't saved any collections yet."
 			>
 				{#snippet item(item)}
-					<CollectionCard name={item.name} count={item.count} />
+					{#if item.id === '__new__'}
+						<CollectionCard createNew {onCreateCollection} />
+					{:else}
+						<CollectionCard name={item.name} count={item.count} />
+					{/if}
 				{/snippet}
 			</CardGrid>
 		{/if}

@@ -6,13 +6,15 @@
 	import { getUserProfile } from './data.remote'
 	import { page } from '$app/state'
 	import type { ActionData } from './$types'
+	import { createCollection, getCollections } from '$lib/remote-functions/collections.remote'
 
 	let { form }: { form?: ActionData } = $props()
 
 	const tab = $derived(page.url.searchParams.get('tab') ?? undefined)
 	const username = $derived(page.params.username!)
-	const profileData = $derived(getUserProfile({ username, tab }))
-	const formErrors = $derived(form && typeof form === 'object' && 'errors' in form ? (form as any).errors : undefined)
+	const formErrors = $derived(
+		form && typeof form === 'object' && 'errors' in form ? (form as any).errors : undefined
+	)
 
 	async function handleLogout() {
 		const response = await fetch('/logout', {
@@ -30,10 +32,14 @@
 
 <div in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
 	<Profile
-		username={username}
-		userData={profileData}
+		{username}
+		userData={getUserProfile({ username, tab })}
+		collections={getCollections()}
 		onLogout={handleLogout}
 		initialTab={tab}
 		errors={formErrors}
+		onCreateCollection={async (name) => {
+			await createCollection({ name })
+		}}
 	/>
 </div>
