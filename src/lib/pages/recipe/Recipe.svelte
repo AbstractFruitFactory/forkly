@@ -76,6 +76,7 @@
 	let selectedCollection = $state<string | undefined>('All Recipes')
 	let showDuplicateWarning = $state(false)
 	let totalComments = $state<number>(0)
+	let imageBroken = $state(false)
 
 	$effect(() => {
 		data.then((r) => {
@@ -96,6 +97,12 @@
 				showDuplicateWarning = false
 			}
 		}
+	})
+
+	$effect(() => {
+		data.then(() => {
+			imageBroken = false
+		})
 	})
 
 	onMount(() => {
@@ -215,10 +222,10 @@
 	{#await data}
 		<RecipeImagePlaceholder loading size="large" />
 	{:then recipeData}
-		{#if recipeData.recipe.imageUrl}
-			<img src={recipeData.recipe.imageUrl} alt={recipeData.recipe.title} />
+		{#if recipeData.recipe.imageUrl && !imageBroken}
+			<img src={recipeData.recipe.imageUrl} alt={recipeData.recipe.title} onerror={() => (imageBroken = true)} onload={() => (imageBroken = false)} />
 		{:else}
-			<RecipeImagePlaceholder size="large" />
+			<RecipeImagePlaceholder size="large" broken={imageBroken} />
 		{/if}
 	{/await}
 {/snippet}

@@ -1,15 +1,18 @@
 <script lang="ts">
 	import Utensils from 'lucide-svelte/icons/utensils'
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
+	import ImageOff from 'lucide-svelte/icons/image-off'
 
 	let {
 		size = 'medium',
 		className = '',
-		loading = false
+		loading = false,
+		broken = false
 	}: {
 		size?: 'small' | 'medium' | 'large'
 		className?: string
 		loading?: boolean
+		broken?: boolean
 	} = $props()
 
 	const iconSize = $derived(
@@ -30,7 +33,11 @@
 	{#if loading}
 		<Skeleton width="100%" height="100%" />
 	{:else}
-		<Utensils size={iconSize} strokeWidth={1.5} />
+		{#if broken}
+			<ImageOff size={iconSize} strokeWidth={1.5} />
+		{:else}
+			<Utensils size={iconSize} strokeWidth={1.5} />
+		{/if}
 	{/if}
 </div>
 
