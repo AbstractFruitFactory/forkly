@@ -277,7 +277,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
             isPrepared: recipeIngredient.isPrepared
           })
           .from(recipeIngredient)
-          .innerJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
+          .leftJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
           .where(eq(recipeIngredient.recipeId, r.id))
 
         // Group ingredients by instruction
@@ -295,8 +295,8 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
             ingredientsByInstruction.set(instructionId, [])
           }
           ingredientsByInstruction.get(instructionId)!.push({
-            id: ingr.id,
-            name: ingr.name,
+            id: ingr?.id ?? `unlinked:${instructionId}:${displayName}`,
+            name: ingr?.name ?? displayName,
             quantity: { text: quantity ?? '', numeric: numericQuantity ?? undefined },
             measurement: measurement || '',
             displayName: displayName,
@@ -315,15 +315,16 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
 
         for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName, isPrepared } of instructionIngredients) {
           if (isPrepared) continue
-          const key = `${ingr.id}-${measurement}-${displayName}`
-          if (ingredientMap.has(key)) {
+          const baseId = ingr?.id ?? `unlinked:${displayName}`
+          const ingredientKey = `${baseId}-${measurement}-${displayName}`
+          if (ingredientMap.has(ingredientKey)) {
             const addQty = typeof numericQuantity === 'number' ? numericQuantity : 0
-            const prevQty = ingredientMap.get(key)!.quantity?.numeric ?? 0
-            ingredientMap.get(key)!.quantity = { text: '', numeric: prevQty + addQty }
+            const prevQty = ingredientMap.get(ingredientKey)!.quantity?.numeric ?? 0
+            ingredientMap.get(ingredientKey)!.quantity = { text: '', numeric: prevQty + addQty }
           } else {
-            ingredientMap.set(key, {
-              id: ingr.id,
-              name: ingr.name,
+            ingredientMap.set(ingredientKey, {
+              id: baseId,
+              name: ingr?.name ?? displayName,
               quantity: { text: quantity ?? undefined, numeric: numericQuantity ?? undefined },
               measurement: measurement || '',
               displayName: displayName
@@ -771,7 +772,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string): P
       isPrepared: recipeIngredient.isPrepared
     })
     .from(recipeIngredient)
-    .innerJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
+    .leftJoin(ingredient, eq(recipeIngredient.ingredientId, ingredient.id))
     .where(eq(recipeIngredient.recipeId, recipeId))
 
   // Group ingredients by instruction
@@ -789,8 +790,8 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string): P
       ingredientsByInstruction.set(instructionId, [])
     }
     ingredientsByInstruction.get(instructionId)!.push({
-      id: ingr.id,
-      name: ingr.name,
+      id: ingr?.id ?? `unlinked:${instructionId}:${displayName}`,
+      name: ingr?.name ?? displayName,
       quantity: { text: quantity ?? '', numeric: numericQuantity ?? undefined },
       measurement: measurement || '',
       displayName: displayName,
@@ -809,15 +810,16 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string): P
 
   for (const { ingredient: ingr, quantity, numericQuantity, measurement, displayName, isPrepared } of instructionIngredients) {
     if (isPrepared) continue
-    const key = `${ingr.id}-${measurement}-${displayName}`
-    if (ingredientMap.has(key)) {
+    const baseId = ingr?.id ?? `unlinked:${displayName}`
+    const ingredientKey = `${baseId}-${measurement}-${displayName}`
+    if (ingredientMap.has(ingredientKey)) {
       const addQty = typeof numericQuantity === 'number' ? numericQuantity : 0
-      const prevQty = ingredientMap.get(key)!.quantity?.numeric ?? 0
-      ingredientMap.get(key)!.quantity = { text: '', numeric: prevQty + addQty }
+      const prevQty = ingredientMap.get(ingredientKey)!.quantity?.numeric ?? 0
+      ingredientMap.get(ingredientKey)!.quantity = { text: '', numeric: prevQty + addQty }
     } else {
-      ingredientMap.set(key, {
-        id: ingr.id,
-        name: ingr.name,
+      ingredientMap.set(ingredientKey, {
+        id: baseId,
+        name: ingr?.name ?? displayName,
         quantity: { text: quantity ?? '', numeric: numericQuantity ?? undefined },
         measurement: measurement || '',
         displayName: displayName

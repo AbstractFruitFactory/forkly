@@ -22,6 +22,7 @@ export const load: PageServerLoad = async ({ params, isDataRequest }) => {
     return { recipeData: null }
   }
   const recipeData = await getRecipeData({ id: params.id })
+
   return { recipeData }
 }
 
