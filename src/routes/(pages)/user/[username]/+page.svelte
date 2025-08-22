@@ -7,6 +7,7 @@
 	import { page } from '$app/state'
 	import type { ActionData } from './$types'
 	import { createCollection, getCollections } from '$lib/remote-functions/collections.remote'
+	import { getPostsByUsername } from '$lib/remote-functions/posts.remote'
 
 	let { form }: { form?: ActionData } = $props()
 
@@ -35,6 +36,7 @@
 		{username}
 		userData={getUserProfile({ username, tab })}
 		collections={getCollections()}
+		posts={getPostsByUsername({ username })}
 		onLogout={handleLogout}
 		initialTab={tab}
 		errors={formErrors}

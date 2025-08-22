@@ -17,6 +17,9 @@
 	import { mobileStore } from '$lib/state/mobile.svelte'
 	import type { RecipeDraft } from '$lib/server/db/schema'
 	import { deleteDraft } from '$lib/remote-functions/draft.remote'
+	import Input from '$lib/components/input/Input.svelte'
+	import MarkdownEditor from '$lib/components/markdown/MarkdownEditor.svelte'
+	import { createPost } from '$lib/remote-functions/posts.remote'
 
 	let {
 		username,
@@ -25,7 +28,8 @@
 		initialTab,
 		onLogout,
 		errors,
-		onCreateCollection
+		onCreateCollection,
+		posts
 	}: {
 		username: string
 		userData: Promise<{
@@ -39,6 +43,7 @@
 		onLogout?: () => void
 		errors?: { path: string; message: string }[]
 		onCreateCollection?: (name: string) => void
+		posts: Promise<Array<{ id: string; title: string; content: string; createdAt: string | Date }>>
 	} = $props()
 
 	let tabOptions = $state(['Profile info', 'Created recipes'])
@@ -47,7 +52,9 @@
 	$effect(() => {
 		userData.then((data) => {
 			if (data.isOwner) {
-				tabOptions = ['Profile info', 'Created recipes', 'Saved recipes', 'Drafts']
+				tabOptions = ['Profile info', 'Created recipes', 'Saved recipes', 'Drafts', 'Posts']
+			} else {
+				tabOptions = ['Profile info', 'Created recipes', 'Posts']
 			}
 		})
 	})
@@ -69,6 +76,21 @@
 	let deleteDraftPopupOpen = $state(false)
 	let editDrawer = $state<Drawer>()
 	let editPopup = $state<Popup>()
+
+	let createPostPopupOpen = $state(false)
+	let newPostTitle = $state('')
+	let newPostContent = $state('')
+
+	async function submitCreatePost() {
+		const res = await createPost({ title: newPostTitle, content: newPostContent })
+		createPostPopupOpen = false
+		newPostTitle = ''
+		newPostContent = ''
+		if ('postId' in res) {
+			const { goto } = await import('$app/navigation')
+			goto(`/post/${res.postId}`)
+		}
+	}
 
 	async function handleAvatarChange(event: Event) {
 		const input = event.target as HTMLInputElement
@@ -470,6 +492,34 @@
 
 <div class="desktop-only">
 	<Popup
+		isOpen={createPostPopupOpen}
+		onClose={() => (createPostPopupOpen = false)}
+		title="Create Post"
+		width="900px"
+	>
+		<div class="form-group">
+			<label for="new-post-title">Title</label>
+			<Input>
+				{#snippet children()}
+					<input id="new-post-title" placeholder="Post title" bind:value={newPostTitle} />
+				{/snippet}
+			</Input>
+		</div>
+		<div class="form-group">
+			<label for="new-post-content">Content</label>
+			<MarkdownEditor bind:value={newPostContent} placeholder="Write your post..." height="300px" />
+		</div>
+		<div class="actions">
+			<Button color="neutral" variant="border" onclick={() => (createPostPopupOpen = false)}
+				>Cancel</Button
+			>
+			<Button color="primary" onclick={submitCreatePost}>Publish</Button>
+		</div>
+	</Popup>
+</div>
+
+<div class="desktop-only">
+	<Popup
 		isOpen={editDraftPopupOpen}
 		onClose={() => (editDraftPopupOpen = false)}
 		title="Edit Draft"
@@ -490,6 +540,35 @@
 	</div>
 {/if}
 
+{#snippet _posts()}
+	{#await Promise.all([userData, posts])}
+		<div class="empty-message">Loading...</div>
+	{:then [udata, postList]}
+		<div class="posts-header">
+			{#if udata.isOwner}
+				<Button color="neutral" variant="border" onclick={() => (createPostPopupOpen = true)}
+					>Create post</Button
+				>
+			{/if}
+		</div>
+		{#if postList.length === 0}
+			<div class="empty-message">No posts yet!</div>
+		{:else}
+			<div class="posts-list">
+				{#each postList as p}
+					<a class="post-card card" href={`/post/${p.id}`}>
+						<div class="post-title">{p.title}</div>
+						<div class="post-date">{new Date(p.createdAt).toLocaleString()}</div>
+						<div class="post-excerpt">
+							{p.content.length > 160 ? p.content.slice(0, 160) + '…' : p.content}
+						</div>
+					</a>
+				{/each}
+			</div>
+		{/if}
+	{/await}
+{/snippet}
+
 <div class="profile-desktop-view">
 	<DesktopLayout
 		{avatar}
@@ -501,6 +580,7 @@
 		createdRecipes={_createdRecipes}
 		savedRecipes={_savedRecipes}
 		drafts={_drafts}
+		posts={_posts}
 		{tabOptions}
 		{selectedTab}
 		onTabSelect={handleTabSelect}
@@ -518,6 +598,7 @@
 		createdRecipes={_createdRecipes}
 		savedRecipes={_savedRecipes}
 		drafts={_drafts}
+		posts={_posts}
 		{selectedTab}
 		onTabSelect={handleTabSelect}
 	/>
@@ -718,5 +799,48 @@
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
+	}
+
+	.posts-header {
+		display: flex;
+		justify-content: flex-end;
+		margin-bottom: var(--spacing-md);
+	}
+
+	.posts-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+	}
+
+	.post-card {
+		display: block;
+		padding: var(--spacing-md);
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.post-title {
+		font-weight: 600;
+		margin-bottom: var(--spacing-xs);
+	}
+
+	.post-date {
+		font-size: var(--font-size-sm);
+		color: var(--color-neutral-light);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+		margin-bottom: var(--spacing-md);
+	}
+
+	.actions {
+		display: flex;
+		gap: var(--spacing-sm);
+		justify-content: flex-end;
 	}
 </style>

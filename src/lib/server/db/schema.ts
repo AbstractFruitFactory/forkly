@@ -189,6 +189,21 @@ export const emailVerification = pgTable('email_verification', {
 	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull()
 })
 
+export const post = pgTable('post', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	title: text('title').notNull(),
+	content: text('content').notNull(),
+	imageUrl: text('image_url'),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => {
+	return {
+		titleLength: check('post_title_length', sql`length(${table.title}) <= 120 and length(${table.title}) >= 3`)
+	}
+})
+
 
 type NullablesToOptional<T> = {
 	[K in keyof T as null extends T[K] ? K : never]?: Exclude<T[K], null>
@@ -236,3 +251,5 @@ export type Collection = NullablesToOptional<typeof collection.$inferSelect>
 export type Tag = NullablesToOptional<typeof tag.$inferSelect>
 
 export type RecipeTag = NullablesToOptional<typeof recipeTag.$inferSelect>
+
+export type Post = NullablesToOptional<typeof post.$inferSelect>

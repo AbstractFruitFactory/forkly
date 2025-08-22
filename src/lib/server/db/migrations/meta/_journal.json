@@ -43,6 +43,13 @@
       "when": 1755297458108,
       "tag": "0005_require_user_in_recipe",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1755872286603,
+      "tag": "0006_add_posts",
+      "breakpoints": true
     }
   ]
 }

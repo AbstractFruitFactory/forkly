@@ -12,6 +12,7 @@
 		createdRecipes,
 		savedRecipes,
 		drafts,
+		posts,
 		tabOptions,
 		selectedTab = tabOptions[0],
 		onTabSelect
@@ -25,6 +26,7 @@
 		createdRecipes: Snippet
 		savedRecipes: Snippet
 		drafts: Snippet
+		posts: Snippet
 		tabOptions: string[]
 		selectedTab?: string
 		onTabSelect: (option: string) => void
@@ -67,6 +69,8 @@
 				{@render savedRecipes()}
 			{:else if selectedTab === 'Drafts'}
 				{@render drafts()}
+			{:else if selectedTab === 'Posts'}
+				{@render posts()}
 			{/if}
 		</div>
 	</div>

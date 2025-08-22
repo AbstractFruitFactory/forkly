@@ -16,6 +16,7 @@
 		createdRecipes,
 		savedRecipes,
 		drafts,
+		posts,
 		selectedTab,
 		onTabSelect
 	}: {
@@ -29,6 +30,7 @@
 		createdRecipes: Snippet
 		savedRecipes: Snippet
 		drafts: Snippet
+		posts: Snippet
 		selectedTab?: string
 		onTabSelect: (tab: string) => void
 	} = $props()
@@ -58,7 +60,9 @@
 					? 'Saved recipes'
 					: view === 'Drafts'
 						? 'Drafts'
-						: 'Saved recipes'
+						: view === 'Posts'
+							? 'Posts'
+							: 'Saved recipes'
 	}
 </script>
 
@@ -88,6 +92,10 @@
 			<span class="menu-icon"><SquarePlus size={20} /></span>
 			<span>Drafts</span>
 		</button>
+		<button class="menu-btn card" onclick={() => open('Posts')}>
+			<span class="menu-icon"><SquarePlus size={20} /></span>
+			<span>Posts</span>
+		</button>
 	</div>
 	<div class="signout-row">{@render signOut(true)}</div>
 	<!--
@@ -114,6 +122,8 @@
 		{@render savedRecipes()}
 	{:else if view === 'Drafts'}
 		{@render drafts()}
+	{:else if view === 'Posts'}
+		{@render posts()}
 	{/if}
 </Drawer>
 
