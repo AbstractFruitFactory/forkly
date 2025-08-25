@@ -72,7 +72,7 @@
 		id: string
 		name: string
 		quantity?: string
-		unit?: string
+		measurement?: string
 		isPrepared?: boolean
 	}
 
@@ -119,7 +119,7 @@
 			quantity: ing.quantity
 				? { text: String(ing.quantity), numeric: parseQuantityToNumber(ing.quantity) }
 				: undefined,
-			measurement: ing.unit || ''
+			measurement: ing.measurement || ''
 		}))
 	}
 
@@ -144,7 +144,7 @@
 							id: generateId(),
 							name: ingredient.name,
 							quantity: ingredient.quantity,
-							unit: ingredient.measurement,
+							measurement: ingredient.measurement,
 							isPrepared: false
 						})) ?? []
 				}))
@@ -230,7 +230,7 @@
 				.filter((ing) => !ing.isPrepared && ing.name)
 				.map((ing) => ({
 					amount: ing.quantity ? parseQuantityToNumber(ing.quantity) : undefined,
-					unit: ing.unit,
+					unit: ing.measurement,
 					name: ing.name!
 				}))
 			const body = {
@@ -377,7 +377,7 @@
 	}
 
 	function updateIngredientUnit(instructionId: string, ingredientId: string, unit: string) {
-		updateIngredient(instructionId, ingredientId, (ing) => ({ ...ing, unit }))
+		updateIngredient(instructionId, ingredientId, (ing) => ({ ...ing, measurement: unit }))
 	}
 
 	const updateInstructionMedia = (instructionId: string, file: File) => {
@@ -473,7 +473,7 @@
 				id: generateId(),
 				name: ingredient.name,
 				quantity: ingredient.isPrepared ? undefined : ingredient.quantity,
-				unit: ingredient.isPrepared ? undefined : ingredient.measurement,
+				measurement: ingredient.isPrepared ? undefined : ingredient.measurement,
 				isPrepared: ingredient.isPrepared === true
 			}))
 		}))
@@ -615,7 +615,7 @@
 					ingredients: instruction.ingredients.map((ingredient) => ({
 						name: ingredient.name,
 						quantity: ingredient.isPrepared ? '' : (ingredient.quantity ?? ''),
-						measurement: ingredient.isPrepared ? '' : (ingredient.unit ?? ''),
+						measurement: ingredient.isPrepared ? '' : (ingredient.measurement ?? ''),
 						isPrepared: ingredient.isPrepared === true
 					}))
 				}))
@@ -820,7 +820,7 @@
 					<div class="unit-input">
 						<SuggestionSearch
 							placeholder="Unit"
-							formName="instructions-{instructionId}-ingredient-{id}-unit"
+							formName="instructions-{instructionId}-ingredient-{id}-measurement"
 							onSearch={searchUnits}
 							clearInput={false}
 							showSearchIcon={false}
