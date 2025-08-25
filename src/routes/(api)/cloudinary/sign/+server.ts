@@ -1,4 +1,4 @@
-import { json } from '@sveltejs/kit'
+import { error, json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { v2 as cloudinary } from 'cloudinary'
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '$env/static/private'
@@ -10,7 +10,7 @@ export const GET: RequestHandler = async ({ url, locals, getClientAddress }) => 
   const identifier = locals.user?.id ?? getClientAddress?.() ?? 'anonymous'
 
   const { allowed, remaining, resetTime } = await mediaUploadSignLimiter.checkLimit(identifier)
-  if (!allowed) return json({ error: 'Too many requests', remaining, resetTime }, { status: 429 })
+  if (!allowed) error(429, 'Too many requests')
 
   const allowedFolders = new Set([
     'recipe-images', 'recipe-videos', 'instruction-media', 'avatars', 'recipe-comments', 'anonymous-media',

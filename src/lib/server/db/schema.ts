@@ -227,7 +227,8 @@ export type RecipeDraftIngredient = {
 
 export type RecipeDraftInstruction = {
 	text?: string
-	image?: string
+	mediaUrl?: string
+	mediaType?: 'image' | 'video'
 	ingredients?: RecipeDraftIngredient[]
 }
 

@@ -11,9 +11,9 @@ import { deleteVideo } from "$lib/server/cloudinary"
 import { eq } from 'drizzle-orm'
 
 const DraftRecipeSchema = v.intersect([
-  v.partial(v.omit(RecipeSchema, ['instructions'])),
+  v.partial(v.omit(RecipeSchema, ['instructions', 'title'])),
   v.object({
-    title: v.string(),
+    title: v.optional(v.string()),
     instructions: v.optional(
       v.array(
         v.intersect([
@@ -43,19 +43,19 @@ export const saveDraft = command(DraftRecipeSchema, async (recipe) => {
 
   const draftId = generateId()
 
+  const moved = await moveMediaFromTmpFolder(recipe.imageUrl, recipe.instructions as any)
+
   await db.insert(recipeDraft).values({
     id: draftId,
     userId: locals.user.id,
-    title: recipe.title,
+    title: (recipe.title && recipe.title.trim()) ? recipe.title : 'Untitled draft',
     description: recipe.description,
-    imageUrl: recipe.imageUrl,
+    imageUrl: moved.imageUrl,
     servings: recipe.servings,
-    instructions: recipe.instructions,
+    instructions: (moved.instructions ?? recipe.instructions),
     tags: recipe.tags,
     createdAt: new Date()
   })
-
-  await moveMediaFromTmpFolder(recipe.imageUrl, recipe.instructions)
 
   return { id: draftId, redirectTo: `/user/${locals.user.username}?tab=Drafts` }
 })
@@ -67,9 +67,14 @@ export const updateDraft = command(UpdateDraftSchema, async (recipe) => {
   const existing = await getDraft(recipe.id, locals.user.id)
   if (!existing) error(404, { message: 'Draft not found or not owned by user' })
 
+  const moved = await moveMediaFromTmpFolder(recipe.imageUrl, recipe.instructions as any)
+
   try {
     await updateDraftDb(recipe.id, locals.user.id, {
       ...recipe,
+      title: (recipe.title && recipe.title.trim()) ? recipe.title : 'Untitled draft',
+      imageUrl: moved.imageUrl,
+      instructions: (moved.instructions ?? recipe.instructions),
       userId: locals.user.id
     })
   } catch (e) {
@@ -85,8 +90,8 @@ export const updateDraft = command(UpdateDraftSchema, async (recipe) => {
   }
 
   const newUrls = new Set<string>()
-  if (recipe.imageUrl) newUrls.add(recipe.imageUrl)
-  const newInstructions = Array.isArray(recipe.instructions) ? recipe.instructions : []
+  if (moved.imageUrl) newUrls.add(moved.imageUrl)
+  const newInstructions = Array.isArray(moved.instructions) ? moved.instructions : []
   for (const ins of newInstructions) {
     if (ins?.mediaUrl) newUrls.add(ins.mediaUrl)
   }

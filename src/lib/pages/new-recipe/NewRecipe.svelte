@@ -565,6 +565,7 @@
 					description: _description,
 					servings: servings,
 					instructions: instructions,
+					imageUrl: imageUrlState || undefined,
 					tags: selectedTags,
 					createdAt: new Date()
 				})
@@ -575,6 +576,7 @@
 					description: _description,
 					servings: servings,
 					instructions: instructions,
+					imageUrl: imageUrlState || undefined,
 					tags: selectedTags
 				})
 				await goto(redirectTo)

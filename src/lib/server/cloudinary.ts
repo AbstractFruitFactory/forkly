@@ -132,15 +132,25 @@ export const cleanupUploadedMediaFromObject = async (imageUrl?: string, instruct
   }
 }
 
-export const moveMediaFromTmpFolder = async (imageUrl?: string, instructions?: { mediaUrl?: string, mediaType?: 'video' | 'image' }[]) => {
-  if (imageUrl && imageUrl.includes('-tmp')) {
-    imageUrl = await moveToFolder(imageUrl, 'recipe-images', 'image')
+export const moveMediaFromTmpFolder = async (
+  imageUrl?: string,
+  instructions?: { mediaUrl?: string; mediaType?: 'video' | 'image' }[]
+): Promise<{ imageUrl?: string; instructions?: { mediaUrl?: string; mediaType?: 'video' | 'image' }[] }> => {
+  let updatedImageUrl = imageUrl
+  if (updatedImageUrl && updatedImageUrl.includes('-tmp')) {
+    updatedImageUrl = await moveToFolder(updatedImageUrl, 'recipe-images', 'image')
   }
-  if (instructions) {
-    for (const ins of instructions) {
+  const updatedInstructions = instructions ? [...instructions] : undefined
+  if (updatedInstructions) {
+    for (const ins of updatedInstructions) {
       if (ins.mediaUrl && ins.mediaUrl.includes('-tmp')) {
-        ins.mediaUrl = await moveToFolder(ins.mediaUrl, 'instruction-media', ins.mediaType === 'video' ? 'video' : 'image')
+        ins.mediaUrl = await moveToFolder(
+          ins.mediaUrl,
+          'instruction-media',
+          ins.mediaType === 'video' ? 'video' : 'image'
+        )
       }
     }
   }
+  return { imageUrl: updatedImageUrl, instructions: updatedInstructions }
 }
