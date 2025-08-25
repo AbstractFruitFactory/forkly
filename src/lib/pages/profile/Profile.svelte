@@ -375,8 +375,8 @@
 	<div class="delete-content">
 		<p>Are you sure you want to delete "{recipeToDelete?.title}"?</p>
 		<div class="delete-actions">
+			<Button variant="border" color="neutral" onclick={() => (deletePopupOpen = false)}>Cancel</Button>
 			<Button color="primary" onclick={handleDeleteRecipe}>Delete</Button>
-			<Button variant="border" onclick={() => (deletePopupOpen = false)}>Cancel</Button>
 		</div>
 	</div>
 </Popup>
@@ -461,8 +461,8 @@
 	<div class="delete-content">
 		<p>Are you sure you want to delete "{draftToDelete?.title || 'Untitled draft'}"?</p>
 		<div class="delete-actions">
+			<Button variant="border" color="neutral" onclick={() => (deleteDraftPopupOpen = false)}>Cancel</Button>
 			<Button color="primary" onclick={handleDeleteDraft}>Delete</Button>
-			<Button variant="border" onclick={() => (deleteDraftPopupOpen = false)}>Cancel</Button>
 		</div>
 	</div>
 </Popup>
@@ -482,7 +482,7 @@
 {#if editPopupOpen && mobileStore.isMobile}
 	<div
 		class="mobile-only"
-		style="z-index: var(--z-modal); position: fixed; top: 0; left: 0; right: 0; bottom: 0;"
+		style="z-index: var(--z-drawer); position: fixed; top: 0; left: 0; right: 0; bottom: 0;"
 	>
 		<Drawer bind:this={editDrawer} position="side" bind:isOpen={editPopupOpen} title="Edit Recipe">
 			{@render editRecipe()}
@@ -532,7 +532,7 @@
 {#if editDraftPopupOpen && mobileStore.isMobile}
 	<div
 		class="mobile-only"
-		style="z-index: var(--z-modal); position: fixed; top: 0; left: 0; right: 0; bottom: 0;"
+		style="z-index: var(--z-drawer); position: fixed; top: 0; left: 0; right: 0; bottom: 0;"
 	>
 		<Drawer position="side" bind:isOpen={editDraftPopupOpen} title="Edit Draft">
 			{@render editDraft()}

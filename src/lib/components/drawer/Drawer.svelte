@@ -32,7 +32,7 @@
 	})
 
 	const handleClickOutside = (e: MouseEvent) => {
-		if (drawer && !drawer.contains(e.target as Node) && isOpen) {
+		if (drawer && !drawer.contains(e.target as Node) && isOpen && position === 'bottom') {
 			isOpen = false
 		}
 	}
@@ -121,7 +121,7 @@
 		right: 0;
 		bottom: 0;
 		background-color: rgba(0, 0, 0, 0.8);
-		z-index: var(--z-modal);
+		z-index: var(--z-drawer);
 	}
 
 	.drawer-container {
@@ -137,7 +137,7 @@
 		display: flex;
 		flex-direction: column;
 		height: 80dvh;
-		z-index: calc(var(--z-modal) + 1);
+		z-index: calc(var(--z-drawer) + 1);
 
 		@include mobile {
 			width: 100vw;
