@@ -464,11 +464,7 @@
 	</div>
 {/snippet}
 
-<RecipePopup
-	bind:this={recipePopup}
-	id={recipeModalId!}
-	onClose={closePopup}
-/>
+<RecipePopup bind:this={recipePopup} id={recipeModalId!} onClose={closePopup} />
 
 <ImportRecipePopup bind:isOpen={isImportPopupOpen} onRecipeScraped={handleRecipeScraped} />
 
@@ -535,6 +531,7 @@
 		transition:
 			border 0.2s ease-in-out,
 			background 0.1s ease-in-out,
+			margin 0.2s ease-in-out,
 			opacity 0.2s ease-in-out;
 		padding: var(--spacing-lg) 0;
 		border-radius: var(--border-radius-xl);
@@ -551,7 +548,7 @@
 			margin: var(--spacing-sm);
 
 			@include mobile {
-				margin: unset;
+				margin: 0 -1rem;
 			}
 
 			.buttons {

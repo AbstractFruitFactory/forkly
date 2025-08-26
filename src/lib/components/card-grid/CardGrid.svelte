@@ -81,7 +81,6 @@
 		@include mobile {
 			grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 			gap: var(--spacing-md);
-			overflow-y: auto;
 		}
 
 		&:last-child {
