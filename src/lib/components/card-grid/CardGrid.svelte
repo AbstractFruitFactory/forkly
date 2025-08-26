@@ -30,6 +30,7 @@
 			}
 			if (items.length > previousCardsCount) {
 				await tick()
+				await new Promise((resolve) => setTimeout(resolve, 100))
 				const newCards = cards.slice(previousCardsCount).filter(Boolean)
 
 				gsap.set(newCards, { y: 50, opacity: 0 })
@@ -90,6 +91,7 @@
 
 	.card-wrapper {
 		width: 100%;
+		opacity: 0;
 	}
 
 	@media (max-width: 640px) {
