@@ -261,6 +261,11 @@
 		resolveRecipePopup()
 
 		if (_replaceState) {
+			const s = window.history.state as any
+			if (s?.recipeModal === true) {
+				window.history.back()
+				return
+			}
 			replaceState('/', { recipeModal: undefined })
 		}
 	}
@@ -271,12 +276,28 @@
 			: 'No recipes yet! Be the first to create one.'
 	)
 
+	const syncPopupWithUrl = async (state: any) => {
+		const path = window.location.pathname
+		const match = path.match(/^\/recipe\/([^/]+)/)
+		if (match) {
+			const id = match[1]
+			recipeModalId = id
+			animateFromElement = null
+			recipePopup.open()
+			return
+		}
+
+		await recipePopup.close()
+		closePopup(false)
+	}
+
 	onMount(() => {
-		const callback = async () => {
-			await recipePopup.close()
-			closePopup(false)
+		const callback = async (event: PopStateEvent) => {
+			await syncPopupWithUrl(event.state)
 		}
 		window.addEventListener('popstate', callback)
+
+		void syncPopupWithUrl(window.history.state)
 
 		return () => {
 			window.removeEventListener('popstate', callback)
