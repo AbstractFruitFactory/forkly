@@ -11,10 +11,9 @@
 	import { tick } from 'svelte'
 	import { scrollStore } from '$lib/state/scroll.svelte'
 	import RecipePopup from '$lib/components/recipe-popup/RecipePopup.svelte'
-	import { preloadData, pushState, goto, replaceState } from '$app/navigation'
+	import { pushState, goto, replaceState } from '$app/navigation'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	import { fade } from 'svelte/transition'
-	import TaglineTypewriter from '$lib/components/tagline-typewriter/TaglineTypewriter.svelte'
 	import Logo from '$lib/components/logo/Logo.svelte'
 	import SortIcon from 'lucide-svelte/icons/arrow-up-down'
 	import Button from '$lib/components/button/Button.svelte'
@@ -316,7 +315,7 @@
 			Share your own recipe, or explore from the community - without the fuss.
 		{/snippet}
 
-		<div class="tagline desktop-only">
+		<div class="tagline tablet-desktop-only">
 			<h1 style:color="black">{@render tagline()}</h1>
 		</div>
 
@@ -459,15 +458,10 @@
 	$max-width: 1200px;
 
 	.large-header {
-		display: flex;
-		justify-content: center;
 		padding: var(--spacing-4xl) 0;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-lg);
 
 		@include mobile {
-			padding: var(--spacing-md) 0;
+			padding: var(--spacing-xl) 0;
 		}
 	}
 
@@ -476,20 +470,28 @@
 
 		@include mobile {
 			display: flex;
+			justify-content: center;
+			margin-bottom: var(--spacing-md);
 		}
 	}
 
 	.tagline {
-		max-width: 70rem;
 		text-align: center;
+
+		h1,
+		h2 {
+			margin: 0;
+		}
 	}
 
 	.cta-row {
 		display: flex;
 		justify-content: center;
-		margin-top: var(--spacing-md);
+
+		margin-top: var(--spacing-4xl);
+
 		@include mobile {
-			margin-top: 0;
+			margin-top: var(--spacing-xl);
 		}
 	}
 

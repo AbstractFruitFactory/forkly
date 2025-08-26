@@ -99,7 +99,7 @@
 		padding: 0 var(--spacing-4xl);
 
 		@include tablet {
-			padding: 0 var(--spacing-md);
+			padding: 0 var(--spacing-xl);
 		}
 	}
 
@@ -124,6 +124,10 @@
 			@media (max-width: $content-max-width) {
 				width: 100vw;
 				padding: 0 var(--spacing-4xl);
+
+			@include tablet {
+				padding: 0 var(--spacing-xl);
+			}
 			}
 		}
 
