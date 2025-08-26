@@ -7,6 +7,7 @@
 	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
 	import Button from '../button/Button.svelte'
 	import Skeleton from '../skeleton/Skeleton.svelte'
+	import Hint from '$lib/components/hint/Hint.svelte'
 
 	let {
 		instructions,
@@ -93,6 +94,9 @@
 									<span>{part.text}</span>
 								{/if}
 							{/each}
+							{#if instruction.hint}
+								<div class="instruction-hint"><Hint text={instruction.hint} /></div>
+							{/if}
 						</div>
 					</div>
 				</div>
@@ -150,6 +154,10 @@
 		grid-template-columns: 1fr;
 		gap: 0;
 		align-items: stretch;
+	}
+
+	.instruction-hint {
+		margin-top: var(--spacing-md);
 	}
 
 	.instruction-content:has(.instruction-media) {

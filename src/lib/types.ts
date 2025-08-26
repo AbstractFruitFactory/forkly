@@ -51,6 +51,7 @@ export type Ingredient = {
 export type Instruction = {
   id: string
   text: string
+  hint?: string
   mediaUrl?: string
   mediaType?: 'image' | 'video'
   ingredients?: Ingredient[]

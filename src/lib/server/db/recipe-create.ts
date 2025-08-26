@@ -22,6 +22,8 @@ type NutritionInput = {
 type InstructionInput = {
   id: string
   text: string
+  hint?: string
+  hints?: string[]
   mediaUrl?: string
   mediaType?: 'image' | 'video'
   ingredients?: IngredientInput[]
@@ -81,6 +83,11 @@ async function insertInstructionsAndIngredients(tx: PostgresJsDatabase, recipeId
       mediaType: instruction.mediaType,
       order: i + 1
     })
+
+    // Single hint is stored in recipe_instruction.hint
+    if (instruction.hint && instruction.hint.trim() !== '') {
+      await tx.update(recipeInstruction).set({ hint: instruction.hint }).where(eq(recipeInstruction.id, instruction.id))
+    }
 
     if (instruction.ingredients) {
       for (const ingredientData of instruction.ingredients) {

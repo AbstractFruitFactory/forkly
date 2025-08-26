@@ -63,6 +63,7 @@ export const recipeInstruction = pgTable('recipe_instruction', {
 		.notNull()
 		.references(() => recipe.id, { onDelete: 'cascade' }),
 	text: text('text').notNull(),
+	hint: text('hint'),
 	mediaUrl: text('media_url'),
 	mediaType: text('media_type', { enum: ['image', 'video'] }),
 	order: integer('order').notNull(),

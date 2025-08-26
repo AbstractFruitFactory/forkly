@@ -14,6 +14,7 @@
 		servingsAdjuster,
 		unitToggle,
 		instructionInput,
+		instructionHint,
 		instructionMedia,
 		ingredientRow,
 		addInstructionButton,
@@ -36,6 +37,7 @@
 				isPrepared?: boolean
 			}[]
 			text?: string
+			hint?: string
 			mediaUrl?: string
 			mediaType?: 'image' | 'video'
 		}[]
@@ -48,6 +50,7 @@
 		nutrition: Snippet
 		unitToggle: Snippet
 		instructionInput: Snippet<[id: string, index: number, value?: string]>
+		instructionHint?: Snippet<[id: string, value?: string]>
 		instructionMedia: Snippet<[id: string, initialMedia?: { url: string; type: 'image' | 'video' }]>
 		ingredientRow: Snippet<
 			[
@@ -116,16 +119,18 @@
 				</div>
 				<div class="instruction-card-content">
 					<div class="instruction-info">
-						<div class="instruction-text">
-							{@render instructionInput(item.id, i, item.text)}
-						</div>
 						<div class="instruction-media">
 							{@render instructionMedia(
 								item.id,
 								item.mediaUrl ? { url: item.mediaUrl!, type: item.mediaType! } : undefined
 							)}
 						</div>
+						<div class="instruction-text">
+							{@render instructionInput(item.id, i, item.text)}
+						</div>
 					</div>
+
+					{@render instructionHint?.(item.id, item.hint)}
 
 					<div>
 						<h5>Ingredients for this step:</h5>

@@ -4,6 +4,7 @@ export type FormFields = {
   servings: number
   instructions: {
     text: string
+    hint?: string
     mediaUrl?: string
     mediaType?: 'image' | 'video'
     ingredients?: {
@@ -43,12 +44,15 @@ export const parseFormData = (formData: FormData): FormFields => {
 
   const instructions: FormFields['instructions'] = Object.values(instructionById).map((entries) => {
     let text = ''
+    let hint: string | undefined
     const ingredients: NonNullable<FormFields['instructions'][number]['ingredients']> = []
 
     for (const entry of entries!) {
       const { field, value } = entry
       if (field === 'text') {
         text = value
+      } else if (field === 'hint') {
+        hint = value
       }
     }
 
@@ -100,6 +104,7 @@ export const parseFormData = (formData: FormData): FormFields => {
 
     return {
       text,
+      hint,
       mediaUrl: undefined,
       mediaType: undefined,
       ingredients: ingredients.length > 0 ? ingredients : undefined

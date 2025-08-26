@@ -4,6 +4,7 @@
 	import Popup from '$lib/components/popup/Popup.svelte'
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left'
 	import ChevronRight from 'lucide-svelte/icons/chevron-right'
+	import Hint from '$lib/components/hint/Hint.svelte'
 
 	let {
 		instructions,
@@ -127,7 +128,7 @@
 						<div class="step-ingredients">
 							<h4>Ingredients needed:</h4>
 							<ul class="ingredients-list">
-								{#each step.ingredients ?? [] as ingredient}
+								{#each step.ingredients as ingredient}
 									<li class="ingredient-item">
 										<span class="ingredient-quantity">
 											{ingredient.quantity?.text}
@@ -141,7 +142,12 @@
 							</ul>
 						</div>
 					{/if}
+
 					<p>{step.text}</p>
+
+					{#if step.hint}
+						<div class="step-hint"><Hint text={step.hint} /></div>
+					{/if}
 				</div>
 			{/if}
 		</div>
@@ -302,6 +308,10 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-xs);
+	}
+
+	.step-hint {
+		margin: var(--spacing-md) 0;
 	}
 
 	.ingredient-item {

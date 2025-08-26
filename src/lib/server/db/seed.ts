@@ -3,6 +3,7 @@ import type { Recipe } from './schema'
 import { generateId } from '../id'
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
+import { sql } from 'drizzle-orm'
 import * as dotenv from 'dotenv'
 import { readFile } from 'fs/promises'
 import { normalizeIngredientName } from '../utils/normalize-ingredient'
@@ -19,6 +20,8 @@ export const seed = async () => {
   // Force reseed: clean up existing data first
   console.log('Cleaning up existing data to force reseed...')
   try {
+    await db.execute(sql`ALTER TABLE recipe_ingredient DISABLE TRIGGER enforce_recipe_has_ingredients`)
+    // Delete child relations first (or rely on cascade); order kept explicit for clarity
     await db.delete(recipeTag)
     await db.delete(recipeIngredient)
     await db.delete(recipeInstruction)
@@ -28,6 +31,12 @@ export const seed = async () => {
     await db.delete(tag)
   } catch (error) {
     console.log('Error cleaning up data:', error)
+  } finally {
+    try {
+      await db.execute(sql`ALTER TABLE recipe_ingredient ENABLE TRIGGER enforce_recipe_has_ingredients`)
+    } catch (e) {
+      console.log('Warning: failed to re-enable trigger enforce_recipe_has_ingredients', e)
+    }
   }
 
   // Ensure a demo user exists and capture the owner user id
@@ -127,6 +136,7 @@ export const seed = async () => {
   for (const { id, name } of ingredientMap.values()) {
     await db.insert(ingredient)
       .values({ id, name })
+      .onConflictDoNothing({ target: ingredient.name })
   }
 
   // Insert recipes

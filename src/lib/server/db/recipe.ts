@@ -257,6 +257,7 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
           .select({
             id: recipeInstruction.id,
             text: recipeInstruction.text,
+            hint: recipeInstruction.hint,
             mediaUrl: recipeInstruction.mediaUrl,
             mediaType: recipeInstruction.mediaType,
             order: recipeInstruction.order
@@ -264,6 +265,8 @@ export async function getRecipes(filters: RecipeFilter = {}): Promise<BasicRecip
           .from(recipeInstruction)
           .where(eq(recipeInstruction.recipeId, r.id))
           .orderBy(asc(recipeInstruction.order))
+
+        // Single hint is on instruction row
 
         // Get ingredients for each instruction
         const instructionIngredients = await db
@@ -528,6 +531,7 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
   instructions: Array<{
     id: string
     text: string
+    hint?: string
     mediaUrl?: string
     mediaType?: 'image' | 'video'
     ingredients?: Array<{
@@ -637,6 +641,10 @@ export async function updateRecipe(recipeId: string, userId: string, input: {
         mediaType: instruction.mediaType,
         order: i + 1
       })
+
+      if (instruction.hint && instruction.hint.trim() !== '') {
+        await tx.update(recipeInstruction).set({ hint: instruction.hint }).where(eq(recipeInstruction.id, instruction.id))
+      }
 
       if (instruction.ingredients) {
         for (const ingredientData of instruction.ingredients) {
@@ -752,6 +760,7 @@ export async function getRecipeWithDetails(recipeId: string, userId?: string): P
     .select({
       id: recipeInstruction.id,
       text: recipeInstruction.text,
+      hint: recipeInstruction.hint,
       mediaUrl: recipeInstruction.mediaUrl,
       mediaType: recipeInstruction.mediaType,
       order: recipeInstruction.order

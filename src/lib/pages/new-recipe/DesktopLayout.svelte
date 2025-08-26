@@ -24,7 +24,8 @@
 		previewButton,
 		saveDraftButton,
 		importButton,
-		headerText
+		headerText,
+		instructionHint
 	}: {
 		instructions: {
 			id: string
@@ -36,6 +37,7 @@
 				isPrepared?: boolean
 			}[]
 			text?: string
+			hint?: string
 			mediaUrl?: string
 			mediaType?: 'image' | 'video'
 		}[]
@@ -59,6 +61,7 @@
 		>
 		instructionInput: Snippet<[id: string, index: number, value?: string]>
 		instructionMedia: Snippet<[id: string, initialMedia?: { url: string; type: 'image' | 'video' }]>
+		instructionHint?: Snippet<[id: string, value?: string]>
 		addInstructionButton: Snippet
 		addIngredientButton: Snippet<[instructionId: string]>
 		addPreparedIngredientButton: Snippet<[instructionId: string]>
@@ -146,6 +149,8 @@
 										)}
 									</div>
 								</div>
+								
+								{@render instructionHint?.(item.id, item.hint)}
 
 								<div class="instruction-ingredients">
 									<h4>Ingredients for this step:</h4>

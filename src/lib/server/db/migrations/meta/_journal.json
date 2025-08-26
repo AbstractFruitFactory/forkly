@@ -50,6 +50,13 @@
       "when": 1755872286603,
       "tag": "0006_add_posts",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1756199282269,
+      "tag": "0007_add_instruction_hint",
+      "breakpoints": true
     }
   ]
 }

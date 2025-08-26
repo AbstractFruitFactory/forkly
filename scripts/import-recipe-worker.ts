@@ -26,6 +26,7 @@ export type ImportedRecipeData = {
     text: string
     mediaUrl?: string | null
     mediaType?: 'image' | 'video' | null
+    hint?: string | null
     ingredients: {
       name: string
       quantity: string

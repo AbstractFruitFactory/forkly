@@ -1,0 +1,1 @@
+ALTER TABLE "recipe_instruction" ADD COLUMN "hint" text;

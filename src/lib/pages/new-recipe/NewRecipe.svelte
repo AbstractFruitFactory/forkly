@@ -17,6 +17,7 @@
 		}
 		instructions: {
 			text?: string
+			hint?: string
 			mediaUrl?: string
 			mediaType?: 'image' | 'video'
 			ingredients?: {
@@ -80,6 +81,7 @@
 		id: string
 		ingredients: UIIngredient[]
 		text: string
+		hint?: string
 		mediaUrl?: string
 		mediaType?: 'image' | 'video'
 	}
@@ -372,6 +374,10 @@
 		updateInstruction(instructionId, (ins) => ({ ...ins, text: value }))
 	}
 
+	function updateInstructionHint(instructionId: string, value: string) {
+		updateInstruction(instructionId, (ins) => ({ ...ins, hint: value }))
+	}
+
 	function updateIngredientQuantity(instructionId: string, ingredientId: string, value: string) {
 		updateIngredient(instructionId, ingredientId, (ing) => ({ ...ing, quantity: value }))
 	}
@@ -467,6 +473,7 @@
 		instructions = (recipe.instructions ?? []).map((instruction) => ({
 			id: generateId(),
 			text: instruction.text,
+			hint: instruction.hint ?? undefined,
 			mediaUrl: instruction.mediaUrl ?? undefined,
 			mediaType: instruction.mediaType ?? undefined,
 			ingredients: (instruction.ingredients ?? []).map((ingredient) => ({
@@ -598,20 +605,20 @@
 				description: _description,
 				servings: servings,
 				tags: selectedTags,
-				image: imageUrlState ?? null as any,
+				image: imageUrlState ?? (null as any),
 				nutritionMode: displayNutrition ? 'manual' : 'none',
 				nutrition: displayNutrition
 					? {
-						calories: parseFloat(String(calories)) || 0,
-						protein: parseFloat(String(protein)) || 0,
-						carbs: parseFloat(String(carbs)) || 0,
-						fat: parseFloat(String(fat)) || 0
-					}
+							calories: parseFloat(String(calories)) || 0,
+							protein: parseFloat(String(protein)) || 0,
+							carbs: parseFloat(String(carbs)) || 0,
+							fat: parseFloat(String(fat)) || 0
+						}
 					: undefined,
 				instructions: instructions.map((instruction) => ({
 					text: instruction.text,
-					mediaUrl: instruction.mediaUrl ?? null as any,
-					mediaType: instruction.mediaType ?? null as any,
+					mediaUrl: instruction.mediaUrl ?? (null as any),
+					mediaType: instruction.mediaType ?? (null as any),
 					ingredients: instruction.ingredients.map((ingredient) => ({
 						name: ingredient.name,
 						quantity: ingredient.isPrepared ? '' : (ingredient.quantity ?? ''),
@@ -875,6 +882,36 @@
 	</FormError>
 {/snippet}
 
+{#snippet instructionHint(id: string, value?: string)}
+	{#if value !== undefined}
+		<div class="instruction-hint-editor">
+			<Input>
+				<textarea
+					name={`instructions-${id}-hint`}
+					placeholder="Add a hint for this step"
+					rows="3"
+					{value}
+					oninput={(e) => {
+						updateInstructionHint(id, (e.target as HTMLTextAreaElement).value)
+					}}
+				></textarea>
+			</Input>
+			<button
+				type="button"
+				class="remove-btn"
+				onclick={() => updateInstructionHint(id, undefined as unknown as string)}
+				aria-label="Remove hint"
+			>
+				<Trash size={16} />
+			</button>
+		</div>
+	{:else}
+		<Button color="neutral" size="sm" type="button" onclick={() => updateInstructionHint(id, '')}>
+			Add hint
+		</Button>
+	{/if}
+{/snippet}
+
 {#snippet instructionMedia(id: string, initialMedia?: { url: string; type: 'image' | 'video' })}
 	<MediaUpload
 		name={`instructions-${id}-media`}
@@ -1086,6 +1123,7 @@
 				{servingsAdjuster}
 				{unitToggle}
 				{instructionInput}
+				{instructionHint}
 				{instructionMedia}
 				{ingredientRow}
 				{addInstructionButton}
@@ -1112,6 +1150,7 @@
 				{servingsAdjuster}
 				{unitToggle}
 				{instructionInput}
+				{instructionHint}
 				{instructionMedia}
 				{ingredientRow}
 				{addInstructionButton}
@@ -1134,7 +1173,15 @@
 		</div>
 	{/if}
 
-	<LoginPopup bind:isOpen={isLoginPopupOpen} onClose={() => { isLoginPopupOpen = false; loginPopupMessage = undefined }} returnTo="/new" message={loginPopupMessage} />
+	<LoginPopup
+		bind:isOpen={isLoginPopupOpen}
+		onClose={() => {
+			isLoginPopupOpen = false
+			loginPopupMessage = undefined
+		}}
+		returnTo="/new"
+		message={loginPopupMessage}
+	/>
 </div>
 
 {#if !editMode}
@@ -1328,6 +1375,12 @@
 		@include tablet-desktop {
 			margin-left: var(--spacing-xs);
 		}
+	}
+
+	.instruction-hint-editor {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
 	}
 
 	.reorder-btn {
