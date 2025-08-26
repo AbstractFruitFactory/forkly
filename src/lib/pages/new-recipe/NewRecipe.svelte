@@ -677,7 +677,7 @@
 {/snippet}
 
 {#snippet tags()}
-	<div>
+	<div class="tags">
 		<SuggestionSearch
 			bind:searchValue
 			disabled={selectedTags.length >= 3}
@@ -842,16 +842,14 @@
 			{/if}
 		</div>
 
-		<div>
-			<button
-				type="button"
-				class="remove-btn"
-				onclick={() => removeIngredient(instructionId, id)}
-				aria-label="Remove ingredient"
-			>
-				<Trash size={16} />
-			</button>
-		</div>
+		<button
+			type="button"
+			class="remove-btn"
+			onclick={() => removeIngredient(instructionId, id)}
+			aria-label="Remove ingredient"
+		>
+			<Trash size={16} />
+		</button>
 	</div>
 {/snippet}
 
@@ -1242,16 +1240,19 @@
 	.ingredient-row {
 		display: flex;
 		align-items: center;
+		gap: var(--spacing-sm);
 
 		@include mobile {
-			display: flex;
 			align-items: stretch;
-			gap: var(--spacing-md);
+
+			.remove-btn {
+				height: auto;
+				align-self: stretch;
+			}
 		}
 	}
 
 	.ingredient-input {
-		width: 100%;
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
@@ -1350,7 +1351,7 @@
 	}
 
 	.remove-btn {
-		height: 36px;
+		min-height: 36px;
 		width: 36px;
 		border-radius: var(--border-radius-lg);
 		background: none;
@@ -1362,25 +1363,22 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		background: var(--color-error-light);
 
 		&:hover {
-			background-color: var(--color-secondary);
-		}
-
-		@include mobile {
-			height: 100%;
-			background: var(--color-secondary);
-		}
-
-		@include tablet-desktop {
-			margin-left: var(--spacing-xs);
+			background-color: var(--color-error);
 		}
 	}
 
 	.instruction-hint-editor {
 		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
+		align-items: stretch;
+		gap: var(--spacing-sm);
+
+		.remove-btn {
+			height: auto;
+			align-self: stretch;
+		}
 	}
 
 	.reorder-btn {
@@ -1441,6 +1439,12 @@
 		min-height: 100%;
 		display: flex;
 		flex-direction: column;
+	}
+
+	.tags {
+		@include mobile {
+			width: 100%;
+		}
 	}
 
 	.preview-actions {

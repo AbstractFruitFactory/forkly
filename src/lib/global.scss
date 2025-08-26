@@ -45,7 +45,7 @@
   // Error colors
   $error-color: #d1493b;
   --color-error: #{$error-color};
-  --color-error-light: #{lighten($error-color, 20%)};
+  --color-error-light: #{lighten($error-color, 10%)};
   --color-error-dark: #{darken($error-color, 20%)};
 
   --color-text: #2D3142;
