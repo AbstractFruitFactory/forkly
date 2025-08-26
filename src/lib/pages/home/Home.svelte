@@ -447,7 +447,6 @@
 	bind:this={recipePopup}
 	id={recipeModalId!}
 	onClose={closePopup}
-	animateFrom={animateFromElement}
 />
 
 <ImportRecipePopup bind:isOpen={isImportPopupOpen} onRecipeScraped={handleRecipeScraped} />
