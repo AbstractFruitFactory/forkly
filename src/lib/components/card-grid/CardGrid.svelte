@@ -55,7 +55,7 @@
 	{:else}
 		<div bind:this={cardGrid} class="card-grid">
 			{#each items as _item, index (_item.id)}
-				<div bind:this={cards[index]} class="card-wrapper">
+				<div bind:this={cards[index]} class="card-wrapper" style:opacity={useAnimation && index >= previousCardsCount ? 0 : 1}>
 					{@render item(_item)}
 				</div>
 			{/each}
@@ -90,7 +90,6 @@
 
 	.card-wrapper {
 		width: 100%;
-		opacity: 0;
 	}
 
 	@media (max-width: 640px) {
