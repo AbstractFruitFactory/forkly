@@ -520,7 +520,7 @@
 			onCreated?.(result.recipeId)
 		} catch (e) {
 			console.error(e)
-			// TODO show general error
+			errors = [...(errors ?? []), { path: 'api', message: e instanceof Error ? e.message : String(e) }]
 		} finally {
 			submitting = false
 		}
@@ -551,7 +551,7 @@
 			editMode?.onSave()
 		} catch (e) {
 			console.error(e)
-			// TODO show general error
+			errors = [...(errors ?? []), { path: 'api', message: e instanceof Error ? e.message : String(e) }]
 		} finally {
 			submitting = false
 		}
@@ -592,7 +592,7 @@
 			editMode?.onSave()
 		} catch (e) {
 			console.error(e)
-			// TODO show general error
+			errors = [...(errors ?? []), { path: 'api', message: e instanceof Error ? e.message : String(e) }]
 		} finally {
 			submitting = false
 		}
@@ -630,6 +630,8 @@
 			sessionStorage.setItem('forkly_prefilled_recipe', JSON.stringify(data))
 		} catch {}
 	}
+
+	$inspect(errors)
 </script>
 
 {#snippet title()}
@@ -756,20 +758,26 @@
 					{#if currentIngredient?.isPrepared}
 						<div class="prepared-display">
 							<div class="prepared-arrow"><ArrowUp size={18} color="var(--color-neutral)" /></div>
-							<Input>
-								<input
-									type="text"
-									placeholder="Prepared ingredient name"
-									name="instructions-{instructionId}-ingredient-{id}-name"
-									value={nameValue}
-									oninput={(e) =>
-										handleIngredientNameInput(
-											instructionId,
-											id,
-											(e.target as HTMLInputElement).value
-										)}
-								/>
-							</Input>
+							<FormError errors={formErrors(`instructions.${instructionIndex}.ingredients.${ingredientIndex}.name`)}>
+								{#snippet formInput(closePopover)}
+									<Input>
+										<input
+											type="text"
+											placeholder="Prepared ingredient name"
+											name="instructions-{instructionId}-ingredient-{id}-name"
+											value={nameValue}
+											oninput={(e) => {
+												handleIngredientNameInput(
+													instructionId,
+													id,
+													(e.target as HTMLInputElement).value
+												)
+												closePopover()
+											}}
+										/>
+									</Input>
+								{/snippet}
+							</FormError>
 							<input
 								type="hidden"
 								name="instructions-{instructionId}-ingredient-{id}-isPrepared"
@@ -777,20 +785,26 @@
 							/>
 						</div>
 					{:else}
-						<Input>
-							<input
-								type="text"
-								placeholder="Enter ingredient"
-								name="instructions-{instructionId}-ingredient-{id}-name"
-								value={nameValue}
-								oninput={(e) =>
-									handleIngredientNameInput(
-										instructionId,
-										id,
-										(e.target as HTMLInputElement).value
-									)}
-							/>
-						</Input>
+						<FormError errors={formErrors(`instructions.${instructionIndex}.ingredients.${ingredientIndex}.name`)}>
+							{#snippet formInput(closePopover)}
+								<Input>
+									<input
+										type="text"
+										placeholder="Enter ingredient"
+										name="instructions-{instructionId}-ingredient-{id}-name"
+										value={nameValue}
+										oninput={(e) => {
+											handleIngredientNameInput(
+												instructionId,
+												id,
+												(e.target as HTMLInputElement).value
+											)
+											closePopover()
+										}}
+									/>
+								</Input>
+							{/snippet}
+						</FormError>
 					{/if}
 				</div>
 			</div>
