@@ -167,7 +167,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: var(--spacing-md);
+		padding: var(--spacing-sm);
 
 		.header-left {
 			display: flex;
@@ -191,15 +191,14 @@
 		background: var(--color-secondary);
 		border: none;
 		border-radius: 50%;
-		width: 50px;
-		height: 50px;
+		width: 40px;
+		aspect-ratio: 1/1;
 		font-size: 1.5rem;
 		color: var(--color-text-on-primary);
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin-bottom: var(--spacing-sm);
 	}
 
 	.drawer-close {
