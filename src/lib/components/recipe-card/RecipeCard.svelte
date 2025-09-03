@@ -196,7 +196,11 @@
 		class="portal-dropdown-container"
 		style="position: fixed; top: {dropdownPosition.top}px; left: {dropdownPosition.left}px; z-index: 1000;"
 	>
-		<Dropdown bind:isOpen={menuOpen} nbrOfItems={Object.keys(menu.options).length} swallowOn={menuButton}>
+		<Dropdown
+			bind:isOpen={menuOpen}
+			nbrOfItems={Object.keys(menu.options).length}
+			swallowOn={menuButton}
+		>
 			{#snippet dropdownContent(item)}
 				{#each Object.entries(menu.options) as [label, action], i}
 					{#snippet menuLabel()}
@@ -224,6 +228,7 @@
 		grid-template-rows: 60% auto;
 		height: 435px;
 		width: 100%;
+		min-width: 200px;
 		border-radius: var(--border-radius-2xl);
 		text-decoration: none;
 		overflow: hidden;
@@ -237,14 +242,6 @@
 		@include mobile {
 			height: 300px;
 			grid-template-rows: 45% auto;
-
-			.content {
-				padding: var(--spacing-sm);
-			}
-
-			.meta-single > span {
-				font-size: var(--font-size-xs);
-			}
 
 			.action-buttons {
 				top: var(--spacing-sm);
@@ -299,7 +296,7 @@
 		-webkit-box-orient: vertical;
 
 		@include mobile {
-			font-size: var(--font-size-lg);
+			font-size: var(--font-size-xl);
 		}
 	}
 

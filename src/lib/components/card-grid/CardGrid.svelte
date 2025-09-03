@@ -78,11 +78,6 @@
 		justify-content: center;
 		place-items: center;
 
-		@include mobile {
-			grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-			gap: var(--spacing-md);
-		}
-
 		&:last-child {
 			padding-bottom: var(--spacing-lg);
 		}
@@ -90,12 +85,5 @@
 
 	.card-wrapper {
 		width: 100%;
-	}
-
-	@media (max-width: 640px) {
-		.card-grid {
-			grid-template-columns: 1fr;
-			grid-template-columns: repeat(2, 1fr);
-		}
 	}
 </style>
