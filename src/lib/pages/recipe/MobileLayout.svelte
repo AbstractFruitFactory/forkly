@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
 	import Info from 'lucide-svelte/icons/info'
-	import ListChecks from 'lucide-svelte/icons/list-checks'
 	import ListOrdered from 'lucide-svelte/icons/list-ordered'
+	import Carrot from 'lucide-svelte/icons/carrot'
 	import MessageSquare from 'lucide-svelte/icons/message-square'
 
 	let {
@@ -96,7 +96,7 @@
 			aria-pressed={activeTab === 'ingredients'}
 			onclick={() => (activeTab = 'ingredients')}
 		>
-			<ListChecks size={20} />
+			<Carrot size={20} />
 		</button>
 		<button
 			class="tab-button {activeTab === 'instructions' ? 'active' : ''}"
