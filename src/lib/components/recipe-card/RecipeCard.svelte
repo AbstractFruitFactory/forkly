@@ -83,113 +83,115 @@
 	})
 </script>
 
-<a
-	href={recipe ? `/recipe/${recipe.id}` : undefined}
-	class="recipe-card card"
-	class:skeleton={loading || isNavigating}
-	aria-labelledby={recipe ? `recipe-title-${recipe.id}` : undefined}
-	onclick={handleClick}
->
-	<div class="image-container" class:no-image={recipe && !recipe.imageUrl}>
-		{#if loading}
-			<div
-				style="width: 100%; height: 100%; aspect-ratio: 16/9; border-radius: var(--border-radius-2xl) var(--border-radius-2xl) 0 0; position: absolute; top: 0; left: 0; overflow: hidden;"
-			>
-				<Skeleton width="100%" height="100%" />
-			</div>
-		{:else if recipe?.imageUrl}
-			<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
-		{:else}
-			<RecipeImagePlaceholder size="medium" />
-		{/if}
-		<div class="action-buttons">
-			{#if recipe && menu}
-				<button
-					bind:this={menuButton}
-					class="menu-btn"
-					onclick={handleMenuToggle}
-					ontouchstart={handleTouchStart}
-					ontouchend={handleTouchEnd}
-					aria-label="Recipe menu"
+<div class="recipe-card-container">
+	<a
+		href={recipe ? `/recipe/${recipe.id}` : undefined}
+		class="recipe-card card"
+		class:skeleton={loading || isNavigating}
+		aria-labelledby={recipe ? `recipe-title-${recipe.id}` : undefined}
+		onclick={handleClick}
+	>
+		<div class="image-container" class:no-image={recipe && !recipe.imageUrl}>
+			{#if loading}
+				<div
+					style="width: 100%; height: 100%; aspect-ratio: 16/9; border-radius: var(--border-radius-2xl) var(--border-radius-2xl) 0 0; position: absolute; top: 0; left: 0; overflow: hidden;"
 				>
-					<MoreVertical size={20} color="black" />
-				</button>
+					<Skeleton width="100%" height="100%" />
+				</div>
+			{:else if recipe?.imageUrl}
+				<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+			{:else}
+				<RecipeImagePlaceholder size="medium" />
 			{/if}
+			<div class="action-buttons">
+				{#if recipe && menu}
+					<button
+						bind:this={menuButton}
+						class="menu-btn"
+						onclick={handleMenuToggle}
+						ontouchstart={handleTouchStart}
+						ontouchend={handleTouchEnd}
+						aria-label="Recipe menu"
+					>
+						<MoreVertical size={20} color="black" />
+					</button>
+				{/if}
+			</div>
 		</div>
-	</div>
 
-	<div class="content">
-		{#if recipe?.user && !loading}
-			<div class="avatar">
-				<ProfilePic profilePicUrl={recipe.user.avatarUrl} size="sm" background />
+		<div class="content">
+			{#if recipe?.user && !loading}
+				<div class="avatar">
+					<ProfilePic profilePicUrl={recipe.user.avatarUrl} size="sm" background />
+				</div>
+			{/if}
+
+			<div>
+				{#if loading}
+					<div class="title">
+						<Skeleton width="80%" height="32px" />
+					</div>
+				{:else if recipe}
+					<h2 class="recipe-title" style:margin="0">{recipe.title}</h2>
+				{/if}
+			</div>
+
+			<div class="meta-single" aria-label="Recipe details">
+				{#if loading}
+					<div class="tags">
+						{#each Array(3) as _}
+							<div
+								style="border-radius: var(--border-radius-xl); overflow: hidden; width: 60px; height: 24px;"
+							>
+								<Skeleton height="100%" />
+							</div>
+						{/each}
+					</div>
+				{:else if recipe?.tags && recipe.tags.length > 0}
+					<div class="tags">
+						{#each recipe.tags as tag}
+							<Pill text={tag} color="var(--color-text-on-surface)" />
+						{/each}
+					</div>
+				{/if}
+				{#if loading}
+					<span class="text">
+						<Skeleton width="60px" height="16px" />
+					</span>
+				{:else if recipe}
+					<span class="meta-content">
+						<div class="meta-item-group">
+							<span class="meta-item">
+								<Carrot size={16} />
+								{recipe.ingredients.length}
+							</span>
+							<span class="meta-item">
+								<List size={16} />
+								{recipe.instructions.length}
+							</span>
+						</div>
+						<div class="meta-item-group">
+							<span class="meta-item">
+								<MessageSquare size={16} />
+								{formatNumberShort(recipe.comments)}
+							</span>
+							<span class="meta-item">
+								<Heart size={16} />
+								{formatNumberShort(recipe.likes)}
+							</span>
+						</div>
+					</span>
+				{/if}
+			</div>
+		</div>
+
+		{#if isNavigating}
+			<div class="spinner-overlay">
+				<div class="spinner"></div>
 			</div>
 		{/if}
-
-		<div>
-			{#if loading}
-				<div class="title">
-					<Skeleton width="80%" height="32px" />
-				</div>
-			{:else if recipe}
-				<h2 class="recipe-title" style:margin="0">{recipe.title}</h2>
-			{/if}
-		</div>
-
-		<div class="meta-single" aria-label="Recipe details">
-			{#if loading}
-				<div class="tags">
-					{#each Array(3) as _}
-						<div
-							style="border-radius: var(--border-radius-xl); overflow: hidden; width: 60px; height: 24px;"
-						>
-							<Skeleton height="100%" />
-						</div>
-					{/each}
-				</div>
-			{:else if recipe?.tags && recipe.tags.length > 0}
-				<div class="tags">
-					{#each recipe.tags as tag}
-						<Pill text={tag} color="var(--color-text-on-surface)" />
-					{/each}
-				</div>
-			{/if}
-			{#if loading}
-				<span class="text">
-					<Skeleton width="60px" height="16px" />
-				</span>
-			{:else if recipe}
-				<span class="meta-content">
-					<div class="meta-item-group">
-						<span class="meta-item">
-							<Carrot size={16} />
-							{recipe.ingredients.length}
-						</span>
-						<span class="meta-item">
-							<List size={16} />
-							{recipe.instructions.length}
-						</span>
-					</div>
-					<div class="meta-item-group">
-						<span class="meta-item">
-							<MessageSquare size={16} />
-							{formatNumberShort(recipe.comments)}
-						</span>
-						<span class="meta-item">
-							<Heart size={16} />
-							{formatNumberShort(recipe.likes)}
-						</span>
-					</div>
-				</span>
-			{/if}
-		</div>
-	</div>
-
-	{#if isNavigating}
-		<div class="spinner-overlay">
-			<div class="spinner"></div>
-		</div>
-	{/if}
-</a>
+	</a>
+</div>
 
 {#if menu && menuOpen}
 	<div
@@ -223,6 +225,12 @@
 
 <style lang="scss">
 	@use '$lib/styles/tokens' as *;
+	$recipe-card-two-col-threshold: 340px;
+
+	.recipe-card-container {
+		container-type: inline-size;
+	}
+
 	.recipe-card {
 		display: grid;
 		grid-template-rows: 60% auto;
@@ -280,6 +288,15 @@
 		}
 	}
 
+	@container (min-width: #{$recipe-card-two-col-threshold}) {
+		.recipe-card {
+			grid-template-rows: none;
+			grid-template-columns: 1fr 1fr;
+			grid-template-areas: 'content image';
+			max-height: 300px;
+		}
+	}
+
 	.recipe-title {
 		font-family: var(--font-serif);
 		word-break: break-word;
@@ -294,9 +311,15 @@
 		line-clamp: 2;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
+	}
 
-		@include mobile {
-			font-size: var(--font-size-xl);
+	@container (min-width: #{$recipe-card-two-col-threshold}) {
+		.recipe-title {
+			line-clamp: unset;
+			-webkit-line-clamp: unset;
+			display: block;
+			overflow: visible;
+			text-overflow: initial;
 		}
 	}
 
@@ -326,11 +349,26 @@
 		}
 	}
 
+	@container (min-width: #{$recipe-card-two-col-threshold}) {
+		.image-container {
+			grid-area: image;
+			border-radius: 0 var(--border-radius-2xl) var(--border-radius-2xl) 0;
+		}
+	}
+
 	.avatar {
 		position: absolute;
 		top: -16px;
 		right: var(--spacing-md);
 		z-index: var(--z-dropdown);
+	}
+
+	@container (min-width: #{$recipe-card-two-col-threshold}) {
+		.avatar {
+			position: static;
+			order: 2;
+			margin-top: auto;
+		}
 	}
 
 	.recipe-card:hover .image-container img {
@@ -387,6 +425,12 @@
 			:global(svg) {
 				stroke: var(--color-text-on-surface);
 			}
+		}
+	}
+
+	@container (min-width: #{$recipe-card-two-col-threshold}) {
+		.meta-single {
+			order: 3;
 		}
 	}
 
