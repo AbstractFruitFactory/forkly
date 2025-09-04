@@ -20,8 +20,11 @@ export const seed = async () => {
   // Force reseed: clean up existing data first
   console.log('Cleaning up existing data to force reseed...')
   try {
-    await db.execute(sql`ALTER TABLE recipe_ingredient DISABLE TRIGGER enforce_recipe_has_ingredients`)
-    // Delete child relations first (or rely on cascade); order kept explicit for clarity
+    try {
+      await db.execute(sql`ALTER TABLE recipe_ingredient DISABLE TRIGGER enforce_recipe_has_ingredients`)
+    } catch (e) {
+      console.log('Trigger not found or could not be disabled, continuing:', e)
+    }
     await db.delete(recipeTag)
     await db.delete(recipeIngredient)
     await db.delete(recipeInstruction)
@@ -132,11 +135,19 @@ export const seed = async () => {
     }
   }
 
-  // Insert unique ingredients
+  // Insert unique ingredients, then read back IDs to ensure we use DB-resolved IDs
   for (const { id, name } of ingredientMap.values()) {
     await db.insert(ingredient)
       .values({ id, name })
       .onConflictDoNothing({ target: ingredient.name })
+  }
+  const rows = await db.select({ id: ingredient.id, name: ingredient.name }).from(ingredient)
+  const nameToId = new Map<string, string>(rows.map(r => [r.name, r.id]))
+  for (const [normName, entry] of ingredientMap.entries()) {
+    const resolvedId = nameToId.get(normName)
+    if (resolvedId) {
+      ingredientMap.set(normName, { id: resolvedId, name: normName })
+    }
   }
 
   // Insert recipes

@@ -9,7 +9,9 @@ import { type ClientRecipeInput } from "$lib/server/utils/recipe-form"
 import { RecipeSchema } from "./schemas"
 import * as v from 'valibot'
 
-const cleanupUploadedMediaFromObject = async (input: ClientRecipeInput) => {
+const cleanupUploadedMediaFromObject = async (
+  input: { imageUrl?: string; instructions: Array<{ mediaUrl?: string; mediaType?: 'image' | 'video' }> }
+) => {
   try {
     if (input.imageUrl) {
       try { await deleteImage(input.imageUrl) } catch { }
@@ -25,7 +27,7 @@ const cleanupUploadedMediaFromObject = async (input: ClientRecipeInput) => {
   }
 }
 
-const moveMediaFromTmpFolder = async (input: ClientRecipeInput) => {
+const moveMediaFromTmpFolder = async <T extends { imageUrl?: string; instructions: Array<{ mediaUrl?: string; mediaType?: 'image' | 'video' }> }>(input: T) => {
   let imageUrl = input.imageUrl
   let instructions = input.instructions
 
@@ -37,7 +39,7 @@ const moveMediaFromTmpFolder = async (input: ClientRecipeInput) => {
       ins.mediaUrl = await moveToFolder(ins.mediaUrl, 'instruction-media', ins.mediaType === 'video' ? 'video' : 'image')
     }
   }
-  return { ...input, imageUrl, instructions }
+  return { ...input, imageUrl, instructions } as T
 }
 
 const ensureRecipeHasIngredients = (input: { instructions: Array<{ ingredients?: unknown[] }> }) => {
@@ -58,13 +60,13 @@ const transformIngredientQuantity = (
 export const createRecipe = command(RecipeSchema, async (input) => {
   const { locals } = getRequestEvent()
   if (!locals.user) error(401, 'Unauthorized')
-  await moveMediaFromTmpFolder(input)
+  const inputWithMovedMedia = await moveMediaFromTmpFolder(input)
 
-  ensureRecipeHasIngredients(input)
+  ensureRecipeHasIngredients(inputWithMovedMedia)
 
   const transformedInput = {
-    ...input,
-    instructions: input.instructions.map((instruction) => ({
+    ...inputWithMovedMedia,
+    instructions: inputWithMovedMedia.instructions.map((instruction) => ({
       ...instruction,
       ingredients: instruction.ingredients ? transformIngredientQuantity(instruction.ingredients) : undefined
     }))
@@ -76,7 +78,7 @@ export const createRecipe = command(RecipeSchema, async (input) => {
     newRecipe = await createRecipeDb(transformedInput, locals.user.id)
   } catch (e) {
     console.error('Error creating recipe', e)
-    await cleanupUploadedMediaFromObject(input)
+    await cleanupUploadedMediaFromObject(inputWithMovedMedia)
     error(500, 'An unexpected error occurred while creating the recipe')
   }
 
@@ -97,13 +99,13 @@ const UpdateRecipeSchema = v.intersect([
 export const updateRecipe = command(UpdateRecipeSchema, async (input) => {
   const { locals } = getRequestEvent()
   if (!locals.user) error(401, 'Unauthorized')
-  await moveMediaFromTmpFolder(input)
+  const inputWithMovedMedia = await moveMediaFromTmpFolder(input)
 
-  ensureRecipeHasIngredients(input)
+  ensureRecipeHasIngredients(inputWithMovedMedia)
 
   const transformedInput = {
-    ...input,
-    instructions: input.instructions.map((instruction) => ({
+    ...inputWithMovedMedia,
+    instructions: inputWithMovedMedia.instructions.map((instruction) => ({
       ...instruction,
       ingredients: instruction.ingredients ? transformIngredientQuantity(instruction.ingredients) : undefined
     }))
@@ -115,7 +117,7 @@ export const updateRecipe = command(UpdateRecipeSchema, async (input) => {
     updatedRecipe = await updateRecipeDb(transformedInput, locals.user.id)
   } catch (e) {
     console.error('Error updating recipe', e)
-    await cleanupUploadedMediaFromObject(input)
+    await cleanupUploadedMediaFromObject(inputWithMovedMedia)
     error(500, 'An unexpected error occurred while updating the recipe')
   }
 
