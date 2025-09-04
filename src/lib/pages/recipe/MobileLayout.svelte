@@ -14,7 +14,7 @@
 		nutrition,
 		ingredients,
 		comments,
-		instructions,
+		instructions
 	}: {
 		image: Snippet
 		tags: Snippet
@@ -176,7 +176,8 @@
 		z-index: var(--z-sticky);
 		display: flex;
 		gap: var(--spacing-md);
-		background: var(--color-background);
+		background: var(--color-surface);
+		border: var(--border-width-thin) solid var(--color-neutral);
 	}
 
 	.tab-button {
