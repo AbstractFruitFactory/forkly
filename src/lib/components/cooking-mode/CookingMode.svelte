@@ -164,6 +164,7 @@
 								servings={servings}
 								originalServings={originalServings}
 								{unitSystem}
+								showServingsAdjuster={false}
 							/>
 						</div>
 					{/if}

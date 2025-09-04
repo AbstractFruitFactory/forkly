@@ -11,7 +11,8 @@
 		originalServings,
 		onServingsChange,
 		unitSystem = 'imperial',
-		loading = false
+		loading = false,
+		showServingsAdjuster = true
 	}: {
 		ingredients: Ingredient[]
 		servings: number
@@ -19,6 +20,7 @@
 		onServingsChange?: (newServings: number) => void
 		unitSystem?: UnitSystem
 		loading?: boolean
+		showServingsAdjuster?: boolean
 	} = $props()
 
 	let currentServings = $state(servings)
@@ -51,9 +53,11 @@
 			</li>
 		{/each}
 	{:else}
-		<div class="ingredients-header">
-			<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
-		</div>
+		{#if showServingsAdjuster}
+			<div class="ingredients-header">
+				<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
+			</div>
+		{/if}
 		{#each displayIngredients as ingredient}
 			<li>
 				{#if ingredient.displayMeasurementAndQuantity}
