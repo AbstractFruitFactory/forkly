@@ -53,9 +53,7 @@
 	</main>
 
 	<div class="mobile-bottom-bar">
-		<div class="bottom-bar-content page-padding">
-			{@render bottomNavBar()}
-		</div>
+		{@render bottomNavBar()}
 	</div>
 </div>
 
@@ -64,7 +62,7 @@
 
 	$content-max-width: 1200px;
 	$header-height: 5rem;
-	$bottom-bar-height: 3.5rem;
+	$bottom-bar-height: 50px;
 
 	.layout {
 		display: flex;
@@ -125,9 +123,9 @@
 				width: 100vw;
 				padding: 0 var(--spacing-4xl);
 
-			@include tablet {
-				padding: 0 var(--spacing-xl);
-			}
+				@include tablet {
+					padding: 0 var(--spacing-xl);
+				}
 			}
 		}
 
@@ -149,25 +147,16 @@
 
 	.mobile-bottom-bar {
 		display: none;
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		height: $bottom-bar-height;
-		background: var(--color-primary);
-		z-index: var(--z-sticky);
-		box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 
 		@include mobile {
 			display: block;
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: $bottom-bar-height;
+			z-index: var(--z-sticky);
 		}
-	}
-
-	.bottom-bar-content {
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
 	}
 
 	.main {
