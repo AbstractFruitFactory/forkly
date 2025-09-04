@@ -59,5 +59,6 @@
 		flex: 1 1 0;
 		height: 100%;
 		transition: color 0.2s;
+		-webkit-tap-highlight-color: transparent;
 	}
 </style>
