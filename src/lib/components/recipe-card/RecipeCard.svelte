@@ -225,7 +225,8 @@
 
 <style lang="scss">
 	@use '$lib/styles/tokens' as *;
-	$recipe-card-two-col-threshold: 340px;
+
+	$recipe-card-two-col-threshold: 400px;
 
 	.recipe-card-container {
 		container-type: inline-size;
@@ -235,6 +236,7 @@
 		display: grid;
 		grid-template-rows: 60% auto;
 		height: 435px;
+		min-height: 435px;
 		width: 100%;
 		min-width: 200px;
 		border-radius: var(--border-radius-2xl);
@@ -249,7 +251,7 @@
 
 		@include mobile {
 			height: 300px;
-			grid-template-rows: 45% auto;
+			grid-template-rows: 50% auto;
 
 			.action-buttons {
 				top: var(--spacing-sm);
