@@ -113,14 +113,10 @@
 		position: fixed;
 		bottom: var(--spacing-lg);
 		right: var(--spacing-lg);
-
-		@include mobile {
-			bottom: 65px;
-		}
 	}
 
 	.info-button {
-		background: var(--color-primary-light);
+		background: var(--color-secondary);
 		border: none;
 		border-radius: 50%;
 		aspect-ratio: 1/1;
@@ -143,6 +139,10 @@
 
 		&:active {
 			transform: scale(0.95);
+		}
+
+		@include mobile {
+			width: 50px;
 		}
 	}
 

@@ -57,7 +57,7 @@
 <script lang="ts">
 	import Header from '$lib/components/header/Header.svelte'
 	import Layout from '$lib/components/layout/Layout.svelte'
-	import BottomNav from '$lib/components/navigation/BottomNav.svelte'
+	import BottomNav from '$lib/components/navigation/MobileNav.svelte'
 	import Error from '$lib/pages/error/Error.svelte'
 	import '$lib/global.scss'
 	import type { Snippet } from 'svelte'

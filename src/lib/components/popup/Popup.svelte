@@ -10,6 +10,7 @@
 		showCloseButton = true,
 		closeOnClickOutside = true,
 		width = '400px',
+		height = 'auto',
 		onClose,
 		children,
 		headerActions,
@@ -20,6 +21,7 @@
 		showCloseButton?: boolean
 		closeOnClickOutside?: boolean
 		width?: string
+		height?: string
 		onClose?: () => void
 		children?: Snippet
 		headerActions?: Snippet
@@ -42,7 +44,7 @@
 
 	let popupContainer = $state<HTMLDivElement>()
 	let popupContent = $state<HTMLDivElement>()
-		
+
 	const handleOpen = async () => {
 		if (animateFrom) {
 			const flip = (await import('gsap/Flip')).Flip
@@ -148,7 +150,11 @@
 		onclick={handleClickOutside}
 	>
 		{#snippet container()}
-			<div bind:this={popupContainer} class="popup-container" style="width: {width};">
+			<div
+				bind:this={popupContainer}
+				class="popup-container"
+				style="width: {width}; height: {height};"
+			>
 				{#if title || showCloseButton}
 					<div class="popup-header">
 						<div>
@@ -232,6 +238,10 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: var(--spacing-lg);
+
+		@include mobile {
+			padding: var(--spacing-md);
+		}
 	}
 
 	.popup-actions {
@@ -268,12 +278,14 @@
 
 	.popup-content {
 		padding: var(--spacing-lg) var(--spacing-2xl);
+		padding-top: 0;
 		overflow-y: scroll;
 		height: 100%;
 		scrollbar-width: thin;
 
 		@include mobile {
 			padding: var(--spacing-md);
+			padding-top: 0;
 		}
 	}
 </style>

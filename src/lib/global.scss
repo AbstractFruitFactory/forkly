@@ -370,17 +370,6 @@ button {
   background-color: var(--color-neutral-dark);
 }
 
-/* Hide scrollbar in Firefox when not hovering */
-@supports (scrollbar-width: thin) {
-  * {
-    scrollbar-width: thin;
-
-    &:not(:hover) {
-      scrollbar-width: none;
-    }
-  }
-}
-
 /* Hide search input clear button (X) */
 input[type="search"]::-webkit-search-cancel-button {
   -webkit-appearance: none;

@@ -25,6 +25,7 @@
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
+	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
 
 	let {
 		recipeData,
@@ -77,6 +78,7 @@
 	let showDuplicateWarning = $state(false)
 	let totalComments = $state<number>(0)
 	let imageBroken = $state(false)
+	let currentServings = $state<number>(1)
 
 	$effect(() => {
 		data.then((r) => {
@@ -100,8 +102,9 @@
 	})
 
 	$effect(() => {
-		data.then(() => {
+		data.then((r) => {
 			imageBroken = false
+			currentServings = r.recipe.servings
 		})
 	})
 
@@ -216,6 +219,10 @@
 	)
 
 	const recipeTitle = $derived(data.then((r) => r.recipe.title))
+
+	const handleServingsChange = (newServings: number) => {
+		currentServings = newServings
+	}
 </script>
 
 {#snippet commonImage()}
@@ -223,7 +230,12 @@
 		<RecipeImagePlaceholder loading size="large" />
 	{:then recipeData}
 		{#if recipeData.recipe.imageUrl && !imageBroken}
-			<img src={recipeData.recipe.imageUrl} alt={recipeData.recipe.title} onerror={() => (imageBroken = true)} onload={() => (imageBroken = false)} />
+			<img
+				src={recipeData.recipe.imageUrl}
+				alt={recipeData.recipe.title}
+				onerror={() => (imageBroken = true)}
+				onload={() => (imageBroken = false)}
+			/>
 		{:else}
 			<RecipeImagePlaceholder size="large" broken={imageBroken} />
 		{/if}
@@ -316,7 +328,7 @@
 
 {#snippet ingredients()}
 	<div class="ingredients-section" bind:this={ingredientsSection}>
-		<div class="header">
+		<div class="header no-top-margin-mobile">
 			<h3>Ingredients</h3>
 			{#await data then _}
 				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
@@ -327,23 +339,35 @@
 		{:then recipeData}
 			<IngredientsList
 				ingredients={recipeData.recipe.ingredients}
-				servings={recipeData.recipe.servings}
+				servings={currentServings}
 				originalServings={recipeData.recipe.servings}
 				{unitSystem}
+				onServingsChange={handleServingsChange}
 			/>
 		{/await}
 	</div>
 {/snippet}
 
-{#snippet instructions()}
+{#snippet instructions(useCookingMode: boolean = false)}
 	<div bind:this={instructionsSection}>
-		<div class="header">
+		<div class="header no-top-margin-mobile">
 			<h3 style="margin-bottom: 0;">Instructions</h3>
 		</div>
 		{#await data}
 			<RecipeInstructions instructions={[]} loading />
 		{:then recipeData}
-			<RecipeInstructions instructions={recipeData.recipe.instructions} />
+			{#if useCookingMode}
+				<CookingMode
+					inline={true}
+					isOpen={true}
+					instructions={recipeData.recipe.instructions}
+					servings={currentServings}
+					originalServings={recipeData.recipe.servings}
+					{unitSystem}
+				/>
+			{:else}
+				<RecipeInstructions instructions={recipeData.recipe.instructions} />
+			{/if}
 		{/await}
 	</div>
 {/snippet}
@@ -351,7 +375,7 @@
 {#snippet comments()}
 	{#if !preview}
 		<div class="comments-section" bind:this={commentsSection}>
-			<div class="header">
+			<div class="header no-top-margin-mobile">
 				<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
 					<MessageSquare size={20} />
 					Comments
@@ -386,18 +410,6 @@
 	{/if}
 {/snippet}
 
-{#snippet navButtons()}
-	<button class="nav-button" onclick={() => scrollToSection(ingredientsSection!)}>
-		Ingredients
-	</button>
-	<button class="nav-button" onclick={() => scrollToSection(instructionsSection!)}>
-		Instructions
-	</button>
-	{#if !preview}
-		<button class="nav-button" onclick={() => scrollToSection(commentsSection!)}> Comments </button>
-	{/if}
-{/snippet}
-
 <div class="recipe-desktop-view">
 	<DesktopLayout {tags} {title} {actionButtons} {nutrition} {ingredients} {instructions} {comments}>
 		{#snippet image()}
@@ -411,17 +423,7 @@
 </div>
 
 <div class="recipe-mobile-view">
-	<MobileLayout
-		{onBackClick}
-		{tags}
-		{title}
-		{actionButtons}
-		{nutrition}
-		{ingredients}
-		{instructions}
-		{comments}
-		{navButtons}
-	>
+	<MobileLayout {tags} {title} {actionButtons} {nutrition} {ingredients} {instructions} {comments}>
 		{#snippet image()}
 			{@render commonImage()}
 		{/snippet}
@@ -541,6 +543,12 @@
 
 		h3 {
 			margin-bottom: 0;
+		}
+	}
+
+	.no-top-margin-mobile {
+		@include mobile {
+			margin-top: 0;
 		}
 	}
 

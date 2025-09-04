@@ -34,6 +34,10 @@
 		{@render header()}
 	</header>
 
+	<div class="mobile-top-bar">
+		{@render bottomNavBar()}
+	</div>
+
 	<main class="main" class:homepage bind:this={mainElement}>
 		<div class="main-page-header-background"></div>
 		{#if homepage}
@@ -51,10 +55,6 @@
 			</div>
 		</div>
 	</main>
-
-	<div class="mobile-bottom-bar">
-		{@render bottomNavBar()}
-	</div>
 </div>
 
 <style lang="scss">
@@ -62,7 +62,7 @@
 
 	$content-max-width: 1200px;
 	$header-height: 5rem;
-	$bottom-bar-height: 50px;
+	$top-bar-height: 50px;
 
 	.layout {
 		display: flex;
@@ -82,7 +82,6 @@
 
 		@include mobile {
 			padding-top: 0;
-			padding-bottom: $bottom-bar-height;
 		}
 	}
 
@@ -145,17 +144,12 @@
 		margin-left: calc(-50vw + 50%);
 	}
 
-	.mobile-bottom-bar {
+	.mobile-top-bar {
 		display: none;
+		height: $top-bar-height;
 
 		@include mobile {
 			display: block;
-			position: fixed;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			height: $bottom-bar-height;
-			z-index: var(--z-sticky);
 		}
 	}
 
@@ -171,6 +165,7 @@
 		@include mobile {
 			padding: 0;
 			margin-left: 0 !important;
+			border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
 		}
 	}
 
@@ -224,7 +219,7 @@
 
 		@include mobile {
 			padding-top: var(--spacing-md);
-			min-height: calc(100dvh - $bottom-bar-height);
+			min-height: calc(100dvh - $top-bar-height);
 
 			&.homepage {
 				padding-top: 0;

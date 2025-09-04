@@ -5,13 +5,23 @@
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left'
 	import ChevronRight from 'lucide-svelte/icons/chevron-right'
 	import Hint from '$lib/components/hint/Hint.svelte'
+	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
+	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 
 	let {
 		instructions,
-		isOpen = $bindable(false)
+		isOpen = $bindable(false),
+		inline = false,
+		servings = 1,
+		originalServings = 1,
+		unitSystem = 'imperial'
 	}: {
 		instructions: Instruction[]
 		isOpen: boolean
+		inline?: boolean
+		servings?: number
+		originalServings?: number
+		unitSystem?: UnitSystem
 	} = $props()
 
 	let currentStep = $state(0)
@@ -76,8 +86,32 @@
 	}
 </script>
 
-<Popup bind:isOpen onClose={() => (isOpen = false)} width="800px">
+{#snippet navigation()}
+	<div class="cooking-navigation">
+		<Button color="secondary" onclick={prevStep} disabled={currentStep === 0}>
+			<ChevronLeft color="black" />
+		</Button>
+
+		<div class="cooking-step-text">
+			Step {currentStep + 1} of {instructions.length}
+		</div>
+
+		<Button color="secondary" onclick={nextStep}>
+			{#if currentStep < instructions.length - 1}
+				<ChevronRight color="black" />
+			{:else}
+				Done
+			{/if}
+		</Button>
+	</div>
+{/snippet}
+
+{#snippet content()}
 	<div class="cooking-mode">
+		{#if inline}
+			{@render navigation()}
+		{/if}
+
 		<div
 			class="cooking-content"
 			ontouchstart={handleCookingTouchStart}
@@ -123,23 +157,14 @@
 			{#if instructions[currentStep]}
 				{@const step = instructions[currentStep]}
 				<div>
-					<h3>Step {currentStep + 1}</h3>
 					{#if step.ingredients && step.ingredients.length > 0}
 						<div class="step-ingredients">
-							<h4>Ingredients needed:</h4>
-							<ul class="ingredients-list">
-								{#each step.ingredients as ingredient}
-									<li class="ingredient-item">
-										<span class="ingredient-quantity">
-											{ingredient.quantity?.text}
-											{ingredient.measurement}
-										</span>
-										<span class="ingredient-name">
-											{ingredient.displayName}
-										</span>
-									</li>
-								{/each}
-							</ul>
+							<IngredientsList
+								ingredients={step.ingredients}
+								servings={servings}
+								originalServings={originalServings}
+								{unitSystem}
+							/>
 						</div>
 					{/if}
 
@@ -152,25 +177,19 @@
 			{/if}
 		</div>
 
-		<div class="cooking-navigation">
-			<Button color="primary" onclick={prevStep} disabled={currentStep === 0}>
-				<ChevronLeft color="black" />
-			</Button>
-
-			<div class="cooking-step-text">
-				Step {currentStep + 1} of {instructions.length}
-			</div>
-
-			<Button color="primary" onclick={nextStep}>
-				{#if currentStep < instructions.length - 1}
-					<ChevronRight color="black" />
-				{:else}
-					Done
-				{/if}
-			</Button>
-		</div>
+		{#if !inline}
+			{@render navigation()}
+		{/if}
 	</div>
-</Popup>
+{/snippet}
+
+{#if inline}
+	{@render content()}
+{:else}
+	<Popup bind:isOpen onClose={() => (isOpen = false)} width="800px" height="80dvh">
+		{@render content()}
+	</Popup>
+{/if}
 
 <style lang="scss">
 	@use '$lib/styles/tokens' as *;
@@ -180,6 +199,7 @@
 		flex-direction: column;
 		background: var(--color-background);
 		min-height: 0;
+		height: 100%;
 
 		@include mobile {
 			justify-content: space-between;
@@ -248,7 +268,7 @@
 
 	.cooking-step-text {
 		font-size: var(--font-size-sm);
-		color: var(--color-neutral-light);
+		color: var(--color-text-on-surface);
 		font-weight: var(--font-weight-medium);
 	}
 
@@ -288,9 +308,6 @@
 	}
 
 	.step-ingredients {
-		padding: var(--spacing-lg);
-		background: var(--color-background-dark);
-		border-radius: var(--border-radius-2xl);
 		margin-bottom: var(--spacing-lg);
 	}
 
@@ -301,31 +318,7 @@
 		color: var(--color-text-on-surface);
 	}
 
-	.ingredients-list {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xs);
-	}
-
 	.step-hint {
 		margin: var(--spacing-md) 0;
-	}
-
-	.ingredient-item {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-		padding: var(--spacing-xs) 0;
-	}
-
-	.ingredient-quantity {
-		font-weight: var(--font-weight-semibold);
-	}
-
-	.ingredient-name {
-		color: var(--color-text-on-surface);
 	}
 </style>

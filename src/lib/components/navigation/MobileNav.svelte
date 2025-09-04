@@ -19,7 +19,7 @@
 	}>()
 </script>
 
-<nav class="bottom-nav">
+<nav class="top-nav">
 	<a href={homeHref} class="nav-item">
 		<Home size={20} color="black" />
 	</a>
@@ -36,20 +36,13 @@
 </nav>
 
 <style lang="scss">
-	.bottom-nav {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		background: var(--color-background);
-		border-top: 1px solid var(--color-neutral-light);
+	.top-nav {
+		background: var(--color-secondary);
 		display: flex;
 		justify-content: space-between;
-		align-items: flex-end;
-		z-index: 100;
+		align-items: center;
 		height: 50px;
-		padding: 0;
-		overflow: visible;
+		overflow: hidden;
 	}
 
 	.nav-item {
