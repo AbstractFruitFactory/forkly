@@ -33,7 +33,7 @@
 
 <div class="info-footer" class:fixed>
 	<button class="info-button" onclick={handleInfoClick} aria-label="Show information">
-		<Info size={25} />
+		<Info size={25} color="var(--color-text-on-surface)" />
 	</button>
 </div>
 
@@ -115,7 +115,7 @@
 		right: var(--spacing-lg);
 
 		@include mobile {
-			bottom: 80px
+			bottom: 65px;
 		}
 	}
 
