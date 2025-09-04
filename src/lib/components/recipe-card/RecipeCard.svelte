@@ -251,7 +251,6 @@
 
 		@include mobile {
 			height: 300px;
-			grid-template-rows: 50% auto;
 
 			.action-buttons {
 				top: var(--spacing-sm);
@@ -293,8 +292,9 @@
 	@container (min-width: #{$recipe-card-two-col-threshold}) {
 		.recipe-card {
 			grid-template-rows: none;
-			grid-template-columns: 1fr 1fr;
+			grid-template-columns: 1fr 1.2fr;
 			grid-template-areas: 'content image';
+			min-height: 300px;
 			max-height: 300px;
 		}
 	}
