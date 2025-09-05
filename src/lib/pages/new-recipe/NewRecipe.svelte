@@ -67,7 +67,8 @@
 	import { deleteDraft, saveDraft, updateDraft } from '$lib/remote-functions/draft.remote'
 	import { nullToUndefined } from '$lib/utils/nullToUndefined'
 	import RecipePage from '../../../routes/(pages)/recipe/[id]/+page.svelte'
-	import Popup from '$lib/components/popup/Popup.svelte'
+	import RecipePopup from '$lib/components/recipe-popup/RecipePopup.svelte'
+	import { page } from '$app/stores'
 
 	type UIIngredient = {
 		id: string
@@ -164,8 +165,10 @@
 	let imageUrlState = $state<string | undefined>(prefilledData?.image ?? undefined)
 	let showPreview = $state(false)
 	let loginPopupMessage = $state<string | undefined>()
+	let recipePopup = $state<RecipePopup>()
 
 	const buildPreviewData = () => {
+		const currentUser = $page?.data?.user
 		const previewRecipe = {
 			id: _id || generateId(),
 			title: _title,
@@ -176,6 +179,10 @@
 			createdAt: new Date(),
 			servings: servings,
 			ingredients: toFlatPreviewIngredients(),
+			userId: currentUser?.id,
+			user: currentUser
+				? { username: currentUser.username, avatarUrl: currentUser.avatarUrl }
+				: undefined,
 			nutrition: displayNutrition
 				? {
 						calories: parseFloat(String(calories)) || 0,
@@ -190,7 +197,7 @@
 			recipe: previewRecipe,
 			comments: { comments: [], total: 0 },
 			collections: [],
-			isLoggedIn: false
+			isLoggedIn: Boolean(currentUser)
 		}
 	}
 
@@ -967,7 +974,13 @@
 		onclick={async () => {
 			if (!validateForm()) return
 			previewRecipeData = buildPreviewData()
-			showPreview = true
+			if (editMode) {
+				showPreview = true
+			} else {
+				if (recipePopup && recipePopup.open) {
+					await recipePopup.open()
+				}
+			}
 			onOpenPreview?.()
 		}}
 	>
@@ -1196,11 +1209,34 @@
 	/>
 </div>
 
-{#if !editMode}
-	<Popup bind:isOpen={showPreview} width="90vw">
-		{@render preview()}
-	</Popup>
-{/if}
+<RecipePopup
+	bind:this={recipePopup}
+	preview
+	id={_id}
+	recipeData={previewRecipeData}
+	onBack={async () => {
+		if (recipePopup && recipePopup.close) {
+			await recipePopup.close()
+		}
+	}}
+	onUpload={async () => {
+		const loggedIn = await isLoggedIn
+		if (!loggedIn) {
+			persistFormToSession()
+			loginPopupMessage = 'Please log in to upload the recipe.'
+			isLoginPopupOpen = true
+			return
+		}
+		if (!editMode) {
+			await submitCreate()
+		} else {
+			await saveEditRecipe()
+		}
+		if (recipePopup && recipePopup.close) {
+			await recipePopup.close()
+		}
+	}}
+/>
 
 <ImportRecipePopup
 	bind:isOpen={isImportPopupOpen}
