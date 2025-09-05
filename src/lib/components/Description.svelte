@@ -30,9 +30,11 @@
 		<Skeleton width="100%" height="1.5rem" />
 		<Skeleton width="80%" height="1.5rem" />
 	{:else}
-		<p style:word-break="break-word">
-			<TruncatedText text={description} maxLength={200} />
-		</p>
+		{#if description}
+			<p style:word-break="break-word">
+				<TruncatedText text={description} maxLength={200} />
+			</p>
+		{/if}
 		{#if username && userId}
 			<RecipeCreator {username} {userId} {profilePicUrl} />
 		{/if}
