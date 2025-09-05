@@ -974,7 +974,11 @@
 		onclick={async () => {
 			if (!validateForm()) return
 			previewRecipeData = buildPreviewData()
-			if (editMode) {
+			if (isMobileView) {
+				if (recipePopup && recipePopup.open) {
+					await recipePopup.open()
+				}
+			} else if (editMode) {
 				showPreview = true
 			} else {
 				if (recipePopup && recipePopup.open) {
