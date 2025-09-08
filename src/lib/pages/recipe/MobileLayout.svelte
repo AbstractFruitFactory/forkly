@@ -1,9 +1,10 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
-	import Info from 'lucide-svelte/icons/info'
+	import Activity from 'lucide-svelte/icons/activity'
 	import ListOrdered from 'lucide-svelte/icons/list-ordered'
 	import Carrot from 'lucide-svelte/icons/carrot'
 	import MessageSquare from 'lucide-svelte/icons/message-square'
+
 
 	let {
 		image,
@@ -27,44 +28,72 @@
 		instructions: Snippet<[useCookingMode: boolean]>
 	} = $props()
 
-	let activeTab = $state<'overview' | 'ingredients' | 'instructions' | 'comments'>('overview')
-
-	$effect(() => {
-		activeTab
-		if (typeof document !== 'undefined') {
-			const drawerContainer = document.querySelector('.drawer-content') as HTMLElement | null
-			const mainContainer = document.querySelector('.main') as HTMLElement | null
-			if (drawerContainer) {
-				drawerContainer.scrollTo({ top: 0, behavior: 'auto' })
-			}
-			if (mainContainer) {
-				mainContainer.scrollTo({ top: 0, behavior: 'auto' })
-			}
-		}
-	})
+	let activeTab = $state<'nutrition' | 'ingredients' | 'instructions' | 'comments'>('ingredients')
 </script>
 
 <div class="recipe" data-page="recipe">
 	<div class="content">
-		{#if activeTab === 'overview'}
-			<div class="recipe-image">
-				{@render image()}
+		<div class="recipe-image">
+			{@render image()}
+		</div>
+
+		<div class="header">
+			<div class="tags">
+				{@render tags()}
 			</div>
 
-			<div class="header">
-				<div class="tags">
-					{@render tags()}
-				</div>
-
-				<div class="title">
-					{@render title()}
-				</div>
-
-				<div class="action-buttons">
-					{@render actionButtons()}
-				</div>
+			<div class="title">
+				{@render title()}
 			</div>
-			{@render description()}
+
+			<div class="action-buttons">
+				{@render actionButtons()}
+			</div>
+		</div>
+		{@render description()}
+	</div>
+
+	<div class="tabs" data-testid="recipe-tabs">
+		<button
+			class="tab-button {activeTab === 'ingredients' ? 'active' : ''}"
+			type="button"
+			aria-label="Ingredients"
+			aria-pressed={activeTab === 'ingredients'}
+			onclick={() => (activeTab = 'ingredients')}
+		>
+			<Carrot size={18} />
+		</button>
+		<button
+			class="tab-button {activeTab === 'instructions' ? 'active' : ''}"
+			type="button"
+			aria-label="Instructions"
+			aria-pressed={activeTab === 'instructions'}
+			onclick={() => (activeTab = 'instructions')}
+		>
+			<ListOrdered size={18} />
+		</button>
+		<button
+			class="tab-button {activeTab === 'nutrition' ? 'active' : ''}"
+			type="button"
+			aria-label="Nutrition"
+			aria-pressed={activeTab === 'nutrition'}
+			onclick={() => (activeTab = 'nutrition')}
+		>
+			<Activity size={18} />
+		</button>
+		<button
+			class="tab-button {activeTab === 'comments' ? 'active' : ''}"
+			type="button"
+			aria-label="Comments"
+			aria-pressed={activeTab === 'comments'}
+			onclick={() => (activeTab = 'comments')}
+		>
+			<MessageSquare size={18} />
+		</button>
+	</div>
+
+	<div class="tab-content card">
+		{#if activeTab === 'nutrition'}
 			{@render nutrition()}
 		{:else if activeTab === 'ingredients'}
 			{@render ingredients()}
@@ -78,45 +107,6 @@
 			</div>
 		{/if}
 	</div>
-
-	<div class="tabs" data-testid="recipe-tabs">
-		<button
-			class="tab-button {activeTab === 'overview' ? 'active' : ''}"
-			type="button"
-			aria-label="Overview"
-			aria-pressed={activeTab === 'overview'}
-			onclick={() => (activeTab = 'overview')}
-		>
-			<Info size={20} />
-		</button>
-		<button
-			class="tab-button {activeTab === 'ingredients' ? 'active' : ''}"
-			type="button"
-			aria-label="Ingredients"
-			aria-pressed={activeTab === 'ingredients'}
-			onclick={() => (activeTab = 'ingredients')}
-		>
-			<Carrot size={20} />
-		</button>
-		<button
-			class="tab-button {activeTab === 'instructions' ? 'active' : ''}"
-			type="button"
-			aria-label="Instructions"
-			aria-pressed={activeTab === 'instructions'}
-			onclick={() => (activeTab = 'instructions')}
-		>
-			<ListOrdered size={20} />
-		</button>
-		<button
-			class="tab-button {activeTab === 'comments' ? 'active' : ''}"
-			type="button"
-			aria-label="Comments"
-			aria-pressed={activeTab === 'comments'}
-			onclick={() => (activeTab = 'comments')}
-		>
-			<MessageSquare size={20} />
-		</button>
-	</div>
 </div>
 
 <style lang="scss">
@@ -124,7 +114,6 @@
 
 	.recipe {
 		position: relative;
-		padding-bottom: 50px;
 	}
 
 	.header {
@@ -165,39 +154,46 @@
 	}
 
 	.tabs {
-		position: fixed;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		margin: var(--spacing-sm);
-		padding: var(--spacing-sm);
-		border-radius: var(--border-radius-lg);
-		box-shadow: var(--shadow-md);
-		z-index: var(--z-sticky);
+		margin: var(--spacing-lg) 0;
+		padding: var(--spacing-2xs);
+		border-radius: var(--border-radius-full);
 		display: flex;
-		gap: var(--spacing-md);
+		gap: var(--spacing-2xs);
 		background: var(--color-surface);
 		border: var(--border-width-thin) solid var(--color-neutral);
+		width: 100%;
 	}
 
 	.tab-button {
 		flex: 1;
-		padding: var(--spacing-sm) 0;
+		padding: var(--spacing-sm) var(--spacing-md);
 		background: transparent;
 		border: none;
 		color: var(--color-text);
 		font-weight: 600;
+		font-size: var(--font-size-sm);
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		border-radius: var(--border-radius-full);
+		transition: background-color var(--transition-fast) var(--ease-in-out),
+			color var(--transition-fast) var(--ease-in-out);
+		gap: var(--spacing-2xs);
 	}
 
 	.tab-button.active {
-		color: var(--color-primary);
+		background-color: var(--color-secondary);
+		color: var(--color-text-on-secondary);
 	}
 
 	.content {
 		display: flex;
 		flex-direction: column;
+	}
+
+	.tab-content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
 	}
 </style>

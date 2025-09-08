@@ -7,6 +7,8 @@
 	import Hint from '$lib/components/hint/Hint.svelte'
 	import IngredientsList from '$lib/components/ingredients-list/IngredientsList.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
+	import Plus from 'lucide-svelte/icons/plus'
+	import Minus from 'lucide-svelte/icons/minus'
 
 	let {
 		instructions,
@@ -27,6 +29,7 @@
 	let currentStep = $state(0)
 	let videoLoaded = $state(false)
 	let videoError = $state(false)
+	let showStepIngredients = $state(false)
 
 	function handleCookingVideoError() {
 		videoError = true
@@ -63,27 +66,12 @@
 		}
 	}
 
-	let touchStartX = 0
-	let touchEndX = 0
-
-	function handleCookingTouchStart(e: TouchEvent) {
-		touchStartX = e.touches[0].clientX
-	}
-
-	function handleCookingTouchMove(e: TouchEvent) {
-		touchEndX = e.touches[0].clientX
-	}
-
-	function handleCookingTouchEnd(e: TouchEvent) {
-		e.preventDefault()
-		if (touchStartX - touchEndX > 50) {
-			nextStep(e)
-		} else if (touchEndX - touchStartX > 50) {
-			prevStep(e)
+	$effect(() => {
+		currentStep
+		if (inline) {
+			showStepIngredients = false
 		}
-		touchStartX = 0
-		touchEndX = 0
-	}
+	})
 </script>
 
 {#snippet navigation()}
@@ -112,12 +100,7 @@
 			{@render navigation()}
 		{/if}
 
-		<div
-			class="cooking-content"
-			ontouchstart={handleCookingTouchStart}
-			ontouchmove={handleCookingTouchMove}
-			ontouchend={handleCookingTouchEnd}
-		>
+		<div class="cooking-content">
 			{#if instructions[currentStep].mediaUrl}
 				<div class="cooking-media">
 					{#if instructions[currentStep].mediaType === 'video'}
@@ -158,15 +141,43 @@
 				{@const step = instructions[currentStep]}
 				<div>
 					{#if step.ingredients && step.ingredients.length > 0}
-						<div class="step-ingredients">
-							<IngredientsList
-								ingredients={step.ingredients}
-								servings={servings}
-								originalServings={originalServings}
-								{unitSystem}
-								showServingsAdjuster={false}
-							/>
-						</div>
+						{#if inline}
+							<div class="ingredients-box">
+								<button
+									type="button"
+									class="ingredients-toggle"
+									onclick={() => (showStepIngredients = !showStepIngredients)}
+									aria-expanded={showStepIngredients}
+									aria-controls={`step-ingredients-${currentStep}`}
+								>
+									<span>Required ingredients</span>
+									{#if showStepIngredients}
+										<Minus size={18} />
+									{:else}
+										<Plus size={18} />
+									{/if}
+								</button>
+								{#if showStepIngredients}
+									<div class="step-ingredients" id={`step-ingredients-${currentStep}`}>
+										<IngredientsList
+											ingredients={step.ingredients}
+											{servings}
+											{originalServings}
+											{unitSystem}
+										/>
+									</div>
+								{/if}
+							</div>
+						{:else}
+							<div class="step-ingredients">
+								<IngredientsList
+									ingredients={step.ingredients}
+									{servings}
+									{originalServings}
+									{unitSystem}
+								/>
+							</div>
+						{/if}
 					{/if}
 
 					<p>{step.text}</p>
@@ -198,7 +209,6 @@
 	.cooking-mode {
 		display: flex;
 		flex-direction: column;
-		background: var(--color-background);
 		min-height: 0;
 		height: 100%;
 
@@ -210,7 +220,6 @@
 	.cooking-content {
 		flex: 1;
 		overflow-y: auto;
-		padding: var(--spacing-md);
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-lg);
@@ -249,12 +258,11 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: var(--spacing-md);
 		gap: var(--spacing-md);
 		position: sticky;
 		bottom: 0;
-		background: var(--color-background);
 		z-index: 1;
+		margin-bottom: var(--spacing-md);
 
 		:global(.nav-button) {
 			display: flex;
@@ -271,6 +279,33 @@
 		font-size: var(--font-size-sm);
 		color: var(--color-text-on-surface);
 		font-weight: var(--font-weight-medium);
+	}
+
+	.ingredients-toggle {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+		padding: var(--spacing-sm) var(--spacing-md);
+		background: transparent;
+		border: none;
+		color: var(--color-text);
+		font-weight: var(--font-weight-semibold);
+		cursor: pointer;
+	}
+
+	.ingredients-box {
+		background: var(--color-surface);
+		border: var(--border-width-thin) solid var(--color-neutral);
+		border-radius: var(--border-radius-lg);
+		overflow: hidden;
+		margin-bottom: var(--spacing-md);
+	}
+
+	.ingredients-box .step-ingredients {
+		padding: 0 var(--spacing-md) var(--spacing-md);
+		margin-bottom: 0;
+		margin-top: var(--spacing-sm);
 	}
 
 	.video-error,

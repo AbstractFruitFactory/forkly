@@ -64,9 +64,6 @@
 				control: 'boolean',
 				defaultValue: false,
 				name: 'loading state'
-			},
-			onServingsChange: {
-				table: { disable: true }
 			}
 		}
 	})
@@ -118,7 +115,6 @@
 				unitSystem="imperial"
 				servings={currentServings}
 				originalServings={4}
-				{onServingsChange}
 				{...args}
 			/>
 		</div>
@@ -133,7 +129,6 @@
 				unitSystem="metric"
 				servings={currentServings}
 				originalServings={4}
-				{onServingsChange}
 				{...args}
 			/>
 		</div>

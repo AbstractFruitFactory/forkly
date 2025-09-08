@@ -26,6 +26,7 @@
 	import { scale } from 'svelte/transition'
 	import { flip } from 'svelte/animate'
 	import CookingMode from '$lib/components/cooking-mode/CookingMode.svelte'
+	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 
 	let {
 		recipeData,
@@ -316,11 +317,14 @@
 		<Skeleton />
 	{:then singleServingNutrition}
 		{#if singleServingNutrition}
-			<div>
-				<h3 class="header">Nutrition Per Serving</h3>
-				<div class="card">
-					<NutritionFacts nutrition={singleServingNutrition} />
-				</div>
+			<h3 class="header no-top-margin-mobile">Nutrition Per Serving</h3>
+
+			<div class="card desktop-only">
+				<NutritionFacts nutrition={singleServingNutrition} />
+			</div>
+
+			<div class="mobile-only">
+				<NutritionFacts nutrition={singleServingNutrition} />
 			</div>
 		{/if}
 	{/await}
@@ -330,21 +334,35 @@
 	<div class="ingredients-section" bind:this={ingredientsSection}>
 		<div class="header no-top-margin-mobile">
 			<h3>Ingredients</h3>
-			{#await data then _}
-				<UnitToggle state={unitSystem} onSelect={onUnitChange} />
-			{/await}
 		</div>
-		{#await data}
-			<IngredientsList loading ingredients={[]} servings={0} originalServings={0} {unitSystem} />
-		{:then recipeData}
-			<IngredientsList
-				ingredients={recipeData.recipe.ingredients}
-				servings={currentServings}
-				originalServings={recipeData.recipe.servings}
-				{unitSystem}
-				onServingsChange={handleServingsChange}
-			/>
-		{/await}
+
+		{#snippet ingredientsCard()}
+			<div class="ingredients-settings">
+				<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
+				{#await data then _}
+					<UnitToggle state={unitSystem} onSelect={onUnitChange} />
+				{/await}
+			</div>
+
+			{#await data}
+				<IngredientsList loading ingredients={[]} servings={0} originalServings={0} {unitSystem} />
+			{:then recipeData}
+				<IngredientsList
+					ingredients={recipeData.recipe.ingredients}
+					servings={currentServings}
+					originalServings={recipeData.recipe.servings}
+					{unitSystem}
+				/>
+			{/await}
+		{/snippet}
+
+		<div class="ingredients-card card desktop-only">
+			{@render ingredientsCard()}
+		</div>
+
+		<div class="ingredients-card mobile-only">
+			{@render ingredientsCard()}
+		</div>
 	</div>
 {/snippet}
 
@@ -550,6 +568,14 @@
 		@include mobile {
 			margin-top: 0;
 		}
+	}
+
+	.ingredients-settings {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-sm);
+		margin-bottom: var(--spacing-lg);
 	}
 
 	.nav-button {

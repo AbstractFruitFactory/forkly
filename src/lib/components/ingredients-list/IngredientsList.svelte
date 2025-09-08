@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { Ingredient } from '$lib/types'
-	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 	import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 	import { getDisplayIngredient } from '$lib/utils/ingredient-formatting'
@@ -9,35 +8,24 @@
 		ingredients,
 		servings,
 		originalServings,
-		onServingsChange,
 		unitSystem = 'imperial',
-		loading = false,
-		showServingsAdjuster = true
+		loading = false
 	}: {
 		ingredients: Ingredient[]
 		servings: number
 		originalServings: number
-		onServingsChange?: (newServings: number) => void
 		unitSystem?: UnitSystem
 		loading?: boolean
-		showServingsAdjuster?: boolean
 	} = $props()
-
-	let currentServings = $state(servings)
 
 	let displayIngredients = $derived(
 		ingredients.map((ingredient: Ingredient) =>
-			getDisplayIngredient(ingredient, currentServings, originalServings, unitSystem)
+			getDisplayIngredient(ingredient, servings, originalServings, unitSystem)
 		)
 	)
-
-	const handleServingsChange = (newServings: number) => {
-		currentServings = newServings
-		if (onServingsChange) onServingsChange(newServings)
-	}
 </script>
 
-<ul class="ingredients-list card">
+<ul class="ingredients-list">
 	{#if loading}
 		{#each Array(10) as _, i}
 			<li>
@@ -53,11 +41,6 @@
 			</li>
 		{/each}
 	{:else}
-		{#if showServingsAdjuster}
-			<div class="ingredients-header">
-				<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
-			</div>
-		{/if}
 		{#each displayIngredients as ingredient}
 			<li>
 				{#if ingredient.displayMeasurementAndQuantity}
@@ -73,7 +56,6 @@
 	@use '$lib/styles/tokens' as *;
 
 	.ingredients-list {
-		padding: var(--spacing-lg);
 		li {
 			list-style: none;
 			padding: var(--spacing-md) 0;
@@ -91,11 +73,6 @@
 				border-bottom: none;
 			}
 		}
-	}
-
-	.ingredients-header {
-		display: flex;
-		margin-bottom: var(--spacing-lg);
 	}
 
 	.quantity,
