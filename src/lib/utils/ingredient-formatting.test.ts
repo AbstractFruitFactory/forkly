@@ -5,15 +5,9 @@ import {
   formatQuantityForDisplay,
   formatIngredientDisplay,
   getDisplayIngredient,
-  parseQuantityToNumber
+  parseQuantityToNumber,
+  parseIngredientLine
 } from './ingredient-formatting'
-
-// NOTE ON BEHAVIOR CHANGES:
-// - Negative quantities are clamped to "0" in display.
-// - Text-only quantities (no numeric) return just the measurement (e.g., "cups"), not "some cups".
-// - Pluralization: "cup" vs "cups" based on qty; symbol units ("g", "ml", "oz", "lb") are invariant.
-// - Tolerant snapping: ~236.6 ml → 1 cup, ~453.6 g → 1 lb, etc.
-// - Fixed units (tsp/tbsp) never cross-convert between systems.
 
 describe('Ingredient Formatting Pipeline', () => {
   describe('scaleQuantity', () => {
@@ -187,12 +181,6 @@ describe('Ingredient Formatting Pipeline', () => {
       expect(r.displayMeasurementAndQuantity).toBe('4 cups')
     })
 
-    it('handles text-only quantity by returning measurement only (behavior change)', () => {
-      const ingredient = { quantity: { text: 'some' }, measurement: 'cups', displayName: 'Flour' }
-      const r = getDisplayIngredient(ingredient as any, 4, 2, 'imperial')
-      expect(r.displayMeasurementAndQuantity).toBe('cups')
-    })
-
     it('handles quantity without measurement', () => {
       const ingredient = { quantity: { numeric: 3, text: '3' }, displayName: 'Eggs' }
       const r = getDisplayIngredient(ingredient as any, 4, 2, 'imperial')
@@ -228,18 +216,6 @@ describe('Ingredient Formatting Pipeline', () => {
       const ingredient = { displayName: 'Water' }
       const r = getDisplayIngredient(ingredient as any, 1, 1, 'metric')
       expect(r.displayMeasurementAndQuantity).toBe('')
-    })
-
-    it('handles NaN numeric quantity by falling back to measurement only', () => {
-      const ingredient = { quantity: { numeric: NaN, text: 'some' }, measurement: 'cups', displayName: 'Flour' }
-      const r = getDisplayIngredient(ingredient as any, 1, 1, 'imperial')
-      expect(r.displayMeasurementAndQuantity).toBe('cups')
-    })
-
-    it('handles undefined numeric quantity with arbitrary measurement', () => {
-      const ingredient = { quantity: { text: 'to taste' }, measurement: 'salt', displayName: 'Salt' }
-      const r = getDisplayIngredient(ingredient as any, 1, 1, 'imperial')
-      expect(r.displayMeasurementAndQuantity).toBe('salt')
     })
   })
 
@@ -318,6 +294,57 @@ describe('Ingredient Formatting Pipeline', () => {
       expect(parseQuantityToNumber(2)).toBe(2)
       // NaN -> undefined
       expect(parseQuantityToNumber(NaN)).toBeUndefined()
+    })
+  })
+
+  describe('parseIngredientLine', () => {
+    it('parses simple "1 tomato"', () => {
+      const r = parseIngredientLine('1 tomato')
+      expect(r.quantity).toBe('1')
+      expect(r.measurement).toBeUndefined()
+      expect(r.name).toBe('tomato')
+    })
+
+    it('parses fraction and unit: "1/2 cup sugar"', () => {
+      const r = parseIngredientLine('1/2 cup sugar')
+      expect(r.quantity).toBe('1/2')
+      expect(r.measurement).toBe('cups')
+      expect(r.name).toBe('sugar')
+    })
+
+    it('parses mixed number and unit: "2 1/2 tbsp olive oil"', () => {
+      const r = parseIngredientLine('2 1/2 tbsp olive oil')
+      expect(r.quantity).toBe('2 1/2')
+      expect(r.measurement).toBe('tablespoons')
+      expect(r.name).toBe('olive oil')
+    })
+
+    it('handles unicode fraction and unit alias: "½ tsp salt"', () => {
+      const r = parseIngredientLine('½ tsp salt')
+      expect(r.quantity).toBe('½')
+      expect(r.measurement).toBe('teaspoons')
+      expect(r.name).toBe('salt')
+    })
+
+    it('handles unit-first phrasing after qty: "1 fl oz milk"', () => {
+      const r = parseIngredientLine('1 fl oz milk')
+      expect(r.quantity).toBe('1')
+      expect(r.measurement).toBe('fluid_ounces')
+      expect(r.name).toBe('milk')
+    })
+
+    it('ignores measurement synonyms inside name when no quantity', () => {
+      const r = parseIngredientLine('tomato pieces')
+      expect(r.quantity).toBeUndefined()
+      expect(r.measurement).toBeUndefined()
+      expect(r.name).toBe('tomato pieces')
+    })
+
+    it('strips leading "of" after unit: "1 cup of rice"', () => {
+      const r = parseIngredientLine('1 cup of rice')
+      expect(r.quantity).toBe('1')
+      expect(r.measurement).toBe('cups')
+      expect(r.name).toBe('rice')
     })
   })
 

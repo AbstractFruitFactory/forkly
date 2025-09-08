@@ -352,6 +352,43 @@ function formatQuantityAsFraction(
   return whole === 0 ? glyph : `${whole} ${glyph}`
 }
 
+/**
+ * Parse a free-form ingredient line into name, quantity text, and normalized measurement.
+ */
+export function parseIngredientLine(input: string): { name: string; quantity?: string; measurement?: MeasurementUnit } {
+  const original = (input || '').trim()
+  if (!original) return { name: '' }
+
+  let rest = original
+  let quantityText: string | undefined
+
+  const qtyMatch = rest.match(/^\s*([\d]+\s+[\d]+\/[\d]+|[\d]+\/[\d]+|[\u00BC-\u00BE\u2150-\u215E]|[\d]*\.?[\d]+(?:\s+[\d]+\/[\d]+)?|[\d]+(?:\s*-\s*[\d]+)?)/)
+  if (qtyMatch) {
+    const candidate = qtyMatch[1].trim()
+    const numeric = parseQuantityToNumber(candidate)
+    if (typeof numeric === 'number') {
+      quantityText = candidate
+      rest = rest.slice(qtyMatch[0].length).trim()
+    }
+  }
+
+  let foundUnit: MeasurementUnit | undefined
+  const tokens = rest.toLowerCase().replace(/[.]/g, '').split(/\s+/).filter(Boolean)
+  for (let take = Math.min(3, tokens.length); take >= 1; take--) {
+    const cand = tokens.slice(0, take).join(' ')
+    const norm = normalizeUnit(cand)
+    if (norm) {
+      foundUnit = norm
+      rest = rest.slice(cand.length).trim()
+      break
+    }
+  }
+
+  if (foundUnit) rest = rest.replace(/^of\s+/, '').trim()
+
+  return { name: rest, quantity: quantityText, measurement: foundUnit }
+}
+
 export function getDisplayIngredient(
   ingredient: Ingredient,
   currentServings: number,

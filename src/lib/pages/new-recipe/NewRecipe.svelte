@@ -48,11 +48,7 @@
 	import { flip } from 'svelte/animate'
 	import ServingsAdjuster from '$lib/components/servings-adjuster/ServingsAdjuster.svelte'
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
-	import {
-		UNIT_DISPLAY_SINGULAR as UNIT_DISPLAY_TEXT,
-		UNITS,
-		parseQuantityToNumber
-	} from '$lib/utils/ingredient-formatting'
+	import { parseQuantityToNumber, parseIngredientLine } from '$lib/utils/ingredient-formatting'
 	import DownloadIcon from 'lucide-svelte/icons/download'
 	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
 	import LoginPopup from '$lib/components/login-popup/LoginPopup.svelte'
@@ -115,15 +111,20 @@
 		const flat = instructions
 			.flatMap((ins) => ins.ingredients || [])
 			.filter((ing) => !ing.isPrepared && ing.name)
-		return flat.map((ing) => ({
-			id: generateId(),
-			name: ing.name!,
-			displayName: ing.name!,
-			quantity: ing.quantity
-				? { text: String(ing.quantity), numeric: parseQuantityToNumber(ing.quantity) }
-				: undefined,
-			measurement: ing.measurement || ''
-		}))
+		return flat.map((ing) => {
+			const parsed = parseIngredientLine(ing.name!)
+			const quantityText = ing.quantity ?? parsed.quantity
+			const measurement = (ing.measurement ?? parsed.measurement) || ''
+			return {
+				id: generateId(),
+				name: parsed.name || ing.name!,
+				displayName: parsed.name || ing.name!,
+				quantity: quantityText
+					? { text: String(quantityText), numeric: parseQuantityToNumber(quantityText) }
+					: undefined,
+				measurement
+			}
+		})
 	}
 
 	let _id = $derived(prefilledData?.id ?? '')
@@ -385,13 +386,7 @@
 		updateInstruction(instructionId, (ins) => ({ ...ins, hint: value }))
 	}
 
-	function updateIngredientQuantity(instructionId: string, ingredientId: string, value: string) {
-		updateIngredient(instructionId, ingredientId, (ing) => ({ ...ing, quantity: value }))
-	}
 
-	function updateIngredientUnit(instructionId: string, ingredientId: string, unit: string) {
-		updateIngredient(instructionId, ingredientId, (ing) => ({ ...ing, measurement: unit }))
-	}
 
 	const updateInstructionMedia = (instructionId: string, file: File) => {
 		const mediaType = file.type.startsWith('image/') ? 'image' : 'video'
@@ -438,29 +433,7 @@
 		}
 	}
 
-	const getUnits = (system: UnitSystem) => {
-		const units: string[] = []
 
-		units.push(...(system === 'metric' ? UNITS.weight.metric : UNITS.weight.imperial))
-		units.push(...(system === 'metric' ? UNITS.volume.metric : UNITS.volume.imperial))
-		units.push(...(system === 'metric' ? UNITS.length.metric : UNITS.length.imperial))
-		return units
-	}
-
-	const searchUnits = async (query: string): Promise<{ id: string; name: string }[]> => {
-		const units = getUnits(unitSystem)
-		const filteredUnits = units.filter(
-			(unit) =>
-				unit.toLowerCase().includes(query.toLowerCase()) ||
-				UNIT_DISPLAY_TEXT[unit as keyof typeof UNIT_DISPLAY_TEXT]
-					?.toLowerCase()
-					.includes(query.toLowerCase())
-		)
-		return filteredUnits.map((unit) => ({
-			id: unit,
-			name: UNIT_DISPLAY_TEXT[unit as keyof typeof UNIT_DISPLAY_TEXT] || unit
-		}))
-	}
 
 	const populateFromRecipe = (recipe: ImportedRecipeData) => {
 		_title = recipe.title ?? ''
@@ -751,8 +724,6 @@
 	id: string,
 	instructionId: string,
 	nameValue?: string,
-	amountValue?: string,
-	unitValue?: string,
 	instructionIndex?: number,
 	ingredientIndex?: number
 )}
@@ -816,51 +787,7 @@
 				</div>
 			</div>
 
-			{#if !currentIngredient?.isPrepared}
-				<div class="quantity-unit-row">
-					<div class="quantity-input">
-						<FormError
-							errors={formErrors(
-								`instructions.${instructionIndex}.ingredients.${ingredientIndex}.quantity`
-							)}
-						>
-							{#snippet formInput(closePopover)}
-								<Input>
-									<input
-										type="text"
-										name="instructions-{instructionId}-ingredient-{id}-amount"
-										placeholder="Enter amount"
-										value={amountValue}
-										oninput={(e) => {
-											updateIngredientQuantity(
-												instructionId,
-												id,
-												(e.target as HTMLInputElement).value
-											)
-											closePopover()
-										}}
-									/>
-								</Input>
-							{/snippet}
-						</FormError>
-					</div>
 
-					<div class="unit-input">
-						<SuggestionSearch
-							placeholder="Unit"
-							formName="instructions-{instructionId}-ingredient-{id}-measurement"
-							onSearch={searchUnits}
-							clearInput={false}
-							showSearchIcon={false}
-							minSearchLength={2}
-							useId={true}
-							searchValue={unitValue}
-							onSelect={(opt) => updateIngredientUnit(instructionId, id, opt.id)}
-							onInput={(val) => updateIngredientUnit(instructionId, id, val)}
-						/>
-					</div>
-				</div>
-			{/if}
 		</div>
 
 		<button
@@ -1325,82 +1252,6 @@
 			flex-direction: row;
 			gap: 1px;
 			align-items: center;
-		}
-	}
-
-	.quantity-unit-row {
-		display: flex;
-		gap: var(--spacing-xs);
-		align-items: center;
-		width: 100%;
-
-		@include tablet-desktop {
-			gap: 1px;
-		}
-	}
-
-	.search {
-		width: 100%;
-
-		@include tablet-desktop {
-			flex: 1;
-			min-width: 0;
-
-			:global(.input-container) {
-				border-top-right-radius: 0;
-				border-bottom-right-radius: 0;
-			}
-		}
-
-		:global(.search-wrapper) {
-			max-width: none;
-		}
-	}
-
-	.prepared-search {
-		width: 100%;
-		@include tablet-desktop {
-			flex: 1;
-			min-width: 0;
-			:global(.input-container) {
-				border-radius: var(--border-radius-2xl);
-			}
-		}
-		:global(.search-wrapper) {
-			max-width: none;
-		}
-	}
-
-	.quantity-input {
-		flex: 1;
-
-		@include tablet-desktop {
-			flex: 0 0 auto;
-
-			:global(.input-container) {
-				border-radius: 0;
-				border-left: none;
-				border-right: none;
-			}
-		}
-	}
-
-	.unit-input {
-		flex: 1;
-		position: relative;
-
-		@include tablet-desktop {
-			flex: auto;
-
-			:global(.input-container) {
-				border-top-left-radius: 0;
-				border-bottom-left-radius: 0;
-				border-left: none;
-			}
-		}
-
-		:global(.suggestion-search-wrapper) {
-			max-width: none;
 		}
 	}
 

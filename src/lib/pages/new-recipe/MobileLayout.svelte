@@ -57,8 +57,6 @@
 				id: string,
 				instructionId: string,
 				nameValue?: string,
-				amountValue?: string,
-				unitValue?: string,
 				instructionIndex?: number,
 				ingredientIndex?: number
 			]
@@ -147,8 +145,6 @@
 											ingredientItem.id,
 											item.id,
 											ingredientItem.name,
-											ingredientItem.quantity,
-											ingredientItem.unit,
 											i,
 											ingredientIndex
 										)}
@@ -267,8 +263,6 @@
 	}
 
 	.ingredient-input {
-		margin-bottom: var(--spacing-md);
-
 		&:last-child {
 			margin-bottom: var(--spacing-lg);
 		}
