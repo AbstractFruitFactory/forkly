@@ -386,8 +386,6 @@
 		updateInstruction(instructionId, (ins) => ({ ...ins, hint: value }))
 	}
 
-
-
 	const updateInstructionMedia = (instructionId: string, file: File) => {
 		const mediaType = file.type.startsWith('image/') ? 'image' : 'video'
 
@@ -432,8 +430,6 @@
 			searchValue = ''
 		}
 	}
-
-
 
 	const populateFromRecipe = (recipe: ImportedRecipeData) => {
 		_title = recipe.title ?? ''
@@ -500,7 +496,10 @@
 			onCreated?.(result.recipeId)
 		} catch (e) {
 			console.error(e)
-			errors = [...(errors ?? []), { path: 'api', message: e instanceof Error ? e.message : String(e) }]
+			errors = [
+				...(errors ?? []),
+				{ path: 'api', message: e instanceof Error ? e.message : String(e) }
+			]
 		} finally {
 			submitting = false
 		}
@@ -531,7 +530,10 @@
 			editMode?.onSave()
 		} catch (e) {
 			console.error(e)
-			errors = [...(errors ?? []), { path: 'api', message: e instanceof Error ? e.message : String(e) }]
+			errors = [
+				...(errors ?? []),
+				{ path: 'api', message: e instanceof Error ? e.message : String(e) }
+			]
 		} finally {
 			submitting = false
 		}
@@ -572,7 +574,10 @@
 			editMode?.onSave()
 		} catch (e) {
 			console.error(e)
-			errors = [...(errors ?? []), { path: 'api', message: e instanceof Error ? e.message : String(e) }]
+			errors = [
+				...(errors ?? []),
+				{ path: 'api', message: e instanceof Error ? e.message : String(e) }
+			]
 		} finally {
 			submitting = false
 		}
@@ -731,44 +736,20 @@
 	{@const currentIngredient = currentInstruction?.ingredients.find((ing) => ing.id === id)}
 	<div class="ingredient-row">
 		<div class="ingredient-input">
-			<div class="ingredient-row">
-				<div class={currentIngredient?.isPrepared ? 'prepared-search' : 'search'}>
-					{#if currentIngredient?.isPrepared}
-						<div class="prepared-display">
-							<div class="prepared-arrow"><ArrowUp size={18} color="var(--color-neutral)" /></div>
-							<FormError errors={formErrors(`instructions.${instructionIndex}.ingredients.${ingredientIndex}.name`)}>
-								{#snippet formInput(closePopover)}
-									<Input>
-										<input
-											type="text"
-											placeholder="Prepared ingredient name"
-											name="instructions-{instructionId}-ingredient-{id}-name"
-											value={nameValue}
-											oninput={(e) => {
-												handleIngredientNameInput(
-													instructionId,
-													id,
-													(e.target as HTMLInputElement).value
-												)
-												closePopover()
-											}}
-										/>
-									</Input>
-								{/snippet}
-							</FormError>
-							<input
-								type="hidden"
-								name="instructions-{instructionId}-ingredient-{id}-isPrepared"
-								value="true"
-							/>
-						</div>
-					{:else}
-						<FormError errors={formErrors(`instructions.${instructionIndex}.ingredients.${ingredientIndex}.name`)}>
+			<div class={currentIngredient?.isPrepared ? 'prepared-search' : 'search'}>
+				{#if currentIngredient?.isPrepared}
+					<div class="prepared-display">
+						<div class="prepared-arrow"><ArrowUp size={18} color="var(--color-neutral)" /></div>
+						<FormError
+							errors={formErrors(
+								`instructions.${instructionIndex}.ingredients.${ingredientIndex}.name`
+							)}
+						>
 							{#snippet formInput(closePopover)}
 								<Input>
 									<input
 										type="text"
-										placeholder="Enter ingredient"
+										placeholder="Prepared ingredient name"
 										name="instructions-{instructionId}-ingredient-{id}-name"
 										value={nameValue}
 										oninput={(e) => {
@@ -783,11 +764,39 @@
 								</Input>
 							{/snippet}
 						</FormError>
-					{/if}
-				</div>
+						<input
+							type="hidden"
+							name="instructions-{instructionId}-ingredient-{id}-isPrepared"
+							value="true"
+						/>
+					</div>
+				{:else}
+					<FormError
+						errors={formErrors(
+							`instructions.${instructionIndex}.ingredients.${ingredientIndex}.name`
+						)}
+					>
+						{#snippet formInput(closePopover)}
+							<Input>
+								<input
+									type="text"
+									placeholder="Enter ingredient"
+									name="instructions-{instructionId}-ingredient-{id}-name"
+									value={nameValue}
+									oninput={(e) => {
+										handleIngredientNameInput(
+											instructionId,
+											id,
+											(e.target as HTMLInputElement).value
+										)
+										closePopover()
+									}}
+								/>
+							</Input>
+						{/snippet}
+					</FormError>
+				{/if}
 			</div>
-
-
 		</div>
 
 		<button
@@ -1225,6 +1234,7 @@
 
 		@include mobile {
 			align-items: stretch;
+			width: 100%;
 
 			.remove-btn {
 				height: auto;
@@ -1239,6 +1249,13 @@
 		gap: var(--spacing-sm);
 
 		@include mobile {
+			flex: 1 1 auto;
+			min-width: 0;
+			width: 100%;
+			.search,
+			.prepared-search {
+				width: 100%;
+			}
 			.ingredient-row & {
 				margin-bottom: 0;
 
