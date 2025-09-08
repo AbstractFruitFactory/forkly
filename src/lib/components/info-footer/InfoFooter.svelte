@@ -111,7 +111,7 @@
 
 	.fixed {
 		position: fixed;
-		bottom: var(--spacing-lg);
+		bottom: 60px;
 		right: var(--spacing-lg);
 	}
 
