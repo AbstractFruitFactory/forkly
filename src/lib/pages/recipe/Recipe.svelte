@@ -81,6 +81,15 @@
 	let imageBroken = $state(false)
 	let currentServings = $state<number>(1)
 
+	let hasNutrition = $derived(
+		data.then((r) => {
+			const n = r.recipe.nutrition
+			if (!n) return false
+			const { calories, protein, carbs, fat } = n
+			return !(calories === 0 && protein === 0 && carbs === 0 && fat === 0)
+		})
+	)
+
 	$effect(() => {
 		data.then((r) => {
 			totalComments = r.comments.total
@@ -391,41 +400,40 @@
 {/snippet}
 
 {#snippet comments()}
-	{#if !preview}
-		<div class="comments-section" bind:this={commentsSection}>
-			<div class="header no-top-margin-mobile">
-				<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
-					<MessageSquare size={20} />
-					Comments
-					{#if totalComments}
-						<span style:font-size="var(--font-size-xl)" style:font-weight="500">
-							({totalComments})
-						</span>
-					{/if}
-				</h3>
-			</div>
-			{#await data}
-				<CommentList
-					comments={[]}
-					isLoggedIn={false}
-					recipeId=""
-					{formError}
-					loading={true}
-					total={0}
-					loadComments={() => Promise.resolve({ comments: [], total: 0 })}
-				/>
-			{:then recipeData}
-				<CommentList
-					comments={recipeData.comments.comments}
-					isLoggedIn={recipeData.isLoggedIn}
-					recipeId={recipeData.recipe.id}
-					{formError}
-					bind:total={totalComments}
-					{loadComments}
-				/>
-			{/await}
+	<div class="comments-section" bind:this={commentsSection}>
+		<div class="header no-top-margin-mobile">
+			<h3 style:display="flex" style:align-items="center" style:gap="var(--spacing-sm)">
+				<MessageSquare size={20} />
+				Comments
+				{#if totalComments}
+					<span style:font-size="var(--font-size-xl)" style:font-weight="500">
+						({totalComments})
+					</span>
+				{/if}
+			</h3>
 		</div>
-	{/if}
+		{#await data}
+			<CommentList
+				comments={[]}
+				isLoggedIn={false}
+				recipeId=""
+				{formError}
+				loading={true}
+				total={0}
+				loadComments={() => Promise.resolve({ comments: [], total: 0 })}
+			/>
+		{:then recipeData}
+			<CommentList
+				comments={recipeData.comments.comments}
+				isLoggedIn={recipeData.isLoggedIn}
+				recipeId={recipeData.recipe.id}
+				{formError}
+				bind:total={totalComments}
+				{loadComments}
+				{preview}
+			/>
+		{/await}
+	</div>
 {/snippet}
 
 <div class="recipe-desktop-view">
@@ -441,7 +449,8 @@
 </div>
 
 <div class="recipe-mobile-view">
-	<MobileLayout {tags} {title} {actionButtons} {nutrition} {ingredients} {instructions} {comments}>
+	<MobileLayout {tags} {title} {actionButtons} {nutrition} {ingredients} {instructions} {comments}
+		{...{ hasNutrition }}>
 		{#snippet image()}
 			{@render commonImage()}
 		{/snippet}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte'
-	import Activity from 'lucide-svelte/icons/activity'
+	import ChartPie from 'lucide-svelte/icons/chart-pie'
 	import ListOrdered from 'lucide-svelte/icons/list-ordered'
 	import Carrot from 'lucide-svelte/icons/carrot'
 	import MessageSquare from 'lucide-svelte/icons/message-square'
@@ -15,7 +15,8 @@
 		nutrition,
 		ingredients,
 		comments,
-		instructions
+		instructions,
+		hasNutrition = true
 	}: {
 		image: Snippet
 		tags: Snippet
@@ -26,6 +27,7 @@
 		ingredients: Snippet
 		comments: Snippet
 		instructions: Snippet<[useCookingMode: boolean]>
+		hasNutrition?: boolean | Promise<boolean>
 	} = $props()
 
 	let activeTab = $state<'nutrition' | 'ingredients' | 'instructions' | 'comments'>('ingredients')
@@ -72,15 +74,19 @@
 		>
 			<ListOrdered size={18} />
 		</button>
-		<button
-			class="tab-button {activeTab === 'nutrition' ? 'active' : ''}"
-			type="button"
-			aria-label="Nutrition"
-			aria-pressed={activeTab === 'nutrition'}
-			onclick={() => (activeTab = 'nutrition')}
-		>
-			<Activity size={18} />
-		</button>
+		{#await Promise.resolve(hasNutrition) then hasNut}
+			{#if hasNut}
+				<button
+					class="tab-button {activeTab === 'nutrition' ? 'active' : ''}"
+					type="button"
+					aria-label="Nutrition"
+					aria-pressed={activeTab === 'nutrition'}
+					onclick={() => (activeTab = 'nutrition')}
+				>
+					<ChartPie size={18} />
+				</button>
+			{/if}
+		{/await}
 		<button
 			class="tab-button {activeTab === 'comments' ? 'active' : ''}"
 			type="button"

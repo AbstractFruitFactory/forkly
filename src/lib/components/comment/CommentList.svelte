@@ -33,7 +33,8 @@
 		formError = null,
 		loading = false,
 		loadComments,
-		total = $bindable()
+		total = $bindable(),
+		preview = false
 	}: {
 		comments: CommentT[]
 		isLoggedIn: boolean
@@ -42,6 +43,7 @@
 		loading?: boolean
 		loadComments: (page: number) => Promise<{ comments: CommentT[]; total: number }>
 		total: number
+		preview?: boolean
 	} = $props()
 
 	let page = $state(0)
@@ -164,7 +166,7 @@
 						name="content"
 						placeholder="Add a comment..."
 						rows="2"
-						disabled={isSubmitting}
+						disabled={isSubmitting || loading || preview}
 						bind:value={commentContent}
 					></textarea>
 				{/snippet}
@@ -190,7 +192,7 @@
 					<label
 						for="image-upload"
 						class="image-upload-label"
-						class:disabled={isSubmitting || loading}
+						class:disabled={isSubmitting || loading || preview}
 					>
 						<ImageIcon size={18} />
 						<span>Add Image</span>
@@ -201,11 +203,11 @@
 						id="image-upload"
 						accept="image/jpeg,image/png,image/gif,image/webp"
 						onchange={handleImageSelect}
-						disabled={isSubmitting || loading}
+						disabled={isSubmitting || loading || preview}
 					/>
 				</div>
 
-				<Button type="submit" color="primary" size="sm" disabled={isSubmitting || loading}>
+				<Button type="submit" color="primary" size="sm" disabled={isSubmitting || loading || preview}>
 					{isSubmitting ? 'Posting...' : 'Post Comment'}
 				</Button>
 			</div>

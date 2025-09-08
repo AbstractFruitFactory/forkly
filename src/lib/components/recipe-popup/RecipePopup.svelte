@@ -144,7 +144,7 @@
 	.floating-actions {
 		position: fixed;
 		left: 50%;
-		bottom: 70px;
+		bottom: var(--spacing-md);
 		transform: translateX(-50%);
 		display: flex;
 		gap: var(--spacing-xl);
