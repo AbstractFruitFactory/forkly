@@ -225,6 +225,7 @@
 		@include mobile {
 			padding-top: var(--spacing-md);
 			padding-bottom: calc(var(--spacing-2xl) + $bottom-bar-height);
+			min-height: calc(100dvh - $bottom-bar-height);
 
 			&.homepage {
 				padding-top: 0;

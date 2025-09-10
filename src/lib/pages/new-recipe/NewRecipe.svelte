@@ -50,7 +50,6 @@
 	import UnitToggle from '$lib/components/unit-toggle/UnitToggle.svelte'
 	import { parseQuantityToNumber, parseIngredientLine } from '$lib/utils/ingredient-formatting'
 	import DownloadIcon from 'lucide-svelte/icons/download'
-	import ImportRecipePopup from '$lib/components/recipe-scraper/ImportRecipePopup.svelte'
 	import LoginPopup from '$lib/components/login-popup/LoginPopup.svelte'
 	import type { ImportedRecipeData } from '../../../../scripts/import-recipe-worker'
 	import FormError from '$lib/components/form-error/FormError.svelte'
@@ -455,8 +454,8 @@
 			ingredients: (instruction.ingredients ?? []).map((ingredient) => ({
 				id: generateId(),
 				name: ingredient.name,
-				quantity: ingredient.isPrepared ? undefined : ingredient.quantity,
-				measurement: ingredient.isPrepared ? undefined : ingredient.measurement,
+				quantity: undefined,
+				measurement: undefined,
 				isPrepared: ingredient.isPrepared === true
 			}))
 		}))
@@ -1008,22 +1007,9 @@
 	{/if}
 {/snippet}
 
-{#snippet importButton()}
-	<Button
-		onclick={() => {
-			isImportPopupOpen = true
-		}}
-		variant="border"
-		color="neutral"
-	>
-		<DownloadIcon color="var(--color-text-on-surface)" size={16} />
-		Import Recipe
-	</Button>
-{/snippet}
-
 {#snippet headerText()}
 	<div class="header-text">
-		<h1>Paste your recipe, get a beautiful shareable page instantly.</h1>
+		<h1>Fill in your recipe, get a beautiful shareable page instantly.</h1>
 	</div>
 {/snippet}
 
@@ -1099,7 +1085,7 @@
 				{moveInstructionDownButton}
 				submitButton={previewButton}
 				{saveDraftButton}
-				{importButton}
+
 				headerText={!editMode && !draftMode ? headerText : undefined}
 			/>
 		</div>
@@ -1126,7 +1112,7 @@
 				{moveInstructionDownButton}
 				previewButton={editMode ? undefined : previewButton}
 				{saveDraftButton}
-				{importButton}
+
 				headerText={!editMode && !draftMode ? headerText : undefined}
 			/>
 
@@ -1176,12 +1162,6 @@
 			await recipePopup.close()
 		}
 	}}
-/>
-
-<ImportRecipePopup
-	bind:isOpen={isImportPopupOpen}
-	onClose={() => (isImportPopupOpen = false)}
-	onRecipeScraped={populateFromRecipe}
 />
 
 <style lang="scss">

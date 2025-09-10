@@ -24,7 +24,6 @@
 		moveInstructionUpButton,
 		moveInstructionDownButton,
 		saveDraftButton,
-		importButton,
 		headerText
 	}: {
 		instructions: {
@@ -68,16 +67,13 @@
 		moveInstructionUpButton: Snippet<[instructionId: string, index: number]>
 		moveInstructionDownButton: Snippet<[instructionId: string, index: number]>
 		saveDraftButton: Snippet<[fullWidth?: boolean]>
-		importButton: Snippet
 		headerText?: Snippet
 	} = $props()
 </script>
 
 {@render headerText?.()}
 
-<div style:margin-bottom="var(--spacing-md)">
-	{@render importButton()}
-</div>
+
 <div class="form-section">
 	{@render recipeImage()}
 

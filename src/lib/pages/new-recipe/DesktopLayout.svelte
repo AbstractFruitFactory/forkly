@@ -23,7 +23,6 @@
 		moveInstructionDownButton,
 		previewButton,
 		saveDraftButton,
-		importButton,
 		headerText,
 		instructionHint
 	}: {
@@ -68,7 +67,6 @@
 		moveInstructionDownButton: Snippet<[instructionId: string, index: number]>
 		previewButton?: Snippet
 		saveDraftButton: Snippet<[fullWidth?: boolean]>
-		importButton: Snippet
 		headerText?: Snippet
 	} = $props()
 </script>
@@ -78,9 +76,7 @@
 	<div>{@render headerText?.()}</div>
 
 	<div class="info-grid">
-		<div class="import-controls desktop">
-			{@render importButton()}
-		</div>
+		<div class="import-controls desktop"></div>
 		<div class="section-title">Info</div>
 		<div class="section-content">
 			<div class="header-content">

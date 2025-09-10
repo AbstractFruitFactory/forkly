@@ -6,6 +6,7 @@
 	import MediaUpload from '$lib/components/media-upload/MediaUpload.svelte'
 	import { safeFetch } from '$lib/utils/fetch'
 	import type { ImportedRecipeData } from '../../../../scripts/import-recipe-worker'
+	import Plus from 'lucide-svelte/icons/plus'
 
 	let {
 		onClose,
@@ -22,9 +23,10 @@
 	let isLoading = $state(false)
 	let error: string | null = $state(null)
 
-	const tabOptions = ['URL', 'Text', 'Images']
+	const tabOptions = ['Link', 'Text', 'Images']
 	const MAX_IMAGES = 3
 	const MAX_TOTAL_SIZE = 30 * 1024 * 1024 // 30MB
+	let imageSlots = $state(1)
 
 	const isValidUrl = (urlString: string) => {
 		try {
@@ -46,7 +48,7 @@
 	}
 
 	const getTotalSize = () => {
-		return selectedImages.filter(img => img).reduce((total, file) => total + file.size, 0)
+		return selectedImages.filter((img) => img).reduce((total, file) => total + file.size, 0)
 	}
 
 	const pollJobStatus = async (jobId: string, maxAttempts = 60, interval = 2000) => {
@@ -66,6 +68,9 @@
 		}
 		throw new Error('Timed out waiting for recipe import')
 	}
+
+	const primaryCtaLabel = () =>
+		activeTab === 'url' ? 'Import' : activeTab === 'text' ? 'Generate' : 'Extract From Images'
 
 	const handleScrape = async () => {
 		error = null
@@ -95,7 +100,7 @@
 				return
 			}
 		} else if (activeTab === 'images') {
-			const actualImages = selectedImages.filter(img => img)
+			const actualImages = selectedImages.filter((img) => img)
 			if (actualImages.length === 0) {
 				error = 'Please select at least one image file'
 				return
@@ -114,11 +119,8 @@
 			let result: any
 
 			if (activeTab === 'images') {
-				// Use FormData for image upload
 				const formData = new FormData()
 				formData.append('inputType', 'image')
-				
-				// Add all images with indexed names, filtering out undefined values
 				selectedImages.forEach((image, index) => {
 					if (image) {
 						formData.append(`image${index}`, image)
@@ -130,18 +132,21 @@
 					body: formData
 				})
 			} else {
-				const normalizedUrl = activeTab === 'url'
-					? (() => {
-						try {
-							return new URL(url).toString()
-						} catch {
-							return new URL(`https://${url}`).toString()
-						}
-					})()
-					: undefined
+				const normalizedUrl =
+					activeTab === 'url'
+						? (() => {
+								try {
+									return new URL(url).toString()
+								} catch {
+									return new URL(`https://${url}`).toString()
+								}
+							})()
+						: undefined
 
 				const requestBody =
-					activeTab === 'url' ? { url: normalizedUrl as string, inputType: 'url' } : { text: text.trim(), inputType: 'text' }
+					activeTab === 'url'
+						? { url: normalizedUrl as string, inputType: 'url' }
+						: { text: text.trim(), inputType: 'text' }
 
 				result = await safeFetch()('/import-recipe', {
 					method: 'POST',
@@ -191,21 +196,16 @@
 
 	const handleImageSelect = (index: number, file: File | null) => {
 		if (file) {
-			// Check total size before adding
 			const newTotalSize = getTotalSize() + file.size
 			if (newTotalSize > MAX_TOTAL_SIZE) {
 				error = 'Total image file size must be less than 30MB'
 				return
 			}
-			
-			// Update the image at the specific index
 			selectedImages[index] = file
-			selectedImages = [...selectedImages] // Trigger reactivity
+			selectedImages = [...selectedImages]
 		} else {
-			// Remove the image at the specific index by setting it to undefined
-			// This preserves the array length and indices
 			selectedImages[index] = undefined as any
-			selectedImages = [...selectedImages] // Trigger reactivity
+			selectedImages = [...selectedImages]
 		}
 		error = null
 	}
@@ -228,37 +228,49 @@
 		} else if (activeTab === 'text') {
 			return text.trim().length > 0 && isValidText(text)
 		} else {
-			const actualImages = selectedImages.filter(img => img)
+			const actualImages = selectedImages.filter((img) => img)
 			return actualImages.length > 0 && getTotalSize() <= MAX_TOTAL_SIZE
 		}
 	}
 </script>
 
-<div class="recipe-scraper">
-	<TabSelect
-		options={tabOptions}
-		selected={activeTab === 'url' ? tabOptions[0] : activeTab === 'text' ? tabOptions[1] : tabOptions[2]}
-		onSelect={handleTabSelect}
-	/>
+<div class="recipe-scraper" class:narrow={activeTab === 'images'}>
+	<div class="scraper-header">
+		<h1>Import from anywhere</h1>
+		<p class="lead">Turn a link, text, or screenshots into a structured recipe.</p>
+	</div>
+	<div class="tabs-center">
+		<TabSelect
+			options={tabOptions}
+			selected={activeTab === 'url'
+				? tabOptions[0]
+				: activeTab === 'text'
+					? tabOptions[1]
+					: tabOptions[2]}
+			onSelect={handleTabSelect}
+		/>
+	</div>
 
 	<div class="scraper-form">
 		{#if activeTab === 'url'}
-			<Input bind:value={url}>
-				<input
-					placeholder="Enter recipe URL"
-					bind:value={url}
-					oninput={handleUrlInput}
-					disabled={isLoading}
-				/>
-			</Input>
-			<Button
-				loading={isLoading}
-				onclick={handleScrape}
-				disabled={isLoading || !isFormValid()}
-				color="neutral"
-			>
-				Import
-			</Button>
+			<div class="url-row">
+				<Input bind:value={url}>
+					<input
+						placeholder="https://www.allrecipes.com/recipe/..."
+						bind:value={url}
+						oninput={handleUrlInput}
+						disabled={isLoading}
+					/>
+				</Input>
+				<Button
+					loading={isLoading}
+					onclick={handleScrape}
+					disabled={isLoading || !isFormValid()}
+					color="neutral"
+				>
+					{primaryCtaLabel()}
+				</Button>
+			</div>
 		{:else if activeTab === 'text'}
 			<div class="text-input-section">
 				<Input>
@@ -279,31 +291,59 @@
 					disabled={isLoading || !isFormValid()}
 					color="neutral"
 				>
-					Import
+					{primaryCtaLabel()}
 				</Button>
 			</div>
 		{:else}
 			<div class="image-input-section">
-				<div class="image-upload-grid">
-					{#each Array(MAX_IMAGES) as _, index}
+				<div
+					class="image-upload-grid dropzone"
+					role="region"
+					aria-label="Image drop zone"
+					ondragover={(e) => {
+						e.preventDefault()
+					}}
+					ondrop={(e) => {
+						e.preventDefault()
+						const files = Array.from(e.dataTransfer?.files || [])
+						for (const f of files) {
+							if (imageSlots < MAX_IMAGES && selectedImages.length >= imageSlots)
+								imageSlots = imageSlots + 1
+							const nextIndex = selectedImages.findIndex((x) => !x)
+							const idx = nextIndex >= 0 ? nextIndex : selectedImages.length
+							if (idx >= imageSlots && imageSlots < MAX_IMAGES) imageSlots = imageSlots + 1
+							if (idx < MAX_IMAGES) handleImageSelect(idx, f)
+						}
+					}}
+				>
+					{#each Array(Math.max(1, imageSlots)) as _, index}
 						<div class="upload-slot">
 							<MediaUpload
 								type="image"
 								name="image{index}"
 								previewAlt="Recipe image {index + 1}"
 								onFile={(file) => handleImageSelect(index, file)}
-								initialMedia={selectedImages[index] ? { 
-									url: URL.createObjectURL(selectedImages[index]), 
-									type: 'image' 
-								} : undefined}
+								initialMedia={selectedImages[index]
+									? {
+											url: URL.createObjectURL(selectedImages[index]),
+											type: 'image'
+										}
+									: undefined}
 							/>
 						</div>
 					{/each}
 				</div>
-				
-				<div class="image-info">
-					<span>{selectedImages.filter(img => img).length}/{MAX_IMAGES} images</span>
-					<span>{(getTotalSize() / (1024 * 1024)).toFixed(1)}MB / 30MB</span>
+				<div class="add-image-row">
+					<Button
+						fullWidth
+						color="neutral"
+						onclick={() => {
+							if (imageSlots < MAX_IMAGES) imageSlots = imageSlots + 1
+						}}
+						disabled={imageSlots >= MAX_IMAGES}
+					>
+						<Plus size={16} color="var(--color-text-on-surface)" />
+					</Button>
 				</div>
 
 				<Button
@@ -312,7 +352,7 @@
 					disabled={isLoading || !isFormValid()}
 					color="neutral"
 				>
-					Import
+					{primaryCtaLabel()}
 				</Button>
 			</div>
 		{/if}
@@ -324,8 +364,7 @@
 
 	{#if isLoading}
 		<div class="loading-message">
-			<p>Please wait while we import the recipe...</p>
-			<p class="loading-note">This may take a few moments.</p>
+			<p>Working... this may take a few moments.</p>
 		</div>
 	{/if}
 </div>
@@ -336,6 +375,29 @@
 	.recipe-scraper {
 		max-width: 800px;
 		margin: 0 auto;
+		display: flex;
+		gap: var(--spacing-lg);
+		flex-direction: column;
+		align-items: center;
+		padding: 0 var(--spacing-sm);
+
+		&.narrow {
+			max-width: 420px;
+		}
+	}
+
+	.scraper-header {
+		text-align: center;
+	}
+	.scraper-header .lead {
+		margin: var(--spacing-xs) 0 var(--spacing-sm);
+		color: var(--color-text-on-surface-secondary);
+	}
+
+	.tabs-center {
+		display: flex;
+		justify-content: center;
+		width: 100%;
 	}
 
 	.scraper-form {
@@ -343,9 +405,11 @@
 		gap: var(--spacing-md);
 		margin-top: var(--spacing-lg);
 		margin-bottom: var(--spacing-xl);
+		width: 100%;
 
 		@include mobile {
 			flex-direction: column;
+			gap: var(--spacing-sm);
 		}
 	}
 
@@ -355,6 +419,13 @@
 		flex-direction: column;
 		gap: var(--spacing-md);
 		flex: 1;
+		width: 100%;
+	}
+	/* Desktop: right-align primary action buttons for text/images */
+	.text-input-section > :global(button),
+	.image-input-section > :global(button) {
+		align-self: flex-end;
+		width: auto;
 	}
 
 	.text-counter {
@@ -368,15 +439,51 @@
 		border-radius: var(--border-radius-sm);
 	}
 
-	.image-upload-grid {
+	.url-row {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: var(--spacing-md);
+		grid-template-columns: minmax(480px, 1fr) auto;
+		gap: var(--spacing-sm);
+		align-items: center;
+		width: 100%;
+
+		@include mobile {
+			grid-template-columns: 1fr;
+		}
+	}
+	/* make the action button full-width when stacked */
+	.url-row :global(button) {
+		@include mobile {
+			width: 100%;
+		}
+	}
+	/* also make text and image action buttons full-width on mobile */
+	@include mobile {
+		.text-input-section > :global(button),
+		.image-input-section > :global(button) {
+			width: 100%;
+			align-self: stretch;
+		}
 	}
 
-	.upload-slot {
-		aspect-ratio: 16/9;
+	.image-upload-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: var(--spacing-md);
+		width: 100%;
 	}
+	.dropzone { border: 2px dashed var(--color-neutral-darker); border-radius: var(--border-radius-lg); }
+
+	/* Upload slot sizing */
+	.upload-slot {
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		width: 100%;
+	}
+	/* make internal MediaUpload button fill the row */
+	.upload-slot :global(button) { width: 100%; }
+
+	.add-image-row { margin-top: var(--spacing-sm); }
 
 	.image-info {
 		display: flex;
@@ -397,11 +504,6 @@
 				font-weight: 500;
 				margin-bottom: var(--spacing-xs);
 			}
-		}
-
-		.loading-note {
-			font-size: var(--font-size-sm);
-			color: var(--color-text-on-surface-secondary);
 		}
 	}
 </style>
