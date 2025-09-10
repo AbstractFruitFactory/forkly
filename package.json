@@ -79,6 +79,7 @@
     "vitest": "^3.1.1"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.61.0",
     "@floating-ui/dom": "^1.6.13",
     "@node-rs/argon2": "^2.0.2",
     "@oslojs/crypto": "^1.0.1",

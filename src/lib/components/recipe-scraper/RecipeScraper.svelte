@@ -30,6 +30,12 @@
 		try {
 			new URL(urlString)
 			return true
+		} catch {}
+
+		try {
+			if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(urlString)) return false
+			new URL(`https://${urlString}`)
+			return true
 		} catch {
 			return false
 		}
@@ -124,9 +130,18 @@
 					body: formData
 				})
 			} else {
-				// Use JSON for URL and text
+				const normalizedUrl = activeTab === 'url'
+					? (() => {
+						try {
+							return new URL(url).toString()
+						} catch {
+							return new URL(`https://${url}`).toString()
+						}
+					})()
+					: undefined
+
 				const requestBody =
-					activeTab === 'url' ? { url, inputType: 'url' } : { text: text.trim(), inputType: 'text' }
+					activeTab === 'url' ? { url: normalizedUrl as string, inputType: 'url' } : { text: text.trim(), inputType: 'text' }
 
 				result = await safeFetch()('/import-recipe', {
 					method: 'POST',
@@ -208,6 +223,7 @@
 
 	const isFormValid = () => {
 		if (activeTab === 'url') {
+			console.log('url', url, isValidUrl(url))
 			return url.trim().length > 0 && isValidUrl(url)
 		} else if (activeTab === 'text') {
 			return text.trim().length > 0 && isValidText(text)

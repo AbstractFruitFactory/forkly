@@ -1,6 +1,6 @@
 import { Worker } from 'bullmq'
 import { redis } from '../src/lib/server/redis'
-import OpenAI from 'openai'
+import { createLlmClient, type LlmFunctionTool } from '../src/lib/llm'
 import * as cheerio from 'cheerio'
 import type { CheerioAPI } from 'cheerio'
 import dotenv from 'dotenv'
@@ -29,8 +29,6 @@ export type ImportedRecipeData = {
     hint?: string | null
     ingredients: {
       name: string
-      quantity: string
-      measurement: string
       isPrepared?: boolean
     }[]
   }[]
@@ -47,7 +45,7 @@ type JobData = {
   inputType: InputType
 }
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const llm = createLlmClient('anthropic')
 
 function resolveUrl(base: string, maybe: string | undefined | null): string | null {
   if (!maybe) return null
@@ -208,6 +206,9 @@ function extractJsonLd($: CheerioAPI): any[] {
       }
     } catch { }
   })
+  if (recipes.length > 0) {
+    try { console.log('JSON-LD found:', JSON.stringify(recipes, null, 2)) } catch { console.log('JSON-LD found (non-serializable)') }
+  }
   return recipes
 }
 
@@ -303,7 +304,7 @@ function mapJsonLdToImported(recipeNode: any, baseUrl: string): ImportedRecipeDa
     text: s.text || '',
     mediaUrl: s.image ?? null,
     mediaType: s.image ? ('image' as const) : null,
-    ingredients: [] as { name: string; quantity: string; measurement: string }[]
+    ingredients: [] as { name: string }[]
   }))
 
   return {
@@ -316,6 +317,458 @@ function mapJsonLdToImported(recipeNode: any, baseUrl: string): ImportedRecipeDa
     nutrition,
     instructions
   }
+}
+
+async function attachIngredientsByLLM(imported: ImportedRecipeData, jsonLdIngredients: any): Promise<ImportedRecipeData> {
+  try {
+    const ingredientsArray: string[] = Array.isArray(jsonLdIngredients)
+      ? jsonLdIngredients.map((x) => (typeof x === 'string' ? x : '')).filter(Boolean)
+      : []
+    if (!ingredientsArray.length || !imported.instructions?.length) return imported
+
+    const stepTexts = imported.instructions.map((s) => s.text || '')
+
+    const sys = `You will assign each ingredient line from a flat list (recipeIngredient) to one or more instruction steps.
+Rules:
+- Use only the provided ingredient lines EXACTLY as written for the 'name' field; do not invent or rephrase.
+- Choose the first step where the ingredient is ADDED. If the same ingredient is referenced later without adding more, include it again with isPrepared=true.
+- Do not attach ingredients to unrelated steps. It's fine if some steps have zero ingredients.
+- IMPORTANT: Return step indexes as zero-based integers (step 1 => index 0, step 2 => index 1, ...).
+Output JSON strictly via the provided function schema.`
+
+    const messages = [
+      { role: 'system' as const, content: sys },
+      {
+        role: 'user' as const,
+        content: [
+          'Ingredients:',
+          ...ingredientsArray.map((s, i) => `${i + 1}. ${s}`),
+          '',
+          'Steps:',
+          ...stepTexts.map((s, i) => `${i + 1}. ${s}`)
+        ].join('\n')
+      }
+    ]
+
+    const attachTools: LlmFunctionTool[] = [
+      {
+        name: 'attach_ingredients_to_instructions',
+        description: 'Returns ingredient assignments per instruction index',
+        parameters: {
+          type: 'object',
+          properties: {
+            instructions: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  index: { type: 'number' },
+                  ingredients: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        isPrepared: { type: 'boolean' }
+                      }
+                    }
+                  }
+                },
+                required: ['index', 'ingredients']
+              }
+            }
+          },
+          required: ['instructions']
+        }
+      }
+    ]
+    const rr = await llm.chat(messages as any, { provider: 'anthropic', model: 'claude-3-haiku-20240307', temperature: 0, tools: attachTools, toolChoice: { type: 'function', function: { name: 'attach_ingredients_to_instructions' } } })
+    const toolCall = rr.toolCalls?.[0]
+    // @ts-ignore
+    if (!toolCall?.function?.arguments) return imported
+    // @ts-ignore
+    const result = JSON.parse(toolCall.function.arguments) as { instructions: Array<{ index: number; ingredients: Array<{ name: string; isPrepared?: boolean }> }> }
+
+    const stepCount = imported.instructions.length
+    const mapping = new Map<number, Array<{ name: string; isPrepared?: boolean }>>()
+    for (const it of result.instructions || []) {
+      const idx = Math.trunc(Number((it as any)?.index))
+      if (!Number.isFinite(idx) || idx < 0 || idx >= stepCount) continue
+      if (!Array.isArray((it as any)?.ingredients)) continue
+      const existing = mapping.get(idx) ?? []
+      for (const ing of (it as any).ingredients) {
+        const name = String((ing as any)?.name ?? '').trim()
+        if (!name) continue
+        const isPrepared = typeof (ing as any)?.isPrepared === 'boolean' ? (ing as any).isPrepared : undefined
+        if (!existing.some((e) => e.name === name && e.isPrepared === isPrepared)) existing.push({ name, isPrepared })
+      }
+      mapping.set(idx, existing)
+    }
+
+    const updated: ImportedRecipeData = {
+      ...imported,
+      instructions: imported.instructions.map((ins, idx) => ({
+        ...ins,
+        ingredients: mapping.get(idx) ?? []
+      }))
+    }
+    try {
+      const assignedTotal = updated.instructions.reduce((acc, s) => acc + (s.ingredients?.length ?? 0), 0)
+      console.log(`LLM ingredient mapping: steps=${stepCount}, assigned=${assignedTotal}`)
+    } catch { }
+    return updated
+  } catch (e) {
+    console.warn('Failed to attach ingredients by LLM:', (e as Error)?.message)
+    return imported
+  }
+}
+
+const unescapeHtml = (s: string): string =>
+  s
+    .replace(/&quot;/g, '"').replace(/&#34;/g, '"')
+    .replace(/&amp;/g, '&').replace(/&#38;/g, '&')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&apos;/g, "'")
+
+function* walk(obj: any): any {
+  if (!obj || typeof obj !== 'object') return
+  if (Array.isArray(obj)) { for (const v of obj) yield* walk(v); return }
+  yield obj
+  for (const v of Object.values(obj)) yield* walk(v)
+}
+
+function isRecipeType(t: any): boolean {
+  if (!t) return false
+  const arr = Array.isArray(t) ? t : [t]
+  return arr.map(String).some((x) => x.toLowerCase() === 'recipe')
+}
+
+function pickBestRecipe(root: any): any {
+  let best: any = null
+  let bestScore = -1
+  for (const node of walk(root)) {
+    if (!isRecipeType((node as any)?.['@type'])) continue
+    const ingredientsLen = Array.isArray((node as any).recipeIngredient) ? (node as any).recipeIngredient.length : 0
+    const ri = (node as any).recipeInstructions
+    const stepsLen = Array.isArray(ri)
+      ? ri.length
+      : Array.isArray((ri as any)?.itemListElement)
+        ? (ri as any).itemListElement.length
+        : 0
+    const score = ingredientsLen * 2 + stepsLen + ((node as any).name ? 1 : 0) + ((node as any).image ? 1 : 0)
+    if (score > bestScore) { best = node; bestScore = score }
+  }
+  return best
+}
+
+function salvageMultiJsonObjects(raw: string): any[] {
+  const cleaned = raw.replace(/^\s*<!--|-->\s*$/g, '')
+  try {
+    const parsed = JSON.parse(cleaned)
+    return Array.isArray(parsed) ? parsed : [parsed]
+  } catch {}
+  const parts = cleaned
+    .split(/}\s*{\s*/g)
+    .map((p, i, a) => (i === 0 ? p : '{' + p) + (i === a.length - 1 ? '' : '}'))
+  const out: any[] = []
+  for (const p of parts) {
+    try { out.push(JSON.parse(p)) } catch {}
+  }
+  return out
+}
+
+const sniffJsonLd = async (url: string, opts?: { byteLimit?: number; timeLimitMs?: number }): Promise<{ data: ImportedRecipeData; recipeIngredient?: any } | null> => {
+  const byteLimit = opts?.byteLimit ?? 600 * 1024
+  const timeLimitMs = opts?.timeLimitMs ?? 500
+  let u: URL
+  try { u = new URL(url) } catch { return null }
+  if (!/^https?:$/.test(u.protocol)) return null
+  const hostLC = u.hostname.toLowerCase()
+  const isIPv4 = /^\d+\.\d+\.\d+\.\d+$/.test(hostLC)
+  if (
+    hostLC === 'localhost' ||
+    hostLC.endsWith('.localhost') ||
+    (isIPv4 && (
+      hostLC.startsWith('10.') ||
+      hostLC.startsWith('127.') ||
+      hostLC.startsWith('169.254.') ||
+      hostLC.startsWith('192.168.') ||
+      /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostLC)
+    ))
+  ) return null
+  const headers: Record<string, string> = {
+    'User-Agent': 'Mozilla/5.0 ForklyImporter/1.0 (+importer)',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate, br'
+  }
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), Math.max(100, timeLimitMs))
+  const started = Date.now()
+  let reader: any
+  try {
+    const res = await fetch(u.toString(), { headers, redirect: 'follow', signal: controller.signal })
+    if (!res.ok || !res.body) return null
+    const contentType = (res.headers.get('content-type') || '').toLowerCase()
+    if (!/html|xhtml|ld\+json/.test(contentType)) return null
+    reader = (res.body as any).getReader?.()
+    if (!reader) return null
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let total = 0
+    let collecting = false
+    let ldBuffer = ''
+
+    const typeHint = 'application/ld+json'
+    const hasLdJson = (s: string) => s.toLowerCase().includes(typeHint)
+    const scriptRe = /<script[^>]*type=["']application\/ld\+json[^"'>]*["'][^>]*>([\s\S]*?)<\/script>/gi
+    const startRe = /<script[^>]*type=["']application\/ld\+json[^"'>]*["'][^>]*>/i
+    const endRe = /<\/script>/i
+
+    while (true) {
+      const now = Date.now()
+      if (now - started > timeLimitMs) break
+      const { value, done } = await reader.read()
+      if (done) break
+      total += value?.byteLength ?? 0
+      const chunk = decoder.decode(value, { stream: true })
+      buffer += chunk
+      if (collecting) ldBuffer += chunk
+
+      if (!collecting && hasLdJson(buffer) && /Recipe/i.test(buffer)) {
+        let m: RegExpExecArray | null
+        let matched = false
+        while ((m = scriptRe.exec(buffer))) {
+          matched = true
+          const raw = unescapeHtml(m[1])
+          try {
+            const json = JSON.parse(raw)
+            const node = pickBestRecipe(json)
+            if (node) {
+              const mapped = mapJsonLdToImported(node, url)
+              console.log(`Sniff JSON-LD hit in ${Date.now() - started}ms, bytes=${total}`)
+              try { await reader.cancel() } catch {}
+              controller.abort()
+              return { data: mapped, recipeIngredient: (node as any)?.recipeIngredient }
+            }
+          } catch {
+            const salvaged = salvageMultiJsonObjects(raw)
+            for (const j of salvaged) {
+              try {
+                const node = pickBestRecipe(j)
+                if (node) {
+                  const mapped = mapJsonLdToImported(node, url)
+                  console.log(`Sniff JSON-LD hit in ${Date.now() - started}ms, bytes=${total}`)
+                  try { await reader.cancel() } catch {}
+                  controller.abort()
+                  return { data: mapped, recipeIngredient: (node as any)?.recipeIngredient }
+                }
+              } catch {}
+            }
+          }
+        }
+        if (!matched) {
+          const openIdx = buffer.search(startRe)
+          if (openIdx >= 0) {
+            collecting = true
+            ldBuffer = buffer.slice(openIdx)
+          }
+        }
+      } else if (collecting) {
+        if (endRe.test(ldBuffer)) {
+          const firstCloseIdx = ldBuffer.toLowerCase().indexOf('</script>')
+          let content = ldBuffer.slice(0, firstCloseIdx)
+          const gtIdx = content.indexOf('>')
+          if (gtIdx >= 0) content = content.slice(gtIdx + 1)
+          const raw = unescapeHtml(content)
+          try {
+            const json = JSON.parse(raw)
+            const node = pickBestRecipe(json)
+            if (node) {
+              const mapped = mapJsonLdToImported(node, url)
+              console.log(`Sniff JSON-LD hit in ${Date.now() - started}ms, bytes=${total}`)
+              try { await reader.cancel() } catch {}
+              controller.abort()
+              return { data: mapped, recipeIngredient: (node as any)?.recipeIngredient }
+            }
+          } catch {
+            const salvaged = salvageMultiJsonObjects(raw)
+            for (const j of salvaged) {
+              try {
+                const node = pickBestRecipe(j)
+                if (node) {
+                  const mapped = mapJsonLdToImported(node, url)
+                  console.log(`Sniff JSON-LD hit in ${Date.now() - started}ms, bytes=${total}`)
+                  try { await reader.cancel() } catch {}
+                  controller.abort()
+                  return { data: mapped, recipeIngredient: (node as any)?.recipeIngredient }
+                }
+              } catch {}
+            }
+          }
+          collecting = false
+          ldBuffer = ''
+        }
+      }
+
+      if (!collecting && total >= byteLimit) break
+      if (!collecting && buffer.length > 2 * byteLimit) buffer = buffer.slice(-byteLimit)
+    }
+
+    buffer += decoder.decode()
+    if (hasLdJson(buffer) && /Recipe/i.test(buffer)) {
+      let m2: RegExpExecArray | null
+      while ((m2 = scriptRe.exec(buffer))) {
+        const raw = unescapeHtml(m2[1])
+        try {
+          const json = JSON.parse(raw)
+          const node = pickBestRecipe(json)
+          if (node) {
+            const mapped = mapJsonLdToImported(node, url)
+            try { await reader.cancel() } catch {}
+            controller.abort()
+            return { data: mapped, recipeIngredient: (node as any)?.recipeIngredient }
+          }
+        } catch {
+          const salvaged = salvageMultiJsonObjects(raw)
+          for (const j of salvaged) {
+            try {
+              const node = pickBestRecipe(j)
+              if (node) {
+                const mapped = mapJsonLdToImported(node, url)
+                try { await reader.cancel() } catch {}
+                controller.abort()
+                return { data: mapped, recipeIngredient: (node as any)?.recipeIngredient }
+              }
+            } catch {}
+          }
+        }
+      }
+    }
+    if (collecting && ldBuffer) {
+      const afterGT = ldBuffer.slice(ldBuffer.indexOf('>') + 1)
+      const raw = unescapeHtml(afterGT)
+      try {
+        const json = JSON.parse(raw)
+        const node = pickBestRecipe(json)
+        if (node) {
+          const mapped = mapJsonLdToImported(node, url)
+          try { await reader.cancel() } catch {}
+          controller.abort()
+          return { data: mapped, recipeIngredient: (node as any)?.recipeIngredient }
+        }
+      } catch {
+        const salvaged = salvageMultiJsonObjects(raw)
+        for (const j of salvaged) {
+          try {
+            const node = pickBestRecipe(j)
+            if (node) {
+              const mapped = mapJsonLdToImported(node, url)
+              try { await reader.cancel() } catch {}
+              controller.abort()
+              return { data: mapped, recipeIngredient: (node as any)?.recipeIngredient }
+            }
+          } catch {}
+        }
+      }
+    }
+    return null
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timeout)
+    try { controller.abort() } catch {}
+  }
+}
+
+const getOgTitle = ($: CheerioAPI): string | null => {
+  const og = $('meta[property="og:title"], meta[name="og:title"]').attr('content')
+  return og ? og.toString().trim() : null
+}
+
+const normalizeHeuristic = (input: { title: string; description?: string; image?: string | null; steps: string[] }): ImportedRecipeData => {
+  return {
+    title: input.title || '',
+    description: input.description || '',
+    image: input.image ?? null,
+    tags: [],
+    servings: 1,
+    nutritionMode: 'auto',
+    instructions: (input.steps || []).map((t) => ({ text: t, mediaUrl: null, mediaType: null, hint: null, ingredients: [] }))
+  }
+}
+
+const heuristicExtract = ($: CheerioAPI, baseUrl: string): { result: ImportedRecipeData; confidence: number; extractedText: string } => {
+  let title = ($('h1').first().text() || '').trim()
+  if (!title) title = getOgTitle($) || ''
+  const ogImages = extractMetaImages($, baseUrl)
+
+  const quantityRe = /(^|\s)(\d+[\-\s]?\d*\/?\d*|[¼½¾⅓⅔⅛⅜⅝⅞])(\s*[a-zA-Z]+)?\s+.+/
+  const headerNodes = $('h2,h3,h4,h5').toArray().filter((el) => /ingredient/i.test($(el).text()))
+  let ingItems: string[] = []
+  for (const h of headerNodes) {
+    const nextList = $(h).nextAll('ul,ol').first()
+    if (nextList && nextList.length) {
+      const items = nextList.find('li').toArray().map((li) => $(li).text().replace(/\s+/g, ' ').trim()).filter(Boolean)
+      if (items.length >= 2) { ingItems = items; break }
+    }
+  }
+  if (ingItems.length < 2) {
+    const lists = $('ul,ol').toArray()
+    let best: string[] = []
+    for (const lst of lists) {
+      const items = $(lst).find('li').toArray().map((li) => $(li).text().replace(/\s+/g, ' ').trim()).filter(Boolean)
+      const hits = items.filter((t) => quantityRe.test(t)).length
+      if (items.length >= 2 && hits >= Math.max(2, Math.floor(items.length * 0.4))) {
+        if (items.length > best.length) best = items
+      }
+    }
+    if (best.length) ingItems = best
+  }
+
+  const stepHeader = $('h2,h3,h4,h5').toArray().find((el) => /(instruction|method|direction|step)/i.test($(el).text()))
+  let steps: string[] = []
+  if (stepHeader) {
+    const ol = $(stepHeader).nextAll('ol').first()
+    if (ol && ol.length) steps = ol.find('li').toArray().map((li) => $(li).text().replace(/\s+/g, ' ').trim()).filter(Boolean)
+    if (!steps.length) {
+      const pBlock: string[] = []
+      let sib = $(stepHeader).next()
+      for (let i = 0; i < 12 && sib && sib.length; i++) {
+        const tag = sib[0]?.tagName?.toLowerCase?.() || ''
+        if (tag === 'p') pBlock.push(sib.text().replace(/\s+/g, ' ').trim())
+        if (/^h[1-6]$/.test(tag)) break
+        sib = sib.next()
+      }
+      const joined = pBlock.filter(Boolean).join('\n')
+      if (joined) {
+        const split = joined.split(/\n|(?<=\.)\s+(?=[A-Z])|\s*\d+[\).\-\s]+/).map((s) => s.trim()).filter((s) => s.length > 3)
+        steps = split
+      }
+    }
+  }
+  if (!steps.length) {
+    const ol = $('ol').first()
+    if (ol && ol.length) steps = ol.find('li').toArray().map((li) => $(li).text().replace(/\s+/g, ' ').trim()).filter(Boolean)
+  }
+  if (!steps.length) {
+    const paragraphs = $('p').toArray().map((p) => $(p).text().replace(/\s+/g, ' ').trim()).filter((t) => t.length > 20).slice(0, 8)
+    const joined = paragraphs.join('\n')
+    const split = joined.split(/\n|(?<=\.)\s+(?=[A-Z])|\s*\d+[\).\-\s]+/).map((s) => s.trim()).filter((s) => s.length > 3)
+    steps = split.slice(0, 12)
+  }
+
+  const imageCand = chooseMainImage(ogImages)
+  const heur = normalizeHeuristic({ title, description: '', image: imageCand, steps })
+  const ingConfidence = ingItems.length >= 3 ? 0.5 : ingItems.length >= 2 ? 0.3 : 0
+  const stepConfidence = steps.length >= 3 ? 0.5 : steps.length >= 2 ? 0.3 : 0
+  const titleConfidence = heur.title.length > 3 ? 0.2 : 0
+  const confidence = Math.min(1, ingConfidence + stepConfidence + titleConfidence)
+  const extractedText = [
+    heur.title ? `Title: ${heur.title}` : '',
+    ingItems.length ? `Ingredients:\n${ingItems.map((x) => `- ${x}`).join('\n')}` : '',
+    steps.length ? `Instructions:\n${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}` : ''
+  ].filter(Boolean).join('\n\n')
+  return { result: heur, confidence, extractedText }
 }
 
 async function extractTextFromImages(imageBase64Array: string[]): Promise<string> {
@@ -335,13 +788,8 @@ async function extractTextFromImages(imageBase64Array: string[]): Promise<string
     }
   ]
 
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    temperature: 0.1,
-    messages
-  })
-
-  const content = completion.choices[0].message.content
+  const r = await llm.chat(messages as any, { provider: 'openai', model: 'gpt-4o', temperature: 0.1 })
+  const content = r.content
   if (!content) throw new Error('No response from OpenAI vision API')
   return content
 }
@@ -353,14 +801,13 @@ async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promi
   Always include mediaUrl and mediaType ("image" | "video" | null) in every instruction. 
   If missing info, set null/empty instead of guessing. 
   Title can be inferred from content if absent. 
-  If a unit is specified, a quantity has to be specified as well. Measurements such as "to taste" go into the "quantity" field.
 
   Honor the original recipe and don't make changes to the instructions.
  
  IMPORTANT about step ingredients:
- - If a step reuses the same physical ingredient portion prepared in an earlier step (not adding more), set isPrepared=true for that ingredient and do not infer additional quantity/measurement for that step.
- - If the step calls for an additional amount of the ingredient, set isPrepared=false and include the new amount/unit.
- - Example: Step 1 "Cook 4 cups rice" (isPrepared=false with 4 cups). Step 2 "Mix the cooked rice with ..." (isPrepared=true for rice, no extra quantity).
+ - If a step reuses the same physical ingredient portion prepared in an earlier step (not adding more), set isPrepared=true for that ingredient.
+ - If the step calls for an additional amount of the ingredient, set isPrepared=false. Do not parse or include amounts/units; keep only the ingredient text in 'name'.
+ - Example: Step 1 "Cook 4 cups rice" (isPrepared=false, name: "Cook 4 cups rice"). Step 2 "Mix the cooked rice with ..." (isPrepared=true, name: "cooked rice").
   Source: ${sourceUrlHint ?? 'unknown'}
   \n
   Recipe text:
@@ -369,70 +816,59 @@ async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promi
 
   console.log(text)
 
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    temperature: 0,
-    messages: [{ role: 'user', content: prompt }],
-    tools: [
-      {
-        type: 'function',
-        function: {
-          name: 'parse_recipe',
-          description: 'Parses a recipe into structured fields',
-          parameters: {
-            type: 'object',
+  const tools: LlmFunctionTool[] = [
+    {
+      name: 'parse_recipe',
+      description: 'Parses a recipe into structured fields',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+          description: { type: 'string' },
+          image: { type: ['string', 'null'] },
+          tags: {
+            type: 'array',
+            items: { type: 'string' },
+            maxItems: 3
+          },
+          servings: { type: 'number' },
+          nutrition: {
+            type: ['object', 'null'],
             properties: {
-              title: { type: 'string' },
-              description: { type: 'string' },
-              image: { type: ['string', 'null'] },
-              tags: {
-                type: 'array',
-                items: { type: 'string' },
-                maxItems: 3
-              },
-              servings: { type: 'number' },
-              nutrition: {
-                type: ['object', 'null'],
-                properties: {
-                  calories: { type: 'number' },
-                  protein: { type: 'number' },
-                  carbs: { type: 'number' },
-                  fat: { type: 'number' }
-                }
-              },
-              instructions: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    text: { type: 'string' },
-                    mediaUrl: { type: ['string', 'null'] },
-                    mediaType: { type: ['string', 'null'], enum: ['image', 'video', null] },
-                    ingredients: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          name: { type: 'string' },
-                          quantity: { type: 'string' },
-                          measurement: { type: 'string' },
-                          isPrepared: { type: 'boolean' }
-                        }
-                      }
+              calories: { type: 'number' },
+              protein: { type: 'number' },
+              carbs: { type: 'number' },
+              fat: { type: 'number' }
+            }
+          },
+          instructions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                text: { type: 'string' },
+                mediaUrl: { type: ['string', 'null'] },
+                mediaType: { type: ['string', 'null'], enum: ['image', 'video', null] },
+                ingredients: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      isPrepared: { type: 'boolean' }
                     }
                   }
                 }
               }
-            },
-            required: ['title', 'instructions', 'servings']
+            }
           }
-        }
+        },
+        required: ['title', 'instructions', 'servings']
       }
-    ],
-    tool_choice: { type: 'function', function: { name: 'parse_recipe' } }
-  })
-
-  const toolCall = completion.choices[0].message.tool_calls?.[0]
+    }
+  ]
+  const r = await llm.chat([{ role: 'user', content: prompt }], { provider: 'anthropic', model: 'claude-3-5-sonnet-20240620', temperature: 0, tools, toolChoice: { type: 'function', function: { name: 'parse_recipe' } } })
+  const toolCall = r.toolCalls?.[0]
 
   //@ts-ignore
   if (!toolCall?.function?.arguments) {
@@ -442,6 +878,63 @@ async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promi
   //@ts-ignore
   const parsed = JSON.parse(toolCall.function.arguments)
   return parsed
+}
+
+const extractRecipeWithTinyLLM = async (text: string, sourceUrlHint?: string): Promise<any> => {
+  const prompt = `Return strict JSON only with keys: title, description, image, tags, servings, nutrition, instructions[]. Do not reword content. Use the provided text only. If uncertain, leave fields empty or null. Source: ${sourceUrlHint ?? 'unknown'}\n\nText:\n"""${text.slice(0, 8000)}"""`
+  const tools2: LlmFunctionTool[] = [
+    {
+      name: 'parse_recipe',
+      description: 'Parses a recipe into structured fields',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+          description: { type: 'string' },
+          image: { type: ['string', 'null'] },
+          tags: { type: 'array', items: { type: 'string' }, maxItems: 3 },
+          servings: { type: 'number' },
+          nutrition: {
+            type: ['object', 'null'],
+            properties: {
+              calories: { type: 'number' },
+              protein: { type: 'number' },
+              carbs: { type: 'number' },
+              fat: { type: 'number' }
+            }
+          },
+          instructions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                text: { type: 'string' },
+                mediaUrl: { type: ['string', 'null'] },
+                mediaType: { type: ['string', 'null'], enum: ['image', 'video', null] },
+                ingredients: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      isPrepared: { type: 'boolean' }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        required: ['title', 'instructions', 'servings']
+      }
+    }
+  ]
+  const r2 = await llm.chat([{ role: 'user', content: prompt }], { provider: 'anthropic', model: 'claude-3-haiku-20240307', temperature: 0, maxTokens: 1200, tools: tools2, toolChoice: { type: 'function', function: { name: 'parse_recipe' } } })
+  const toolCall = r2.toolCalls?.[0]
+  // @ts-ignore
+  if (!toolCall?.function?.arguments) throw new Error('No function call arguments returned')
+  // @ts-ignore
+  return JSON.parse(toolCall.function.arguments)
 }
 
 function normalizeRecipe(parsed: any): ImportedRecipeData {
@@ -464,9 +957,7 @@ function normalizeRecipe(parsed: any): ImportedRecipeData {
       mediaType: inst.mediaType ?? null,
       ingredients: Array.isArray(inst.ingredients)
         ? inst.ingredients.map((ing: any) => ({
-          name: ing.name || '',
-          quantity: typeof ing.quantity === 'string' ? ing.quantity : (ing.quantity ?? '').toString(),
-          measurement: ing.measurement || '',
+          name: ing.name,
           isPrepared: typeof ing.isPrepared === 'boolean' ? ing.isPrepared : undefined
         }))
         : []
@@ -500,88 +991,121 @@ function attachStepImagesIfMissing(instructions: ImportedRecipeData['instruction
   }
 }
 
+const processUrlInput = async (url: string): Promise<{ parsed: ImportedRecipeData; markers: ImageCandidate[]; ogImages: ImageCandidate[]; rawText: string }> => {
+  let localRawText = ''
+  let localMarkers: ImageCandidate[] = []
+  let localOgImages: ImageCandidate[] = []
+  let localParsed: ImportedRecipeData
+
+  const sniffStart = Date.now()
+  const sniff = await sniffJsonLd(url, { byteLimit: 800 * 1024, timeLimitMs: 500 })
+  if (sniff) {
+    const mapped = sniff.data
+    const jsonLdIngredients = sniff.recipeIngredient
+    localParsed = jsonLdIngredients ? await attachIngredientsByLLM(mapped, jsonLdIngredients) : mapped
+    console.log(`URL import resolved by JSON-LD sniff in ${Date.now() - sniffStart}ms`)
+  } else {
+    const fetched = await fetchAndCleanHtml(url)
+    const { text: cleaned, $, html, markers: pageMarkers, ogImages: og } = fetched
+    localMarkers = pageMarkers
+    localOgImages = og
+    const ld = extractJsonLd(cheerio.load(html))
+    if (ld.length) {
+      const mapped = mapJsonLdToImported(ld[0], url)
+      localParsed = await attachIngredientsByLLM(mapped, (ld[0] as any)?.recipeIngredient)
+      console.log('Resolved by full JSON-LD parse')
+    } else {
+      const heur = heuristicExtract($, url)
+      localParsed = heur.result
+      console.log(`Heuristic extraction confidence=${heur.confidence.toFixed(2)} items=${localParsed.instructions.length}`)
+      if (heur.confidence < 0.7 || localParsed.instructions.length < 2) {
+        localRawText = heur.extractedText
+        const tiny = await extractRecipeWithTinyLLM(localRawText, url)
+        localParsed = tiny
+        console.log('Upgraded with tiny LLM structurizer')
+      }
+    }
+  }
+
+  return { parsed: localParsed, markers: localMarkers, ogImages: localOgImages, rawText: localRawText }
+}
+
+const processTextInput = async (theText: string): Promise<{ parsed: ImportedRecipeData; rawText: string }> => {
+  const localRawText = cleanTextInput(theText)
+  const heurText = localRawText.slice(0, 8000)
+  const tiny = await extractRecipeWithTinyLLM(heurText)
+  const localParsed = tiny
+  return { parsed: localParsed, rawText: localRawText }
+}
+
+const processImageInput = async (images: string[]): Promise<{ parsed: ImportedRecipeData; rawText: string }> => {
+  const extracted = await extractTextFromImages(images)
+  const tiny = await extractRecipeWithTinyLLM(extracted.slice(0, 8000))
+  return { parsed: tiny, rawText: extracted }
+}
+
 async function handleJob(job: any) {
   const { url, text, imageBase64Array, userId, username, inputType } = job.data as JobData
   console.log(`Processing import job for user ${username} (${userId}): ${inputType === 'url' ? url : inputType}`)
 
-  try {
-    let rawText = ''
-    let parsed: any | null = null
-    let markers: ImageCandidate[] = []
-    let ogImages: ImageCandidate[] = []
+  let rawText = ''
+  let parsed: ImportedRecipeData
+  let markers: ImageCandidate[] = []
+  let ogImages: ImageCandidate[] = []
 
-    if (inputType === 'url') {
+  switch (inputType) {
+    case 'url': {
       if (!url) throw new Error('URL is required for URL-based imports')
-      const fetched = await fetchAndCleanHtml(url)
-      const { text: cleaned, $, markers: pageMarkers, ogImages: og } = fetched
-      markers = pageMarkers
-      ogImages = og
-
-      const ld = extractJsonLd($)
-      if (ld.length) {
-        parsed = mapJsonLdToImported(ld[0], url)
-      } else {
-        rawText = cleaned
-        parsed = await extractRecipeWithLLM(rawText, url)
-      }
-    } else if (inputType === 'text') {
+      const r = await processUrlInput(url)
+      parsed = r.parsed
+      markers = r.markers
+      ogImages = r.ogImages
+      rawText = r.rawText
+      break
+    }
+    case 'text': {
       if (!text) throw new Error('Text content is required for text-based imports')
-      rawText = cleanTextInput(text)
-      parsed = await extractRecipeWithLLM(rawText)
-    } else if (inputType === 'image') {
+      const r = await processTextInput(text)
+      parsed = r.parsed
+      rawText = r.rawText
+      break
+    }
+    case 'image': {
       if (!imageBase64Array || imageBase64Array.length === 0) throw new Error('Image data is required for image-based imports')
-      rawText = await extractTextFromImages(imageBase64Array)
-      parsed = await extractRecipeWithLLM(rawText)
-    } else {
+      const r = await processImageInput(imageBase64Array)
+      parsed = r.parsed
+      rawText = r.rawText
+      break
+    }
+    default: {
       throw new Error('Invalid input type. Must be either "url", "text", or "image"')
     }
-
-    const recipe = normalizeRecipe(parsed)
-
-    const candidates: ImageCandidate[] = []
-    if (recipe.image) candidates.push({ url: recipe.image, source: 'jsonld' })
-    candidates.push(...ogImages)
-    candidates.push(...markers)
-    const chosen = chooseMainImage(candidates)
-    recipe.image = chosen ?? recipe.image ?? null
-
-    attachStepImagesIfMissing(recipe.instructions, markers, recipe.image)
-
-    const recipeData: ImportedRecipeData = {
-      title: recipe.title,
-      description: recipe.description,
-      image: recipe.image ?? null,
-      tags: recipe.tags,
-      servings: recipe.servings,
-      nutritionMode: recipe.nutrition ? 'manual' : 'auto',
-      nutrition: recipe.nutrition ?? undefined,
-      instructions: recipe.instructions
-    }
-
-    console.log(JSON.stringify(recipeData, null, 2))
-
-    const resultKey = `import-recipe:result:${job.id}`
-    await redis.set(resultKey, JSON.stringify({ status: 'completed', result: recipeData }), { ex: 3600 })
-
-    if (inputType === 'url' && url) {
-      const cacheKey = `imported-url:${userId}:${url}`
-      await redis.del(cacheKey)
-    }
-
-    console.log(`Job ${job.id} completed successfully`)
-    return recipeData
-  } catch (err: any) {
-    const resultKey = `import-recipe:result:${job.id}`
-    await redis.set(resultKey, JSON.stringify({ status: 'failed', error: err.message ?? 'Internal error' }), { ex: 3600 })
-
-    if (inputType === 'url' && url) {
-      const cacheKey = `imported-url:${userId}:${url}`
-      await redis.del(cacheKey)
-    }
-
-    console.error(`Job ${job?.id} failed:`, err?.message)
-    throw err
   }
+
+  const recipe = normalizeRecipe(parsed)
+
+  const candidates: ImageCandidate[] = []
+  if (recipe.image) candidates.push({ url: recipe.image, source: 'jsonld' })
+  candidates.push(...ogImages)
+  candidates.push(...markers)
+  const chosen = chooseMainImage(candidates)
+  recipe.image = chosen ?? recipe.image ?? null
+
+  attachStepImagesIfMissing(recipe.instructions, markers, recipe.image)
+
+  const recipeData: ImportedRecipeData = {
+    title: recipe.title,
+    description: recipe.description,
+    image: recipe.image ?? null,
+    tags: recipe.tags,
+    servings: recipe.servings,
+    nutritionMode: recipe.nutrition ? 'manual' : 'auto',
+    nutrition: recipe.nutrition ?? undefined,
+    instructions: recipe.instructions
+  }
+
+  console.log(JSON.stringify(recipeData, null, 2))
+  return recipeData
 }
 
 const worker = new Worker<JobData>(
@@ -600,18 +1124,54 @@ const worker = new Worker<JobData>(
   }
 )
 
-worker.on('completed', (job) => {
+worker.on('completed', async (job, result) => {
+  try {
+    const resultKey = `import-recipe:result:${job.id}`
+    await redis.set(resultKey, JSON.stringify({ status: 'completed', result }), { ex: 3600 })
+  } catch (e) {
+    console.warn('Failed to persist completion result:', (e as Error)?.message)
+  }
+  try {
+    const { inputType, url, userId } = job.data as JobData
+    if (inputType === 'url' && url) {
+      const cacheKey = `imported-url:${userId}:${url}`
+      await redis.del(cacheKey)
+    }
+  } catch (e) {
+    console.warn('Failed to clear cache on completion:', (e as Error)?.message)
+  }
   console.log(`Job ${job.id} completed`)
 })
-worker.on('failed', (job, err) => {
+
+worker.on('failed', async (job, err) => {
+  try {
+    const resultKey = `import-recipe:result:${job?.id}`
+    await redis.set(resultKey, JSON.stringify({ status: 'failed', error: (err as any)?.message ?? 'Internal error' }), { ex: 3600 })
+  } catch (e) {
+    console.warn('Failed to persist failure result:', (e as Error)?.message)
+  }
+  try {
+    if (job?.data) {
+      const { inputType, url, userId } = job.data as JobData
+      if (inputType === 'url' && url) {
+        const cacheKey = `imported-url:${userId}:${url}`
+        await redis.del(cacheKey)
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to clear cache on failure:', (e as Error)?.message)
+  }
   console.error(`Job ${job?.id} failed:`, err)
 })
+
 worker.on('active', (job) => {
   console.log(`Job ${job.id} started processing`)
 })
+
 worker.on('error', (err) => {
   console.error('Worker error:', err)
 })
+
 worker.on('stalled', (jobId) => {
   console.warn(`Job ${jobId} stalled`)
 })
