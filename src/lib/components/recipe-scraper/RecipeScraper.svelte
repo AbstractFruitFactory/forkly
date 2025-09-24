@@ -266,7 +266,7 @@
 					loading={isLoading}
 					onclick={handleScrape}
 					disabled={isLoading || !isFormValid()}
-					color="neutral"
+					color="primary"
 				>
 					{primaryCtaLabel()}
 				</Button>
@@ -289,7 +289,7 @@
 					loading={isLoading}
 					onclick={handleScrape}
 					disabled={isLoading || !isFormValid()}
-					color="neutral"
+					color="primary"
 				>
 					{primaryCtaLabel()}
 				</Button>
@@ -350,7 +350,7 @@
 					loading={isLoading}
 					onclick={handleScrape}
 					disabled={isLoading || !isFormValid()}
-					color="neutral"
+					color="primary"
 				>
 					{primaryCtaLabel()}
 				</Button>

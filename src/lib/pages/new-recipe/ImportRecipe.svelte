@@ -15,7 +15,7 @@
 	</div>
 
 	<div class="manual-link">
-		<Button href="/new/form" color="primary">Or start fresh manually →</Button>
+		<Button variant="text" href="/new/form">Or start fresh manually →</Button>
 	</div>
 </div>
 
