@@ -31,6 +31,7 @@
 	let menuOpen = $state(false)
 	let menuButton = $state<HTMLButtonElement>()
 	let dropdownPosition = $state({ top: 0, left: 0 })
+	let imageBroken = $state(false)
 
 	const handleClick = (event: MouseEvent) => {
 		if (!recipe) return
@@ -81,6 +82,12 @@
 			updateDropdownPosition()
 		}
 	})
+
+	$effect(() => {
+		recipe?.imageUrl
+		loading
+		imageBroken = false
+	})
 </script>
 
 <div class="recipe-card-container">
@@ -91,17 +98,25 @@
 		aria-labelledby={recipe ? `recipe-title-${recipe.id}` : undefined}
 		onclick={handleClick}
 	>
-		<div class="image-container" class:no-image={recipe && !recipe.imageUrl}>
+		<div class="image-container" class:no-image={recipe && (!recipe.imageUrl || imageBroken)}>
 			{#if loading}
 				<div
 					style="width: 100%; height: 100%; aspect-ratio: 16/9; border-radius: var(--border-radius-2xl) var(--border-radius-2xl) 0 0; position: absolute; top: 0; left: 0; overflow: hidden;"
 				>
 					<Skeleton width="100%" height="100%" />
 				</div>
-			{:else if recipe?.imageUrl}
-				<img src={recipe.imageUrl} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+			{:else if recipe?.imageUrl && !imageBroken}
+				<img
+					src={recipe.imageUrl}
+					alt=""
+					aria-hidden="true"
+					loading="lazy"
+					decoding="async"
+					onerror={() => (imageBroken = true)}
+					onload={() => (imageBroken = false)}
+				/>
 			{:else}
-				<RecipeImagePlaceholder size="medium" />
+				<RecipeImagePlaceholder size="medium" broken={imageBroken} />
 			{/if}
 			<div class="action-buttons">
 				{#if recipe && menu}

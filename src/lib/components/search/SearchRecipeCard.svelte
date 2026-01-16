@@ -18,21 +18,35 @@
 		recipe: Recipe
 		onClick?: () => void
 	} = $props()
+
+	let imageBroken = $state(false)
+
+	$effect(() => {
+		recipe.imageUrl
+		imageBroken = false
+	})
 </script>
 
 <div
 	class="search-recipe-card"
-	class:has-image={!!recipe.imageUrl}
+	class:has-image={!!recipe.imageUrl && !imageBroken}
 	onclick={onClick}
 	onkeydown={(e) => e.key === 'Enter' && onClick?.()}
 	role="button"
 	tabindex="0"
 >
 	<div class="card-background">
-		{#if recipe.imageUrl}
-			<img src={recipe.imageUrl} alt={recipe.title} loading="lazy" decoding="async" />
+		{#if recipe.imageUrl && !imageBroken}
+			<img
+				src={recipe.imageUrl}
+				alt={recipe.title}
+				loading="lazy"
+				decoding="async"
+				onerror={() => (imageBroken = true)}
+				onload={() => (imageBroken = false)}
+			/>
 		{:else}
-			<RecipeImagePlaceholder size="small" />
+			<RecipeImagePlaceholder size="small" broken={imageBroken} />
 		{/if}
 	</div>
 
