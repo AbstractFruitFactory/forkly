@@ -45,7 +45,7 @@ type JobData = {
   inputType: InputType
 }
 
-const llm = createLlmClient('anthropic')
+const llm = createLlmClient()
 
 function resolveUrl(base: string, maybe: string | undefined | null): string | null {
   if (!maybe) return null
@@ -382,7 +382,7 @@ Output JSON strictly via the provided function schema.`
         }
       }
     ]
-    const rr = await llm.chat(messages as any, { provider: 'anthropic', model: 'claude-3-haiku-20240307', temperature: 0, tools: attachTools, toolChoice: { type: 'function', function: { name: 'attach_ingredients_to_instructions' } } })
+    const rr = await llm.run('attachIngredients', messages as any, { temperature: 0, tools: attachTools, toolChoice: { type: 'function', function: { name: 'attach_ingredients_to_instructions' } } })
     const toolCall = rr.toolCalls?.[0]
     // @ts-ignore
     if (!toolCall?.function?.arguments) return imported
@@ -788,7 +788,7 @@ async function extractTextFromImages(imageBase64Array: string[]): Promise<string
     }
   ]
 
-  const r = await llm.chat(messages as any, { provider: 'openai', model: 'gpt-4o', temperature: 0.1 })
+  const r = await llm.run('vision', messages as any, { temperature: 0.1 })
   const content = r.content
   if (!content) throw new Error('No response from OpenAI vision API')
   return content
@@ -867,7 +867,7 @@ async function extractRecipeWithLLM(text: string, sourceUrlHint?: string): Promi
       }
     }
   ]
-  const r = await llm.chat([{ role: 'user', content: prompt }], { provider: 'anthropic', model: 'claude-3-5-sonnet-20240620', temperature: 0, tools, toolChoice: { type: 'function', function: { name: 'parse_recipe' } } })
+  const r = await llm.run('extractRecipe', [{ role: 'user', content: prompt }], { temperature: 0, tools, toolChoice: { type: 'function', function: { name: 'parse_recipe' } } })
   const toolCall = r.toolCalls?.[0]
 
   //@ts-ignore
@@ -929,7 +929,7 @@ const extractRecipeWithTinyLLM = async (text: string, sourceUrlHint?: string): P
       }
     }
   ]
-  const r2 = await llm.chat([{ role: 'user', content: prompt }], { provider: 'anthropic', model: 'claude-3-haiku-20240307', temperature: 0, maxTokens: 1200, tools: tools2, toolChoice: { type: 'function', function: { name: 'parse_recipe' } } })
+  const r2 = await llm.run('extractRecipeTiny', [{ role: 'user', content: prompt }], { temperature: 0, maxTokens: 1200, tools: tools2, toolChoice: { type: 'function', function: { name: 'parse_recipe' } } })
   const toolCall = r2.toolCalls?.[0]
   // @ts-ignore
   if (!toolCall?.function?.arguments) throw new Error('No function call arguments returned')

@@ -15,12 +15,14 @@ export type LlmToolCall = {
 }
 
 export type LlmChatOptions = {
-  provider?: 'openai' | 'anthropic'
-  model?: string
   temperature?: number
   maxTokens?: number
   tools?: LlmFunctionTool[]
   toolChoice?: { type: 'function'; function: { name: string } }
+}
+
+type LlmChatRequest = LlmChatOptions & {
+  model: string
 }
 
 export type LlmChatResponse = {
@@ -29,7 +31,7 @@ export type LlmChatResponse = {
 }
 
 export type LLM = {
-  chat: (messages: LlmMessage[], opts?: LlmChatOptions) => Promise<LlmChatResponse>
+  chat: (messages: LlmMessage[], opts: LlmChatRequest) => Promise<LlmChatResponse>
 }
 
 
@@ -37,7 +39,7 @@ export const OpenAIProvider: LLM = {
   chat: async (messages, opts) => {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
     const completion = await openai.chat.completions.create({
-      model: opts?.model ?? 'gpt-4o-mini',
+      model: opts.model,
       temperature: opts?.temperature ?? 0,
       max_tokens: opts?.maxTokens,
       messages,
@@ -78,7 +80,7 @@ export const AnthropicProvider: LLM = {
     }))
     const tool_choice = opts?.toolChoice ? ({ type: 'tool' as const, name: opts.toolChoice.function.name }) : undefined
     const resp = await client.messages.create({
-      model: opts?.model ?? 'claude-3-5-haiku-20241022',
+      model: opts.model,
       temperature: opts?.temperature ?? 0,
       max_tokens: opts?.maxTokens ?? 1200,
       system,
@@ -95,8 +97,32 @@ export const AnthropicProvider: LLM = {
   }
 }
 
-export const createLlmClient = (provider: 'openai' | 'anthropic' = 'openai'): LLM => {
-  return provider === 'anthropic' ? AnthropicProvider : OpenAIProvider
+export type LlmProfile = 'vision' | 'extractRecipe' | 'extractRecipeTiny' | 'attachIngredients'
+
+type LlmProfileConfig = {
+  provider: 'openai' | 'anthropic'
+  model: string
+}
+
+const LLM_PROFILES: Record<LlmProfile, LlmProfileConfig> = {
+  vision: { provider: 'openai', model: 'gpt-4.1' },
+  extractRecipe: { provider: 'openai', model: 'gpt-4.1' },
+  extractRecipeTiny: { provider: 'openai', model: 'gpt-4.1-mini' },
+  attachIngredients: { provider: 'openai', model: 'gpt-4.1' }
+}
+
+export type LlmClient = {
+  run: (profile: LlmProfile, messages: LlmMessage[], opts?: LlmChatOptions) => Promise<LlmChatResponse>
+}
+
+export const createLlmClient = (): LlmClient => {
+  return {
+    run: async (profile, messages, opts) => {
+      const config = LLM_PROFILES[profile]
+      const provider = config.provider === 'anthropic' ? AnthropicProvider : OpenAIProvider
+      return provider.chat(messages, { ...opts, model: config.model })
+    }
+  }
 }
 
 
