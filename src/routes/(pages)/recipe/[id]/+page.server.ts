@@ -5,6 +5,7 @@ import { safeFetch } from '$lib/utils/fetch'
 import type { Actions } from './$types'
 import type { PageServerLoad } from './$types'
 import { getRecipeData } from './data.remote'
+import type { UnitSystem } from '$lib/state/unitPreference.svelte'
 
 const commentSchema = v.object({
   content: v.pipe(
@@ -14,7 +15,7 @@ const commentSchema = v.object({
   )
 })
 
-export const load: PageServerLoad = async ({ params, isDataRequest }) => {
+export const load: PageServerLoad = async ({ params, isDataRequest, cookies }) => {
   if (!params.id) {
     return { recipeData: null }
   }
@@ -22,8 +23,9 @@ export const load: PageServerLoad = async ({ params, isDataRequest }) => {
     return { recipeData: null }
   }
   const recipeData = await getRecipeData({ id: params.id })
+  const unitPreference = (cookies.get('unit') as UnitSystem | undefined) ?? 'imperial'
 
-  return { recipeData }
+  return { recipeData, unitPreference }
 }
 
 export const actions: Actions = {

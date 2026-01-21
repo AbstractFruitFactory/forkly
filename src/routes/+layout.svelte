@@ -91,7 +91,7 @@
 	})
 
 	afterNavigate(() => {
-		scrollStore.scrollToTop('instant')
+		//scrollStore.scrollToTop('instant')
 		errorStore.clearError()
 	})
 

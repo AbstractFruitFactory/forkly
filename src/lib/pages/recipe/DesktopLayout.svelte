@@ -18,7 +18,8 @@
 		nutrition,
 		ingredients,
 		instructions,
-		comments
+		comments,
+		transitionsEnabled = true
 	}: {
 		image: Snippet
 		tags: Snippet
@@ -29,19 +30,27 @@
 		ingredients: Snippet
 		instructions: Snippet
 		comments: Snippet
+		transitionsEnabled?: boolean
 	} = $props()
+
+	const noFly = { x: 0, y: 0, duration: 0 }
+	const flyLeftInLong = transitionsEnabled ? FLY_LEFT_IN_LONG : noFly
+	const flyLeftIn = transitionsEnabled ? FLY_LEFT_IN : noFly
+	const flyDownIn = transitionsEnabled ? FLY_DOWN_IN : noFly
+	const flyLeftOut = FLY_LEFT_OUT
+	const flyDownOut = FLY_DOWN_OUT
 </script>
 
 <div class="desktop-layout">
 	<div class="sidebar">
-		<div class="action-buttons" in:fly|global={FLY_LEFT_IN_LONG} out:fly|global={FLY_LEFT_OUT}>
+		<div class="action-buttons" in:fly|global={flyLeftInLong} out:fly|global={flyLeftOut}>
 			{@render actionButtons()}
 		</div>
 	</div>
 
 	<div class="main-content">
 		<div class="content-grid">
-			<div class="recipe-info" in:fly|global={FLY_LEFT_IN} out:fly|global={FLY_LEFT_OUT}>
+			<div class="recipe-info" in:fly|global={flyLeftIn} out:fly|global={flyLeftOut}>
 				<div class="recipe-info-meta">
 					<div class="tags-and-action-buttons">
 						<div class="tags">
@@ -59,14 +68,14 @@
 				</div>
 			</div>
 
-			<div class="right-column" in:fly|global={FLY_DOWN_IN} out:fly|global={FLY_LEFT_OUT}>
+			<div class="right-column" in:fly|global={flyDownIn} out:fly|global={flyLeftOut}>
 				<div class="recipe-media">
 					{@render image()}
 				</div>
 				{@render instructions()}
 			</div>
 		</div>
-		<div class="comments-section" in:fly|global={FLY_DOWN_IN} out:fly|global={FLY_DOWN_OUT}>
+		<div class="comments-section" in:fly|global={flyDownIn} out:fly|global={flyDownOut}>
 			{@render comments()}
 		</div>
 	</div>

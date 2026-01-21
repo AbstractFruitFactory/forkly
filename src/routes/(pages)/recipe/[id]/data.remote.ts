@@ -13,6 +13,8 @@ export const getRecipeData = query(
   async ({ id }: { id: string }) => {
     const { locals, fetch, isRemoteRequest } = getRequestEvent()
 
+    console.log('isRemoteRequest', isRemoteRequest)
+
     const recipe = await getRecipeWithDetails(id, locals.user?.id)
 
     const comments = await safeFetch<CommentsResponse>(fetch)(`/recipes/${id}/comments?page=0`)

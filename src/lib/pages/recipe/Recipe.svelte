@@ -30,6 +30,7 @@
 
 	let {
 		recipeData,
+		loading = false,
 		onLike,
 		onSave,
 		unitSystem,
@@ -40,7 +41,7 @@
 		loadComments,
 		preview = false
 	}: {
-		recipeData: Promise<{
+		recipeData?: {
 			recipe: DetailedRecipe
 			comments: {
 				comments: CommentT[]
@@ -48,7 +49,8 @@
 			}
 			collections: string[]
 			isLoggedIn: boolean
-		}>
+		}
+		loading?: boolean
 		onLike?: () => void
 		onSave?: (collectionName?: string) => void
 		unitSystem: UnitSystem
@@ -60,13 +62,10 @@
 		preview?: boolean
 	} = $props()
 
-	let data = $derived.by(async () => await recipeData)
-
-	let isLoggedIn = $derived.by(() => data.then((d) => d.isLoggedIn))
-
-	let isLiked = $derived.by(() => data.then((d) => d.recipe.isLiked))
-	let isSaved = $derived.by(() => data.then((d) => d.recipe.isSaved))
-	let likes = $derived.by(() => data.then((d) => d.recipe.likes))
+	let isLoggedIn = $state(false)
+	let isLiked = $state(false)
+	let isSaved = $state(false)
+	let likes = $state(0)
 	let isSharePopupOpen = $state(false)
 	let shareUrl = $state('')
 	let toastType = $state<'like' | 'save'>()
@@ -79,27 +78,48 @@
 	let showDuplicateWarning = $state(false)
 	let totalComments = $state<number>(0)
 	let imageBroken = $state(false)
-	let currentServings = $state<number>(1)
+	let currentServings = $state<number>(recipeData?.recipe.servings ?? 1)
 
-	let hasNutrition = $derived(
-		data.then((r) => {
-			const n = r.recipe.nutrition
-			if (!n) return false
-			const { calories, protein, carbs, fat } = n
-			return !(calories === 0 && protein === 0 && carbs === 0 && fat === 0)
-		})
-	)
-
-	$effect(() => {
-		data.then((r) => {
-			totalComments = r.comments.total
-		})
+	let hasNutrition = $derived.by(() => {
+		const n = recipeData?.recipe.nutrition
+		if (!n) return false
+		const { calories, protein, carbs, fat } = n
+		return !(calories === 0 && protein === 0 && carbs === 0 && fat === 0)
 	})
 
+	const getSingleServingNutrition = (r: {
+		recipe?: {
+			nutrition?: { calories: number; protein: number; carbs: number; fat: number }
+			servings?: number
+		}
+	}): { calories: number; protein: number; carbs: number; fat: number } | undefined => {
+		if (!r.recipe?.nutrition || !r.recipe.servings) {
+			return undefined
+		}
+		const n = r.recipe.nutrition
+		if (!n) {
+			return undefined
+		}
+		const { calories, protein, carbs, fat } = n
+		if (calories === 0 && protein === 0 && carbs === 0 && fat === 0) {
+			return undefined
+		}
+		return {
+			calories: calories / r.recipe.servings,
+			protein: protein / r.recipe.servings,
+			carbs: carbs / r.recipe.servings,
+			fat: fat / r.recipe.servings
+		}
+	}
+
 	$effect(() => {
-		data.then((r) => {
-			localCollections = [...r.collections]
-		})
+		if (!recipeData) return
+		totalComments = recipeData.comments.total
+		localCollections = [...recipeData.collections]
+		isLoggedIn = recipeData.isLoggedIn
+		isLiked = recipeData.recipe.isLiked
+		isSaved = recipeData.recipe.isSaved
+		likes = recipeData.recipe.likes
 	})
 
 	$effect(() => {
@@ -112,10 +132,9 @@
 	})
 
 	$effect(() => {
-		data.then((r) => {
-			imageBroken = false
-			currentServings = r.recipe.servings
-		})
+		if (!recipeData) return
+		imageBroken = false
+		currentServings = recipeData.recipe.servings
 	})
 
 	onMount(() => {
@@ -123,7 +142,7 @@
 	})
 
 	const handleLike = async () => {
-		const loggedIn = await isLoggedIn
+		const loggedIn = isLoggedIn
 
 		if (!loggedIn) {
 			toastType = 'like'
@@ -131,30 +150,30 @@
 			return
 		}
 		if (!onLike) return
-		const currentLiked = await isLiked
-		const currentLikes = await likes
-		isLiked = Promise.resolve(!currentLiked)
-		likes = Promise.resolve(currentLikes + (currentLiked ? -1 : 1))
+		const currentLiked = isLiked
+		const currentLikes = likes
+		isLiked = !currentLiked
+		likes = currentLikes + (currentLiked ? -1 : 1)
 		onLike()
 	}
 
 	const handleSave = async (collectionName?: string) => {
-		const data = await recipeData
-		const loggedIn = data.isLoggedIn
+		if (!recipeData) return
+		const loggedIn = recipeData.isLoggedIn
 		if (!loggedIn) {
 			toastType = 'save'
 			if (toastRef) toastRef.trigger()
 			return
 		}
 		if (!onSave) return
-		const currentSaved = await isSaved
-		isSaved = Promise.resolve(!currentSaved)
+		const currentSaved = isSaved
+		isSaved = !currentSaved
 		onSave(collectionName)
 	}
 
 	const handleSaveToCollections = async () => {
-		const data = await recipeData
-		const loggedIn = data.isLoggedIn
+		if (!recipeData) return
+		const loggedIn = recipeData.isLoggedIn
 		if (!loggedIn) {
 			toastType = 'save'
 			if (toastRef) toastRef.trigger()
@@ -162,8 +181,8 @@
 		}
 		if (!onSave) return
 
-		const currentSaved = await isSaved
-		isSaved = Promise.resolve(!currentSaved)
+		const currentSaved = isSaved
+		isSaved = !currentSaved
 
 		if (!selectedCollection || selectedCollection === 'All Recipes') {
 			onSave()
@@ -207,28 +226,11 @@
 		section.scrollIntoView({ behavior: 'smooth' })
 	}
 
-	const singleServingNutrition = $derived(
-		data.then((r) => {
-			if (!r.recipe.nutrition) {
-				return undefined
-			}
-
-			const { calories, protein, carbs, fat } = r.recipe.nutrition
-
-			if (calories === 0 && protein === 0 && carbs === 0 && fat === 0) {
-				return undefined
-			}
-
-			return {
-				calories: calories / r.recipe.servings,
-				protein: protein / r.recipe.servings,
-				carbs: carbs / r.recipe.servings,
-				fat: fat / r.recipe.servings
-			}
-		})
+	const singleServingNutrition = $derived.by(() =>
+		recipeData ? getSingleServingNutrition(recipeData) : undefined
 	)
 
-	const recipeTitle = $derived(data.then((r) => r.recipe.title))
+	const recipeTitle = $derived(recipeData?.recipe.title ?? '')
 
 	const handleServingsChange = (newServings: number) => {
 		currentServings = newServings
@@ -236,9 +238,9 @@
 </script>
 
 {#snippet commonImage()}
-	{#await data}
+	{#if loading}
 		<RecipeImagePlaceholder loading size="large" />
-	{:then recipeData}
+	{:else if recipeData}
 		{#if recipeData.recipe.imageUrl && !imageBroken}
 			<img
 				src={recipeData.recipe.imageUrl}
@@ -249,36 +251,36 @@
 		{:else}
 			<RecipeImagePlaceholder size="large" broken={imageBroken} />
 		{/if}
-	{/await}
+	{/if}
 {/snippet}
 
 {#snippet tags()}
-	{#await data}
+	{#if loading}
 		<Skeleton />
-	{:then recipeData}
+	{:else if recipeData}
 		{#if recipeData.recipe.tags}
 			{#each recipeData.recipe.tags as tag}
 				<Pill text={tag} color="var(--color-text-on-background)" />
 			{/each}
 		{/if}
-	{/await}
+	{/if}
 {/snippet}
 
 {#snippet title()}
-	{#await data}
+	{#if loading}
 		<Skeleton width="20rem" height="2rem" />
-	{:then recipeData}
+	{:else if recipeData}
 		<h1>{recipeData.recipe.title}</h1>
-	{/await}
+	{/if}
 {/snippet}
 
 {#snippet actionButtons()}
 	{#if !preview}
-		{#await Promise.all([isLiked, likes, isSaved])}
+		{#if loading}
 			<FloatingLikeButton loading />
 			<FloatingSaveButton loading />
 			<FloatingShareButton loading />
-		{:then [isLiked, likes, isSaved]}
+		{:else if recipeData}
 			<FloatingLikeButton isActive={isLiked} count={likes} onClick={handleLike} />
 			<FloatingSaveButton
 				isActive={isSaved}
@@ -296,12 +298,12 @@
 				}}
 			/>
 			<FloatingShareButton onClick={toggleSharePopup} />
-		{/await}
+		{/if}
 	{/if}
 {/snippet}
 
 {#snippet commonDescription(card: boolean)}
-	{#await data}
+	{#if loading}
 		<Description
 			description=""
 			username={undefined}
@@ -310,7 +312,7 @@
 			{card}
 			loading={true}
 		/>
-	{:then recipeData}
+	{:else if recipeData}
 		<Description
 			description={recipeData.recipe.description || ''}
 			username={recipeData.recipe.user?.username}
@@ -318,13 +320,13 @@
 			profilePicUrl={recipeData.recipe.user?.avatarUrl}
 			{card}
 		/>
-	{/await}
+	{/if}
 {/snippet}
 
 {#snippet nutrition()}
-	{#await singleServingNutrition}
+	{#if loading}
 		<Skeleton />
-	{:then singleServingNutrition}
+	{:else if singleServingNutrition}
 		{#if singleServingNutrition}
 			<h3 class="header no-top-margin-mobile">Nutrition Per Serving</h3>
 
@@ -336,7 +338,7 @@
 				<NutritionFacts nutrition={singleServingNutrition} />
 			</div>
 		{/if}
-	{/await}
+	{/if}
 {/snippet}
 
 {#snippet ingredients()}
@@ -348,21 +350,21 @@
 		{#snippet ingredientsCard()}
 			<div class="ingredients-settings">
 				<ServingsAdjuster servings={currentServings} onServingsChange={handleServingsChange} />
-				{#await data then _}
+				{#if !loading}
 					<UnitToggle state={unitSystem} onSelect={onUnitChange} />
-				{/await}
+				{/if}
 			</div>
 
-			{#await data}
+			{#if loading}
 				<IngredientsList loading ingredients={[]} servings={0} originalServings={0} {unitSystem} />
-			{:then recipeData}
+			{:else if recipeData}
 				<IngredientsList
 					ingredients={recipeData.recipe.ingredients}
 					servings={currentServings}
 					originalServings={recipeData.recipe.servings}
 					{unitSystem}
 				/>
-			{/await}
+			{/if}
 		{/snippet}
 
 		<div class="ingredients-card card desktop-only">
@@ -380,9 +382,9 @@
 		<div class="header no-top-margin-mobile">
 			<h3 style="margin-bottom: 0;">Instructions</h3>
 		</div>
-		{#await data}
+		{#if loading}
 			<RecipeInstructions instructions={[]} loading />
-		{:then recipeData}
+		{:else if recipeData}
 			{#if useCookingMode}
 				<CookingMode
 					inline={true}
@@ -395,7 +397,7 @@
 			{:else}
 				<RecipeInstructions instructions={recipeData.recipe.instructions} />
 			{/if}
-		{/await}
+		{/if}
 	</div>
 {/snippet}
 
@@ -412,7 +414,7 @@
 				{/if}
 			</h3>
 		</div>
-		{#await data}
+		{#if loading}
 			<CommentList
 				comments={[]}
 				isLoggedIn={false}
@@ -422,7 +424,7 @@
 				total={0}
 				loadComments={() => Promise.resolve({ comments: [], total: 0 })}
 			/>
-		{:then recipeData}
+		{:else if recipeData}
 			<CommentList
 				comments={recipeData.comments.comments}
 				isLoggedIn={recipeData.isLoggedIn}
@@ -432,12 +434,21 @@
 				{loadComments}
 				{preview}
 			/>
-		{/await}
+		{/if}
 	</div>
 {/snippet}
 
 <div class="recipe-desktop-view">
-	<DesktopLayout {tags} {title} {actionButtons} {nutrition} {ingredients} {instructions} {comments}>
+	<DesktopLayout
+		{tags}
+		{title}
+		{actionButtons}
+		{nutrition}
+		{ingredients}
+		{instructions}
+		{comments}
+		transitionsEnabled={loading}
+	>
 		{#snippet image()}
 			{@render commonImage()}
 		{/snippet}
@@ -449,8 +460,16 @@
 </div>
 
 <div class="recipe-mobile-view">
-	<MobileLayout {tags} {title} {actionButtons} {nutrition} {ingredients} {instructions} {comments}
-		{...{ hasNutrition }}>
+	<MobileLayout
+		{tags}
+		{title}
+		{actionButtons}
+		{nutrition}
+		{ingredients}
+		{instructions}
+		{comments}
+		{...{ hasNutrition }}
+	>
 		{#snippet image()}
 			{@render commonImage()}
 		{/snippet}
