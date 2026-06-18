@@ -22,6 +22,7 @@
 
 	let {
 		recipes,
+		priorityRecipe = undefined,
 		onSearch,
 		onFiltersChange = (filters: {
 			tags: string[]
@@ -41,6 +42,7 @@
 		isLoading = false
 	}: {
 		recipes: ComponentProps<typeof RecipeGrid>['recipes']
+		priorityRecipe?: ComponentProps<typeof RecipeGrid>['priorityRecipe']
 		onSearch?: (query: string) => void
 		onFiltersChange?: (filters: {
 			tags: string[]
@@ -453,6 +455,7 @@
 			<div class="recipe-grid">
 				<RecipeGrid
 					{recipes}
+					{priorityRecipe}
 					emptyMessage={emptyStateMessage}
 					{loadMore}
 					onRecipeClick={openRecipePopup}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import RecipeCard from '$lib/components/recipe-card/RecipeCard.svelte'
 	import CardGrid from '$lib/components/card-grid/CardGrid.svelte'
-	import { onMount, type ComponentProps } from 'svelte'
+	import { onMount, untrack, type ComponentProps } from 'svelte'
 	import type { DetailedRecipe } from '$lib/server/db/recipe'
 
 	type RecipeItem = NonNullable<ComponentProps<typeof RecipeCard>['recipe']>
@@ -10,6 +10,7 @@
 
 	let {
 		recipes,
+		priorityRecipe = undefined,
 		emptyMessage = 'No recipes found.',
 		useAnimation = true,
 		loadMore,
@@ -19,6 +20,7 @@
 		menuOptions
 	}: {
 		recipes: Promise<RecipeItem[]>
+		priorityRecipe?: RecipeItem | null
 		emptyMessage?: string
 		loadMore?: () => Promise<void>
 		useAnimation?: boolean
@@ -33,12 +35,18 @@
 
 	let isInitialLoading = $state(true)
 
-	// initial 18 loading items
-	let resolvedRecipes = $state<GridItem[]>([
-		...Array(18)
-			.fill(undefined)
-			.map((_, index) => ({ loading: true, id: `loading-${index}` }))
-	])
+	// initial 18 items: the server-rendered priority recipe (mobile only) followed by loading items
+	let resolvedRecipes = $state<GridItem[]>(
+		untrack(() => {
+			const priority = priorityRecipe ? [priorityRecipe] : []
+			return [
+				...priority,
+				...Array(18 - priority.length)
+					.fill(undefined)
+					.map((_, index) => ({ loading: true, id: `loading-${index}` }))
+			]
+		})
+	)
 
 	$effect(() => {
 		recipes.then((recipeArray) => {
@@ -95,6 +103,7 @@
 		<RecipeCard
 			loading={gridItem.id.startsWith('loading')}
 			recipe={gridItem.id.startsWith('loading') ? undefined : (gridItem as RecipeItem)}
+			eager={!gridItem.id.startsWith('loading') && gridItem.id === priorityRecipe?.id}
 			{onRecipeClick}
 			menu={gridItem.id.startsWith('loading')
 				? undefined

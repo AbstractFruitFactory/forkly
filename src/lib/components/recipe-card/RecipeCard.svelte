@@ -18,7 +18,8 @@
 		recipe,
 		loading = false,
 		menu,
-		onRecipeClick
+		onRecipeClick,
+		eager = false
 	}: {
 		recipe?: DetailedRecipe
 		loading?: boolean
@@ -26,6 +27,7 @@
 			options: { [key: string]: () => void }
 		}
 		onRecipeClick?: (recipe: DetailedRecipe, event: MouseEvent) => Promise<void>
+		eager?: boolean
 	} = $props()
 
 	let isNavigating = $state(false)
@@ -110,10 +112,11 @@
 				<img
 					src={optimizeImageUrl(recipe.imageUrl, { width: 640 })}
 					srcset={buildImageSrcset(recipe.imageUrl, [320, 480, 640, 800, 1080])}
-					sizes="(max-width: 768px) 100vw, 400px"
+					sizes="(max-width: 768px) calc(100vw - 3rem), 400px"
 					alt=""
 					aria-hidden="true"
-					loading="lazy"
+					loading={eager ? 'eager' : 'lazy'}
+					fetchpriority={eager ? 'high' : 'auto'}
 					decoding="async"
 					onerror={() => (imageBroken = true)}
 					onload={() => (imageBroken = false)}
