@@ -3,6 +3,9 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [sveltekit()],
+	build: {
+		cssTarget: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14']
+	},
 	server: {
 		allowedHosts: [
 			'localhost',
