@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { gsap } from 'gsap'
-	import { type Snippet } from 'svelte'
+	import { type Snippet, untrack } from 'svelte'
 	import { tick } from 'svelte'
 
 	type Item = $$Generic<{ id: string }>
@@ -20,7 +20,7 @@
 	let cardGrid = $state<HTMLElement>()
 	let cards: HTMLElement[] = $state([])
 
-	let previousCardsCount = $state(0)
+	let previousCardsCount = $state(untrack(() => items.length))
 
 	$effect(() => {
 		;(async () => {
