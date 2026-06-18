@@ -12,6 +12,7 @@
 	import { afterNavigate } from '$app/navigation'
 	import Skeleton from '$lib/components/skeleton/Skeleton.svelte'
 	import { formatNumberShort } from '$lib/utils/format'
+	import { optimizeImageUrl, buildImageSrcset } from '$lib/utils/image'
 
 	let {
 		recipe,
@@ -107,7 +108,9 @@
 				</div>
 			{:else if recipe?.imageUrl && !imageBroken}
 				<img
-					src={recipe.imageUrl}
+					src={optimizeImageUrl(recipe.imageUrl, { width: 640 })}
+					srcset={buildImageSrcset(recipe.imageUrl, [320, 480, 640, 800, 1080])}
+					sizes="(max-width: 768px) 100vw, 400px"
 					alt=""
 					aria-hidden="true"
 					loading="lazy"
