@@ -10,7 +10,7 @@
 
 	let {
 		recipes,
-		priorityRecipe = undefined,
+		priorityRecipes = undefined,
 		emptyMessage = 'No recipes found.',
 		useAnimation = true,
 		loadMore,
@@ -20,7 +20,7 @@
 		menuOptions
 	}: {
 		recipes: Promise<RecipeItem[]>
-		priorityRecipe?: RecipeItem | null
+		priorityRecipes?: RecipeItem[] | null
 		emptyMessage?: string
 		loadMore?: () => Promise<void>
 		useAnimation?: boolean
@@ -35,13 +35,16 @@
 
 	let isInitialLoading = $state(true)
 
-	// initial 18 items: the server-rendered priority recipe (mobile only) followed by loading items
+	// ids of the server-rendered above-the-fold recipes, so their images render eagerly
+	const prioritySet = new Set((priorityRecipes ?? []).map((r) => r.id))
+
+	// initial 18 items: the server-rendered priority recipes followed by loading items
 	let resolvedRecipes = $state<GridItem[]>(
 		untrack(() => {
-			const priority = priorityRecipe ? [priorityRecipe] : []
+			const priority = priorityRecipes ?? []
 			return [
 				...priority,
-				...Array(18 - priority.length)
+				...Array(Math.max(0, 18 - priority.length))
 					.fill(undefined)
 					.map((_, index) => ({ loading: true, id: `loading-${index}` }))
 			]
@@ -103,7 +106,7 @@
 		<RecipeCard
 			loading={gridItem.id.startsWith('loading')}
 			recipe={gridItem.id.startsWith('loading') ? undefined : (gridItem as RecipeItem)}
-			eager={!gridItem.id.startsWith('loading') && gridItem.id === priorityRecipe?.id}
+			eager={!gridItem.id.startsWith('loading') && prioritySet.has(gridItem.id)}
 			{onRecipeClick}
 			menu={gridItem.id.startsWith('loading')
 				? undefined

@@ -37,14 +37,17 @@ export const load: PageServerLoad = async ({ fetch, cookies, request, isDataRequ
 
 	const userAgent = request.headers.get('user-agent') ?? ''
 	const isMobile = /Mobile|Android|iPhone|iPod/i.test(userAgent)
+	// Mobile shows ~1 card above the fold; desktop shows a full row, so SSR more of
+	// them eagerly to keep the LCP image in the initial HTML on both layouts.
+	const priorityCount = isMobile ? 1 : 6
 
-	let priorityRecipe: DetailedRecipe | null = null
-	if (isMobile && !isDataRequest && !page) {
+	let priorityRecipes: DetailedRecipe[] = []
+	if (!isDataRequest && !page) {
 		const priorityResult = await safeFetch<RecipesSearchResponse>(fetch)(
-			'/recipes/search?' + queryString + '&page=0&limit=1'
+			'/recipes/search?' + queryString + '&page=0&limit=' + priorityCount
 		)
 		if (priorityResult.isOk()) {
-			priorityRecipe = priorityResult.value.results[0] ?? null
+			priorityRecipes = priorityResult.value.results
 		}
 	}
 
@@ -52,7 +55,7 @@ export const load: PageServerLoad = async ({ fetch, cookies, request, isDataRequ
 		hasMore: recipesPromise.then((r) => r.length === PAGINATION_LIMIT),
 		loadedPage: !!page,
 		recipes: recipesPromise,
-		priorityRecipe,
+		priorityRecipes,
 		initialState: {
                         search: search?.query || '',
                         tags: search?.tags || [],

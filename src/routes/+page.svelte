@@ -129,7 +129,7 @@
 
 <Home
 	{recipes}
-	priorityRecipe={data.priorityRecipe}
+	priorityRecipes={data.priorityRecipes}
 	onSearch={handleSearchChange}
 	onFiltersChange={handleFiltersChange}
 	onSortChange={handleSortChange}
