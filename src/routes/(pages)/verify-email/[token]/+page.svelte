@@ -25,6 +25,6 @@
 		min-height: 60vh;
 	}
 	h1 {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 	}
 </style>
